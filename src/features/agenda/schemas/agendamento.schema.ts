@@ -12,6 +12,7 @@ export const stepClienteSchema = z.object({
   cidade: z.string().optional().or(z.literal('')),
   estado: z.string().optional().or(z.literal('')),
   origem: z.enum(['INDICACAO', 'ANUNCIO', 'OUTROS']).optional(),
+  observacoes: z.string().optional().or(z.literal('')),
 })
 
 export const stepEnsaioSchema = z.object({
@@ -71,6 +72,19 @@ export const agendamentoSchema = z.object({
 })
 
 export type AgendamentoFormData = z.infer<typeof agendamentoSchema>
+
+export const editarAgendamentoSchema = z.object({
+  pacoteId: z.string().min(1, 'Selecione um pacote'),
+  dataHoraEnsaio: z.string().min(1, 'Selecione data e horário'),
+  localEnsaio: z.string().min(3, 'Informe o local do ensaio'),
+  enderecoCompleto: z.string().optional().or(z.literal('')),
+  editorId: z.string().optional().or(z.literal('')),
+  taxaDeslocamento: z.number().min(0, 'Taxa não pode ser negativa'),
+  autorizaUsoImagem: z.boolean(),
+  observacoes: z.string().optional().or(z.literal('')),
+})
+
+export type EditarAgendamentoFormData = z.infer<typeof editarAgendamentoSchema>
 
 export const STEP_1_FIELDS: (keyof AgendamentoFormData)[] = [
   'clienteNome',

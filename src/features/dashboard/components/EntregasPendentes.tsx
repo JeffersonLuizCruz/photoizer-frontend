@@ -2,7 +2,7 @@ import { format, differenceInDays } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import { Camera, Clock, AlertTriangle } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
-import { Button } from '@/shared/components/ui/button'
+
 import { ROUTES, AGENDAMENTO_STATUS } from '@/shared/constants'
 import type { Agendamento } from '@/features/agenda/types'
 

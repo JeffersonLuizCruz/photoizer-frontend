@@ -1,5 +1,5 @@
 import { useParams, useNavigate } from 'react-router-dom'
-import { FileText, ClipboardList, DollarSign, ListTodo, ScrollText } from 'lucide-react'
+import { FileText, ClipboardList, DollarSign, ListTodo, ScrollText, Pencil } from 'lucide-react'
 import { Button } from '@/shared/components/ui/button'
 import { PageTitle } from '@/shared/components/layout/PageTitle'
 import { PageLoading } from '@/shared/components/layout/Loading'
@@ -54,6 +54,10 @@ export function AgendamentoDetalhesPage() {
         ]}
         actions={
           <div className="flex items-center gap-2">
+            <Button variant="outline" size="sm" onClick={() => navigate(`/agenda/${agendamento.id}/editar`)}>
+              <Pencil className="mr-1 h-4 w-4" />
+              Editar
+            </Button>
             <StatusBadge status={agendamento.status} customLabels={statusCustomLabels} />
             <AgendamentoActions agendamento={agendamento} />
           </div>

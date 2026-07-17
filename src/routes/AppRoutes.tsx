@@ -2,7 +2,7 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import { AppLayout } from '@/shared/components/layout/AppLayout'
 import { ROUTES } from '@/shared/constants'
 import { ClientesListPage, ClienteFormPage } from '@/features/clientes'
-import { NovoAgendamentoPage, AgendamentoDetalhesPage, AgendaPage, MinhasTarefasPage } from '@/features/agenda'
+import { NovoAgendamentoPage, AgendamentoDetalhesPage, EditarAgendamentoPage, AgendaPage, MinhasTarefasPage } from '@/features/agenda'
 import { PacotesListPage, PacoteFormPage } from '@/features/pacotes'
 import { DashboardPage } from '@/features/dashboard'
 import { FinanceiroDashboardPage, RelatoriosPage } from '@/features/financeiro'
@@ -30,6 +30,7 @@ export function AppRoutes() {
           <Route path={ROUTES.AGENDA} element={<AgendaPage />} />
           <Route path={ROUTES.AGENDA_NOVO} element={<NovoAgendamentoPage />} />
           <Route path={ROUTES.AGENDA_DETALHES} element={<AgendamentoDetalhesPage />} />
+          <Route path={ROUTES.AGENDA_EDITAR} element={<EditarAgendamentoPage />} />
           <Route path={ROUTES.TAREFAS} element={<MinhasTarefasPage />} />
           <Route path={ROUTES.PACOTES} element={<PacotesListPage />} />
           <Route path={ROUTES.PACOTES_NOVO} element={<PacoteFormPage />} />

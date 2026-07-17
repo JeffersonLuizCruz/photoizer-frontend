@@ -1,9 +1,10 @@
 import { format } from 'date-fns'
 import { apiClient } from '@/shared/api'
-import type { Agendamento, FotoExtra, Pacote, Tarefa, Usuario } from '../types'
+import type { Agendamento, FotoExtra, Pacote, Pagamento, Tarefa, Usuario } from '../types'
 import type { WizardFormValues } from '../schemas/agendamento.schema'
 import type { AgendamentoStatus, TarefaStatus, TarefaTipo } from '@/shared/constants'
 import type { Cliente } from '@/features/clientes/types'
+import type { EditarAgendamentoFormData } from '../schemas/agendamento.schema'
 
 export const agendamentoService = {
   listPacotes: async (): Promise<Pacote[]> => {
@@ -36,6 +37,16 @@ export const agendamentoService = {
 
   getById: async (id: string): Promise<Agendamento> => {
     const { data } = await apiClient.get<Agendamento>(`/agendamentos/${id}`)
+    return data
+  },
+
+  update: async (id: string, payload: EditarAgendamentoFormData): Promise<Agendamento> => {
+    const { data } = await apiClient.put<Agendamento>(`/agendamentos/${id}`, payload)
+    return data
+  },
+
+  listarPagamentos: async (agendamentoId: string): Promise<Pagamento[]> => {
+    const { data } = await apiClient.get<Pagamento[]>(`/financeiro/agendamentos/${agendamentoId}/pagamentos`)
     return data
   },
 

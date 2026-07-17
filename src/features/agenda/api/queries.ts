@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { agendamentoService } from '../services/agendamento.service'
-import type { WizardFormValues } from '../schemas/agendamento.schema'
+import type { WizardFormValues, EditarAgendamentoFormData } from '../schemas/agendamento.schema'
 import { QUERY_KEYS } from '@/shared/constants'
 import type { AgendamentoStatus, TarefaStatus, TarefaTipo } from '@/shared/constants'
 
@@ -48,6 +48,30 @@ export function useAgendamento(id: string) {
     queryKey: [...QUERY_KEYS.AGENDA, id],
     queryFn: () => agendamentoService.getById(id),
     enabled: !!id,
+  })
+}
+
+export function useUpdateAgendamento(id: string) {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (payload: EditarAgendamentoFormData) =>
+      agendamentoService.update(id, payload),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.AGENDA })
+      toast.success('Agendamento atualizado com sucesso')
+    },
+    onError: (error: Error) => {
+      toast.error(error.message || 'Erro ao atualizar agendamento')
+    },
+  })
+}
+
+export function usePagamentosList(agendamentoId: string) {
+  return useQuery({
+    queryKey: [...QUERY_KEYS.FINANCEIRO, 'pagamentos', agendamentoId],
+    queryFn: () => agendamentoService.listarPagamentos(agendamentoId),
+    enabled: !!agendamentoId,
   })
 }
 

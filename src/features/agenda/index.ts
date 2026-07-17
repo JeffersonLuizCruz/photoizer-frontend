@@ -1,4 +1,5 @@
 export { NovoAgendamentoPage } from './pages/NovoAgendamentoPage'
 export { AgendamentoDetalhesPage } from './pages/AgendamentoDetalhesPage'
+export { EditarAgendamentoPage } from './pages/EditarAgendamentoPage'
 export { AgendaPage } from './pages/AgendaPage'
 export { MinhasTarefasPage } from './pages/MinhasTarefasPage'

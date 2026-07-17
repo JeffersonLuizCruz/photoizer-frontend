@@ -6,7 +6,7 @@ interface FinanceiroResumoProps {
   agendamentos: Agendamento[]
 }
 
-const statusComPagamentoFinal = [
+const statusComPagamentoFinal: Agendamento['status'][] = [
   AGENDAMENTO_STATUS.EM_EDICAO,
   AGENDAMENTO_STATUS.FOTOS_ENVIADAS_PARA_SELECAO,
   AGENDAMENTO_STATUS.FOTOS_ENTREGUES,

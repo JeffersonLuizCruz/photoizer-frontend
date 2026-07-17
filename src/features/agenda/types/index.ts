@@ -61,6 +61,15 @@ export interface Agendamento {
   updatedAt: string
 }
 
+export interface Pagamento {
+  id: string
+  agendamentoId: string
+  valor: number
+  dataPagamento: string
+  urlComprovante: string | null
+  observacao: string | null
+}
+
 export interface FotoExtra {
   id: string
   agendamentoId: string

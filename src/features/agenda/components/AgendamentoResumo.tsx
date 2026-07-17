@@ -1,8 +1,11 @@
+import { useState } from 'react'
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
-import { CalendarDays, Clock, MapPin, User, DollarSign, Camera, Award } from 'lucide-react'
+import { CalendarDays, Clock, MapPin, User, DollarSign, Camera, Award, Pencil } from 'lucide-react'
 import type { Agendamento } from '../types'
 import { Badge } from '@/shared/components/ui/badge'
+import { Button } from '@/shared/components/ui/button'
+import { EditarClienteDialog } from './EditarClienteDialog'
 
 interface AgendamentoResumoProps {
   agendamento: Agendamento
@@ -31,6 +34,8 @@ function InfoRow({ label, value }: { label: string; value: string | null | undef
 }
 
 export function AgendamentoResumo({ agendamento }: AgendamentoResumoProps) {
+  const [editClienteOpen, setEditClienteOpen] = useState(false)
+
   const dataEnsaio = agendamento.dataHoraEnsaio
     ? format(new Date(agendamento.dataHoraEnsaio), "dd 'de' MMM 'de' yyyy", { locale: ptBR })
     : '-'
@@ -46,7 +51,21 @@ export function AgendamentoResumo({ agendamento }: AgendamentoResumoProps) {
         <InfoRow label="Email" value={agendamento.clienteEmail} />
         <InfoRow label="CPF" value={agendamento.clienteCpf} />
         <InfoRow label="Cidade/Estado" value={agendamento.clienteCidade && agendamento.clienteEstado ? `${agendamento.clienteCidade}/${agendamento.clienteEstado}` : null} />
+        <div className="pt-2">
+          <Button variant="outline" size="sm" className="w-full" onClick={() => setEditClienteOpen(true)}>
+            <Pencil className="mr-1 h-3.5 w-3.5" />
+            Editar Cliente
+          </Button>
+        </div>
       </InfoCard>
+
+      {agendamento.clienteId && (
+        <EditarClienteDialog
+          clienteId={agendamento.clienteId}
+          open={editClienteOpen}
+          onOpenChange={setEditClienteOpen}
+        />
+      )}
 
       <InfoCard icon={Camera} title="Dados do Ensaio">
         <div className="flex items-center gap-1">

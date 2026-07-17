@@ -196,6 +196,18 @@ export function StepCliente() {
             </SelectContent>
           </Select>
         </div>
+
+        <div className="sm:col-span-2">
+          <Label htmlFor="observacoes">Observações</Label>
+          <textarea
+            id="observacoes"
+            {...register('observacoes')}
+            rows={3}
+            className="flex w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+            placeholder="Observações sobre o cliente"
+          />
+          {errors.observacoes && <p className="mt-1 text-sm text-destructive">{errors.observacoes.message}</p>}
+        </div>
       </div>
     </div>
   )

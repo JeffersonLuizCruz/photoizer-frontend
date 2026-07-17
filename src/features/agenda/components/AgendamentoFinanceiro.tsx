@@ -1,11 +1,14 @@
 import { useState } from 'react'
-import { Plus, CreditCard, Receipt, Check } from 'lucide-react'
+import { Plus, CreditCard, Receipt, Check, History } from 'lucide-react'
+import { format } from 'date-fns'
+import { ptBR } from 'date-fns/locale'
 import { toast } from 'sonner'
 import { Button } from '@/shared/components/ui/button'
 import { Badge } from '@/shared/components/ui/badge'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/shared/components/ui/table'
 import { RegistrarPagamentoDialog } from './RegistrarPagamentoDialog'
 import { AdicionarExtrasDialog } from './AdicionarExtrasDialog'
+import { usePagamentosList } from '../api/queries'
 import { montarReciboPagamento } from '../utils/recibo'
 import type { Agendamento } from '../types'
 import { AGENDAMENTO_STATUS } from '@/shared/constants'
@@ -25,6 +28,7 @@ export function AgendamentoFinanceiro({ agendamento }: AgendamentoFinanceiroProp
   const [showPagamento, setShowPagamento] = useState(false)
   const [showExtras, setShowExtras] = useState(false)
   const [reciboCopiado, setReciboCopiado] = useState(false)
+  const { data: pagamentos = [] } = usePagamentosList(agendamento.id)
 
   const podePagarFinal =
     agendamento.status === AGENDAMENTO_STATUS.AGUARDANDO_PAGAMENTO_FINAL ||
@@ -35,12 +39,12 @@ export function AgendamentoFinanceiro({ agendamento }: AgendamentoFinanceiroProp
     agendamento.status !== AGENDAMENTO_STATUS.CANCELADO &&
     agendamento.status !== AGENDAMENTO_STATUS.NO_SHOW
 
-  const pagamentoFinalRealizado = [
+  const pagamentoFinalRealizado = ([
     AGENDAMENTO_STATUS.EM_EDICAO,
     AGENDAMENTO_STATUS.FOTOS_ENVIADAS_PARA_SELECAO,
     AGENDAMENTO_STATUS.FOTOS_ENTREGUES,
     AGENDAMENTO_STATUS.FINALIZADO,
-  ].includes(agendamento.status)
+  ] as Agendamento['status'][]).includes(agendamento.status)
 
   const handleGerarRecibo = async () => {
     const texto = montarReciboPagamento(agendamento)
@@ -192,6 +196,52 @@ export function AgendamentoFinanceiro({ agendamento }: AgendamentoFinanceiroProp
           </p>
         </div>
       </div>
+
+      {pagamentos.length > 0 && (
+        <div className="space-y-2">
+          <h4 className="flex items-center gap-2 text-sm font-semibold text-muted-foreground">
+            <History className="h-4 w-4" />
+            Histórico de Pagamentos
+          </h4>
+          <div className="rounded-md border">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Data</TableHead>
+                  <TableHead>Valor</TableHead>
+                  <TableHead>Comprovante</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {pagamentos.map((pag) => (
+                  <TableRow key={pag.id}>
+                    <TableCell className="tabular-nums">
+                      {format(new Date(pag.dataPagamento), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
+                    </TableCell>
+                    <TableCell className="font-medium tabular-nums">
+                      R$ {pag.valor.toFixed(2)}
+                    </TableCell>
+                    <TableCell>
+                      {pag.urlComprovante ? (
+                        <a
+                          href={pag.urlComprovante}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-primary underline text-sm"
+                        >
+                          Visualizar
+                        </a>
+                      ) : (
+                        <span className="text-muted-foreground text-sm">—</span>
+                      )}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        </div>
+      )}
 
       <RegistrarPagamentoDialog
         open={showPagamento}

@@ -1,4 +1,4 @@
-import { useState, type Dispatch, type SetStateAction } from 'react'
+import { useState } from 'react'
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import { Calendar as CalendarIcon } from 'lucide-react'
@@ -12,11 +12,9 @@ export interface DateRange {
   to: Date | undefined
 }
 
-type DateRangePickerValue = DateRange | undefined
-
 interface DateRangePickerProps extends Omit<CalendarProps, 'mode' | 'selected' | 'onSelect'> {
-  value: DateRangePickerValue
-  onChange: Dispatch<SetStateAction<DateRangePickerValue>>
+  value: DateRange | undefined
+  onChange: (range: DateRange | undefined) => void
   placeholder?: string
   className?: string
   align?: 'start' | 'center' | 'end'
