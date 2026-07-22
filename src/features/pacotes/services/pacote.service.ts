@@ -1,8 +1,13 @@
 import { apiClient } from '@/shared/api'
-import type { Pacote } from '../types'
+import type { Pacote, UsuarioRef } from '../types'
 import type { PacoteFormData } from '../schemas/pacote.schema'
 
 export const pacoteService = {
+  listUsuarios: async (): Promise<UsuarioRef[]> => {
+    const { data } = await apiClient.get<UsuarioRef[]>('/usuarios')
+    return data
+  },
+
   list: async (): Promise<Pacote[]> => {
     const { data } = await apiClient.get<Pacote[]>('/pacotes/all')
     return data

@@ -4,6 +4,14 @@ import { pacoteService } from '../services/pacote.service'
 import type { PacoteFormData } from '../schemas/pacote.schema'
 import { QUERY_KEYS } from '@/shared/constants'
 
+export function useUsuariosList() {
+  return useQuery({
+    queryKey: [...QUERY_KEYS.PACOTES, 'usuarios'],
+    queryFn: () => pacoteService.listUsuarios(),
+    staleTime: 1000 * 60 * 5,
+  })
+}
+
 export function usePacotesList() {
   return useQuery({
     queryKey: [...QUERY_KEYS.PACOTES],

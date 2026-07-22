@@ -9,3 +9,19 @@ export function useFinanceiroMensal(meses = 6) {
     staleTime: 1000 * 60 * 2,
   })
 }
+
+export function useDashboardEcommerce() {
+  return useQuery({
+    queryKey: [...QUERY_KEYS.DASHBOARD, 'ecommerce'],
+    queryFn: () => dashboardService.ecommerce(),
+    staleTime: 1000 * 60 * 2,
+  })
+}
+
+export function useDashboardEcommerceMensal(meses = 6) {
+  return useQuery({
+    queryKey: [...QUERY_KEYS.DASHBOARD, 'ecommerce-mensal', meses],
+    queryFn: () => dashboardService.ecommerceMensal(meses),
+    staleTime: 1000 * 60 * 2,
+  })
+}

@@ -17,6 +17,9 @@ export const ROUTES = {
   TAREFAS: '/tarefas',
   CONFIG: '/config',
   COMISSOES: '/comissoes',
+  AGENDA_GALERIA: '/agenda/:id/fotos',
+  ADMIN_ECOMMERCE: '/admin/ecommerce',
+  LOGIN: '/login',
 } as const
 
 export const QUERY_KEYS = {

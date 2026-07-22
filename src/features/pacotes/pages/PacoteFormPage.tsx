@@ -58,6 +58,9 @@ export function PacoteFormPage() {
                   bloqueiaDiaInteiro: pacote.bloqueiaDiaInteiro,
                   duracaoEstimada: pacote.duracaoEstimada,
                   ativo: pacote.ativo,
+                  fotografoId: pacote.fotografoId ?? '',
+                  editorResponsavelId: pacote.editorResponsavelId ?? '',
+                  diasParaEntrega: pacote.diasParaEntrega ?? '',
                 }
               : undefined
           }

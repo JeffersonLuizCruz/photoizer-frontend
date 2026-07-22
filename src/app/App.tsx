@@ -1,5 +1,6 @@
 import { Toaster } from 'sonner'
 import { QueryProvider, ThemeProvider } from '@/providers'
+import { AuthProvider } from '@/features/auth'
 import { AppRoutes } from '@/routes'
 import { ErrorBoundary } from '@/shared/components/ErrorBoundary'
 
@@ -8,8 +9,10 @@ export function App() {
     <ErrorBoundary>
       <ThemeProvider>
         <QueryProvider>
-          <AppRoutes />
-          <Toaster richColors closeButton position="top-right" />
+          <AuthProvider>
+            <AppRoutes />
+            <Toaster richColors closeButton position="top-right" />
+          </AuthProvider>
         </QueryProvider>
       </ThemeProvider>
     </ErrorBoundary>

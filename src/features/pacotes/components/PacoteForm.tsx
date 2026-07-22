@@ -4,10 +4,13 @@ import { useNavigate } from 'react-router-dom'
 import { useEffect } from 'react'
 import { Loader2 } from 'lucide-react'
 import { pacoteSchema, type PacoteFormData } from '../schemas/pacote.schema'
+import { useUsuariosList } from '../api/queries'
 import { Button } from '@/shared/components/ui/button'
 import { Input } from '@/shared/components/ui/input'
 import { Label } from '@/shared/components/ui/label'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/components/ui/select'
 import { ROUTES } from '@/shared/constants'
+
 interface PacoteFormProps {
   onSubmit: (data: PacoteFormData) => void
   defaultValues?: Partial<PacoteFormData>
@@ -17,6 +20,10 @@ interface PacoteFormProps {
 
 export function PacoteForm({ onSubmit, defaultValues, isLoading, mode }: PacoteFormProps) {
   const navigate = useNavigate()
+  const { data: usuarios } = useUsuariosList()
+
+  const fotografoOptions = usuarios?.filter((u) => u.papel === 'FOTOGRAFA' || u.papel === 'FOTOGRAFO') ?? []
+  const editorOptions = usuarios?.filter((u) => u.papel === 'EDITOR') ?? []
 
   const form = useForm<PacoteFormData>({
     resolver: zodResolver(pacoteSchema) as any,
@@ -29,6 +36,9 @@ export function PacoteForm({ onSubmit, defaultValues, isLoading, mode }: PacoteF
       bloqueiaDiaInteiro: false,
       duracaoEstimada: '',
       ativo: true,
+      fotografoId: '',
+      editorResponsavelId: '',
+      diasParaEntrega: '',
       ...defaultValues,
     },
   })
@@ -37,11 +47,15 @@ export function PacoteForm({ onSubmit, defaultValues, isLoading, mode }: PacoteF
 
   const ativo = watch('ativo')
   const bloqueiaDiaInteiro = watch('bloqueiaDiaInteiro')
+  const fotografoId = watch('fotografoId')
+  const editorResponsavelId = watch('editorResponsavelId')
 
   useEffect(() => {
     if (defaultValues) {
       if (defaultValues.bloqueiaDiaInteiro !== undefined) setValue('bloqueiaDiaInteiro', defaultValues.bloqueiaDiaInteiro)
       if (defaultValues.ativo !== undefined) setValue('ativo', defaultValues.ativo)
+      if (defaultValues.fotografoId !== undefined) setValue('fotografoId', defaultValues.fotografoId)
+      if (defaultValues.editorResponsavelId !== undefined) setValue('editorResponsavelId', defaultValues.editorResponsavelId)
     }
   }, [defaultValues, setValue])
 
@@ -95,6 +109,40 @@ export function PacoteForm({ onSubmit, defaultValues, isLoading, mode }: PacoteF
           <Label htmlFor="duracaoEstimada">Duração Estimada *</Label>
           <Input id="duracaoEstimada" {...register('duracaoEstimada')} placeholder="Ex: 2h, 4h, 2 horas" />
           {errors.duracaoEstimada && <p className="mt-1 text-sm text-destructive">{errors.duracaoEstimada.message}</p>}
+        </div>
+
+        <div>
+          <Label htmlFor="fotografoId">Fotógrafo Responsável</Label>
+          <Select value={fotografoId || ''} onValueChange={(v) => setValue('fotografoId', v)}>
+            <SelectTrigger id="fotografoId">
+              <SelectValue placeholder="Selecione um fotógrafo" />
+            </SelectTrigger>
+            <SelectContent>
+              {fotografoOptions.map((u) => (
+                <SelectItem key={u.id} value={u.id}>{u.nome}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div>
+          <Label htmlFor="editorResponsavelId">Editor Responsável</Label>
+          <Select value={editorResponsavelId || ''} onValueChange={(v) => setValue('editorResponsavelId', v)}>
+            <SelectTrigger id="editorResponsavelId">
+              <SelectValue placeholder="Selecione um editor" />
+            </SelectTrigger>
+            <SelectContent>
+              {editorOptions.map((u) => (
+                <SelectItem key={u.id} value={u.id}>{u.nome}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div>
+          <Label htmlFor="diasParaEntrega">Prazo de Entrega (dias)</Label>
+          <Input id="diasParaEntrega" type="number" min={0} {...register('diasParaEntrega')} placeholder="Ex: 15" />
+          {errors.diasParaEntrega && <p className="mt-1 text-sm text-destructive">{errors.diasParaEntrega.message}</p>}
         </div>
 
         <div className="sm:col-span-2 space-y-4">

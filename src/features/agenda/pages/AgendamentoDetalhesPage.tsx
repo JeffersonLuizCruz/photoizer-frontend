@@ -1,5 +1,5 @@
 import { useParams, useNavigate } from 'react-router-dom'
-import { FileText, ClipboardList, DollarSign, ListTodo, ScrollText, Pencil } from 'lucide-react'
+import { FileText, ClipboardList, DollarSign, ListTodo, ScrollText, Pencil, Camera, ShoppingBag } from 'lucide-react'
 import { Button } from '@/shared/components/ui/button'
 import { PageTitle } from '@/shared/components/layout/PageTitle'
 import { PageLoading } from '@/shared/components/layout/Loading'
@@ -13,6 +13,7 @@ import { AgendamentoTimeline } from '../components/AgendamentoTimeline'
 import { AgendamentoFinanceiro } from '../components/AgendamentoFinanceiro'
 import { AgendamentoTarefas } from '../components/AgendamentoTarefas'
 import { AgendamentoContrato } from '../components/AgendamentoContrato'
+import { EcommerceAdminResumo } from '@/features/ecommerce/components/EcommerceAdminResumo'
 
 const statusCustomLabels: Record<string, { label: string; variant: 'warning' | 'info' | 'success' | 'destructive' | 'default' | 'secondary' }> = {
   [AGENDAMENTO_STATUS.CONFIRMADO]: { label: 'Confirmado', variant: 'info' },
@@ -59,6 +60,10 @@ export function AgendamentoDetalhesPage() {
               <Pencil className="mr-1 h-4 w-4" />
               Editar
             </Button>
+            <Button variant="outline" size="sm" onClick={() => navigate(`/agenda/${agendamento.id}/fotos`)}>
+              <Camera className="mr-1 h-4 w-4" />
+              Fotos
+            </Button>
             <StatusBadge status={agendamento.status} customLabels={statusCustomLabels} />
             <AgendamentoActions agendamento={agendamento} />
           </div>
@@ -87,6 +92,10 @@ export function AgendamentoDetalhesPage() {
             <FileText className="mr-1.5 h-4 w-4" />
             Contrato
           </TabsTrigger>
+          <TabsTrigger value="ecommerce">
+            <ShoppingBag className="mr-1.5 h-4 w-4" />
+            Ecommerce
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="resumo">
@@ -107,6 +116,9 @@ export function AgendamentoDetalhesPage() {
 
         <TabsContent value="contrato">
           <AgendamentoContrato agendamento={agendamento} />
+        </TabsContent>
+        <TabsContent value="ecommerce">
+          <EcommerceAdminResumo agendamentoId={agendamento.id} />
         </TabsContent>
       </Tabs>
     </div>

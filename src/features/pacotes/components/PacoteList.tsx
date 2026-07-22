@@ -36,9 +36,19 @@ const columns: ColumnDef<Pacote>[] = [
     header: 'Duração',
   },
   {
-    id: 'bloqueiaDiaInteiro',
-    header: 'Dia Inteiro',
-    cell: ({ row }) => (row.original.bloqueiaDiaInteiro ? 'Sim' : 'Não'),
+    id: 'fotografo',
+    header: 'Fotógrafo',
+    cell: ({ row }) => row.original.fotografoNome ?? '—',
+  },
+  {
+    id: 'editor',
+    header: 'Editor',
+    cell: ({ row }) => row.original.editorResponsavelNome ?? '—',
+  },
+  {
+    id: 'diasParaEntrega',
+    header: 'Prazo',
+    cell: ({ row }) => row.original.diasParaEntrega ? `${row.original.diasParaEntrega} dias` : '—',
   },
   {
     id: 'status',

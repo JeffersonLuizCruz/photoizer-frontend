@@ -1,13 +1,18 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import { AppLayout } from '@/shared/components/layout/AppLayout'
+import { BlankLayout } from '@/shared/components/layout/BlankLayout'
 import { ROUTES } from '@/shared/constants'
+import { GaleriaClientePage } from '@/features/ecommerce/pages/GaleriaClientePage'
+import { AdminEcommercePage } from '@/features/ecommerce/pages/AdminEcommercePage'
 import { ClientesListPage, ClienteFormPage, ClienteDetalhesPage } from '@/features/clientes'
 import { NovoAgendamentoPage, AgendamentoDetalhesPage, EditarAgendamentoPage, AgendaPage, MinhasTarefasPage } from '@/features/agenda'
+import { AdminGaleriaPage } from '@/features/fotos'
 import { PacotesListPage, PacoteFormPage } from '@/features/pacotes'
 import { DashboardPage, DashboardDetalhesPage } from '@/features/dashboard'
 import { ConfigPage } from '@/features/config'
 import { ComissoesConsultaPage } from '@/features/comissoes'
 import { FinanceiroDashboardPage, RelatoriosPage } from '@/features/financeiro'
+import { LoginPage, ProtectedRoute } from '@/features/auth'
 
 function NotFound() {
   return (
@@ -24,7 +29,13 @@ export function AppRoutes() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route element={<AppLayout />}>
+        <Route path={ROUTES.LOGIN} element={<LoginPage />} />
+
+        <Route path="/g/:token" element={<BlankLayout />}>
+          <Route index element={<GaleriaClientePage />} />
+        </Route>
+
+        <Route element={<ProtectedRoute><AppLayout /></ProtectedRoute>}>
           <Route path={ROUTES.DASHBOARD} element={<DashboardPage />} />
           <Route path={ROUTES.DASHBOARD_DETALHES} element={<DashboardDetalhesPage />} />
           <Route path={ROUTES.CLIENTES} element={<ClientesListPage />} />
@@ -43,6 +54,8 @@ export function AppRoutes() {
           <Route path={ROUTES.FINANCEIRO_RELATORIOS} element={<RelatoriosPage />} />
           <Route path={ROUTES.CONFIG} element={<ConfigPage />} />
           <Route path={ROUTES.COMISSOES} element={<ComissoesConsultaPage />} />
+          <Route path={ROUTES.AGENDA_GALERIA} element={<AdminGaleriaPage />} />
+          <Route path={ROUTES.ADMIN_ECOMMERCE} element={<AdminEcommercePage />} />
         </Route>
 
         <Route path="*" element={<NotFound />} />

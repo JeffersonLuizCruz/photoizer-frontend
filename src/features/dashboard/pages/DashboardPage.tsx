@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
 import { format, startOfDay, endOfDay, addDays } from 'date-fns'
-import { CalendarDays, DollarSign, Camera, Bell, ArrowUpRight } from 'lucide-react'
+import { CalendarDays, DollarSign, Camera, Bell, ArrowUpRight, ShoppingCart } from 'lucide-react'
 import { PageTitle } from '@/shared/components/layout/PageTitle'
 import { useAgendamentosList, useTarefasList } from '@/features/agenda/api/queries'
 import { AGENDAMENTO_STATUS, ROUTES } from '@/shared/constants'
@@ -8,6 +8,8 @@ import { AgendaDoDia } from '../components/AgendaDoDia'
 import { PagamentosPendentes } from '../components/PagamentosPendentes'
 import { EntregasPendentes } from '../components/EntregasPendentes'
 import { Alertas } from '../components/Alertas'
+import { EcommerceDashboardCards } from '../components/EcommerceDashboardCards'
+import { GraficoVendasExtras } from '../components/GraficoVendasExtras'
 import { GraficoMensal } from '../components/GraficoMensal'
 import { useNavigate } from 'react-router-dom'
 
@@ -152,7 +154,17 @@ export function DashboardPage() {
       </div>
 
       <div className="mt-6">
-        <GraficoMensal />
+        <div className="mb-6">
+          <div className="flex items-center gap-2 mb-3">
+            <ShoppingCart className="h-4 w-4 text-muted-foreground" />
+            <h2 className="text-sm font-semibold">Ecommerce</h2>
+          </div>
+          <EcommerceDashboardCards />
+        </div>
+        <div className="grid gap-6 md:grid-cols-2">
+          <GraficoMensal />
+          <GraficoVendasExtras />
+        </div>
       </div>
     </div>
   )
