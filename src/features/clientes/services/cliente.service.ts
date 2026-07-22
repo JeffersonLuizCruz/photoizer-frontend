@@ -26,4 +26,9 @@ export const clienteService = {
   delete: async (id: string): Promise<void> => {
     await apiClient.delete(`/clientes/${id}`)
   },
+
+  listarAgendamentos: async (clienteId: string): Promise<import('@/features/agenda/types').Agendamento[]> => {
+    const { data } = await apiClient.get<import('@/features/agenda/types').Agendamento[]>(`/clientes/${clienteId}/agendamentos`)
+    return data
+  },
 }

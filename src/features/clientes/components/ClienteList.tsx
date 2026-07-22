@@ -17,6 +17,15 @@ const columns: ColumnDef<Cliente>[] = [
   {
     accessorKey: 'nome',
     header: 'Nome',
+    cell: ({ row }) => (
+      <Button
+        variant="link"
+        className="h-auto p-0 text-sm font-medium"
+        onClick={() => navigate(ROUTES.CLIENTES_DETALHES.replace(':id', row.original.id))}
+      >
+        {row.original.nome}
+      </Button>
+    ),
   },
   {
     accessorKey: 'telefone',

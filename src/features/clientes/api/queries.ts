@@ -50,6 +50,14 @@ export function useUpdateCliente(id: string) {
   })
 }
 
+export function useClienteAgendamentos(clienteId: string | undefined) {
+  return useQuery({
+    queryKey: [...QUERY_KEYS.CLIENTES, clienteId, 'agendamentos'],
+    queryFn: () => clienteService.listarAgendamentos(clienteId!),
+    enabled: !!clienteId,
+  })
+}
+
 export function useDeleteCliente() {
   const queryClient = useQueryClient()
 
