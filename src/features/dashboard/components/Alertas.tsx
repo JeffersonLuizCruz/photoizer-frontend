@@ -1,6 +1,6 @@
-import { format } from 'date-fns'
+import { format, parseISO } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
-import { AlertTriangle, CalendarDays } from 'lucide-react'
+import { AlertTriangle, CalendarDays, MapPin, Clock, Phone } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { Button } from '@/shared/components/ui/button'
 import { ROUTES } from '@/shared/constants'
@@ -65,10 +65,25 @@ export function Alertas({ tarefasAtrasadas, ensaiosAmanha }: AlertasProps) {
           </div>
           <div className="mt-2 space-y-1">
             {ensaiosAmanha.slice(0, 3).map((a) => (
-              <div key={a.id} className="text-xs text-muted-foreground">
-                {format(new Date(a.dataHoraEnsaio), "HH:mm", { locale: ptBR })} — {a.localEnsaio}
+              <div key={a.id} className="flex items-center justify-between text-xs">
+                <span className="text-muted-foreground">
+                  {format(new Date(a.dataHoraEnsaio), "HH:mm", { locale: ptBR })} — {a.clienteNome} ({a.localEnsaio})
+                </span>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-auto px-2 py-0.5 text-xs"
+                  onClick={() => navigate(ROUTES.AGENDA_DETALHES.replace(':id', a.id))}
+                >
+                  Ver
+                </Button>
               </div>
             ))}
+            {ensaiosAmanha.length > 3 && (
+              <p className="text-xs text-muted-foreground pt-1">
+                e mais {ensaiosAmanha.length - 3} ensaio(s)
+              </p>
+            )}
           </div>
         </div>
       )}

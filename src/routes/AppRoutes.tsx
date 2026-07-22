@@ -4,7 +4,7 @@ import { ROUTES } from '@/shared/constants'
 import { ClientesListPage, ClienteFormPage } from '@/features/clientes'
 import { NovoAgendamentoPage, AgendamentoDetalhesPage, EditarAgendamentoPage, AgendaPage, MinhasTarefasPage } from '@/features/agenda'
 import { PacotesListPage, PacoteFormPage } from '@/features/pacotes'
-import { DashboardPage } from '@/features/dashboard'
+import { DashboardPage, DashboardDetalhesPage } from '@/features/dashboard'
 import { FinanceiroDashboardPage, RelatoriosPage } from '@/features/financeiro'
 
 function NotFound() {
@@ -24,6 +24,7 @@ export function AppRoutes() {
       <Routes>
         <Route element={<AppLayout />}>
           <Route path={ROUTES.DASHBOARD} element={<DashboardPage />} />
+          <Route path={ROUTES.DASHBOARD_DETALHES} element={<DashboardDetalhesPage />} />
           <Route path={ROUTES.CLIENTES} element={<ClientesListPage />} />
           <Route path={ROUTES.CLIENTES_NOVO} element={<ClienteFormPage />} />
           <Route path={ROUTES.CLIENTES_EDITAR} element={<ClienteFormPage />} />

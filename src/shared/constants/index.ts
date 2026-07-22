@@ -1,5 +1,6 @@
 export const ROUTES = {
   DASHBOARD: '/',
+  DASHBOARD_DETALHES: '/dashboard/detalhes',
   CLIENTES_NOVO: '/clientes/novo',
   CLIENTES_EDITAR: '/clientes/:id/editar',
   CLIENTES: '/clientes',

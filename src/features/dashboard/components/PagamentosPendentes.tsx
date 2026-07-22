@@ -1,7 +1,7 @@
-import { useState } from 'react'
-import { format } from 'date-fns'
+import { useState, useMemo } from 'react'
+import { format, differenceInDays, parseISO } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
-import { DollarSign, CreditCard } from 'lucide-react'
+import { DollarSign, CreditCard, Clock, Phone, MapPin } from 'lucide-react'
 import { Button } from '@/shared/components/ui/button'
 import { RegistrarPagamentoDialog } from '@/features/agenda/components/RegistrarPagamentoDialog'
 import type { Agendamento } from '@/features/agenda/types'
@@ -15,6 +15,12 @@ export function PagamentosPendentes({ agendamentos, isLoading }: PagamentosPende
   const [selectedId, setSelectedId] = useState<string | null>(null)
 
   const selected = agendamentos.find((a) => a.id === selectedId)
+
+  const sorted = useMemo(() => {
+    return [...agendamentos].sort(
+      (a, b) => new Date(a.dataHoraEnsaio).getTime() - new Date(b.dataHoraEnsaio).getTime(),
+    )
+  }, [agendamentos])
 
   if (isLoading) {
     return (
@@ -41,19 +47,32 @@ export function PagamentosPendentes({ agendamentos, isLoading }: PagamentosPende
   return (
     <>
       <div className="space-y-2">
-        {agendamentos.map((agendamento) => {
-          const data = format(new Date(agendamento.dataHoraEnsaio), "dd/MM", { locale: ptBR })
-
+        {sorted.slice(0, 5).map((agendamento) => {
+          const dataEnsaio = parseISO(agendamento.dataHoraEnsaio)
+          const dias = differenceInDays(new Date(), dataEnsaio)
           return (
             <div
               key={agendamento.id}
               className="flex items-center justify-between rounded-lg border p-3"
             >
               <div className="min-w-0 flex-1">
-                <p className="text-sm font-medium truncate">
-                  {agendamento.clienteId.slice(0, 8)}... — {data}
+                <p className="text-sm font-medium truncate">{agendamento.clienteNome}</p>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  {format(dataEnsaio, "dd/MM", { locale: ptBR })} — {agendamento.pacoteNome}
                 </p>
-                <p className="text-xs text-muted-foreground">
+                <div className="flex items-center gap-3 mt-1">
+                  <p className="text-xs text-muted-foreground flex items-center gap-1">
+                    <Clock className="h-3 w-3" />
+                    {dias <= 0 ? 'Hoje' : `${dias}d`}
+                  </p>
+                  {agendamento.clienteTelefone && (
+                    <p className="text-xs text-muted-foreground flex items-center gap-1">
+                      <Phone className="h-3 w-3" />
+                      {agendamento.clienteTelefone}
+                    </p>
+                  )}
+                </div>
+                <p className="text-xs font-medium text-amber-600 dark:text-amber-400 mt-1">
                   Restante: R$ {agendamento.saldoDevedor.toFixed(2)}
                 </p>
               </div>
@@ -64,6 +83,11 @@ export function PagamentosPendentes({ agendamentos, isLoading }: PagamentosPende
             </div>
           )
         })}
+        {agendamentos.length > 5 && (
+          <p className="text-xs text-muted-foreground text-center pt-1">
+            e mais {agendamentos.length - 5} pagamento(s)
+          </p>
+        )}
       </div>
 
       {selected && (

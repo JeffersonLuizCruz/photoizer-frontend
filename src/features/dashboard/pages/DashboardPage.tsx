@@ -1,13 +1,14 @@
 import { useMemo } from 'react'
 import { format, startOfDay, endOfDay, addDays } from 'date-fns'
-import { CalendarDays, DollarSign, Camera, Bell } from 'lucide-react'
+import { CalendarDays, DollarSign, Camera, Bell, ArrowUpRight } from 'lucide-react'
 import { PageTitle } from '@/shared/components/layout/PageTitle'
 import { useAgendamentosList, useTarefasList } from '@/features/agenda/api/queries'
-import { AGENDAMENTO_STATUS } from '@/shared/constants'
+import { AGENDAMENTO_STATUS, ROUTES } from '@/shared/constants'
 import { AgendaDoDia } from '../components/AgendaDoDia'
 import { PagamentosPendentes } from '../components/PagamentosPendentes'
 import { EntregasPendentes } from '../components/EntregasPendentes'
 import { Alertas } from '../components/Alertas'
+import { useNavigate } from 'react-router-dom'
 
 function hoje() {
   const now = new Date()
@@ -26,6 +27,7 @@ function amanha() {
 }
 
 export function DashboardPage() {
+  const navigate = useNavigate()
   const { data: agendamentos, isLoading: loadingAgenda } = useAgendamentosList()
   const { data: tarefas, isLoading: loadingTarefas } = useTarefasList()
 
@@ -71,6 +73,8 @@ export function DashboardPage() {
 
   const isLoading = loadingAgenda || loadingTarefas
 
+  const hasAlertas = tarefasAtrasadas.length > 0 || ensaiosAmanha.length > 0
+
   return (
     <div>
       <PageTitle
@@ -79,9 +83,11 @@ export function DashboardPage() {
         breadcrumbs={[{ label: 'Dashboard' }]}
       />
 
-      <div className="mb-6">
-        <Alertas tarefasAtrasadas={tarefasAtrasadas} ensaiosAmanha={ensaiosAmanha} />
-      </div>
+      {hasAlertas && (
+        <div className="mb-6">
+          <Alertas tarefasAtrasadas={tarefasAtrasadas} ensaiosAmanha={ensaiosAmanha} />
+        </div>
+      )}
 
       <div className="grid gap-6 md:grid-cols-2">
         <div className="rounded-lg border bg-card">
@@ -94,12 +100,18 @@ export function DashboardPage() {
           </div>
         </div>
 
-        <div className="rounded-lg border bg-card">
-          <div className="flex items-center gap-2 border-b px-4 py-3">
-            <DollarSign className="h-4 w-4 text-muted-foreground" />
-            <h2 className="text-sm font-semibold">Pagamentos Pendentes</h2>
+        <div
+          className="rounded-lg border bg-card cursor-pointer transition-colors hover:border-primary/50"
+          onClick={() => navigate(ROUTES.DASHBOARD_DETALHES)}
+        >
+          <div className="flex items-center justify-between border-b px-4 py-3">
+            <div className="flex items-center gap-2">
+              <DollarSign className="h-4 w-4 text-muted-foreground" />
+              <h2 className="text-sm font-semibold">Pagamentos Pendentes</h2>
+            </div>
+            <ArrowUpRight className="h-4 w-4 text-muted-foreground" />
           </div>
-          <div className="p-4">
+          <div className="p-4" onClick={(e) => e.stopPropagation()}>
             <PagamentosPendentes agendamentos={pagamentosPendentes} isLoading={isLoading} />
           </div>
         </div>
@@ -114,12 +126,18 @@ export function DashboardPage() {
           </div>
         </div>
 
-        <div className="rounded-lg border bg-card">
-          <div className="flex items-center gap-2 border-b px-4 py-3">
-            <Bell className="h-4 w-4 text-muted-foreground" />
-            <h2 className="text-sm font-semibold">Alertas</h2>
+        <div
+          className="rounded-lg border bg-card cursor-pointer transition-colors hover:border-primary/50"
+          onClick={() => navigate(ROUTES.DASHBOARD_DETALHES)}
+        >
+          <div className="flex items-center justify-between border-b px-4 py-3">
+            <div className="flex items-center gap-2">
+              <Bell className="h-4 w-4 text-muted-foreground" />
+              <h2 className="text-sm font-semibold">Alertas</h2>
+            </div>
+            <ArrowUpRight className="h-4 w-4 text-muted-foreground" />
           </div>
-          <div className="p-4">
+          <div className="p-4" onClick={(e) => e.stopPropagation()}>
             {tarefasAtrasadas.length === 0 && ensaiosAmanha.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-8 text-muted-foreground">
                 <Bell className="mb-2 h-6 w-6" />

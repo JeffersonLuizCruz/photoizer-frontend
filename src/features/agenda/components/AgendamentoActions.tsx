@@ -51,7 +51,7 @@ const actionConfig: Record<ActionType, { label: string; icon: React.ComponentTyp
   cancelar: {
     label: 'Cancelar',
     icon: XCircle,
-    variant: 'destructive',
+    variant: 'outline',
     confirmTitle: 'Cancelar Agendamento',
     confirmDescription: 'Tem certeza que deseja cancelar este agendamento?',
     status: AGENDAMENTO_STATUS.CANCELADO,
