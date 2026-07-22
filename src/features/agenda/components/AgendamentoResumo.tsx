@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
-import { CalendarDays, Clock, MapPin, User, DollarSign, Camera, Award, Pencil } from 'lucide-react'
+import { CalendarDays, Clock, MapPin, User, DollarSign, Camera, Award, Pencil, FileText } from 'lucide-react'
 import type { Agendamento } from '../types'
 import { Badge } from '@/shared/components/ui/badge'
 import { Button } from '@/shared/components/ui/button'
@@ -92,6 +92,7 @@ export function AgendamentoResumo({ agendamento }: AgendamentoResumoProps) {
             <span className="text-xs font-medium">Ensaio em Destaque</span>
           </div>
         )}
+        <InfoRow label="Uso de Imagem" value={agendamento.autorizaUsoImagem ? 'Autorizado' : 'Não autorizado'} />
       </InfoCard>
 
       <InfoCard icon={DollarSign} title="Resumo Financeiro">
@@ -112,6 +113,16 @@ export function AgendamentoResumo({ agendamento }: AgendamentoResumoProps) {
           <InfoRow label="Total Final" value={`R$ ${agendamento.valorTotalFinal.toFixed(2)}`} />
         </div>
       </InfoCard>
+
+      {agendamento.observacoes && (
+        <div className="rounded-lg border bg-card p-4 md:col-span-3">
+          <div className="mb-2 flex items-center gap-2 text-sm font-semibold text-muted-foreground">
+            <FileText className="h-4 w-4" />
+            Observações
+          </div>
+          <p className="text-sm whitespace-pre-wrap">{agendamento.observacoes}</p>
+        </div>
+      )}
     </div>
   )
 }

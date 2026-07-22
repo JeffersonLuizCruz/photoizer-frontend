@@ -105,7 +105,7 @@ export const agendamentoService = {
     agendamentoId: string,
     payload: { quantidade: number; valorUnitario: number },
   ): Promise<FotoExtra> => {
-    const { data } = await apiClient.post<FotoExtra>(`/agendamentos/${agendamentoId}/fotos-extras`, payload)
+    const { data } = await apiClient.post<FotoExtra>(`/financeiro/agendamentos/${agendamentoId}/fotos-extras`, payload)
     return data
   },
 
@@ -113,13 +113,11 @@ export const agendamentoService = {
     id: string,
     comprovante?: File,
   ): Promise<Agendamento> => {
+    const formData = new FormData()
     if (comprovante) {
-      const formData = new FormData()
       formData.append('comprovanteFinal', comprovante)
-      const { data } = await apiClient.post<Agendamento>(`/agendamentos/${id}/pagamento-final`, formData)
-      return data
     }
-    const { data } = await apiClient.post<Agendamento>(`/agendamentos/${id}/pagamento-final`)
+    const { data } = await apiClient.post<Agendamento>(`/agendamentos/${id}/pagamento-final`, formData)
     return data
   },
 
