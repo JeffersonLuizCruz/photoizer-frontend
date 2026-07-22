@@ -6,6 +6,9 @@ export interface FinanceiroResumo {
   totalFinal: number
   totalExtras: number
   faturamentoTotal: number
+  despesasDeslocamento: number
+  despesasComissao: number
+  despesasManuais: number
 }
 
 export interface RelatoriosTotais {

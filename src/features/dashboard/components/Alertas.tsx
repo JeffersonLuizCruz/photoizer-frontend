@@ -1,6 +1,6 @@
-import { format, parseISO } from 'date-fns'
+import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
-import { AlertTriangle, CalendarDays, MapPin, Clock, Phone } from 'lucide-react'
+import { AlertTriangle, CalendarDays } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { Button } from '@/shared/components/ui/button'
 import { ROUTES } from '@/shared/constants'

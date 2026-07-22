@@ -12,12 +12,14 @@ import { wizardFormSchema, type WizardFormValues } from '../schemas/agendamento.
 import { useCreateAgendamento } from '../api/queries'
 import { StepCliente } from './StepCliente'
 import { StepEnsaio } from './StepEnsaio'
+import { StepIndicacao } from './StepIndicacao'
 import { StepFinanceiro } from './StepFinanceiro'
 import { StepConfirmacao } from './StepConfirmacao'
 
 const STEPS = [
   { label: 'Cliente', component: StepCliente },
   { label: 'Ensaio', component: StepEnsaio },
+  { label: 'Indicação', component: StepIndicacao },
   { label: 'Financeiro', component: StepFinanceiro },
   { label: 'Confirmação', component: StepConfirmacao },
 ] as const
@@ -27,47 +29,50 @@ const STEP_FIELDS: Record<number, (keyof WizardFormValues)[]> = {
   1: ['pacoteId', 'data', 'hora', 'localEnsaio'],
   2: [],
   3: [],
+  4: [],
 }
 
 function StepIndicator({ currentStep }: { currentStep: number }) {
   return (
-    <div className="flex items-center justify-center">
-      {STEPS.map((step, index) => (
-        <div key={step.label} className="flex items-center">
-          <div className="flex items-center gap-2">
-            <div
-              className={cn(
-                'flex h-8 w-8 items-center justify-center rounded-full text-sm font-medium transition-colors',
-                index <= currentStep
-                  ? 'bg-primary text-primary-foreground'
-                  : 'bg-muted text-muted-foreground',
-              )}
-            >
-              {index < currentStep ? (
-                <Check className="h-4 w-4" />
-              ) : (
-                index + 1
-              )}
+    <div className="overflow-x-auto -mx-6 px-6">
+      <div className="flex items-center gap-0 w-max mx-auto">
+        {STEPS.map((step, index) => (
+          <div key={step.label} className="flex items-center shrink-0">
+            <div className="flex items-center gap-1.5 sm:gap-2">
+              <div
+                className={cn(
+                  'flex h-7 w-7 sm:h-8 sm:w-8 items-center justify-center rounded-full text-xs sm:text-sm font-medium transition-colors shrink-0',
+                  index <= currentStep
+                    ? 'bg-primary text-primary-foreground'
+                    : 'bg-muted text-muted-foreground',
+                )}
+              >
+                {index < currentStep ? (
+                  <Check className="h-3 w-3 sm:h-4 sm:w-4" />
+                ) : (
+                  index + 1
+                )}
+              </div>
+              <span
+                className={cn(
+                  'text-[11px] sm:text-sm hidden sm:inline',
+                  index <= currentStep ? 'font-medium' : 'text-muted-foreground',
+                )}
+              >
+                {step.label}
+              </span>
             </div>
-            <span
-              className={cn(
-                'text-sm hidden sm:inline',
-                index <= currentStep ? 'font-medium' : 'text-muted-foreground',
-              )}
-            >
-              {step.label}
-            </span>
+            {index < STEPS.length - 1 && (
+              <div
+                className={cn(
+                  'mx-2 sm:mx-3 h-px w-6 sm:w-12 transition-colors shrink-0',
+                  index < currentStep ? 'bg-primary' : 'bg-muted',
+                )}
+              />
+            )}
           </div>
-          {index < STEPS.length - 1 && (
-            <div
-              className={cn(
-                'mx-2 sm:mx-4 h-px w-8 sm:w-16 transition-colors',
-                index < currentStep ? 'bg-primary' : 'bg-muted',
-              )}
-            />
-          )}
-        </div>
-      ))}
+        ))}
+      </div>
     </div>
   )
 }
@@ -113,7 +118,7 @@ export function NovoAgendamentoWizard({ dataInicial }: NovoAgendamentoWizardProp
       if (!isValid) return
     }
 
-    if (currentStep === 2 && !comprovante) {
+    if (currentStep === 3 && !comprovante) {
       toast.error('Anexe o comprovante de entrada antes de continuar')
       return
     }
@@ -207,13 +212,14 @@ export function NovoAgendamentoWizard({ dataInicial }: NovoAgendamentoWizardProp
           <div className="mt-8 mb-8">
             {currentStep === 0 && <StepCliente />}
             {currentStep === 1 && <StepEnsaio />}
-            {currentStep === 2 && (
+            {currentStep === 2 && <StepIndicacao />}
+            {currentStep === 3 && (
               <StepFinanceiro
                 comprovante={comprovante}
                 onComprovanteChange={setComprovante}
               />
             )}
-            {currentStep === 3 && (
+            {currentStep === 4 && (
               <StepConfirmacao
                 confirmado={confirmado}
                 onConfirmadoChange={setConfirmado}

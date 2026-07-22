@@ -160,21 +160,42 @@ export function useAddFotoExtra() {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: ({
-      agendamentoId,
-      quantidade,
-      valorUnitario,
-    }: {
+    mutationFn: (payload: {
       agendamentoId: string
       quantidade: number
       valorUnitario: number
-    }) => agendamentoService.addFotoExtra(agendamentoId, { quantidade, valorUnitario }),
+      indicadorId?: string
+      indicadorNome?: string
+      indicadorTelefone?: string
+    }) => agendamentoService.addFotoExtra(payload.agendamentoId, payload),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.AGENDA })
       toast.success('Fotos extras adicionadas')
     },
     onError: (error: Error) => {
       toast.error(error.message || 'Erro ao adicionar fotos extras')
+    },
+  })
+}
+
+export function useAddVideoExtra() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (payload: {
+      agendamentoId: string
+      quantidade: number
+      valorUnitario: number
+      indicadorId?: string
+      indicadorNome?: string
+      indicadorTelefone?: string
+    }) => agendamentoService.addVideoExtra(payload.agendamentoId, payload),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.AGENDA })
+      toast.success('Vídeos extras adicionados')
+    },
+    onError: (error: Error) => {
+      toast.error(error.message || 'Erro ao adicionar vídeos extras')
     },
   })
 }

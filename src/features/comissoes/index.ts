@@ -1,0 +1,1 @@
+export { ComissoesConsultaPage } from './pages/ComissoesConsultaPage'

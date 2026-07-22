@@ -5,6 +5,8 @@ import { ClientesListPage, ClienteFormPage, ClienteDetalhesPage } from '@/featur
 import { NovoAgendamentoPage, AgendamentoDetalhesPage, EditarAgendamentoPage, AgendaPage, MinhasTarefasPage } from '@/features/agenda'
 import { PacotesListPage, PacoteFormPage } from '@/features/pacotes'
 import { DashboardPage, DashboardDetalhesPage } from '@/features/dashboard'
+import { ConfigPage } from '@/features/config'
+import { ComissoesConsultaPage } from '@/features/comissoes'
 import { FinanceiroDashboardPage, RelatoriosPage } from '@/features/financeiro'
 
 function NotFound() {
@@ -39,6 +41,8 @@ export function AppRoutes() {
           <Route path={ROUTES.PACOTES_EDITAR} element={<PacoteFormPage />} />
           <Route path={ROUTES.FINANCEIRO} element={<FinanceiroDashboardPage />} />
           <Route path={ROUTES.FINANCEIRO_RELATORIOS} element={<RelatoriosPage />} />
+          <Route path={ROUTES.CONFIG} element={<ConfigPage />} />
+          <Route path={ROUTES.COMISSOES} element={<ComissoesConsultaPage />} />
         </Route>
 
         <Route path="*" element={<NotFound />} />

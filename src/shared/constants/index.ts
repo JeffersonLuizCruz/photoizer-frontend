@@ -15,6 +15,8 @@ export const ROUTES = {
   FINANCEIRO: '/financeiro',
   FINANCEIRO_RELATORIOS: '/financeiro/relatorios',
   TAREFAS: '/tarefas',
+  CONFIG: '/config',
+  COMISSOES: '/comissoes',
 } as const
 
 export const QUERY_KEYS = {

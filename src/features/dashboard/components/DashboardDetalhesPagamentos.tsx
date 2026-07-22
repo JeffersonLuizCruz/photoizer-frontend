@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react'
 import { format, differenceInDays, parseISO } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
-import { Search, CreditCard, Clock, Phone, Package, MapPin } from 'lucide-react'
+import { Search, CreditCard, Clock, Phone, MapPin } from 'lucide-react'
 import { Button } from '@/shared/components/ui/button'
 import { Input } from '@/shared/components/ui/input'
 import { RegistrarPagamentoDialog } from '@/features/agenda/components/RegistrarPagamentoDialog'

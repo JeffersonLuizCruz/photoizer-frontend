@@ -26,6 +26,14 @@ export const stepEnsaioSchema = z.object({
   autorizaUsoImagem: z.boolean().default(false),
 })
 
+const telefoneFormatado = (val: string) =>
+  /^\(\d{2}\) \d{5}-\d{4}$/.test(val) || val === ''
+
+export const stepIndicacaoSchema = z.object({
+  indicadorNome: z.string().optional().or(z.literal('')),
+  indicadorTelefone: z.string().refine(telefoneFormatado, 'Telefone inválido. Use: (11) 99999-9999').optional().or(z.literal('')),
+})
+
 export const stepFinanceiroSchema = z.object({
   comprovanteEntrada: z
     .instanceof(File, { message: 'Anexe o comprovante de entrada' })
@@ -42,6 +50,7 @@ export const stepConfirmacaoSchema = z.object({
 export const wizardFormSchema = z.object({
   ...stepClienteSchema.shape,
   ...stepEnsaioSchema.shape,
+  ...stepIndicacaoSchema.shape,
   observacoes: z.string().optional().or(z.literal('')),
 })
 

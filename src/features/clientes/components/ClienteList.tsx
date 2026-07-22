@@ -1,3 +1,4 @@
+import { useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Pencil, Trash2 } from 'lucide-react'
 import { DataTable } from '@/shared/components/layout/DataTable'
@@ -12,41 +13,6 @@ const ORIGEM_LABELS: Record<string, string> = {
   ANUNCIO: 'Anúncio',
   OUTROS: 'Outros',
 }
-
-const columns: ColumnDef<Cliente>[] = [
-  {
-    accessorKey: 'nome',
-    header: 'Nome',
-    cell: ({ row }) => (
-      <Button
-        variant="link"
-        className="h-auto p-0 text-sm font-medium"
-        onClick={() => navigate(ROUTES.CLIENTES_DETALHES.replace(':id', row.original.id))}
-      >
-        {row.original.nome}
-      </Button>
-    ),
-  },
-  {
-    accessorKey: 'telefone',
-    header: 'Telefone',
-  },
-  {
-    accessorKey: 'email',
-    header: 'Email',
-    cell: ({ row }) => row.original.email || '-',
-  },
-  {
-    accessorKey: 'origem',
-    header: 'Origem',
-    cell: ({ row }) => ORIGEM_LABELS[row.original.origem] || row.original.origem,
-  },
-  {
-    id: 'status',
-    header: 'Status',
-    cell: () => <StatusBadge status="active" customLabels={{ active: { label: 'Ativo', variant: 'success' } }} />,
-  },
-]
 
 interface ClienteListProps {
   data: Cliente[]
@@ -72,6 +38,41 @@ export function ClienteList({
   onSearchChange,
 }: ClienteListProps) {
   const navigate = useNavigate()
+
+  const columns = useMemo<ColumnDef<Cliente>[]>(() => [
+    {
+      accessorKey: 'nome',
+      header: 'Nome',
+      cell: ({ row }) => (
+        <Button
+          variant="link"
+          className="h-auto p-0 text-sm font-medium"
+          onClick={() => navigate(ROUTES.CLIENTES_DETALHES.replace(':id', row.original.id))}
+        >
+          {row.original.nome}
+        </Button>
+      ),
+    },
+    {
+      accessorKey: 'telefone',
+      header: 'Telefone',
+    },
+    {
+      accessorKey: 'email',
+      header: 'Email',
+      cell: ({ row }) => row.original.email || '-',
+    },
+    {
+      accessorKey: 'origem',
+      header: 'Origem',
+      cell: ({ row }) => ORIGEM_LABELS[row.original.origem] || row.original.origem,
+    },
+    {
+      id: 'status',
+      header: 'Status',
+      cell: () => <StatusBadge status="active" customLabels={{ active: { label: 'Ativo', variant: 'success' } }} />,
+    },
+  ], [navigate])
 
   return (
     <DataTable

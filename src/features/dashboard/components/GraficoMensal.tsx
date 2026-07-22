@@ -1,8 +1,11 @@
-import { PiggyBank, TrendingUp, DollarSign, Target, Info, BarChart3 } from 'lucide-react'
+import { useState } from 'react'
+import { PiggyBank, TrendingUp, DollarSign, Info, BarChart3, ArrowDownFromLine, Plus } from 'lucide-react'
 import {
   Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Legend, Line, ComposedChart,
 } from 'recharts'
+import { Button } from '@/shared/components/ui/button'
 import { useFinanceiroMensal } from '../api/queries'
+import { AdicionarDespesaDialog } from '@/features/despesas/components/AdicionarDespesaDialog'
 
 const currencyFormat = (v: number | null | undefined): string => {
   if (v == null || isNaN(v)) return 'R$ 0,00'
@@ -15,6 +18,7 @@ function ChartTooltip({ active, payload, label }: any) {
   const pendente = payload.find((p: any) => p.name === 'Pendente')?.value ?? 0
   const faturamento = recebido + pendente
   const liquido = payload.find((p: any) => p.name === 'Líquido Previsto')?.value
+  const despesas = payload.find((p: any) => p.name === 'Despesas')?.value ?? 0
 
   return (
     <div className="rounded-lg border bg-popover p-3 shadow-md text-sm min-w-[200px]">
@@ -38,6 +42,15 @@ function ChartTooltip({ active, payload, label }: any) {
           <span className="text-muted-foreground">Faturamento</span>
           <span className="tabular-nums">{currencyFormat(faturamento)}</span>
         </div>
+        {despesas > 0 && (
+          <div className="flex items-center justify-between text-xs border-t pt-1 mt-1">
+            <span className="flex items-center gap-1.5">
+              <span className="h-2.5 w-2.5 rounded-sm bg-rose-400 inline-block" />
+              Despesas (desl. + comissão + manuais)
+            </span>
+            <span className="font-medium tabular-nums">{currencyFormat(despesas)}</span>
+          </div>
+        )}
         {liquido !== undefined && (
           <div className="flex items-center justify-between text-xs border-t pt-1 mt-1">
             <span className="flex items-center gap-1.5">
@@ -86,19 +99,26 @@ function MetricCard({ metric: m }: { metric: MetricDef }) {
   )
 }
 
+const PERIODOS = [
+  { label: '3 meses', value: 3 },
+  { label: '6 meses', value: 6 },
+  { label: '12 meses', value: 12 },
+] as const
+
 export function GraficoMensal() {
-  const { data, isLoading } = useFinanceiroMensal(6)
+  const [meses, setMeses] = useState(6)
+  const [dialogOpen, setDialogOpen] = useState(false)
+  const { data, isLoading } = useFinanceiroMensal(meses)
 
   if (isLoading) {
     return (
       <div className="rounded-xl border bg-card p-6">
         <div className="animate-pulse space-y-4">
-          <div className="grid grid-cols-5 gap-3">
-            {Array.from({ length: 5 }).map((_, i) => (
+          <div className="grid grid-cols-3 gap-3">
+            {Array.from({ length: 3 }).map((_, i) => (
               <div key={i} className="h-24 bg-muted rounded-lg" />
             ))}
           </div>
-          <div className="h-2 w-full bg-muted rounded-full" />
           <div className="h-72 bg-muted rounded-lg" />
         </div>
       </div>
@@ -116,7 +136,6 @@ export function GraficoMensal() {
 
   const { mesAtual, historico } = data
 
-  const pendente = (mesAtual.valorTotalConfirmados ?? 0) - (mesAtual.entradasRecebidas ?? 0)
   const pctRealizado = (mesAtual.valorTotalConfirmados ?? 0) > 0
     ? Math.round(((mesAtual.valorTotalFinalizados ?? 0) / (mesAtual.valorTotalConfirmados ?? 0)) * 100)
     : 0
@@ -128,9 +147,12 @@ export function GraficoMensal() {
       Recebido: h.entradasRecebidas ?? 0,
       Pendente: pend,
       faturamento: h.valorConfirmados ?? 0,
+      Despesas: (h.despesasDeslocamento ?? 0) + (h.despesasComissao ?? 0) + (h.despesasManuais ?? 0),
       'Líquido Previsto': h.liquidoPrevisto ?? 0,
     }
   })
+
+  const totalDespesas = (mesAtual.despesasDeslocamento ?? 0) + (mesAtual.despesasComissao ?? 0) + (mesAtual.despesasManuais ?? 0)
 
   const metrics: MetricDef[] = [
     {
@@ -152,17 +174,17 @@ export function GraficoMensal() {
       border: 'border-emerald-200 dark:border-emerald-800',
     },
     {
-      label: 'Pendente',
-      description: 'Saldo restante a receber — valor total dos confirmados menos o que já foi pago',
-      value: pendente ?? 0,
-      icon: Target,
-      color: 'text-amber-600 dark:text-amber-400',
-      bg: 'bg-amber-50 dark:bg-amber-950/30',
-      border: 'border-amber-200 dark:border-amber-800',
+      label: 'Despesas',
+      description: `Deslocamento: ${currencyFormat(mesAtual.despesasDeslocamento ?? 0)} | Comissões: ${currencyFormat(mesAtual.despesasComissao ?? 0)} | Manuais: ${currencyFormat(mesAtual.despesasManuais ?? 0)}`,
+      value: totalDespesas,
+      icon: ArrowDownFromLine,
+      color: 'text-rose-600 dark:text-rose-400',
+      bg: 'bg-rose-50 dark:bg-rose-950/30',
+      border: 'border-rose-200 dark:border-rose-800',
     },
     {
       label: 'Líquido Atual',
-      description: 'Entradas recebidas menos despesas de deslocamento — o saldo disponível hoje',
+      description: 'Entradas recebidas menos despesas (deslocamento + comissão + manuais) — saldo disponível hoje',
       value: mesAtual.liquidoAtual ?? 0,
       icon: PiggyBank,
       color: (mesAtual.liquidoAtual ?? 0) >= 0 ? 'text-blue-600 dark:text-blue-400' : 'text-destructive',
@@ -171,7 +193,7 @@ export function GraficoMensal() {
     },
     {
       label: 'Líquido Previsto',
-      description: 'Projeção para o fim do mês: faturamento total menos despesas de deslocamento',
+      description: 'Projeção para o fim do mês: faturamento total menos despesas (deslocamento + comissão + manuais)',
       value: mesAtual.liquidoPrevisto ?? 0,
       icon: TrendingUp,
       color: 'text-violet-600 dark:text-violet-400',
@@ -182,11 +204,32 @@ export function GraficoMensal() {
 
   return (
     <div className="rounded-xl border bg-card">
-      <div className="border-b px-6 py-4">
-        <h2 className="text-base font-semibold">Acompanhamento Mensal</h2>
-        <p className="text-xs text-muted-foreground mt-0.5">
-          {mesAtual.totalAgendamentos ?? 0} agendamento(s) no mês — {mesAtual.confirmados ?? 0} confirmado(s), {mesAtual.finalizados ?? 0} finalizado(s)
-        </p>
+      <div className="border-b px-6 py-4 flex items-center justify-between">
+        <div>
+          <h2 className="text-base font-semibold">Acompanhamento Mensal</h2>
+          <p className="text-xs text-muted-foreground mt-0.5">
+            {mesAtual.totalAgendamentos ?? 0} agendamento(s) no mês — {mesAtual.confirmados ?? 0} confirmado(s), {mesAtual.finalizados ?? 0} finalizado(s)
+          </p>
+        </div>
+        <div className="flex items-center gap-2">
+          <div className="flex rounded-lg border bg-muted p-0.5 text-xs">
+            {PERIODOS.map((p) => (
+              <button
+                key={p.value}
+                onClick={() => setMeses(p.value)}
+                className={`px-2.5 py-1 rounded-md transition-colors ${
+                  meses === p.value ? 'bg-background text-foreground shadow-sm font-medium' : 'text-muted-foreground hover:text-foreground'
+                }`}
+              >
+                {p.label}
+              </button>
+            ))}
+          </div>
+          <Button size="sm" variant="outline" className="gap-1.5" onClick={() => setDialogOpen(true)}>
+            <Plus className="h-3.5 w-3.5" />
+            Despesa
+          </Button>
+        </div>
       </div>
 
       <div className="p-6 space-y-6">
@@ -195,6 +238,23 @@ export function GraficoMensal() {
             <MetricCard key={m.label} metric={m} />
           ))}
         </div>
+
+        {totalDespesas > 0 && (
+          <div className="flex flex-wrap gap-3 text-xs text-muted-foreground">
+            <span className="flex items-center gap-1">
+              <span className="h-2 w-2 rounded-sm bg-rose-400/60 inline-block" />
+              Deslocamento: {currencyFormat(mesAtual.despesasDeslocamento ?? 0)}
+            </span>
+            <span className="flex items-center gap-1">
+              <span className="h-2 w-2 rounded-sm bg-rose-400/60 inline-block" />
+              Comissões: {currencyFormat(mesAtual.despesasComissao ?? 0)}
+            </span>
+            <span className="flex items-center gap-1">
+              <span className="h-2 w-2 rounded-sm bg-rose-400/60 inline-block" />
+              Manuais: {currencyFormat(mesAtual.despesasManuais ?? 0)}
+            </span>
+          </div>
+        )}
 
         <div className="space-y-1.5">
           <div className="flex items-center justify-between text-xs text-muted-foreground">
@@ -240,6 +300,7 @@ export function GraficoMensal() {
               />
               <Bar stackId="a" dataKey="Recebido" fill="#10b981" radius={[0, 0, 0, 0]} fillOpacity={0.85} />
               <Bar stackId="a" dataKey="Pendente" fill="#fbbf24" radius={[4, 4, 0, 0]} fillOpacity={0.7} />
+              <Bar dataKey="Despesas" fill="#f43f5e" radius={[4, 4, 0, 0]} fillOpacity={0.45} />
               <Line
                 type="monotone"
                 dataKey="Líquido Previsto"
@@ -252,6 +313,8 @@ export function GraficoMensal() {
           </ResponsiveContainer>
         </div>
       </div>
+
+      <AdicionarDespesaDialog open={dialogOpen} onOpenChange={setDialogOpen} />
     </div>
   )
 }

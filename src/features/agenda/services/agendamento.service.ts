@@ -1,6 +1,6 @@
 import { format } from 'date-fns'
 import { apiClient } from '@/shared/api'
-import type { Agendamento, FotoExtra, Pacote, Pagamento, Tarefa, Usuario } from '../types'
+import type { Agendamento, FotoExtra, VideoExtra, Pacote, Pagamento, Tarefa, Usuario } from '../types'
 import type { WizardFormValues } from '../schemas/agendamento.schema'
 import type { AgendamentoStatus, TarefaStatus, TarefaTipo } from '@/shared/constants'
 import type { Cliente } from '@/features/clientes/types'
@@ -8,6 +8,8 @@ import type { EditarAgendamentoFormData } from '../schemas/agendamento.schema'
 
 export interface Config {
   valorUnitarioFotoExtra: number
+  valorUnitarioVideoExtra: number
+  percentualComissao: number
 }
 
 export interface FinanceiroPreview {
@@ -31,7 +33,7 @@ export const agendamentoService = {
   },
 
   listPacotes: async (): Promise<Pacote[]> => {
-    const { data } = await apiClient.get<Pacote[]>('/pacotes')
+    const { data } = await apiClient.get<Pacote[]>('/pacotes/all')
     return data
   },
 
@@ -41,10 +43,10 @@ export const agendamentoService = {
   },
 
   buscarClientePorTelefone: async (telefone: string): Promise<Cliente | null> => {
-    const { data } = await apiClient.get<Cliente[]>('/clientes', {
+    const { data } = await apiClient.get<{ data: Cliente[] }>('/clientes', {
       params: { search: telefone, perPage: 1 },
     })
-    return data.length > 0 ? data[0] : null
+    return data.data.length > 0 ? data.data[0] : null
   },
 
   list: async (params?: {
@@ -99,6 +101,9 @@ export const agendamentoService = {
     formData.append('taxaDeslocamento', String(payload.taxaDeslocamento))
     formData.append('autorizaUsoImagem', String(payload.autorizaUsoImagem))
 
+    if (payload.indicadorNome) formData.append('indicadorNome', payload.indicadorNome)
+    if (payload.indicadorTelefone) formData.append('indicadorTelefone', payload.indicadorTelefone)
+
     if (payload.observacoes) formData.append('observacoes', payload.observacoes)
     if (comprovante) formData.append('comprovanteEntrada', comprovante)
 
@@ -126,9 +131,17 @@ export const agendamentoService = {
 
   addFotoExtra: async (
     agendamentoId: string,
-    payload: { quantidade: number; valorUnitario: number },
+    payload: { quantidade: number; valorUnitario: number; indicadorId?: string; indicadorNome?: string; indicadorTelefone?: string },
   ): Promise<FotoExtra> => {
-    const { data } = await apiClient.post<FotoExtra>(`/financeiro/agendamentos/${agendamentoId}/fotos-extras`, payload)
+    const { data } = await apiClient.post<FotoExtra>(`/financeiro/agendamentos/${agendamentoId}/fotos-extras`, null, { params: payload })
+    return data
+  },
+
+  addVideoExtra: async (
+    agendamentoId: string,
+    payload: { quantidade: number; valorUnitario: number; indicadorId?: string; indicadorNome?: string; indicadorTelefone?: string },
+  ): Promise<VideoExtra> => {
+    const { data } = await apiClient.post<VideoExtra>(`/financeiro/agendamentos/${agendamentoId}/videos-extras`, null, { params: payload })
     return data
   },
 

@@ -6,6 +6,8 @@ export interface DadosMensais {
   valorConfirmados: number
   valorFinalizados: number
   despesasDeslocamento: number
+  despesasComissao: number
+  despesasManuais: number
   entradasRecebidas: number
   liquidoAtual: number
   liquidoPrevisto: number
@@ -20,6 +22,8 @@ export interface ResumoMesAtual {
   finalizados: number
   valorTotalFinalizados: number
   despesasDeslocamento: number
+  despesasComissao: number
+  despesasManuais: number
   saldoLiquido: number
   receitaProjetada: number
   liquidoAtual: number

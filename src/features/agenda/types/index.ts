@@ -81,6 +81,15 @@ export interface FotoExtra {
   dataRegistro: string
 }
 
+export interface VideoExtra {
+  id: string
+  agendamentoId: string
+  quantidade: number
+  valorUnitario: number
+  valorTotal: number
+  dataRegistro: string
+}
+
 export interface Tarefa {
   id: string
   agendamentoId: string

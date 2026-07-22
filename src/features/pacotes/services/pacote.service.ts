@@ -4,7 +4,7 @@ import type { PacoteFormData } from '../schemas/pacote.schema'
 
 export const pacoteService = {
   list: async (): Promise<Pacote[]> => {
-    const { data } = await apiClient.get<Pacote[]>('/pacotes')
+    const { data } = await apiClient.get<Pacote[]>('/pacotes/all')
     return data
   },
 
