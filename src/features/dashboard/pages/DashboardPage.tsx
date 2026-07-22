@@ -8,6 +8,7 @@ import { AgendaDoDia } from '../components/AgendaDoDia'
 import { PagamentosPendentes } from '../components/PagamentosPendentes'
 import { EntregasPendentes } from '../components/EntregasPendentes'
 import { Alertas } from '../components/Alertas'
+import { GraficoMensal } from '../components/GraficoMensal'
 import { useNavigate } from 'react-router-dom'
 
 function hoje() {
@@ -148,6 +149,10 @@ export function DashboardPage() {
             )}
           </div>
         </div>
+      </div>
+
+      <div className="mt-6">
+        <GraficoMensal />
       </div>
     </div>
   )
