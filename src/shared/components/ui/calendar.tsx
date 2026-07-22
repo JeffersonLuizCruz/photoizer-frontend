@@ -25,12 +25,12 @@ function Calendar({ className, classNames, showOutsideDays = true, ...props }: C
           'h-7 w-7 bg-transparent p-0 opacity-50 hover:opacity-100 absolute right-1',
         ),
         [UI.MonthGrid]: 'w-full border-collapse space-y-1',
-        [UI.Weekdays]: 'flex',
-        [UI.Weekday]: 'text-muted-foreground rounded-md w-8 font-normal text-[0.8rem]',
-        [UI.Weeks]: 'flex w-full mt-2',
-        [UI.Week]: 'flex w-full mt-2',
+        [UI.Weekdays]: 'grid grid-cols-7',
+        [UI.Weekday]: 'flex items-center justify-center text-muted-foreground font-normal text-[0.8rem] h-8',
+        [UI.Weeks]: 'w-full',
+        [UI.Week]: 'grid grid-cols-7',
         [UI.Day]: cn(
-          'relative p-0 text-center text-sm focus-within:relative focus-within:z-20',
+          'flex items-center justify-center text-sm focus-within:z-20',
           props.mode === 'range'
             ? '[&:has(>.range_end)]:rounded-r-md [&:has(>.range_start)]:rounded-l-md first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md'
             : '[&:has([aria-selected])]:rounded-md',
