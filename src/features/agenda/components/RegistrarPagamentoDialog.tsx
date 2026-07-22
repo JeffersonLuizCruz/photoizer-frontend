@@ -2,7 +2,8 @@ import { useState } from 'react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/shared/components/ui/dialog'
 import { Button } from '@/shared/components/ui/button'
 import { FileUpload } from '@/shared/components/layout/FileUpload'
-import { useRegistrarPagamentoFinal } from '../api/queries'
+import { useRegistrarPagamentoFinal, useCreateTarefa } from '../api/queries'
+import { TAREFA_TIPO } from '@/shared/constants'
 import type { Agendamento } from '../types'
 
 interface RegistrarPagamentoDialogProps {
@@ -14,12 +15,21 @@ interface RegistrarPagamentoDialogProps {
 export function RegistrarPagamentoDialog({ open, onOpenChange, agendamento }: RegistrarPagamentoDialogProps) {
   const [comprovante, setComprovante] = useState<File | null>(null)
   const { mutate, isPending } = useRegistrarPagamentoFinal()
+  const { mutate: createTarefa } = useCreateTarefa()
 
   const handleSubmit = () => {
     mutate(
       { id: agendamento.id, comprovante: comprovante ?? undefined },
       {
         onSuccess: () => {
+          const dataLimite = new Date()
+          dataLimite.setDate(dataLimite.getDate() + 2)
+          createTarefa({
+            agendamentoId: agendamento.id,
+            tipo: TAREFA_TIPO.EDITAR_FOTOS,
+            responsavelId: agendamento.editorId,
+            dataLimite: dataLimite.toISOString(),
+          })
           onOpenChange(false)
           setComprovante(null)
         },

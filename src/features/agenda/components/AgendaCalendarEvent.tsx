@@ -79,7 +79,7 @@ export function AgendaCalendarEvent({ agendamento, onClick, compact = false }: A
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2">
             <span className={cn('h-2.5 w-2.5 shrink-0 rounded-full', statusColors[agendamento.status] ?? 'bg-gray-400')} />
-            <span className="truncate text-sm font-medium">{agendamento.clienteId}</span>
+            <span className="truncate text-sm font-medium">{agendamento.clienteNome}</span>
             {agendamento.ensaioDestaque && <Star className="h-3 w-3 shrink-0 fill-amber-400 text-amber-400" />}
           </div>
           <div className="mt-1.5 flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground">

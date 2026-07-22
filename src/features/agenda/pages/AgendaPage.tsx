@@ -37,7 +37,6 @@ export function AgendaPage() {
   const [pacoteFilter, setPacoteFilter] = useState('')
   const [dateRange, setDateRange] = useState<DateRange | undefined>()
   const [clientSearch, setClientSearch] = useState('')
-  const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date())
 
   const debouncedClientSearch = useDebounce(clientSearch, 300)
 
@@ -188,7 +187,6 @@ export function AgendaPage() {
           onViewChange={setCalendarView}
           onEventClick={(id) => navigate(ROUTES.AGENDA_DETALHES.replace(':id', id))}
           onDateSelect={(date) => {
-            setSelectedDate(date)
             const params = new URLSearchParams()
             params.set('data', format(date, 'yyyy-MM-dd'))
             navigate(`${ROUTES.AGENDA_NOVO}?${params.toString()}`)

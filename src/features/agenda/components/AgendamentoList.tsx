@@ -71,7 +71,7 @@ export function AgendamentoList({ agendamentos, isLoading, pacotes, usuarios }: 
         header: 'Cliente',
         cell: ({ row }) => {
           return (
-            <span className="text-sm">{row.original.clienteId}</span>
+            <span className="text-sm">{row.original.clienteNome}</span>
           )
         },
       },

@@ -35,12 +35,12 @@ const statusActions: Record<string, ActionType[]> = {
 
 const actionConfig: Record<ActionType, { label: string; icon: React.ComponentType<{ className?: string }>; variant: 'default' | 'destructive' | 'outline' | 'secondary'; confirmTitle?: string; confirmDescription?: string; status: string }> = {
   realizar: {
-    label: 'Realizar Ensaio',
+    label: 'Finalizar Ensaio',
     icon: Play,
     variant: 'default',
-    confirmTitle: 'Realizar Ensaio',
+    confirmTitle: 'Finalizar Ensaio',
     confirmDescription: 'Confirmar que o ensaio foi realizado?',
-    status: AGENDAMENTO_STATUS.REALIZADO,
+    status: AGENDAMENTO_STATUS.AGUARDANDO_PAGAMENTO_FINAL,
   },
   reagendar: {
     label: 'Reagendar',
@@ -132,17 +132,6 @@ export function AgendamentoActions({ agendamento }: AgendamentoActionsProps) {
       { id: agendamento.id, status: config.status as Agendamento['status'] },
       {
         onSuccess: () => {
-          if (config.status === AGENDAMENTO_STATUS.REALIZADO) {
-            const dataLimite = new Date()
-            dataLimite.setDate(dataLimite.getDate() + 2)
-            createTarefa({
-              agendamentoId: agendamento.id,
-              tipo: TAREFA_TIPO.EDITAR_FOTOS,
-              responsavelId: agendamento.editorId,
-              dataLimite: dataLimite.toISOString(),
-            })
-          }
-
           if (config.status === AGENDAMENTO_STATUS.FOTOS_ENVIADAS_PARA_SELECAO) {
             const dataLimite = new Date()
             dataLimite.setDate(dataLimite.getDate() + 2)

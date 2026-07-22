@@ -25,7 +25,7 @@ export function StepConfirmacao({ confirmado, onConfirmadoChange }: StepConfirma
   const pacote = pacotes?.find((p) => p.id === values.pacoteId)
   const editor = usuarios?.find((u) => u.id === values.editorId)
 
-  const { data: valores, isLoading: previewLoading } = useFinanceiroPreview(values.pacoteId, values.taxaDeslocamento ?? 0)
+  const { data: valores } = useFinanceiroPreview(values.pacoteId, values.taxaDeslocamento ?? 0)
 
   return (
     <div className="space-y-6">
