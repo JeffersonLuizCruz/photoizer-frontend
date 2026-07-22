@@ -1,54 +1,35 @@
-import { PiggyBank, CreditCard, ImagePlus, TrendingUp } from 'lucide-react'
-import { AGENDAMENTO_STATUS } from '@/shared/constants'
-import type { Agendamento } from '@/features/agenda/types'
+import { PiggyBank, CreditCard, ImagePlus, TrendingUp, Loader2 } from 'lucide-react'
+import type { FinanceiroResumo as FinanceiroResumoData } from '../services/financeiro.service'
 
 interface FinanceiroResumoProps {
-  agendamentos: Agendamento[]
+  data: FinanceiroResumoData | undefined
+  isLoading: boolean
 }
 
-const statusComPagamentoFinal: Agendamento['status'][] = [
-  AGENDAMENTO_STATUS.EM_EDICAO,
-  AGENDAMENTO_STATUS.FOTOS_ENVIADAS_PARA_SELECAO,
-  AGENDAMENTO_STATUS.FOTOS_ENTREGUES,
-  AGENDAMENTO_STATUS.FINALIZADO,
-]
-
-export function FinanceiroResumo({ agendamentos }: FinanceiroResumoProps) {
-  const totalEntradas = agendamentos.reduce((acc, a) => acc + a.valorEntradaPago, 0)
-
-  const totalFinal = agendamentos
-    .filter((a) => statusComPagamentoFinal.includes(a.status))
-    .reduce((acc, a) => acc + a.valorRestante, 0)
-
-  const totalExtras = agendamentos.reduce((acc, a) => acc + a.valorExtras, 0)
-
-  const faturamentoTotal = agendamentos
-    .filter((a) => a.status !== AGENDAMENTO_STATUS.CANCELADO && a.status !== AGENDAMENTO_STATUS.NO_SHOW)
-    .reduce((acc, a) => acc + a.valorTotalFinal, 0)
-
+export function FinanceiroResumo({ data, isLoading }: FinanceiroResumoProps) {
   const cards = [
     {
       icon: PiggyBank,
       label: 'Total de Entradas (30%)',
-      value: totalEntradas,
+      value: data?.totalEntradas ?? 0,
       variant: 'text-emerald-600 dark:text-emerald-400' as const,
     },
     {
       icon: CreditCard,
       label: 'Total Pagamentos Finais (70%)',
-      value: totalFinal,
+      value: data?.totalFinal ?? 0,
       variant: 'text-blue-600 dark:text-blue-400' as const,
     },
     {
       icon: ImagePlus,
       label: 'Total de Extras',
-      value: totalExtras,
+      value: data?.totalExtras ?? 0,
       variant: 'text-purple-600 dark:text-purple-400' as const,
     },
     {
       icon: TrendingUp,
       label: 'Faturamento Total',
-      value: faturamentoTotal,
+      value: data?.faturamentoTotal ?? 0,
       variant: 'text-amber-600 dark:text-amber-400' as const,
     },
   ]
@@ -64,7 +45,11 @@ export function FinanceiroResumo({ agendamentos }: FinanceiroResumoProps) {
               {card.label}
             </div>
             <p className={`mt-1 text-2xl font-bold tabular-nums ${card.variant}`}>
-              R$ {card.value.toFixed(2)}
+              {isLoading && !data ? (
+                <Loader2 className="h-5 w-5 animate-spin" />
+              ) : (
+                `R$ ${card.value.toFixed(2)}`
+              )}
             </p>
           </div>
         )

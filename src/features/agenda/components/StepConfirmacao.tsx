@@ -1,8 +1,7 @@
 import { useFormContext } from 'react-hook-form'
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
-import { usePacotesList, useUsuariosList } from '../api/queries'
-import { calcularValores } from '../utils/financeiro'
+import { usePacotesList, useUsuariosList, useFinanceiroPreview } from '../api/queries'
 import type { WizardFormValues } from '../schemas/agendamento.schema'
 
 function formatCurrency(value: number): string {
@@ -26,9 +25,7 @@ export function StepConfirmacao({ confirmado, onConfirmadoChange }: StepConfirma
   const pacote = pacotes?.find((p) => p.id === values.pacoteId)
   const editor = usuarios?.find((u) => u.id === values.editorId)
 
-  const valores = pacote
-    ? calcularValores(pacote, values.taxaDeslocamento ?? 0)
-    : null
+  const { data: valores, isLoading: previewLoading } = useFinanceiroPreview(values.pacoteId, values.taxaDeslocamento ?? 0)
 
   return (
     <div className="space-y-6">

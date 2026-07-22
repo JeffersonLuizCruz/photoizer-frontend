@@ -1,8 +1,10 @@
 import { useState, useMemo } from 'react'
+import { format } from 'date-fns'
 import { FilterX } from 'lucide-react'
 import { Button } from '@/shared/components/ui/button'
 import { PageTitle } from '@/shared/components/layout/PageTitle'
 import { useAgendamentosList } from '@/features/agenda/api/queries'
+import { useFinanceiroResumo } from '../api/queries'
 import { FinanceiroResumo } from '../components/FinanceiroResumo'
 import { FinanceiroTabela } from '../components/FinanceiroTabela'
 import { FiltroPeriodo } from '../components/FiltroPeriodo'
@@ -12,6 +14,11 @@ import { AGENDAMENTO_STATUS } from '@/shared/constants'
 export function FinanceiroDashboardPage() {
   const { data: agendamentos, isLoading } = useAgendamentosList()
   const [dateRange, setDateRange] = useState<DateRange | undefined>()
+
+  const dataInicio = dateRange?.from ? format(dateRange.from, 'yyyy-MM-dd') : undefined
+  const dataFim = dateRange?.to ? format(dateRange.to, 'yyyy-MM-dd') : undefined
+
+  const { data: resumoData, isLoading: resumoLoading } = useFinanceiroResumo(dataInicio, dataFim)
 
   const filtered = useMemo(() => {
     if (!agendamentos) return []
@@ -38,7 +45,7 @@ export function FinanceiroDashboardPage() {
       />
 
       <div className="mb-6">
-        <FinanceiroResumo agendamentos={filtered} />
+        <FinanceiroResumo data={resumoData} isLoading={resumoLoading} />
       </div>
 
       <div className="mb-4 flex items-center gap-2">

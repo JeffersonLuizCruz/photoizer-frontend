@@ -40,7 +40,7 @@ function montarResumoWhatsApp(agendamento: Agendamento): string {
     `Cliente: ${agendamento.clienteNome}`,
     `Data: ${data}`,
     `Local: ${agendamento.localEnsaio}`,
-    `Pacote: ${agendamento.pacoteNome} - ${formatCurrency(agendamento.valorTotal - agendamento.taxaDeslocamento)}`,
+    `Pacote: ${agendamento.pacoteNome} - ${formatCurrency(agendamento.valorPacote)}`,
     '',
     '💰 *Financeiro*',
     `Entrada (30%): ${formatCurrency(agendamento.valorEntradaExigido)} ${agendamento.valorEntradaPago > 0 ? '✅ Pago' : '⏳ Pendente'}`,

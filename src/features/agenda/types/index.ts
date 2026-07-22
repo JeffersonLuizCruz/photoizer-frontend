@@ -38,6 +38,8 @@ export interface Agendamento {
   valorExtras: number
   taxaDeslocamento: number
   valorTotalFinal: number
+  valorPacote: number
+  saldoDevedor: number
 
   status: AgendamentoStatus
   dataConfirmacao: string | null

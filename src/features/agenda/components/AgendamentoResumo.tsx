@@ -96,7 +96,7 @@ export function AgendamentoResumo({ agendamento }: AgendamentoResumoProps) {
       </InfoCard>
 
       <InfoCard icon={DollarSign} title="Resumo Financeiro">
-        <InfoRow label="Valor do Pacote" value={`R$ ${(agendamento.valorTotal - agendamento.taxaDeslocamento).toFixed(2)}`} />
+        <InfoRow label="Valor do Pacote" value={`R$ ${agendamento.valorPacote.toFixed(2)}`} />
         <InfoRow label="Taxa de Deslocamento" value={`R$ ${agendamento.taxaDeslocamento.toFixed(2)}`} />
         <div className="border-t pt-2 mt-2">
           <InfoRow label="Valor Total" value={`R$ ${agendamento.valorTotal.toFixed(2)}`} />

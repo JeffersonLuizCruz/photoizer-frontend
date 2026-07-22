@@ -6,7 +6,30 @@ import type { AgendamentoStatus, TarefaStatus, TarefaTipo } from '@/shared/const
 import type { Cliente } from '@/features/clientes/types'
 import type { EditarAgendamentoFormData } from '../schemas/agendamento.schema'
 
+export interface Config {
+  valorUnitarioFotoExtra: number
+}
+
+export interface FinanceiroPreview {
+  valorTotal: number
+  valorEntradaExigido: number
+  valorRestante: number
+  valorTotalFinal: number
+}
+
 export const agendamentoService = {
+  getConfig: async (): Promise<Config> => {
+    const { data } = await apiClient.get<Config>('/config')
+    return data
+  },
+
+  previewFinanceiro: async (pacoteId: string, taxaDeslocamento: number): Promise<FinanceiroPreview> => {
+    const { data } = await apiClient.post<FinanceiroPreview>('/financeiro/preview', null, {
+      params: { pacoteId, taxaDeslocamento },
+    })
+    return data
+  },
+
   listPacotes: async (): Promise<Pacote[]> => {
     const { data } = await apiClient.get<Pacote[]>('/pacotes')
     return data

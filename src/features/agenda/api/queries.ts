@@ -5,6 +5,23 @@ import type { WizardFormValues, EditarAgendamentoFormData } from '../schemas/age
 import { QUERY_KEYS } from '@/shared/constants'
 import type { AgendamentoStatus, TarefaStatus, TarefaTipo } from '@/shared/constants'
 
+export function useConfig() {
+  return useQuery({
+    queryKey: [...QUERY_KEYS.FINANCEIRO, 'config'],
+    queryFn: () => agendamentoService.getConfig(),
+    staleTime: 1000 * 60 * 5,
+  })
+}
+
+export function useFinanceiroPreview(pacoteId: string | undefined, taxaDeslocamento: number) {
+  return useQuery({
+    queryKey: [...QUERY_KEYS.FINANCEIRO, 'preview', pacoteId, taxaDeslocamento],
+    queryFn: () => agendamentoService.previewFinanceiro(pacoteId!, taxaDeslocamento),
+    enabled: !!pacoteId,
+    staleTime: Infinity,
+  })
+}
+
 export function usePacotesList() {
   return useQuery({
     queryKey: [...QUERY_KEYS.PACOTES],

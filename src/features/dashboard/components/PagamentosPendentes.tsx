@@ -54,7 +54,7 @@ export function PagamentosPendentes({ agendamentos, isLoading }: PagamentosPende
                   {agendamento.clienteId.slice(0, 8)}... — {data}
                 </p>
                 <p className="text-xs text-muted-foreground">
-                  Restante: R$ {(agendamento.valorTotalFinal - agendamento.valorEntradaPago).toFixed(2)}
+                  Restante: R$ {agendamento.saldoDevedor.toFixed(2)}
                 </p>
               </div>
               <Button variant="default" size="sm" className="shrink-0 ml-3" onClick={() => setSelectedId(agendamento.id)}>

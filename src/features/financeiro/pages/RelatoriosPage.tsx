@@ -1,15 +1,15 @@
-import { useState, useMemo, useCallback } from 'react'
+import { useState, useCallback } from 'react'
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import { Download, FilterX } from 'lucide-react'
 import { Button } from '@/shared/components/ui/button'
 import { PageTitle } from '@/shared/components/layout/PageTitle'
-import { useAgendamentosList } from '@/features/agenda/api/queries'
+import { useFinanceiroRelatorios } from '../api/queries'
 import { FiltroPeriodo } from '../components/FiltroPeriodo'
 import type { DateRange } from '@/shared/components/layout/DateRangePicker'
-import { AGENDAMENTO_STATUS } from '@/shared/constants'
+import type { Agendamento } from '@/features/agenda/types'
 
-function gerarCSV(agendamentos: { dataHoraEnsaio: string; clienteId: string; localEnsaio: string; status: string; valorTotal: number; valorEntradaPago: number; valorRestante: number; valorExtras: number; valorTotalFinal: number }[]): string {
+function gerarCSV(agendamentos: Agendamento[]): string {
   const header = 'Data,Cliente,Local,Status,Valor Total,Entrada,Restante,Extras,Total Final'
   const rows = agendamentos.map((a) => {
     const data = format(new Date(a.dataHoraEnsaio), "dd/MM/yyyy", { locale: ptBR })
@@ -29,40 +29,24 @@ function exportarCSV(csv: string, filename: string) {
 }
 
 export function RelatoriosPage() {
-  const { data: agendamentos, isLoading } = useAgendamentosList()
   const [dateRange, setDateRange] = useState<DateRange | undefined>()
 
-  const filtered = useMemo(() => {
-    if (!agendamentos) return []
-    let list = agendamentos.filter(
-      (a) => a.status !== AGENDAMENTO_STATUS.CANCELADO && a.status !== AGENDAMENTO_STATUS.NO_SHOW,
-    )
-    if (dateRange?.from) {
-      list = list.filter((a) => new Date(a.dataHoraEnsaio) >= dateRange.from!)
-    }
-    if (dateRange?.to) {
-      list = list.filter((a) => new Date(a.dataHoraEnsaio) <= dateRange.to!)
-    }
-    return list.sort((a, b) => new Date(b.dataHoraEnsaio).getTime() - new Date(a.dataHoraEnsaio).getTime())
-  }, [agendamentos, dateRange])
+  const dataInicio = dateRange?.from ? format(dateRange.from, 'yyyy-MM-dd') : undefined
+  const dataFim = dateRange?.to ? format(dateRange.to, 'yyyy-MM-dd') : undefined
+
+  const { data, isLoading } = useFinanceiroRelatorios(dataInicio, dataFim)
+
+  const agendamentos = data?.agendamentos ?? []
+  const totais = data?.totais
 
   const handleExport = useCallback(() => {
-    const csv = gerarCSV(filtered)
+    if (agendamentos.length === 0) return
+    const csv = gerarCSV(agendamentos)
     const periodo = dateRange?.from && dateRange?.to
       ? `${format(dateRange.from, 'yyyyMMdd')}-${format(dateRange.to, 'yyyyMMdd')}`
       : 'completo'
     exportarCSV(csv, `relatorio-financeiro-${periodo}.csv`)
-  }, [filtered, dateRange])
-
-  const totais = useMemo(() => {
-    return {
-      total: filtered.reduce((acc, a) => acc + a.valorTotal, 0),
-      entrada: filtered.reduce((acc, a) => acc + a.valorEntradaPago, 0),
-      restante: filtered.reduce((acc, a) => acc + a.valorRestante, 0),
-      extras: filtered.reduce((acc, a) => acc + a.valorExtras, 0),
-      totalFinal: filtered.reduce((acc, a) => acc + a.valorTotalFinal, 0),
-    }
-  }, [filtered])
+  }, [agendamentos, dateRange])
 
   const hasFilter = !!dateRange?.from || !!dateRange?.to
 
@@ -88,9 +72,9 @@ export function RelatoriosPage() {
           )}
         </div>
 
-        <Button onClick={handleExport} disabled={filtered.length === 0}>
+        <Button onClick={handleExport} disabled={agendamentos.length === 0}>
           <Download className="mr-1 h-4 w-4" />
-          Exportar CSV ({filtered.length})
+          Exportar CSV ({agendamentos.length})
         </Button>
       </div>
 
@@ -101,34 +85,36 @@ export function RelatoriosPage() {
             <div key={i} className="animate-pulse h-12 w-full bg-muted rounded" />
           ))}
         </div>
-      ) : filtered.length === 0 ? (
+      ) : agendamentos.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
           <p className="text-sm">Nenhum agendamento encontrado no período</p>
         </div>
       ) : (
         <div className="space-y-6">
-          <div className="grid gap-4 sm:grid-cols-5">
-            <div className="rounded-lg border bg-card p-3">
-              <p className="text-xs text-muted-foreground">Valor Total</p>
-              <p className="text-lg font-bold tabular-nums">R$ {totais.total.toFixed(2)}</p>
+          {totais && (
+            <div className="grid gap-4 sm:grid-cols-5">
+              <div className="rounded-lg border bg-card p-3">
+                <p className="text-xs text-muted-foreground">Valor Total</p>
+                <p className="text-lg font-bold tabular-nums">R$ {totais.total.toFixed(2)}</p>
+              </div>
+              <div className="rounded-lg border bg-card p-3">
+                <p className="text-xs text-muted-foreground">Entradas</p>
+                <p className="text-lg font-bold tabular-nums text-emerald-600">R$ {totais.entrada.toFixed(2)}</p>
+              </div>
+              <div className="rounded-lg border bg-card p-3">
+                <p className="text-xs text-muted-foreground">Restante</p>
+                <p className="text-lg font-bold tabular-nums text-blue-600">R$ {totais.restante.toFixed(2)}</p>
+              </div>
+              <div className="rounded-lg border bg-card p-3">
+                <p className="text-xs text-muted-foreground">Extras</p>
+                <p className="text-lg font-bold tabular-nums text-purple-600">R$ {totais.extras.toFixed(2)}</p>
+              </div>
+              <div className="rounded-lg border bg-card p-3">
+                <p className="text-xs text-muted-foreground">Total Final</p>
+                <p className="text-lg font-bold tabular-nums text-amber-600">R$ {totais.totalFinal.toFixed(2)}</p>
+              </div>
             </div>
-            <div className="rounded-lg border bg-card p-3">
-              <p className="text-xs text-muted-foreground">Entradas</p>
-              <p className="text-lg font-bold tabular-nums text-emerald-600">R$ {totais.entrada.toFixed(2)}</p>
-            </div>
-            <div className="rounded-lg border bg-card p-3">
-              <p className="text-xs text-muted-foreground">Restante</p>
-              <p className="text-lg font-bold tabular-nums text-blue-600">R$ {totais.restante.toFixed(2)}</p>
-            </div>
-            <div className="rounded-lg border bg-card p-3">
-              <p className="text-xs text-muted-foreground">Extras</p>
-              <p className="text-lg font-bold tabular-nums text-purple-600">R$ {totais.extras.toFixed(2)}</p>
-            </div>
-            <div className="rounded-lg border bg-card p-3">
-              <p className="text-xs text-muted-foreground">Total Final</p>
-              <p className="text-lg font-bold tabular-nums text-amber-600">R$ {totais.totalFinal.toFixed(2)}</p>
-            </div>
-          </div>
+          )}
 
           <div className="rounded-md border">
             <div className="overflow-x-auto">
@@ -147,7 +133,7 @@ export function RelatoriosPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {filtered.map((a) => (
+                  {agendamentos.map((a) => (
                     <tr key={a.id} className="border-b hover:bg-muted/50">
                       <td className="px-4 py-2">{format(new Date(a.dataHoraEnsaio), "dd/MM/yyyy", { locale: ptBR })}</td>
                       <td className="px-4 py-2 font-medium">{a.clienteId.slice(0, 8)}...</td>
@@ -164,7 +150,7 @@ export function RelatoriosPage() {
               </table>
             </div>
             <div className="border-t px-4 py-2 text-xs text-muted-foreground">
-              {filtered.length} agendamento(s) no relatório
+              {agendamentos.length} agendamento(s) no relatório
             </div>
           </div>
         </div>

@@ -1,8 +1,7 @@
 import { useFormContext } from 'react-hook-form'
-import { usePacotesList } from '../api/queries'
+import { usePacotesList, useFinanceiroPreview } from '../api/queries'
 import { FileUpload } from '@/shared/components/layout/FileUpload'
 import { Label } from '@/shared/components/ui/label'
-import { calcularValores } from '../utils/financeiro'
 import type { WizardFormValues } from '../schemas/agendamento.schema'
 
 function formatCurrency(value: number): string {
@@ -25,9 +24,7 @@ export function StepFinanceiro({ comprovante, onComprovanteChange }: StepFinance
   const taxaDeslocamento = watch('taxaDeslocamento') ?? 0
   const pacote = pacotes?.find((p) => p.id === pacoteId)
 
-  const valores = pacote
-    ? calcularValores(pacote, taxaDeslocamento)
-    : null
+  const { data: valores, isLoading: previewLoading } = useFinanceiroPreview(pacoteId, taxaDeslocamento)
 
   return (
     <div className="space-y-6">
@@ -36,15 +33,28 @@ export function StepFinanceiro({ comprovante, onComprovanteChange }: StepFinance
           Resumo Financeiro
         </h3>
 
-        {valores ? (
+        {previewLoading ? (
+          <div className="space-y-3 animate-pulse">
+            <div className="h-4 w-32 bg-muted rounded" />
+            <div className="h-4 w-24 bg-muted rounded" />
+            <div className="h-4 w-28 bg-muted rounded" />
+            <div className="border-t pt-2">
+              <div className="h-5 w-20 bg-muted rounded" />
+            </div>
+            <div className="rounded-md bg-primary/5 p-3 space-y-2">
+              <div className="h-4 w-36 bg-muted rounded" />
+              <div className="h-4 w-36 bg-muted rounded" />
+            </div>
+          </div>
+        ) : valores && pacote ? (
           <div className="space-y-3">
             <div className="flex justify-between text-sm">
               <span className="text-muted-foreground">Pacote</span>
-              <span className="font-medium">{pacote!.nome}</span>
+              <span className="font-medium">{pacote.nome}</span>
             </div>
             <div className="flex justify-between text-sm">
               <span className="text-muted-foreground">Valor do Pacote</span>
-              <span className="font-medium">{formatCurrency(pacote!.valorBase)}</span>
+              <span className="font-medium">{formatCurrency(pacote.valorBase)}</span>
             </div>
             <div className="flex justify-between text-sm">
               <span className="text-muted-foreground">Taxa de Deslocamento</span>

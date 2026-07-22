@@ -57,7 +57,7 @@ export function AgendamentoFinanceiro({ agendamento }: AgendamentoFinanceiroProp
   const rows: FinanceiroRow[] = [
     {
       descricao: 'Pacote',
-      valor: agendamento.valorTotal - agendamento.taxaDeslocamento,
+      valor: agendamento.valorPacote,
       tipo: 'positivo',
     },
     {
@@ -192,7 +192,7 @@ export function AgendamentoFinanceiro({ agendamento }: AgendamentoFinanceiroProp
         <div className="rounded-lg border bg-card p-4">
           <p className="text-xs text-muted-foreground">Saldo Restante</p>
           <p className="text-xl font-bold text-amber-600">
-            R$ {(agendamento.valorTotalFinal - agendamento.valorEntradaPago).toFixed(2)}
+            R$ {agendamento.saldoDevedor.toFixed(2)}
           </p>
         </div>
       </div>
