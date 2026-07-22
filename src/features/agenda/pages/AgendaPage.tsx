@@ -1,6 +1,6 @@
-import { useState, useMemo, useCallback } from 'react'
+import { useState, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Plus, CalendarDays, Table2, FilterX, Search } from 'lucide-react'
+import { CalendarDays, Table2, FilterX, Search } from 'lucide-react'
 import { format } from 'date-fns'
 import { Button } from '@/shared/components/ui/button'
 import { Input } from '@/shared/components/ui/input'
@@ -73,14 +73,6 @@ export function AgendaPage() {
     })
   }, [agendamentos, pacoteFilter])
 
-  const irParaNovoAgendamento = useCallback(() => {
-    const params = new URLSearchParams()
-    if (selectedDate) {
-      params.set('data', format(selectedDate, 'yyyy-MM-dd'))
-    }
-    navigate(`${ROUTES.AGENDA_NOVO}?${params.toString()}`)
-  }, [navigate, selectedDate])
-
   const hasActiveFilters = statusFilter || editorFilter || pacoteFilter || dateRange?.from || clientSearch
 
   const clearFilters = () => {
@@ -97,12 +89,6 @@ export function AgendaPage() {
         title="Agenda"
         description="Visualize e gerencie os ensaios agendados"
         breadcrumbs={[{ label: 'Agenda' }]}
-        actions={
-          <Button onClick={irParaNovoAgendamento}>
-            <Plus className="mr-1 h-4 w-4" />
-            Novo Agendamento
-          </Button>
-        }
       />
 
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
@@ -201,7 +187,12 @@ export function AgendaPage() {
           view={calendarView}
           onViewChange={setCalendarView}
           onEventClick={(id) => navigate(ROUTES.AGENDA_DETALHES.replace(':id', id))}
-          onDateSelect={setSelectedDate}
+          onDateSelect={(date) => {
+            setSelectedDate(date)
+            const params = new URLSearchParams()
+            params.set('data', format(date, 'yyyy-MM-dd'))
+            navigate(`${ROUTES.AGENDA_NOVO}?${params.toString()}`)
+          }}
           isLoading={isLoading}
         />
       ) : (

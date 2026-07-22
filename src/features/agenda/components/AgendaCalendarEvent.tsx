@@ -53,7 +53,7 @@ export function AgendaCalendarEvent({ agendamento, onClick, compact = false }: A
     return (
       <button
         type="button"
-        onClick={() => onClick?.(agendamento.id)}
+        onClick={(e) => { e.stopPropagation(); onClick?.(agendamento.id) }}
         className={cn(
           'flex w-full items-center gap-1.5 rounded px-1.5 py-0.5 text-left text-xs transition-colors',
           statusBgColors[agendamento.status] ?? 'bg-muted border-border hover:bg-accent',
@@ -69,7 +69,7 @@ export function AgendaCalendarEvent({ agendamento, onClick, compact = false }: A
   return (
     <button
       type="button"
-      onClick={() => onClick?.(agendamento.id)}
+      onClick={(e) => { e.stopPropagation(); onClick?.(agendamento.id) }}
       className={cn(
         'w-full rounded-lg border p-3 text-left transition-colors',
         statusBgColors[agendamento.status] ?? 'bg-card border-border hover:bg-accent',
