@@ -1,0 +1,1 @@
+import{N as e}from"./auth.service-DixceR-I.js";var t={listar:async t=>{let n=t?{search:t}:void 0,{data:r}=await e.get(`/indicadores`,{params:n});return r},criar:async t=>{let{data:n}=await e.post(`/indicadores`,t);return n},atualizar:async(t,n)=>{let{data:r}=await e.put(`/indicadores/${t}`,n);return r},remover:async t=>{await e.delete(`/indicadores/${t}`)}};export{t};

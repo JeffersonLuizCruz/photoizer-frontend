@@ -1,13 +1,124 @@
 import { useState, useRef, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { Upload, Trash2, Send, ImagePlus, X, Loader2, Link2 } from 'lucide-react'
+import { Upload, Trash2, Send, ImagePlus, X, Loader2, Link2, Star, Pencil } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/shared/components/ui/button'
 import { PageTitle } from '@/shared/components/layout/PageTitle'
 import { PageLoading } from '@/shared/components/layout/Loading'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/shared/components/ui/dialog'
+import { Input } from '@/shared/components/ui/input'
+import { Label } from '@/shared/components/ui/label'
+import { Checkbox } from '@/shared/components/ui/checkbox'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/components/ui/select'
 import { ROUTES } from '@/shared/constants'
 import { fotoService } from '../services/foto.service'
-import { useFotosList, useUploadFotos, usePublicarFotos, useDeletarFoto } from '../api/queries'
+import { useFotosList, useUploadFotos, usePublicarFotos, useDeletarFoto, useUpdateFotoMetadata } from '../api/queries'
+import type { FotoEnsaio } from '@/features/ecommerce/types/ecommerce.types'
+
+const CATEGORIAS = [
+  'Casamento',
+  'Pré-wedding',
+  'Ensaio Gestante',
+  'Newborn',
+  'Infantil',
+  'Familiar',
+  'Formatura',
+  'Evento',
+  'Retrato',
+  'Outros',
+]
+
+function FotoMetadataDialog({ agendamentoId, foto, open, onOpenChange }: {
+  agendamentoId: string
+  foto: FotoEnsaio
+  open: boolean
+  onOpenChange: (open: boolean) => void
+}) {
+  const [titulo, setTitulo] = useState(foto.titulo ?? '')
+  const [tags, setTags] = useState((foto.tags ?? []).join(', '))
+  const [categoria, setCategoria] = useState(foto.categoria ?? '')
+  const [destaque, setDestaque] = useState(foto.destaque)
+
+  const { mutate: update, isPending } = useUpdateFotoMetadata(agendamentoId)
+
+  function handleSave() {
+    const tagsArray = tags
+      .split(',')
+      .map((t) => t.trim())
+      .filter(Boolean)
+
+    update(
+      {
+        fotoId: foto.id,
+        metadata: {
+          titulo: titulo || undefined,
+          tags: tagsArray.length > 0 ? tagsArray : undefined,
+          categoria: categoria || undefined,
+          destaque,
+        },
+      },
+      { onSuccess: () => onOpenChange(false) }
+    )
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>Editar Metadados</DialogTitle>
+        </DialogHeader>
+        <div className="space-y-4">
+          <div className="flex gap-4">
+            <div className="h-20 w-20 rounded-lg bg-muted overflow-hidden flex-shrink-0">
+              <img src={foto.thumbUrl} alt="" className="h-full w-full object-cover" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium truncate">{foto.fileName}</p>
+              <p className="text-xs text-muted-foreground">{foto.status}</p>
+            </div>
+          </div>
+
+          <div>
+            <Label htmlFor="foto-titulo">Título</Label>
+            <Input id="foto-titulo" value={titulo} onChange={(e) => setTitulo(e.target.value)} placeholder="Nome da foto" />
+          </div>
+
+          <div>
+            <Label htmlFor="foto-tags">Tags (separadas por vírgula)</Label>
+            <Input id="foto-tags" value={tags} onChange={(e) => setTags(e.target.value)} placeholder="ex: praia, casal, pôr do sol" />
+          </div>
+
+          <div>
+            <Label htmlFor="foto-categoria">Categoria</Label>
+            <Select value={categoria} onValueChange={setCategoria}>
+              <SelectTrigger id="foto-categoria">
+                <SelectValue placeholder="Selecione" />
+              </SelectTrigger>
+              <SelectContent>
+                {CATEGORIAS.map((cat) => (
+                  <SelectItem key={cat} value={cat}>{cat}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <Checkbox id="foto-destaque" checked={destaque} onCheckedChange={(v) => setDestaque(v === true)} />
+            <Label htmlFor="foto-destaque" className="cursor-pointer">Foto em destaque</Label>
+          </div>
+
+          <div className="flex justify-end gap-2 pt-2">
+            <Button variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>
+            <Button onClick={handleSave} disabled={isPending}>
+              {isPending && <Loader2 className="mr-1 h-4 w-4 animate-spin" />}
+              Salvar
+            </Button>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  )
+}
 
 export function AdminGaleriaPage() {
   const { id } = useParams<{ id: string }>()
@@ -15,6 +126,7 @@ export function AdminGaleriaPage() {
   const inputRef = useRef<HTMLInputElement>(null)
   const [selectedFiles, setSelectedFiles] = useState<File[]>([])
   const [galeriaLink, setGaleriaLink] = useState<string | null>(null)
+  const [editFoto, setEditFoto] = useState<FotoEnsaio | null>(null)
 
   const { data: fotos = [], isLoading } = useFotosList(id)
   const { mutate: uploadFotos, isPending: isUploading } = useUploadFotos(id ?? '')
@@ -34,6 +146,7 @@ export function AdminGaleriaPage() {
 
   const ineditas = fotos.filter((f) => f.status === 'INEDITA').length
   const publicadas = fotos.filter((f) => f.status === 'PUBLICADA').length
+  const destaques = fotos.filter((f) => f.destaque).length
 
   const handleUpload = () => {
     if (selectedFiles.length === 0) return
@@ -143,6 +256,8 @@ export function AdminGaleriaPage() {
           <span>Inéditas: <strong className="text-amber-600">{ineditas}</strong></span>
           <span className="inline-block h-3 w-px bg-border" />
           <span>Publicadas: <strong className="text-emerald-600">{publicadas}</strong></span>
+          <span className="inline-block h-3 w-px bg-border" />
+          <span>Destaque: <strong className="text-amber-500">{destaques}</strong></span>
         </div>
 
         {isLoading ? (
@@ -162,12 +277,25 @@ export function AdminGaleriaPage() {
             {fotos.map((foto) => (
               <div key={foto.id} className="group relative rounded-lg border bg-card overflow-hidden">
                 <div className="aspect-[3/2] relative">
+                  {foto.destaque && (
+                    <div className="absolute top-1 left-1 z-10">
+                      <Star className="h-3.5 w-3.5 text-amber-400 fill-amber-400" />
+                    </div>
+                  )}
                   <img
                     src={foto.thumbUrl}
                     alt={foto.fileName}
                     className="h-full w-full object-cover"
                   />
                   <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100">
+                    <button
+                      type="button"
+                      onClick={() => setEditFoto(foto)}
+                      className="h-8 w-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center"
+                      title="Editar"
+                    >
+                      <Pencil className="h-4 w-4" />
+                    </button>
                     <button
                       type="button"
                       onClick={() => deletar(foto.id)}
@@ -179,20 +307,34 @@ export function AdminGaleriaPage() {
                   </div>
                 </div>
                 <div className="p-2">
-                  <p className="text-xs truncate text-muted-foreground">{foto.fileName}</p>
-                  <span className={`inline-block mt-0.5 text-[10px] font-medium px-1.5 py-0.5 rounded-sm ${
-                    foto.status === 'PUBLICADA' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' :
-                    foto.status === 'INEDITA' ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400' :
-                    'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
-                  }`}>
-                    {foto.status === 'PUBLICADA' ? 'Publicada' : foto.status === 'INEDITA' ? 'Inédita' : foto.status}
-                  </span>
+                  <p className="text-xs truncate text-muted-foreground">{foto.titulo || foto.fileName}</p>
+                  <div className="flex items-center gap-1 mt-0.5 flex-wrap">
+                    <span className={`inline-block text-[10px] font-medium px-1.5 py-0.5 rounded-sm ${
+                      foto.status === 'PUBLICADA' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' :
+                      foto.status === 'INEDITA' ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400' :
+                      'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
+                    }`}>
+                      {foto.status === 'PUBLICADA' ? 'Publicada' : foto.status === 'INEDITA' ? 'Inédita' : foto.status}
+                    </span>
+                    {foto.categoria && (
+                      <span className="text-[10px] text-muted-foreground bg-muted px-1.5 py-0.5 rounded-sm">{foto.categoria}</span>
+                    )}
+                  </div>
                 </div>
               </div>
             ))}
           </div>
         )}
       </div>
+
+      {editFoto && id && (
+        <FotoMetadataDialog
+          agendamentoId={id}
+          foto={editFoto}
+          open={!!editFoto}
+          onOpenChange={(open) => { if (!open) setEditFoto(null) }}
+        />
+      )}
     </div>
   )
 }

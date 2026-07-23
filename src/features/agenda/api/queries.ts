@@ -244,6 +244,37 @@ export function useCreateTarefa() {
   })
 }
 
+export function useUpdateTarefa(id: string) {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (payload: { tipo: TarefaTipo; responsavelId?: string | null; dataLimite: string }) =>
+      agendamentoService.updateTarefa(id, payload),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.TAREFAS })
+      toast.success('Tarefa atualizada')
+    },
+    onError: (error: Error) => {
+      toast.error(error.message || 'Erro ao atualizar tarefa')
+    },
+  })
+}
+
+export function useDeleteTarefa() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (id: string) => agendamentoService.deleteTarefa(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.TAREFAS })
+      toast.success('Tarefa excluída')
+    },
+    onError: (error: Error) => {
+      toast.error(error.message || 'Erro ao excluir tarefa')
+    },
+  })
+}
+
 export function useUpdateTarefaStatus() {
   const queryClient = useQueryClient()
 

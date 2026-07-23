@@ -34,6 +34,19 @@ export function usePublicarFotos(agendamentoId: string) {
   })
 }
 
+export function useUpdateFotoMetadata(agendamentoId: string) {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ({ fotoId, metadata }: { fotoId: string; metadata: { titulo?: string; tags?: string[]; categoria?: string; destaque?: boolean } }) =>
+      fotoService.atualizarMetadata(agendamentoId, fotoId, metadata),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['fotos', agendamentoId] })
+      toast.success('Metadados atualizados')
+    },
+    onError: (error: Error) => toast.error(error.message || 'Erro ao atualizar metadados'),
+  })
+}
+
 export function useDeletarFoto(agendamentoId: string) {
   const queryClient = useQueryClient()
   return useMutation({

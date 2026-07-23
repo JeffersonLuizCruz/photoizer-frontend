@@ -35,9 +35,6 @@ export function EditarAgendamentoForm({ agendamento, onSubmit, isPending }: Edit
   const { data: pacotes } = usePacotesList()
   const { data: usuarios } = useUsuariosList()
 
-  const dataHora = new Date(agendamento.dataHoraEnsaio)
-  const horaStr = format(dataHora, 'HH:mm')
-
   const {
     register,
     handleSubmit,
@@ -168,7 +165,7 @@ export function EditarAgendamentoForm({ agendamento, onSubmit, isPending }: Edit
 
         <div>
           <Label htmlFor="hora">Horário *</Label>
-          <Select value={horaStr} onValueChange={handleHoraSelect}>
+          <Select value={selectedDate ? format(selectedDate, 'HH:mm') : ''} onValueChange={handleHoraSelect}>
             <SelectTrigger>
               <SelectValue placeholder="Selecione o horário" />
             </SelectTrigger>

@@ -19,7 +19,14 @@ export const ROUTES = {
   COMISSOES: '/comissoes',
   AGENDA_GALERIA: '/agenda/:id/fotos',
   ADMIN_ECOMMERCE: '/admin/ecommerce',
+  ADMIN_CUPONS: '/admin/cupons',
+  ADMIN_PEDIDOS: '/admin/pedidos',
+  ADMIN_ANALYTICS: '/admin/analytics',
   LOGIN: '/login',
+  ACESSO_CLIENTE: '/acesso-cliente',
+  MINHA_CONTA: '/minha-conta',
+  PACOTES_DISPONIVEIS: '/pacotes-disponiveis',
+  CHECKOUT: '/checkout/pacote/:pacoteId',
 } as const
 
 export const QUERY_KEYS = {

@@ -1,6 +1,6 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
 import { useParams } from 'react-router-dom'
-import { ShieldAlert, Camera, Loader2, ShoppingCart, Download } from 'lucide-react'
+import { ShieldAlert, Camera, Loader2, ShoppingCart, Download, Search, Filter, X, Heart, Columns2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { ecommerceService } from '../services/ecommerce.service'
 import type { FotoEnsaio, CompraExtraResponse, MetodoPagamento } from '../types/ecommerce.types'
@@ -10,6 +10,9 @@ import { PhotoGrid } from '../components/PhotoGrid'
 import { CheckoutDialog } from '../components/CheckoutDialog'
 import { PurchaseConfirmation } from '../components/PurchaseConfirmation'
 import { MinhasComprasSection } from '../components/MinhasComprasSection'
+import { ComparadorFotos } from '../components/ComparadorFotos'
+import { CartSummaryPanel } from '../components/CartSummaryPanel'
+import { DepoimentosSection } from '../components/DepoimentosSection'
 
 export function GaleriaClientePage() {
   const { token } = useParams<{ token: string }>()
@@ -28,11 +31,46 @@ export function GaleriaClientePage() {
   const [compraFinalizada, setCompraFinalizada] = useState<CompraExtraResponse | null>(null)
   const [comprovanteEnviado, setComprovanteEnviado] = useState(false)
 
+  // Wishlist, comparação e carrinho lateral
+  const [favoritoIds, setFavoritoIds] = useState<Set<string>>(new Set())
+  const [compareMode, setCompareMode] = useState(false)
+  const [compareIds, setCompareIds] = useState<Set<string>>(new Set())
+  const [showCart, setShowCart] = useState(false)
+  const [showComparador, setShowComparador] = useState(false)
+
+  // Filtros
+  const [searchTerm, setSearchTerm] = useState('')
+  const [categoriaFilter, setCategoriaFilter] = useState<string>('')
+
   const fotos = galeria?.fotos ?? []
   const pacoteLimit = galeria?.pacoteQuantidadeFotos ?? 0
   const valorUnitario = galeria?.valorUnitarioFotoExtra ?? 15
   const isDownloadable = (foto: FotoEnsaio) => foto.selecionadaPacote || foto.status === 'PAGA'
   const downloadableFotos = fotos.filter(isDownloadable)
+
+  // Categorias disponíveis para filtro
+  const categorias = useMemo(() => {
+    const cats = new Set<string>()
+    fotos.forEach((f) => { if (f.categoria) cats.add(f.categoria) })
+    return Array.from(cats).sort()
+  }, [fotos])
+
+  // Fotos filtradas
+  const filteredFotos = useMemo(() => {
+    let result = fotos
+    if (categoriaFilter) {
+      result = result.filter((f) => f.categoria === categoriaFilter)
+    }
+    if (searchTerm.trim()) {
+      const term = searchTerm.toLowerCase()
+      result = result.filter((f) =>
+        (f.tags && f.tags.some((t) => t.toLowerCase().includes(term))) ||
+        (f.titulo && f.titulo.toLowerCase().includes(term)) ||
+        (f.fileName && f.fileName.toLowerCase().includes(term))
+      )
+    }
+    return result
+  }, [fotos, categoriaFilter, searchTerm])
 
   useEffect(() => {
     if (!token) return
@@ -54,7 +92,51 @@ export function GaleriaClientePage() {
         setCarrinhoCount(response.quantidade)
       })
       .catch(() => {})
+    ecommerceService.listarFavoritos(token)
+      .then((ids) => setFavoritoIds(new Set(ids)))
+      .catch(() => {})
   }, [token, isLoading, error])
+
+  const toggleFavorito = useCallback(async (fotoId: string) => {
+    if (!token) return
+    const isFavorito = favoritoIds.has(fotoId)
+    // Otimista
+    setFavoritoIds((prev) => {
+      const next = new Set(prev)
+      if (isFavorito) next.delete(fotoId)
+      else next.add(fotoId)
+      return next
+    })
+    try {
+      if (isFavorito) await ecommerceService.removerFavorito(token, fotoId)
+      else await ecommerceService.adicionarFavorito(token, fotoId)
+    } catch (err: any) {
+      // Reverte
+      setFavoritoIds((prev) => {
+        const next = new Set(prev)
+        if (isFavorito) next.add(fotoId)
+        else next.delete(fotoId)
+        return next
+      })
+      toast.error(err?.response?.data?.message || 'Erro ao atualizar favoritos')
+    }
+  }, [token, favoritoIds])
+
+  const toggleCompare = useCallback((fotoId: string) => {
+    setCompareIds((prev) => {
+      const next = new Set(prev)
+      if (next.has(fotoId)) {
+        next.delete(fotoId)
+      } else {
+        if (next.size >= 4) {
+          toast.error('Máximo de 4 fotos para comparação')
+          return prev
+        }
+        next.add(fotoId)
+      }
+      return next
+    })
+  }, [])
 
   const toggleSelect = useCallback((fotoId: string) => {
     setSelectedIds((prev) => {
@@ -195,13 +277,43 @@ export function GaleriaClientePage() {
       <header className="sticky top-0 z-40 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="flex items-center justify-between px-4 md:px-6 h-14">
           <div>
-            <h1 className="text-sm font-semibold">Sua Galeria de Fotos</h1>
+            <h1 className="text-sm font-semibold">{galeria?.pacoteNome || 'Sua Galeria de Fotos'}</h1>
             <p className="text-[11px] text-muted-foreground">
               {selectedIds.size} de {pacoteLimit} no pacote
               {carrinhoCount > 0 && ` · ${carrinhoCount} extra(s): R$ ${totalExtras.toFixed(2)}`}
+              {filteredFotos.length < fotos.length && ` · ${filteredFotos.length} exibidas`}
+              {galeria?.localEnsaio && ` · ${galeria.localEnsaio}`}
             </p>
           </div>
           <div className="flex items-center gap-2">
+            {favoritoIds.size > 0 && (
+              <span className="flex items-center gap-1 text-xs text-muted-foreground" title="Fotos favoritas">
+                <Heart className="h-3.5 w-3.5 text-red-500" fill="currentColor" />
+                {favoritoIds.size}
+              </span>
+            )}
+            <button onClick={() => setCompareMode((prev) => !prev)}
+              className={`flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-medium transition-colors ${
+                compareMode ? 'bg-blue-600 text-white border-blue-600 hover:bg-blue-700' : 'hover:bg-accent'
+              }`}>
+              <Columns2 className="h-3.5 w-3.5" />
+              Comparar
+            </button>
+            {compareMode && compareIds.size >= 2 && (
+              <button onClick={() => setShowComparador(true)}
+                className="rounded-lg bg-blue-600 text-white px-3 py-1.5 text-xs font-medium hover:bg-blue-700 transition-colors">
+                Ver comparação ({compareIds.size})
+              </button>
+            )}
+            <button onClick={() => setShowCart(true)}
+              className="relative rounded-lg border p-1.5 hover:bg-accent transition-colors" title="Meu carrinho">
+              <ShoppingCart className="h-4 w-4" />
+              {carrinhoCount > 0 && (
+                <span className="absolute -top-1.5 -right-1.5 h-4 min-w-4 px-0.5 rounded-full bg-blue-600 text-white text-[10px] font-medium flex items-center justify-center">
+                  {carrinhoCount}
+                </span>
+              )}
+            </button>
             {hasSelectionChanges && (
               <button onClick={handleSaveSelection} disabled={isSaving}
                 className="rounded-lg bg-primary text-primary-foreground px-3 py-1.5 text-xs font-medium hover:bg-primary/90 transition-colors disabled:opacity-50">
@@ -224,22 +336,98 @@ export function GaleriaClientePage() {
             )}
           </div>
         </div>
+        {/* Barra de filtros */}
+        <div className="px-4 md:px-6 pb-3 flex items-center gap-2">
+          <div className="relative flex-1 max-w-xs">
+            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+            <input value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)}
+              placeholder="Buscar por tags ou nome..."
+              className="w-full rounded-lg border bg-background pl-8 pr-3 py-1.5 text-xs" />
+            {searchTerm && (
+              <button onClick={() => setSearchTerm('')}
+                className="absolute right-2 top-1/2 -translate-y-1/2">
+                <X className="h-3 w-3 text-muted-foreground" />
+              </button>
+            )}
+          </div>
+          {categorias.length > 0 && (
+            <select value={categoriaFilter} onChange={(e) => setCategoriaFilter(e.target.value)}
+              className="rounded-lg border bg-background px-3 py-1.5 text-xs font-medium">
+              <option value="">Todas as categorias</option>
+              {categorias.map((cat) => (
+                <option key={cat} value={cat}>{cat}</option>
+              ))}
+            </select>
+          )}
+          {(categoriaFilter || searchTerm) && (
+            <button onClick={() => { setCategoriaFilter(''); setSearchTerm('') }}
+              className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1">
+              <Filter className="h-3 w-3" /> Limpar
+            </button>
+          )}
+        </div>
       </header>
+
+      {/* Barra de progresso do pacote */}
+      <div className="px-4 md:px-6 pt-4 pb-1">
+        <div className="rounded-xl border bg-card p-4">
+          <div className="flex items-center justify-between mb-2">
+            <div>
+              <p className="text-xs font-semibold">
+                Fotos no pacote: {selectedIds.size} de {pacoteLimit}
+              </p>
+              <p className="text-[11px] text-muted-foreground mt-0.5">
+                {selectedIds.size >= pacoteLimit
+                  ? 'Limite do pacote atingido'
+                  : `Você pode selecionar mais ${pacoteLimit - selectedIds.size} foto(s)`}
+                {carrinhoCount > 0 && ` · Carrinho: ${carrinhoCount} extra(s) · R$ ${(carrinhoCount * valorUnitario).toFixed(2)}`}
+              </p>
+            </div>
+            <span className="text-xs font-medium text-muted-foreground">
+              {pacoteLimit > 0 ? Math.round((selectedIds.size / pacoteLimit) * 100) : 0}%
+            </span>
+          </div>
+          <div className="h-2 rounded-full bg-muted overflow-hidden">
+            <div
+              className="h-full rounded-full transition-all duration-500"
+              style={{
+                width: `${Math.min((selectedIds.size / pacoteLimit) * 100, 100)}%`,
+                background: selectedIds.size >= pacoteLimit
+                  ? 'linear-gradient(to right, #f59e0b, #ef4444)'
+                  : 'linear-gradient(to right, #10b981, #059669)'
+              }}
+            />
+          </div>
+        </div>
+      </div>
 
       <div className="px-4 md:px-6 py-6">
         <PhotoGrid
-          fotos={fotos}
+          fotos={filteredFotos}
           token={token ?? ''}
           selectedIds={selectedIds}
           carrinhoIds={carrinhoIds}
           cartLoadingIds={cartLoadingIds}
           pacoteLimit={pacoteLimit}
           valorUnitario={valorUnitario}
+          favoritoIds={favoritoIds}
+          compareIds={compareIds}
+          compareMode={compareMode}
           onSelect={toggleSelect}
           onToggleCarrinho={toggleCarrinho}
-          onView={(index) => setViewerIndex(index)} />
+          onToggleFavorito={toggleFavorito}
+          onToggleCompare={toggleCompare}
+          onView={(index) => {
+            // Find the index in the original fotos array for the viewer
+            const originalIndex = fotos.findIndex((f) => f.id === filteredFotos[index]?.id)
+            if (originalIndex >= 0) setViewerIndex(originalIndex)
+          }} />
 
         {token && <MinhasComprasSection token={token} />}
+
+        <div className="border-t pt-6">
+          <DepoimentosSection />
+        </div>
       </div>
 
       {viewerIndex !== null && (
@@ -250,6 +438,26 @@ export function GaleriaClientePage() {
           selectedCount={selectedIds.size} onToggleCarrinho={toggleCarrinho}
           valorUnitario={valorUnitario} cartLoadingIds={cartLoadingIds} />
       )}
+
+      {showComparador && (
+        <ComparadorFotos
+          fotos={fotos.filter((f) => compareIds.has(f.id))}
+          onClose={() => setShowComparador(false)}
+          selectedIds={selectedIds}
+          pacoteLimit={pacoteLimit}
+          onToggleSelect={toggleSelect} />
+      )}
+
+      <CartSummaryPanel
+        open={showCart}
+        onClose={() => setShowCart(false)}
+        fotos={fotos}
+        selectedIds={selectedIds}
+        carrinhoIds={carrinhoIds}
+        pacoteLimit={pacoteLimit}
+        valorUnitario={valorUnitario}
+        onRemoveFromCart={toggleCarrinho}
+        onCheckout={() => { setShowCart(false); setShowCheckout(true) }} />
 
       <CheckoutDialog
         token={token ?? ''}

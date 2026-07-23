@@ -173,6 +173,15 @@ export const agendamentoService = {
     return data
   },
 
+  updateTarefa: async (id: string, payload: { tipo: TarefaTipo; responsavelId?: string | null; dataLimite: string }): Promise<Tarefa> => {
+    const { data } = await apiClient.put<Tarefa>(`/tarefas/${id}`, payload)
+    return data
+  },
+
+  deleteTarefa: async (id: string): Promise<void> => {
+    await apiClient.delete(`/tarefas/${id}`)
+  },
+
   updateTarefaStatus: async (id: string, status: TarefaStatus): Promise<Tarefa> => {
     const { data } = await apiClient.patch<Tarefa>(`/tarefas/${id}/status`, { status })
     return data

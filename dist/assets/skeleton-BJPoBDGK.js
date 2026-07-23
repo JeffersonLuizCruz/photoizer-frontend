@@ -1,0 +1,1 @@
+import{X as e}from"./auth.service-DixceR-I.js";import{i as t}from"./index-D2k7KIjk.js";var n=e();function r({className:e,...r}){return(0,n.jsx)(`div`,{className:t(`animate-pulse rounded-md bg-muted`,e),...r})}export{r as t};

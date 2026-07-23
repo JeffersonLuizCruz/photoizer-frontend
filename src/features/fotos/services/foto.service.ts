@@ -31,4 +31,14 @@ export const fotoService = {
   deletar: async (agendamentoId: string, fotoId: string): Promise<void> => {
     await apiClient.delete(`/agendamentos/${agendamentoId}/fotos/${fotoId}`)
   },
+
+  atualizarMetadata: async (agendamentoId: string, fotoId: string, metadata: {
+    titulo?: string
+    tags?: string[]
+    categoria?: string
+    destaque?: boolean
+  }): Promise<FotoEnsaio> => {
+    const { data } = await apiClient.patch<FotoEnsaio>(`/agendamentos/${agendamentoId}/fotos/${fotoId}/metadata`, metadata)
+    return data
+  },
 }

@@ -1,4 +1,4 @@
-import { Check, Download } from 'lucide-react'
+import { Check, Download, Heart } from 'lucide-react'
 import type { FotoEnsaio } from '../types/ecommerce.types'
 import { ecommerceService } from '../services/ecommerce.service'
 
@@ -10,14 +10,20 @@ interface PhotoGridProps {
   cartLoadingIds: Set<string>
   pacoteLimit: number
   valorUnitario: number
+  favoritoIds: Set<string>
+  compareIds: Set<string>
+  compareMode: boolean
   onSelect: (fotoId: string) => void
   onToggleCarrinho: (fotoId: string) => void
+  onToggleFavorito: (fotoId: string) => void
+  onToggleCompare: (fotoId: string) => void
   onView: (index: number) => void
 }
 
 export function PhotoGrid({
   fotos, token, selectedIds, carrinhoIds, cartLoadingIds,
-  pacoteLimit, valorUnitario, onSelect, onToggleCarrinho, onView,
+  pacoteLimit, valorUnitario, favoritoIds, compareIds, compareMode,
+  onSelect, onToggleCarrinho, onToggleFavorito, onToggleCompare, onView,
 }: PhotoGridProps) {
   return (
     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
@@ -27,12 +33,22 @@ export function PhotoGrid({
         const isFree = index < pacoteLimit
         const jaComprada = foto.status === 'PAGA' || foto.compraExtraId
         const isCartLoading = cartLoadingIds.has(foto.id)
+        const isFavorito = favoritoIds.has(foto.id)
+        const isComparing = compareIds.has(foto.id)
 
         return (
           <div key={foto.id} className="group relative">
-            <div className="aspect-[3/2] rounded-lg border bg-muted bg-cover bg-center cursor-pointer overflow-hidden relative"
-              style={{ backgroundImage: `url(${foto.watermarkedUrl})` }}
-              onClick={() => onView(index)}>
+            <div className={`aspect-[3/2] rounded-lg border bg-muted cursor-pointer overflow-hidden relative ${
+              compareMode && isComparing ? 'ring-2 ring-blue-500' : ''
+            }`}
+              onClick={() => compareMode ? onToggleCompare(foto.id) : onView(index)}>
+              <img
+                src={foto.watermarkedUrl}
+                alt={foto.fileName}
+                loading="lazy"
+                decoding="async"
+                draggable={false}
+                className="absolute inset-0 h-full w-full object-cover rounded-lg select-none pointer-events-none" />
               <div className="absolute inset-0" style={{ pointerEvents: 'none', userSelect: 'none' }} />
               {(isSelected || isInCart || jaComprada) && (
                 <div className={`absolute top-2 left-2 h-5 w-5 rounded-full flex items-center justify-center ${
@@ -41,6 +57,14 @@ export function PhotoGrid({
                   <Check className="h-3 w-3 text-white" />
                 </div>
               )}
+              <button
+                onClick={(e) => { e.stopPropagation(); onToggleFavorito(foto.id) }}
+                title={isFavorito ? 'Remover dos favoritos' : 'Adicionar aos favoritos'}
+                className="absolute top-2 right-2 p-1 rounded-full bg-black/30 hover:bg-black/50 transition-colors">
+                <Heart
+                  className={`h-4 w-4 ${isFavorito ? 'text-red-500' : 'text-white/70'}`}
+                  fill={isFavorito ? 'currentColor' : 'none'} />
+              </button>
               <div className="absolute bottom-2 left-2">
                 <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded-sm ${
                   jaComprada ? 'bg-blue-500/80 text-white' :

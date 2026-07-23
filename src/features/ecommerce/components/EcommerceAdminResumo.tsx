@@ -81,6 +81,10 @@ export function EcommerceAdminResumo({ agendamentoId }: EcommerceAdminResumoProp
             <RefreshCw className="mr-1 h-4 w-4" />
             Regenerar Token
           </Button>
+          <Button variant="outline" size="sm" onClick={() => navigate(`/agenda/${agendamentoId}/fotos`)}>
+            <ImagePlus className="mr-1 h-4 w-4" />
+            Upload Fotos
+          </Button>
           <Button variant="outline" size="sm" onClick={() => navigate(`/agenda/${agendamentoId}`)}>
             <DollarSign className="mr-1 h-4 w-4" />
             Ver Financeiro
