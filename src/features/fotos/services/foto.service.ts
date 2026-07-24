@@ -1,9 +1,11 @@
 import { apiClient } from '@/shared/api'
 import type { FotoEnsaio } from '../types/foto.types'
+import type { AgendamentoStatus } from '@/shared/constants'
 
 interface AgendamentoRef {
   id: string
   tokenGaleria: string
+  status: AgendamentoStatus
 }
 
 export const fotoService = {

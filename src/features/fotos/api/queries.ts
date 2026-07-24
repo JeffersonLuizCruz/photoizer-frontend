@@ -2,6 +2,14 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { fotoService } from '../services/foto.service'
 
+export function useAgendamento(agendamentoId: string | undefined) {
+  return useQuery({
+    queryKey: ['agendamento', agendamentoId],
+    queryFn: () => fotoService.getAgendamento(agendamentoId!),
+    enabled: !!agendamentoId,
+  })
+}
+
 export function useFotosList(agendamentoId: string | undefined) {
   return useQuery({
     queryKey: ['fotos', agendamentoId],

@@ -10,9 +10,8 @@ import { Input } from '@/shared/components/ui/input'
 import { Label } from '@/shared/components/ui/label'
 import { Checkbox } from '@/shared/components/ui/checkbox'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/components/ui/select'
-import { ROUTES } from '@/shared/constants'
-import { fotoService } from '../services/foto.service'
-import { useFotosList, useUploadFotos, usePublicarFotos, useDeletarFoto, useUpdateFotoMetadata } from '../api/queries'
+import { ROUTES, AGENDAMENTO_STATUS } from '@/shared/constants'
+import { useAgendamento, useFotosList, useUploadFotos, usePublicarFotos, useDeletarFoto, useUpdateFotoMetadata } from '../api/queries'
 import type { FotoEnsaio } from '@/features/ecommerce/types/ecommerce.types'
 
 const CATEGORIAS = [
@@ -132,15 +131,17 @@ export function AdminGaleriaPage() {
   const { mutate: uploadFotos, isPending: isUploading } = useUploadFotos(id ?? '')
   const { mutate: publicar, isPending: isPublishing } = usePublicarFotos(id ?? '')
   const { mutate: deletar } = useDeletarFoto(id ?? '')
+  const { data: agendamento } = useAgendamento(id)
 
   useEffect(() => {
-    if (!id) return
-    fotoService.getAgendamento(id).then((a) => {
-      if (a.tokenGaleria) {
-        setGaleriaLink(`${window.location.origin}/g/${a.tokenGaleria}`)
-      }
-    }).catch(() => {})
-  }, [id])
+    if (agendamento?.tokenGaleria) {
+      setGaleriaLink(`${window.location.origin}/g/${agendamento.tokenGaleria}`)
+    }
+  }, [agendamento])
+
+  const uploadLiberado = agendamento
+    ? [AGENDAMENTO_STATUS.EM_EDICAO, AGENDAMENTO_STATUS.SELECAO_DAS_FOTOS, AGENDAMENTO_STATUS.FOTOS_ENVIADAS_PARA_SELECAO, AGENDAMENTO_STATUS.FOTOS_ENTREGUES, AGENDAMENTO_STATUS.FINALIZADO].includes(agendamento.status)
+    : false
 
   if (!id) return <PageLoading />
 
@@ -195,60 +196,74 @@ export function AdminGaleriaPage() {
       />
 
       <div className="space-y-6">
-        <div className="rounded-xl border bg-card p-6">
-          <div
-            onClick={() => inputRef.current?.click()}
-            className="flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed p-8 transition-colors hover:border-primary/50 hover:bg-muted/50"
-          >
-            <ImagePlus className="mb-2 h-10 w-10 text-muted-foreground" />
-            <p className="text-sm font-medium">Clique para selecionar fotos</p>
-            <p className="text-xs text-muted-foreground mt-1">JPG, PNG — múltiplos arquivos</p>
-            <input
-              ref={inputRef}
-              type="file"
-              accept="image/jpeg,image/png"
-              multiple
-              className="hidden"
-              onChange={(e) => {
-                if (e.target.files) setSelectedFiles(Array.from(e.target.files))
-              }}
-            />
-          </div>
-
-          {selectedFiles.length > 0 && (
-            <div className="mt-4 space-y-3">
-              <div className="flex flex-wrap gap-2">
-                {selectedFiles.map((file, i) => (
-                  <div key={i} className="relative group">
-                    <img
-                      src={URL.createObjectURL(file)}
-                      alt={file.name}
-                      className="h-16 w-16 rounded-md object-cover border"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setSelectedFiles((prev) => prev.filter((_, j) => j !== i))}
-                      className="absolute -top-1.5 -right-1.5 h-5 w-5 rounded-full bg-destructive text-destructive-foreground flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
-                    >
-                      <X className="h-3 w-3" />
-                    </button>
-                  </div>
-                ))}
-              </div>
-              <div className="flex items-center gap-2">
-                <p className="text-sm text-muted-foreground">{selectedFiles.length} arquivo(s) selecionado(s)</p>
-                <Button size="sm" onClick={handleUpload} disabled={isUploading}>
-                  {isUploading ? (
-                    <Loader2 className="mr-1 h-4 w-4 animate-spin" />
-                  ) : (
-                    <Upload className="mr-1 h-4 w-4" />
-                  )}
-                  Enviar
-                </Button>
-              </div>
+        {uploadLiberado ? (
+          <div className="rounded-xl border bg-card p-6">
+            <div
+              onClick={() => inputRef.current?.click()}
+              className="flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed p-8 transition-colors hover:border-primary/50 hover:bg-muted/50"
+            >
+              <ImagePlus className="mb-2 h-10 w-10 text-muted-foreground" />
+              <p className="text-sm font-medium">Clique para selecionar fotos</p>
+              <p className="text-xs text-muted-foreground mt-1">JPG, PNG — múltiplos arquivos</p>
+              <input
+                ref={inputRef}
+                type="file"
+                accept="image/jpeg,image/png"
+                multiple
+                className="hidden"
+                onChange={(e) => {
+                  if (e.target.files) setSelectedFiles(Array.from(e.target.files))
+                }}
+              />
             </div>
-          )}
-        </div>
+
+            {selectedFiles.length > 0 && (
+              <div className="mt-4 space-y-3">
+                <div className="flex flex-wrap gap-2">
+                  {selectedFiles.map((file, i) => (
+                    <div key={i} className="relative group">
+                      <img
+                        src={URL.createObjectURL(file)}
+                        alt={file.name}
+                        className="h-16 w-16 rounded-md object-cover border"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setSelectedFiles((prev) => prev.filter((_, j) => j !== i))}
+                        className="absolute -top-1.5 -right-1.5 h-5 w-5 rounded-full bg-destructive text-destructive-foreground flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+                <div className="flex items-center gap-2">
+                  <p className="text-sm text-muted-foreground">{selectedFiles.length} arquivo(s) selecionado(s)</p>
+                  <Button size="sm" onClick={handleUpload} disabled={isUploading}>
+                    {isUploading ? (
+                      <Loader2 className="mr-1 h-4 w-4 animate-spin" />
+                    ) : (
+                      <Upload className="mr-1 h-4 w-4" />
+                    )}
+                    Enviar
+                  </Button>
+                </div>
+              </div>
+            )}
+          </div>
+        ) : (
+          <div className="rounded-xl border bg-card p-6">
+            <div className="flex flex-col items-center justify-center py-12 text-center">
+              <div className="h-12 w-12 rounded-full bg-muted flex items-center justify-center mb-4">
+                <ImagePlus className="h-6 w-6 text-muted-foreground" />
+              </div>
+              <h3 className="text-sm font-medium mb-1">Upload indisponível</h3>
+              <p className="text-sm text-muted-foreground max-w-md">
+                Ensaio ainda não finalizado. O upload de fotos será liberado após o registro do pagamento dos 70% restantes.
+              </p>
+            </div>
+          </div>
+        )}
 
         <div className="flex items-center gap-3 text-sm text-muted-foreground">
           <span>Total: <strong>{fotos.length}</strong></span>

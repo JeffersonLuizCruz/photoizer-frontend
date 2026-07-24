@@ -33,6 +33,9 @@ const DashboardPage = lazy(() => import('@/features/dashboard').then(m => ({ def
 const DashboardDetalhesPage = lazy(() => import('@/features/dashboard').then(m => ({ default: m.DashboardDetalhesPage })))
 const ConfigPage = lazy(() => import('@/features/config').then(m => ({ default: m.ConfigPage })))
 const ComissoesConsultaPage = lazy(() => import('@/features/comissoes').then(m => ({ default: m.ComissoesConsultaPage })))
+const EdicaoListPage = lazy(() => import('@/features/edicao').then(m => ({ default: m.EdicaoListPage })))
+const EdicaoGaleriaPage = lazy(() => import('@/features/edicao').then(m => ({ default: m.EdicaoGaleriaPage })))
+const UploadRawPage = lazy(() => import('@/features/edicao').then(m => ({ default: m.UploadRawPage })))
 const FinanceiroDashboardPage = lazy(() => import('@/features/financeiro').then(m => ({ default: m.FinanceiroDashboardPage })))
 const RelatoriosPage = lazy(() => import('@/features/financeiro').then(m => ({ default: m.RelatoriosPage })))
 
@@ -92,6 +95,9 @@ export function AppRoutes() {
             <Route path={ROUTES.CONFIG} element={<ConfigPage />} />
             <Route path={ROUTES.COMISSOES} element={<ComissoesConsultaPage />} />
             <Route path={ROUTES.AGENDA_GALERIA} element={<AdminGaleriaPage />} />
+            <Route path={ROUTES.EDICAO} element={<EdicaoListPage />} />
+            <Route path={ROUTES.EDICAO_AGENDAMENTO} element={<EdicaoGaleriaPage />} />
+            <Route path={ROUTES.EDICAO_UPLOAD_RAW} element={<UploadRawPage />} />
             <Route path={ROUTES.ADMIN_ECOMMERCE} element={<AdminEcommercePage />} />
             <Route path={ROUTES.ADMIN_CUPONS} element={<AdminCuponsPage />} />
             <Route path={ROUTES.ADMIN_PEDIDOS} element={<AdminPedidosPage />} />

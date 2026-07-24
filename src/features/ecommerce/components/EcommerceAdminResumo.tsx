@@ -83,7 +83,7 @@ export function EcommerceAdminResumo({ agendamentoId }: EcommerceAdminResumoProp
           </Button>
           <Button variant="outline" size="sm" onClick={() => navigate(`/agenda/${agendamentoId}/fotos`)}>
             <ImagePlus className="mr-1 h-4 w-4" />
-            Upload Fotos
+            Gerenciar Galeria
           </Button>
           <Button variant="outline" size="sm" onClick={() => navigate(`/agenda/${agendamentoId}`)}>
             <DollarSign className="mr-1 h-4 w-4" />

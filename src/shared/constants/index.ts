@@ -27,6 +27,9 @@ export const ROUTES = {
   MINHA_CONTA: '/minha-conta',
   PACOTES_DISPONIVEIS: '/pacotes-disponiveis',
   CHECKOUT: '/checkout/pacote/:pacoteId',
+  EDICAO: '/edicao',
+  EDICAO_AGENDAMENTO: '/edicao/:agendamentoId',
+  EDICAO_UPLOAD_RAW: '/edicao/:agendamentoId/upload-raw',
 } as const
 
 export const QUERY_KEYS = {
@@ -36,6 +39,7 @@ export const QUERY_KEYS = {
   FINANCEIRO: ['financeiro'],
   DASHBOARD: ['dashboard'],
   TAREFAS: ['tarefas'],
+  EDICAO: ['edicao'],
 } as const
 
 export const AGENDAMENTO_STATUS = {
