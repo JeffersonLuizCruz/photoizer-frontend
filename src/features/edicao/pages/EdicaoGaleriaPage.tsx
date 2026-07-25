@@ -12,6 +12,7 @@ import { EdicaoStatusBadge } from '../components/EdicaoStatusBadge'
 import { EdicaoGaleriaGrid } from '../components/EdicaoGaleriaGrid'
 import { EdicaoUploader } from '../components/EdicaoUploader'
 import { useEdicaoStatus, useEdicaoFotos, useUploadEditadas, useConcluirEdicao, usePublicarNoEcommerce, useDeleteFoto, useAtualizarObservacoes, useReordenarFotos } from '../api/queries'
+import { useAuth } from '@/features/auth/AuthProvider'
 
 export function EdicaoGaleriaPage() {
   const { agendamentoId } = useParams<{ agendamentoId: string }>()
@@ -30,6 +31,7 @@ export function EdicaoGaleriaPage() {
   const { mutate: salvarObservacoes, isPending: savingObs } = useAtualizarObservacoes(agendamentoId!)
   const { mutate: reordenar } = useReordenarFotos(agendamentoId!)
   const obsRef = useRef('')
+  const { isAdmin, isFotografo, isEditor } = useAuth()
 
   useEffect(() => {
     if (edicao?.observacoes != null) {
@@ -142,7 +144,7 @@ export function EdicaoGaleriaPage() {
             </Button>
           )}
 
-          {edicao.status !== 'EDICAO_CONCLUIDA' && (
+          {edicao.status !== 'EDICAO_CONCLUIDA' && (isAdmin || isEditor) && (
             <Button variant="outline" size="sm" onClick={() => setShowUpload(!showUpload)}>
               <Upload className="mr-1 h-4 w-4" />
               Upload Editadas

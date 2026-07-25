@@ -1,10 +1,15 @@
 import { Navigate, useLocation } from 'react-router-dom'
-import { useAuth } from './AuthProvider'
+import { useAuth, type Papel } from './AuthProvider'
 import { Loader2 } from 'lucide-react'
 import { ROUTES } from '@/shared/constants'
 
-export function ProtectedRoute({ children }: { children: React.ReactNode }) {
-  const { isAuthenticated, isLoading } = useAuth()
+interface ProtectedRouteProps {
+  children: React.ReactNode
+  allowedRoles?: Papel[]
+}
+
+export function ProtectedRoute({ children, allowedRoles }: ProtectedRouteProps) {
+  const { isAuthenticated, isLoading, papel } = useAuth()
   const location = useLocation()
 
   if (isLoading) {
@@ -17,6 +22,10 @@ export function ProtectedRoute({ children }: { children: React.ReactNode }) {
 
   if (!isAuthenticated) {
     return <Navigate to={ROUTES.LOGIN} state={{ from: location }} replace />
+  }
+
+  if (allowedRoles && papel && !allowedRoles.includes(papel)) {
+    return <Navigate to={ROUTES.DASHBOARD} replace />
   }
 
   return <>{children}</>

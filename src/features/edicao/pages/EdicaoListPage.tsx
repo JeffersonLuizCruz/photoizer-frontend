@@ -9,6 +9,7 @@ import { EmptyState } from '@/shared/components/layout/EmptyState'
 import { useEdicaoList } from '../api/queries'
 import { EdicaoStatusBadge } from '../components/EdicaoStatusBadge'
 import type { EdicaoProcesso, StatusEdicao } from '../types'
+import { useAuth } from '@/features/auth/AuthProvider'
 
 const TABS: { value: string; label: string; status?: StatusEdicao }[] = [
   { value: 'todos', label: 'Todos' },
@@ -66,10 +67,12 @@ export function EdicaoListPage() {
 
 function EdicaoCard({ edicao }: { edicao: EdicaoProcesso }) {
   const navigate = useNavigate()
+  const { isAdmin, isFotografo, isEditor } = useAuth()
 
   const actionButton = () => {
     switch (edicao.status) {
       case 'AGUARDANDO_RAW':
+        if (!isAdmin && !isFotografo) return null
         return (
           <Button size="sm" onClick={() => navigate(`/edicao/${edicao.agendamentoId}/upload-raw`)}>
             <Upload className="mr-1 h-4 w-4" />
@@ -78,6 +81,7 @@ function EdicaoCard({ edicao }: { edicao: EdicaoProcesso }) {
         )
       case 'RAW_ENVIADOS':
       case 'EM_EDICAO':
+        if (!isAdmin && !isEditor) return null
         return (
           <Button size="sm" onClick={() => navigate(`/edicao/${edicao.agendamentoId}`)}>
             <Eye className="mr-1 h-4 w-4" />

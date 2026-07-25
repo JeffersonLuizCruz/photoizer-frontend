@@ -7,7 +7,9 @@ export interface EdicaoProcesso {
   agendamentoId: string
   status: StatusEdicao
   fotografoId: string | null
+  fotografoNome: string | null
   editorId: string | null
+  editorNome: string | null
   dataEnvioRaw: string | null
   dataEnvioEditado: string | null
   observacoes: string | null

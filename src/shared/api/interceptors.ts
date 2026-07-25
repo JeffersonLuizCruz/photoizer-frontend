@@ -26,14 +26,22 @@ apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      const customerUser = useCustomerAuth.getState().user
-      if (customerUser) {
-        useCustomerAuth.getState().logout()
-        window.location.href = '/acesso-cliente'
-      } else {
-        authService.logout()
-        window.location.href = '/login'
+      const requestUrl = error.config?.url || ''
+      if (!requestUrl.includes('/auth/login')) {
+        const customerUser = useCustomerAuth.getState().user
+        if (customerUser) {
+          useCustomerAuth.getState().logout()
+          window.location.href = '/acesso-cliente'
+        } else {
+          authService.logout()
+          window.location.href = '/login'
+        }
       }
+      return Promise.reject(error)
+    }
+
+    if (error.response?.status === 403) {
+      toast.error(error.response.data?.message || 'Acesso negado')
       return Promise.reject(error)
     }
 

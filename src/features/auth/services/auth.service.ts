@@ -9,6 +9,8 @@ export interface LoginResponse {
   token: string
   nome: string
   email: string
+  papel: 'ADMIN' | 'FOTOGRAFO' | 'EDITOR' | 'AGENDADOR'
+  userId: string
 }
 
 const TOKEN_KEY = 'photoizer_auth_token'
@@ -18,7 +20,7 @@ export const authService = {
   async login(data: LoginRequest): Promise<LoginResponse> {
     const { data: response } = await apiClient.post<LoginResponse>('/auth/login', data)
     localStorage.setItem(TOKEN_KEY, response.token)
-    localStorage.setItem(USER_KEY, JSON.stringify({ nome: response.nome, email: response.email }))
+    localStorage.setItem(USER_KEY, JSON.stringify({ nome: response.nome, email: response.email, papel: response.papel, userId: response.userId }))
     return response
   },
 
@@ -31,7 +33,7 @@ export const authService = {
     return localStorage.getItem(TOKEN_KEY)
   },
 
-  getUser(): { nome: string; email: string } | null {
+  getUser(): { nome: string; email: string; papel: string; userId: string } | null {
     const raw = localStorage.getItem(USER_KEY)
     return raw ? JSON.parse(raw) : null
   },

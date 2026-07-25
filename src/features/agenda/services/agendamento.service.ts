@@ -38,7 +38,7 @@ export const agendamentoService = {
   },
 
   listUsuarios: async (): Promise<Usuario[]> => {
-    const { data } = await apiClient.get<Usuario[]>('/usuarios')
+    const { data } = await apiClient.get<Usuario[]>('/users')
     return data
   },
 

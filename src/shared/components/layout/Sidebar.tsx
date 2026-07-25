@@ -3,6 +3,7 @@ import { NavLink } from 'react-router-dom'
 import { cn } from '@/shared/lib/cn'
 import { ROUTES } from '@/shared/constants'
 import { useSidebarStore } from '@/stores/sidebar.store'
+import { useAuth, type Papel } from '@/features/auth/AuthProvider'
 
 const navItems = [
   { to: ROUTES.DASHBOARD, label: 'Dashboard', icon: LayoutDashboard },
@@ -19,8 +20,22 @@ const navItems = [
   { to: ROUTES.CONFIG, label: 'Configurações', icon: Settings },
 ]
 
+const agendadorRoutes = new Set([
+  ROUTES.AGENDA,
+  ROUTES.PACOTES,
+  ROUTES.EDICAO,
+  ROUTES.COMISSOES,
+])
+
+function getVisibleItems(papel: Papel | null) {
+  if (papel !== 'AGENDADOR') return navItems
+  return navItems.filter((item) => agendadorRoutes.has(item.to))
+}
+
 export function Sidebar() {
   const isOpen = useSidebarStore((state) => state.isOpen)
+  const { papel } = useAuth()
+  const visibleItems = getVisibleItems(papel)
 
   return (
     <aside
@@ -38,7 +53,7 @@ export function Sidebar() {
       </div>
 
       <nav className="flex flex-col gap-1 p-3 flex-1">
-        {navItems.map((item) => {
+        {visibleItems.map((item) => {
           const Icon = item.icon
           return (
             <NavLink

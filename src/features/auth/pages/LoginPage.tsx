@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useNavigate, useLocation } from 'react-router-dom'
+import { useNavigate, useLocation, Navigate } from 'react-router-dom'
 import { useAuth } from '../AuthProvider'
 import { Loader2, LogIn } from 'lucide-react'
 import { ROUTES } from '@/shared/constants'
@@ -16,8 +16,7 @@ export function LoginPage() {
   const from = (location.state as { from?: { pathname: string } })?.from?.pathname || ROUTES.DASHBOARD
 
   if (isAuthenticated) {
-    navigate(from, { replace: true })
-    return null
+    return <Navigate to={from} replace />
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
