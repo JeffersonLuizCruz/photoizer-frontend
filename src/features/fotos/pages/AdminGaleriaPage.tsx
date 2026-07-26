@@ -5,6 +5,7 @@ import { toast } from 'sonner'
 import { Button } from '@/shared/components/ui/button'
 import { PageTitle } from '@/shared/components/layout/PageTitle'
 import { PageLoading } from '@/shared/components/layout/Loading'
+import { AuthImage } from '@/shared/components/ui/AuthImage'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/shared/components/ui/dialog'
 import { Input } from '@/shared/components/ui/input'
 import { Label } from '@/shared/components/ui/label'
@@ -69,7 +70,7 @@ function FotoMetadataDialog({ agendamentoId, foto, open, onOpenChange }: {
         <div className="space-y-4">
           <div className="flex gap-4">
             <div className="h-20 w-20 rounded-lg bg-muted overflow-hidden flex-shrink-0">
-              <img src={foto.thumbUrl} alt="" className="h-full w-full object-cover" />
+              <AuthImage src={foto.thumbUrl} alt="" className="h-full w-full object-cover" />
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium truncate">{foto.fileName}</p>
@@ -297,7 +298,12 @@ export function AdminGaleriaPage() {
                       <Star className="h-3.5 w-3.5 text-amber-400 fill-amber-400" />
                     </div>
                   )}
-                  <img
+                  {foto.fotoEdicaoId && (
+                    <div className="absolute bottom-1 left-1 z-10 rounded bg-emerald-500 px-1.5 py-0.5 text-[10px] font-medium text-white shadow-sm">
+                      Aprovada
+                    </div>
+                  )}
+                  <AuthImage
                     src={foto.thumbUrl}
                     alt={foto.fileName}
                     className="h-full w-full object-cover"

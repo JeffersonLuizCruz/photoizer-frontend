@@ -6,6 +6,7 @@ import { ecommerceService } from '@/features/ecommerce/services/ecommerce.servic
 import { Button } from '@/shared/components/ui/button'
 import { StatusBadge } from '@/shared/components/layout/StatusBadge'
 import { ConfirmDialog } from '@/shared/components/layout/ConfirmDialog'
+import { AuthImage } from '@/shared/components/ui/AuthImage'
 import { useState } from 'react'
 
 function formatCurrency(value: number): string {
@@ -125,7 +126,7 @@ export function EcommerceAdminResumo({ agendamentoId }: EcommerceAdminResumoProp
           {data.fotos.map((foto) => (
             <div key={foto.id} className="group relative rounded-lg border bg-card overflow-hidden">
               <div className="aspect-[3/2] relative">
-                <img src={foto.thumbUrl} alt={foto.fileName} className="h-full w-full object-cover" />
+                <AuthImage src={foto.thumbUrl} alt={foto.fileName} className="h-full w-full object-cover" />
                 <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors flex items-center justify-center opacity-0 group-hover:opacity-100">
                   {foto.status === 'PUBLICADA' && (
                     <button

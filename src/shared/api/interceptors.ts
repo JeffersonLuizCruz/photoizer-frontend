@@ -27,6 +27,9 @@ apiClient.interceptors.response.use(
   (error) => {
     if (error.response?.status === 401) {
       const requestUrl = error.config?.url || ''
+      if (requestUrl.includes('/ecommerce/galeria/')) {
+        return Promise.reject(error)
+      }
       if (!requestUrl.includes('/auth/login')) {
         const customerUser = useCustomerAuth.getState().user
         if (customerUser) {
@@ -46,6 +49,9 @@ apiClient.interceptors.response.use(
     }
 
     if (!error.response) {
+      if (error.code === 'ERR_CANCELED') {
+        return Promise.reject(error)
+      }
       toast.error('Erro de conexão com o servidor')
       return Promise.reject(error)
     }

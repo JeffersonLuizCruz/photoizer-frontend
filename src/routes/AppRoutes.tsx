@@ -36,8 +36,10 @@ const ComissoesConsultaPage = lazy(() => import('@/features/comissoes').then(m =
 const EdicaoListPage = lazy(() => import('@/features/edicao').then(m => ({ default: m.EdicaoListPage })))
 const EdicaoGaleriaPage = lazy(() => import('@/features/edicao').then(m => ({ default: m.EdicaoGaleriaPage })))
 const UploadRawPage = lazy(() => import('@/features/edicao').then(m => ({ default: m.UploadRawPage })))
+const EdicaoRevisaoPage = lazy(() => import('@/features/edicao').then(m => ({ default: m.EdicaoRevisaoPage })))
 const FinanceiroDashboardPage = lazy(() => import('@/features/financeiro').then(m => ({ default: m.FinanceiroDashboardPage })))
 const RelatoriosPage = lazy(() => import('@/features/financeiro').then(m => ({ default: m.RelatoriosPage })))
+const NotificacoesPage = lazy(() => import('@/features/notificacao').then(m => ({ default: m.NotificacoesPage })))
 
 function PageLoader() {
   return (
@@ -98,10 +100,12 @@ export function AppRoutes() {
             <Route path={ROUTES.EDICAO} element={<EdicaoListPage />} />
             <Route path={ROUTES.EDICAO_AGENDAMENTO} element={<EdicaoGaleriaPage />} />
             <Route path={ROUTES.EDICAO_UPLOAD_RAW} element={<UploadRawPage />} />
+            <Route path={ROUTES.EDICAO_REVISAO} element={<EdicaoRevisaoPage />} />
             <Route path={ROUTES.ADMIN_ECOMMERCE} element={<AdminEcommercePage />} />
             <Route path={ROUTES.ADMIN_CUPONS} element={<AdminCuponsPage />} />
             <Route path={ROUTES.ADMIN_PEDIDOS} element={<AdminPedidosPage />} />
             <Route path={ROUTES.ADMIN_ANALYTICS} element={<AdminAnalyticsPage />} />
+            <Route path={ROUTES.NOTIFICACOES} element={<NotificacoesPage />} />
           </Route>
 
           <Route path="*" element={<NotFound />} />

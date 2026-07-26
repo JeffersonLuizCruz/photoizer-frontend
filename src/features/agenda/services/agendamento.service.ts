@@ -10,6 +10,9 @@ export interface Config {
   valorUnitarioFotoExtra: number
   valorUnitarioVideoExtra: number
   percentualComissao: number
+  percentualEntrada: number
+  taxaDeslocamentoPadrao: number
+  notificarAutomaticamente: number
 }
 
 export interface FinanceiroPreview {
@@ -17,6 +20,7 @@ export interface FinanceiroPreview {
   valorEntradaExigido: number
   valorRestante: number
   valorTotalFinal: number
+  percentualEntrada: number
 }
 
 export const agendamentoService = {

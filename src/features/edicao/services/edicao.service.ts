@@ -77,4 +77,14 @@ export const edicaoService = {
     const { data } = await apiClient.patch<FotoEdicao[]>('/edicao/fotos/reordenar', fotos)
     return data
   },
+
+  revisarFoto: async (fotoId: string, payload: { aprovado: boolean | null; comentario: string | null }): Promise<FotoEdicao> => {
+    const { data } = await apiClient.patch<FotoEdicao>(`/edicao/fotos/${fotoId}/revisao`, payload)
+    return data
+  },
+
+  publicarLoja: async (agendamentoId: string): Promise<EdicaoProcesso> => {
+    const { data } = await apiClient.patch<EdicaoProcesso>(`/edicao/${agendamentoId}/publicar-loja`)
+    return data
+  },
 }

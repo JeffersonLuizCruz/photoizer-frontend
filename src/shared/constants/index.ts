@@ -30,6 +30,8 @@ export const ROUTES = {
   EDICAO: '/edicao',
   EDICAO_AGENDAMENTO: '/edicao/:agendamentoId',
   EDICAO_UPLOAD_RAW: '/edicao/:agendamentoId/upload-raw',
+  EDICAO_REVISAO: '/edicao/:agendamentoId/revisao',
+  NOTIFICACOES: '/notificacoes',
 } as const
 
 export const QUERY_KEYS = {
@@ -40,6 +42,7 @@ export const QUERY_KEYS = {
   DASHBOARD: ['dashboard'],
   TAREFAS: ['tarefas'],
   EDICAO: ['edicao'],
+  NOTIFICACOES: ['notificacoes'],
 } as const
 
 export const AGENDAMENTO_STATUS = {

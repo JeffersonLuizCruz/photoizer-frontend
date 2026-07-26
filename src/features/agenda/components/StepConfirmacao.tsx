@@ -118,11 +118,11 @@ export function StepConfirmacao({ confirmado, onConfirmadoChange }: StepConfirma
               <dd className="font-medium">{formatCurrency(valores.valorTotal)}</dd>
             </div>
             <div className="flex justify-between">
-              <dt className="text-muted-foreground">Entrada (30%)</dt>
+              <dt className="text-muted-foreground">Entrada ({valores.percentualEntrada}%)</dt>
               <dd className="font-medium text-green-600">{formatCurrency(valores.valorEntradaExigido)} ✓</dd>
             </div>
             <div className="flex justify-between">
-              <dt className="text-muted-foreground">Restante (70%)</dt>
+              <dt className="text-muted-foreground">Restante ({100 - valores.percentualEntrada}%)</dt>
               <dd className="font-medium">{formatCurrency(valores.valorRestante)}</dd>
             </div>
           </dl>

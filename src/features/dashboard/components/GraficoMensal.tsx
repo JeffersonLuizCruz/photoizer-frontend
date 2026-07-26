@@ -166,7 +166,7 @@ export function GraficoMensal() {
     },
     {
       label: 'Recebido',
-      description: 'Total dos 30% de entrada já pagos pelos clientes nos agendamentos confirmados',
+      description: 'Total dos valores de entrada já pagos pelos clientes nos agendamentos confirmados',
       value: mesAtual.entradasRecebidas ?? 0,
       icon: DollarSign,
       color: 'text-emerald-600 dark:text-emerald-400',

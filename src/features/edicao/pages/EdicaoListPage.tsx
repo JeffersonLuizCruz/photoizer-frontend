@@ -91,9 +91,9 @@ function EdicaoCard({ edicao }: { edicao: EdicaoProcesso }) {
       case 'EDICAO_CONCLUIDA':
         return (
           <div className="flex gap-2">
-            <Button size="sm" variant="outline" onClick={() => navigate(`/edicao/${edicao.agendamentoId}`)}>
+            <Button size="sm" onClick={() => navigate(`/edicao/${edicao.agendamentoId}/revisao`)}>
               <Eye className="mr-1 h-4 w-4" />
-              Ver
+              Revisar
             </Button>
           </div>
         )

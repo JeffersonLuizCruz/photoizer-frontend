@@ -68,13 +68,13 @@ export function StepFinanceiro({ comprovante, onComprovanteChange }: StepFinance
             </div>
             <div className="rounded-md bg-primary/5 p-3 space-y-2">
               <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">Entrada (30%)</span>
+                <span className="text-muted-foreground">Entrada ({valores.percentualEntrada}%)</span>
                 <span className="font-medium text-green-600">
                   {formatCurrency(valores.valorEntradaExigido)} ✓
                 </span>
               </div>
               <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">Restante (70%)</span>
+                <span className="text-muted-foreground">Restante ({100 - valores.percentualEntrada}%)</span>
                 <span className="font-medium">{formatCurrency(valores.valorRestante)}</span>
               </div>
             </div>

@@ -4,6 +4,9 @@ export interface ConfigValues {
   valorUnitarioFotoExtra: number
   valorUnitarioVideoExtra: number
   percentualComissao: number
+  percentualEntrada: number
+  taxaDeslocamentoPadrao: number
+  notificarAutomaticamente: number
 }
 
 export const configService = {

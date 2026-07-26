@@ -14,6 +14,7 @@ export interface FotoEnsaio {
   categoria: string | null
   titulo: string | null
   createdAt: string
+  fotoEdicaoId: string | null
 }
 
 export interface CompraExtraResponse {

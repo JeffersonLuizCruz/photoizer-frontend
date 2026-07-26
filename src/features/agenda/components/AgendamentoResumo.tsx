@@ -101,13 +101,13 @@ export function AgendamentoResumo({ agendamento }: AgendamentoResumoProps) {
         <div className="border-t pt-2 mt-2">
           <InfoRow label="Valor Total" value={`R$ ${agendamento.valorTotal.toFixed(2)}`} />
         </div>
-        <InfoRow label="Entrada (30%)" value={`R$ ${agendamento.valorEntradaExigido.toFixed(2)}`} />
+        <InfoRow label={`Entrada (${agendamento.percentualEntrada}%)`} value={`R$ ${agendamento.valorEntradaExigido.toFixed(2)}`} />
         {agendamento.valorEntradaPago > 0 && (
           <div className="flex items-center gap-1 justify-end">
             <Badge variant="success" className="text-[10px] px-1.5 py-0">Pago</Badge>
           </div>
         )}
-        <InfoRow label="Restante (70%)" value={`R$ ${agendamento.valorRestante.toFixed(2)}`} />
+        <InfoRow label={`Restante (${100 - agendamento.percentualEntrada}%)`} value={`R$ ${agendamento.valorRestante.toFixed(2)}`} />
         <InfoRow label="Fotos Extras" value={agendamento.valorExtras > 0 ? `R$ ${agendamento.valorExtras.toFixed(2)}` : 'R$ 0,00'} />
         <div className="border-t pt-2 mt-2">
           <InfoRow label="Total Final" value={`R$ ${agendamento.valorTotalFinal.toFixed(2)}`} />

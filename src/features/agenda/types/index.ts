@@ -38,6 +38,7 @@ export interface Agendamento {
   valorExtras: number
   taxaDeslocamento: number
   valorTotalFinal: number
+  percentualEntrada: number
   valorPacote: number
   saldoDevedor: number
 

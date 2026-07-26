@@ -80,7 +80,14 @@ export function GaleriaClientePage() {
         setGaleria(data)
         setSelectedIds(new Set(data.fotos.filter((f) => f.selecionadaPacote).map((f) => f.id)))
       })
-      .catch(() => setError('Galeria não encontrada ou não publicada'))
+      .catch((err) => {
+        const msg = err?.response?.data?.message || ''
+        if (msg.includes('expirou')) {
+          setError(msg)
+        } else {
+          setError('Galeria não encontrada ou não publicada')
+        }
+      })
       .finally(() => setIsLoading(false))
   }, [token])
 
@@ -239,11 +246,12 @@ export function GaleriaClientePage() {
   }
 
   if (error) {
+    const isExpired = error.includes('expirou')
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="flex flex-col items-center gap-3 text-center max-w-sm">
-          <ShieldAlert className="h-12 w-12 text-muted-foreground" />
-          <h1 className="text-lg font-semibold">Galeria não disponível</h1>
+          <ShieldAlert className={`h-12 w-12 ${isExpired ? 'text-amber-500' : 'text-muted-foreground'}`} />
+          <h1 className="text-lg font-semibold">{isExpired ? 'Link Expirado' : 'Galeria não disponível'}</h1>
           <p className="text-sm text-muted-foreground">{error}</p>
         </div>
       </div>

@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Download, CheckCircle2, Circle, Trash2, Image, Images, ChevronUp, ChevronDown } from 'lucide-react'
 import { Button } from '@/shared/components/ui/button'
 import { FotoEdicaoStatusBadge } from './FotoEdicaoStatusBadge'
+import { AuthImage } from '@/shared/components/ui/AuthImage'
 import type { FotoEdicao } from '../types'
 import { cn } from '@/shared/lib/cn'
 
@@ -61,7 +62,7 @@ export function EdicaoGaleriaGrid({ fotos, onDownloadRaw, onDownloadEdited, onDe
               )}
             >
               <div className="aspect-square w-full overflow-hidden bg-muted">
-                <img
+                <AuthImage
                   src={showingEdited ? foto.editedPreviewUrl : foto.rawPreviewUrl}
                   alt={foto.rawFileName}
                   className="h-full w-full object-cover transition-transform group-hover:scale-105"

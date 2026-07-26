@@ -31,6 +31,8 @@ export interface FotoEdicao {
   status: StatusFotoEdicao
   ordem: number
   createdAt: string
+  aprovado: boolean | null
+  comentario: string | null
 }
 
 export interface ZipJob {

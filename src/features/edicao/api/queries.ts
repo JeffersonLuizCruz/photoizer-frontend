@@ -127,6 +127,34 @@ export function useReordenarFotos(agendamentoId: string) {
   })
 }
 
+export function usePublicarLoja(agendamentoId: string) {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: () => edicaoService.publicarLoja(agendamentoId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: EDICAO_KEYS.all })
+      queryClient.invalidateQueries({ queryKey: EDICAO_KEYS.agendamento(agendamentoId) })
+      toast.success('Fotos publicadas na loja virtual com sucesso!')
+    },
+    onError: (error: Error) => {
+      toast.error(error.message || 'Erro ao publicar na loja')
+    },
+  })
+}
+
+export function useRevisarFoto(agendamentoId: string) {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: ({ fotoId, aprovado, comentario }: { fotoId: string; aprovado: boolean | null; comentario: string | null }) =>
+      edicaoService.revisarFoto(fotoId, { aprovado, comentario }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: EDICAO_KEYS.fotos(agendamentoId) })
+    },
+  })
+}
+
 export function usePublicarNoEcommerce(agendamentoId: string) {
   const queryClient = useQueryClient()
 
