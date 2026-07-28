@@ -2,7 +2,6 @@ import { lazy, Suspense } from 'react'
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import { Loader2 } from 'lucide-react'
 import { AppLayout } from '@/shared/components/layout/AppLayout'
-import { BlankLayout } from '@/shared/components/layout/BlankLayout'
 import { ROUTES } from '@/shared/constants'
 import { LoginPage, ProtectedRoute } from '@/features/auth'
 
@@ -65,6 +64,8 @@ export function AppRoutes() {
     <BrowserRouter>
       <Suspense fallback={<PageLoader />}>
         <Routes>
+          <Route path="/g/:token" element={<GaleriaClientePage />} />
+
           <Route path={ROUTES.LOGIN} element={<LoginPage />} />
           <Route path={ROUTES.ACESSO_CLIENTE} element={<CustomerLoginPage />} />
           <Route path={ROUTES.MINHA_CONTA} element={<CustomerDashboardPage />} />
@@ -72,10 +73,6 @@ export function AppRoutes() {
           <Route path="/minha-conta/pedidos/:id" element={<CustomerOrderDetailPage />} />
           <Route path={ROUTES.PACOTES_DISPONIVEIS} element={<PackageCatalogPage />} />
           <Route path={ROUTES.CHECKOUT} element={<CheckoutPage />} />
-
-          <Route path="/g/:token" element={<BlankLayout />}>
-            <Route index element={<GaleriaClientePage />} />
-          </Route>
 
           <Route element={<ProtectedRoute><AppLayout /></ProtectedRoute>}>
             <Route path={ROUTES.DASHBOARD} element={<DashboardPage />} />

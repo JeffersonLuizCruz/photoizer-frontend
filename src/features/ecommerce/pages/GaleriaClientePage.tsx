@@ -12,7 +12,7 @@ import { PurchaseConfirmation } from '../components/PurchaseConfirmation'
 import { MinhasComprasSection } from '../components/MinhasComprasSection'
 import { ComparadorFotos } from '../components/ComparadorFotos'
 import { CartSummaryPanel } from '../components/CartSummaryPanel'
-import { DepoimentosSection } from '../components/DepoimentosSection'
+
 
 export function GaleriaClientePage() {
   const { token } = useParams<{ token: string }>()
@@ -432,10 +432,6 @@ export function GaleriaClientePage() {
           }} />
 
         {token && <MinhasComprasSection token={token} />}
-
-        <div className="border-t pt-6">
-          <DepoimentosSection />
-        </div>
       </div>
 
       {viewerIndex !== null && (
