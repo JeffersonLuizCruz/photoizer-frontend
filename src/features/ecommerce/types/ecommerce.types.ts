@@ -15,6 +15,7 @@ export interface FotoEnsaio {
   titulo: string | null
   createdAt: string
   fotoEdicaoId: string | null
+  visivel: boolean
 }
 
 export interface CompraExtraResponse {

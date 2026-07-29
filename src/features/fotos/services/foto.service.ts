@@ -34,6 +34,34 @@ export const fotoService = {
     await apiClient.delete(`/agendamentos/${agendamentoId}/fotos/${fotoId}`)
   },
 
+  alterarVisibilidade: async (agendamentoId: string, fotoId: string, visivel: boolean): Promise<FotoEnsaio> => {
+    const { data } = await apiClient.patch<FotoEnsaio>(
+      `/agendamentos/${agendamentoId}/fotos/${fotoId}/visibilidade`,
+      null,
+      { params: { visivel } }
+    )
+    return data
+  },
+
+  alterarStatus: async (agendamentoId: string, fotoId: string, status: string): Promise<FotoEnsaio> => {
+    const { data } = await apiClient.patch<FotoEnsaio>(
+      `/agendamentos/${agendamentoId}/fotos/${fotoId}/status`,
+      null,
+      { params: { status } }
+    )
+    return data
+  },
+
+  substituirImagem: async (agendamentoId: string, fotoId: string, arquivo: File): Promise<FotoEnsaio> => {
+    const formData = new FormData()
+    formData.append('arquivo', arquivo)
+    const { data } = await apiClient.put<FotoEnsaio>(
+      `/agendamentos/${agendamentoId}/fotos/${fotoId}/imagem`,
+      formData
+    )
+    return data
+  },
+
   atualizarMetadata: async (agendamentoId: string, fotoId: string, metadata: {
     titulo?: string
     tags?: string[]

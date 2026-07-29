@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { Upload, Trash2, Send, ImagePlus, X, Loader2, Link2, Star, Pencil } from 'lucide-react'
+import { Upload, Trash2, Send, ImagePlus, X, Loader2, Link2, Star, Pencil, Eye, EyeOff, RefreshCw, AlertTriangle } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/shared/components/ui/button'
 import { PageTitle } from '@/shared/components/layout/PageTitle'
@@ -11,8 +11,9 @@ import { Input } from '@/shared/components/ui/input'
 import { Label } from '@/shared/components/ui/label'
 import { Checkbox } from '@/shared/components/ui/checkbox'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/components/ui/select'
+import { ConfirmDialog } from '@/shared/components/layout/ConfirmDialog'
 import { ROUTES, AGENDAMENTO_STATUS } from '@/shared/constants'
-import { useAgendamento, useFotosList, useUploadFotos, usePublicarFotos, useDeletarFoto, useUpdateFotoMetadata } from '../api/queries'
+import { useAgendamento, useFotosList, useUploadFotos, usePublicarFotos, useDeletarFoto, useUpdateFotoMetadata, useAlterarVisibilidade, useAlterarStatus, useSubstituirImagem } from '../api/queries'
 import type { FotoEnsaio } from '@/features/ecommerce/types/ecommerce.types'
 
 const CATEGORIAS = [
@@ -124,14 +125,20 @@ export function AdminGaleriaPage() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const inputRef = useRef<HTMLInputElement>(null)
+  const replaceInputRef = useRef<HTMLInputElement>(null)
   const [selectedFiles, setSelectedFiles] = useState<File[]>([])
   const [galeriaLink, setGaleriaLink] = useState<string | null>(null)
   const [editFoto, setEditFoto] = useState<FotoEnsaio | null>(null)
+  const [replaceFotoId, setReplaceFotoId] = useState<string | null>(null)
+  const [confirmDeleteFotoId, setConfirmDeleteFotoId] = useState<string | null>(null)
 
   const { data: fotos = [], isLoading } = useFotosList(id)
   const { mutate: uploadFotos, isPending: isUploading } = useUploadFotos(id ?? '')
   const { mutate: publicar, isPending: isPublishing } = usePublicarFotos(id ?? '')
   const { mutate: deletar } = useDeletarFoto(id ?? '')
+  const { mutate: alterarVisibilidade } = useAlterarVisibilidade(id ?? '')
+  const { mutate: alterarStatus } = useAlterarStatus(id ?? '')
+  const { mutate: substituirImagem, isPending: isReplacing } = useSubstituirImagem(id ?? '')
   const { data: agendamento } = useAgendamento(id)
 
   useEffect(() => {
@@ -148,6 +155,7 @@ export function AdminGaleriaPage() {
 
   const ineditas = fotos.filter((f) => f.status === 'INEDITA').length
   const publicadas = fotos.filter((f) => f.status === 'PUBLICADA').length
+  const ocultas = fotos.filter((f) => !f.visivel).length
   const destaques = fotos.filter((f) => f.destaque).length
 
   const handleUpload = () => {
@@ -166,8 +174,30 @@ export function AdminGaleriaPage() {
     }
   }
 
+  const handleReplaceImage = (fotoId: string) => {
+    setReplaceFotoId(fotoId)
+    replaceInputRef.current?.click()
+  }
+
+  const handleReplaceFileSelected = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file || !replaceFotoId) return
+    substituirImagem(
+      { fotoId: replaceFotoId, arquivo: file },
+      { onSettled: () => { setReplaceFotoId(null); if (replaceInputRef.current) replaceInputRef.current.value = '' } }
+    )
+  }
+
   return (
     <div>
+      <input
+        ref={replaceInputRef}
+        type="file"
+        accept="image/jpeg,image/png"
+        className="hidden"
+        onChange={handleReplaceFileSelected}
+      />
+
       <PageTitle
         title="Galeria de Fotos"
         breadcrumbs={[
@@ -273,6 +303,8 @@ export function AdminGaleriaPage() {
           <span className="inline-block h-3 w-px bg-border" />
           <span>Publicadas: <strong className="text-emerald-600">{publicadas}</strong></span>
           <span className="inline-block h-3 w-px bg-border" />
+          <span>Ocultas: <strong className="text-muted-foreground">{ocultas}</strong></span>
+          <span className="inline-block h-3 w-px bg-border" />
           <span>Destaque: <strong className="text-amber-500">{destaques}</strong></span>
         </div>
 
@@ -291,11 +323,17 @@ export function AdminGaleriaPage() {
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
             {fotos.map((foto) => (
-              <div key={foto.id} className="group relative rounded-lg border bg-card overflow-hidden">
+              <div key={foto.id} className={`group relative rounded-lg border bg-card overflow-hidden ${!foto.visivel ? 'opacity-50' : ''}`}>
                 <div className="aspect-[3/2] relative">
                   {foto.destaque && (
                     <div className="absolute top-1 left-1 z-10">
                       <Star className="h-3.5 w-3.5 text-amber-400 fill-amber-400" />
+                    </div>
+                  )}
+                  {!foto.visivel && (
+                    <div className="absolute top-1 right-1 z-10 rounded bg-muted-foreground/80 px-1.5 py-0.5 text-[10px] font-medium text-white shadow-sm flex items-center gap-1">
+                      <EyeOff className="h-3 w-3" />
+                      Oculta
                     </div>
                   )}
                   {foto.fotoEdicaoId && (
@@ -313,15 +351,51 @@ export function AdminGaleriaPage() {
                       type="button"
                       onClick={() => setEditFoto(foto)}
                       className="h-8 w-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center"
-                      title="Editar"
+                      title="Editar metadados"
                     >
                       <Pencil className="h-4 w-4" />
                     </button>
+                    {foto.status === 'PUBLICADA' ? (
+                      <button
+                        type="button"
+                        onClick={() => alterarStatus({ fotoId: foto.id, status: 'INEDITA' })}
+                        className="h-8 w-8 rounded-full bg-amber-500 text-white flex items-center justify-center"
+                        title="Despublicar"
+                      >
+                        <X className="h-4 w-4" />
+                      </button>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => alterarStatus({ fotoId: foto.id, status: 'PUBLICADA' })}
+                        className="h-8 w-8 rounded-full bg-emerald-500 text-white flex items-center justify-center"
+                        title="Publicar individualmente"
+                      >
+                        <Send className="h-4 w-4" />
+                      </button>
+                    )}
                     <button
                       type="button"
-                      onClick={() => deletar(foto.id)}
+                      onClick={() => alterarVisibilidade({ fotoId: foto.id, visivel: !foto.visivel })}
+                      className={`h-8 w-8 rounded-full flex items-center justify-center ${foto.visivel ? 'bg-slate-600 text-white' : 'bg-slate-300 text-slate-700'}`}
+                      title={foto.visivel ? 'Ocultar da loja' : 'Exibir na loja'}
+                    >
+                      {foto.visivel ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleReplaceImage(foto.id)}
+                      disabled={isReplacing}
+                      className="h-8 w-8 rounded-full bg-blue-500 text-white flex items-center justify-center"
+                      title="Substituir imagem"
+                    >
+                      <RefreshCw className="h-4 w-4" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setConfirmDeleteFotoId(foto.id)}
                       className="h-8 w-8 rounded-full bg-destructive text-destructive-foreground flex items-center justify-center"
-                      title="Remover"
+                      title="Remover permanentemente"
                     >
                       <Trash2 className="h-4 w-4" />
                     </button>
@@ -337,6 +411,11 @@ export function AdminGaleriaPage() {
                     }`}>
                       {foto.status === 'PUBLICADA' ? 'Publicada' : foto.status === 'INEDITA' ? 'Inédita' : foto.status}
                     </span>
+                    {!foto.visivel && (
+                      <span className="text-[10px] text-muted-foreground bg-muted px-1.5 py-0.5 rounded-sm flex items-center gap-0.5">
+                        <EyeOff className="h-3 w-3" /> Oculta
+                      </span>
+                    )}
                     {foto.categoria && (
                       <span className="text-[10px] text-muted-foreground bg-muted px-1.5 py-0.5 rounded-sm">{foto.categoria}</span>
                     )}
@@ -347,6 +426,21 @@ export function AdminGaleriaPage() {
           </div>
         )}
       </div>
+
+      <ConfirmDialog
+        open={confirmDeleteFotoId !== null}
+        onOpenChange={(open) => { if (!open) setConfirmDeleteFotoId(null) }}
+        onConfirm={() => {
+          if (confirmDeleteFotoId) {
+            deletar(confirmDeleteFotoId)
+            setConfirmDeleteFotoId(null)
+          }
+        }}
+        title="Remover foto?"
+        description="Esta ação irá deletar permanentemente a foto e seus arquivos. Esta operação não pode ser desfeita."
+        confirmText="Remover"
+        variant="destructive"
+      />
 
       {editFoto && id && (
         <FotoMetadataDialog

@@ -66,3 +66,43 @@ export function useDeletarFoto(agendamentoId: string) {
     onError: (error: Error) => toast.error(error.message || 'Erro ao remover foto'),
   })
 }
+
+export function useAlterarVisibilidade(agendamentoId: string) {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ({ fotoId, visivel }: { fotoId: string; visivel: boolean }) =>
+      fotoService.alterarVisibilidade(agendamentoId, fotoId, visivel),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['fotos', agendamentoId] })
+      toast.success('Visibilidade da foto atualizada')
+    },
+    onError: (error: Error) => toast.error(error.message || 'Erro ao alterar visibilidade'),
+  })
+}
+
+export function useAlterarStatus(agendamentoId: string) {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ({ fotoId, status }: { fotoId: string; status: string }) =>
+      fotoService.alterarStatus(agendamentoId, fotoId, status),
+    onSuccess: (_data, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['fotos', agendamentoId] })
+      const label = variables.status === 'PUBLICADA' ? 'publicada' : 'despublicada'
+      toast.success(`Foto ${label} com sucesso`)
+    },
+    onError: (error: Error) => toast.error(error.message || 'Erro ao alterar status da foto'),
+  })
+}
+
+export function useSubstituirImagem(agendamentoId: string) {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ({ fotoId, arquivo }: { fotoId: string; arquivo: File }) =>
+      fotoService.substituirImagem(agendamentoId, fotoId, arquivo),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['fotos', agendamentoId] })
+      toast.success('Imagem substituída com sucesso')
+    },
+    onError: (error: Error) => toast.error(error.message || 'Erro ao substituir imagem'),
+  })
+}
