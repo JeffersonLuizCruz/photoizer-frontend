@@ -145,15 +145,6 @@ export function GaleriaClientePage() {
     })
   }, [])
 
-  const toggleSelect = useCallback((fotoId: string) => {
-    setSelectedIds((prev) => {
-      const next = new Set(prev)
-      if (next.has(fotoId)) next.delete(fotoId)
-      else next.add(fotoId)
-      return next
-    })
-  }, [])
-
   const toggleCarrinho = useCallback(async (fotoId: string) => {
     if (!token) return
     setCartLoadingIds((prev) => new Set(prev).add(fotoId))
@@ -181,6 +172,24 @@ export function GaleriaClientePage() {
       })
     }
   }, [token, carrinhoIds])
+
+  const toggleSelect = useCallback((fotoId: string) => {
+    if (selectedIds.has(fotoId)) {
+      setSelectedIds((prev) => {
+        const next = new Set(prev)
+        next.delete(fotoId)
+        return next
+      })
+    } else if (selectedIds.size < pacoteLimit) {
+      setSelectedIds((prev) => {
+        const next = new Set(prev)
+        next.add(fotoId)
+        return next
+      })
+    } else {
+      toggleCarrinho(fotoId)
+    }
+  }, [selectedIds, pacoteLimit, toggleCarrinho])
 
   const handleSaveSelection = async () => {
     if (!token) return

@@ -243,7 +243,11 @@ export function AdminGaleriaPage() {
                 multiple
                 className="hidden"
                 onChange={(e) => {
-                  if (e.target.files) setSelectedFiles(Array.from(e.target.files))
+                  if (e.target.files) {
+                    const novos = Array.from(e.target.files)
+                    setSelectedFiles((prev) => [...prev, ...novos])
+                    e.target.value = ''
+                  }
                 }}
               />
             </div>

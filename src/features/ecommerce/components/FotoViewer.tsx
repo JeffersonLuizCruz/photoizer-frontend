@@ -24,8 +24,8 @@ export function FotoViewer({
   const foto = fotos[currentIndex]
   const isSelected = selectedIds.has(foto.id)
   const isInCart = carrinhoIds.has(foto.id)
-  const isFree = currentIndex < pacoteLimit
   const isLoading = cartLoadingIds.has(foto.id)
+  const packageFull = selectedCount >= pacoteLimit
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
@@ -64,14 +64,18 @@ export function FotoViewer({
         </button>
       )}
       <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-10 flex gap-3">
-        {isFree ? (
+        {isSelected ? (
           <button onClick={(e) => { e.stopPropagation(); onToggleSelect(foto.id) }}
-            disabled={isLoading || (!isSelected && selectedCount >= pacoteLimit)}
-            className={`flex items-center gap-2 rounded-full px-5 py-2.5 text-sm font-medium transition-colors ${
-              isSelected ? 'bg-emerald-500 text-white hover:bg-emerald-600' : 'bg-white/10 text-white hover:bg-white/20 disabled:opacity-40'
-            }`}>
-            <Check className={`h-4 w-4 ${isSelected ? '' : 'opacity-0'}`} />
-            {isSelected ? 'Inclusa no pacote' : 'Incluir no pacote'}
+            className="flex items-center gap-2 rounded-full px-5 py-2.5 text-sm font-medium transition-colors bg-emerald-500 text-white hover:bg-emerald-600">
+            <Check className="h-4 w-4" />
+            Inclusa no pacote
+          </button>
+        ) : !packageFull ? (
+          <button onClick={(e) => { e.stopPropagation(); onToggleSelect(foto.id) }}
+            disabled={isLoading}
+            className="flex items-center gap-2 rounded-full px-5 py-2.5 text-sm font-medium transition-colors bg-white/10 text-white hover:bg-white/20 disabled:opacity-40">
+            <Check className="h-4 w-4 opacity-0" />
+            Incluir no pacote
           </button>
         ) : (
           <button onClick={(e) => { e.stopPropagation(); onToggleCarrinho(foto.id) }} disabled={isLoading}
@@ -80,7 +84,7 @@ export function FotoViewer({
               isInCart ? 'bg-blue-500 text-white hover:bg-blue-600' : 'bg-white/10 text-white hover:bg-white/20'
             }`}>
             {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <ShoppingCart className="h-4 w-4" />}
-            {isLoading ? '' : isInCart ? `Remover` : `Comprar R$ ${valorUnitario.toFixed(2)}`}
+            {isLoading ? '' : isInCart ? 'Remover' : `Comprar R$ ${valorUnitario.toFixed(2)}`}
           </button>
         )}
       </div>

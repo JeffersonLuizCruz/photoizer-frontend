@@ -30,11 +30,11 @@ export function PhotoGrid({
       {fotos.map((foto, index) => {
         const isSelected = selectedIds.has(foto.id)
         const isInCart = carrinhoIds.has(foto.id)
-        const isFree = index < pacoteLimit
         const jaComprada = foto.status === 'PAGA' || foto.compraExtraId
         const isCartLoading = cartLoadingIds.has(foto.id)
         const isFavorito = favoritoIds.has(foto.id)
         const isComparing = compareIds.has(foto.id)
+        const packageFull = selectedIds.size >= pacoteLimit
 
         return (
           <div key={foto.id} className="group relative">
@@ -70,43 +70,49 @@ export function PhotoGrid({
                   jaComprada ? 'bg-blue-500/80 text-white' :
                   isInCart ? 'bg-blue-500/80 text-white' :
                   isSelected ? 'bg-emerald-500/80 text-white' :
-                  isFree ? 'bg-muted-foreground/40 text-white' :
+                  !packageFull ? 'bg-muted-foreground/40 text-white' :
                   'bg-amber-500/80 text-white'
                 }`}>
                   {jaComprada ? 'Adquirida' :
                    isInCart ? `R$ ${valorUnitario.toFixed(2)}` :
                    isSelected ? 'Inclusa' :
-                   isFree ? 'Disponível' : `R$ ${valorUnitario.toFixed(2)}`}
+                   !packageFull ? 'Disponível' : `R$ ${valorUnitario.toFixed(2)}`}
                 </span>
               </div>
             </div>
             <div className="mt-1">
-              {isFree && !jaComprada && (
-                <button onClick={() => onSelect(foto.id)}
-                  disabled={!isSelected && selectedIds.size >= pacoteLimit}
-                  className={`w-full rounded py-1 text-[11px] font-medium transition-colors ${
-                    isSelected ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' :
-                    'bg-muted text-muted-foreground hover:bg-accent disabled:opacity-30'
-                  }`}>
-                  {isSelected ? 'Remover' : selectedIds.size >= pacoteLimit ? 'Limite' : 'Incluir'}
-                </button>
-              )}
-              {!isFree && !jaComprada && (
-                <button onClick={() => onToggleCarrinho(foto.id)} disabled={isCartLoading}
-                  className={`w-full rounded py-1 text-[11px] font-medium transition-colors ${
-                    isCartLoading ? 'bg-muted text-muted-foreground' :
-                    isInCart ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400' :
-                    'bg-muted text-muted-foreground hover:bg-accent'
-                  }`}>
-                  {isCartLoading ? '...' : isInCart ? 'Remover' : `Comprar R$ ${valorUnitario.toFixed(2)}`}
-                </button>
-              )}
-              {jaComprada && (
+              {jaComprada ? (
                 <a href={ecommerceService.downloadUrl(token, foto.id)}
                   className="flex items-center justify-center gap-1 rounded text-[11px] text-blue-600 dark:text-blue-400 font-medium py-1 hover:bg-blue-50 dark:hover:bg-blue-950/30 transition-colors">
                   <Download className="h-3 w-3" />
                   Download
                 </a>
+              ) : isSelected ? (
+                <button onClick={() => onSelect(foto.id)}
+                  className="w-full rounded py-1 text-[11px] font-medium transition-colors bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400">
+                  Remover
+                </button>
+              ) : isInCart ? (
+                <button onClick={() => onToggleCarrinho(foto.id)} disabled={isCartLoading}
+                  className={`w-full rounded py-1 text-[11px] font-medium transition-colors ${
+                    isCartLoading ? 'bg-muted text-muted-foreground' :
+                    'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
+                  }`}>
+                  {isCartLoading ? '...' : 'Remover'}
+                </button>
+              ) : !packageFull ? (
+                <button onClick={() => onSelect(foto.id)}
+                  className="w-full rounded py-1 text-[11px] font-medium transition-colors bg-muted text-muted-foreground hover:bg-accent">
+                  Incluir
+                </button>
+              ) : (
+                <button onClick={() => onToggleCarrinho(foto.id)} disabled={isCartLoading}
+                  className={`w-full rounded py-1 text-[11px] font-medium transition-colors ${
+                    isCartLoading ? 'bg-muted text-muted-foreground' :
+                    'bg-muted text-muted-foreground hover:bg-accent'
+                  }`}>
+                  {isCartLoading ? '...' : `Comprar R$ ${valorUnitario.toFixed(2)}`}
+                </button>
               )}
             </div>
           </div>
