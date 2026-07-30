@@ -1,5 +1,3 @@
-import type { AgendamentoStatus, TarefaStatus, TarefaTipo } from '@/shared/constants'
-
 export interface Pacote {
   id: string
   nome: string
@@ -95,16 +93,6 @@ export interface VideoExtra {
   valorUnitario: number
   valorTotal: number
   dataRegistro: string
-}
-
-export interface Tarefa {
-  id: string
-  agendamentoId: string
-  tipo: TarefaTipo
-  responsavelId: string | null
-  dataLimite: string | null
-  dataConclusao: string | null
-  status: TarefaStatus
 }
 
 export interface Usuario {

@@ -14,13 +14,11 @@ export const ROUTES = {
   PACOTES_EDITAR: '/pacotes/:id/editar',
   FINANCEIRO: '/financeiro',
   FINANCEIRO_RELATORIOS: '/financeiro/relatorios',
-  TAREFAS: '/tarefas',
   CONFIG: '/config',
   COMISSOES: '/comissoes',
   AGENDA_GALERIA: '/agenda/:id/fotos',
   ADMIN_ECOMMERCE: '/admin/ecommerce',
   ADMIN_CUPONS: '/admin/cupons',
-  ADMIN_PEDIDOS: '/admin/pedidos',
   ADMIN_ANALYTICS: '/admin/analytics',
   LOGIN: '/login',
   ACESSO_CLIENTE: '/acesso-cliente',
@@ -40,7 +38,6 @@ export const QUERY_KEYS = {
   PACOTES: ['pacotes'],
   FINANCEIRO: ['financeiro'],
   DASHBOARD: ['dashboard'],
-  TAREFAS: ['tarefas'],
   EDICAO: ['edicao'],
   NOTIFICACOES: ['notificacoes'],
 } as const
@@ -59,19 +56,6 @@ export const AGENDAMENTO_STATUS = {
   RASCUNHO: 'RASCUNHO',
 } as const
 
-export const TAREFA_STATUS = {
-  PENDENTE: 'PENDENTE',
-  EM_ANDAMENTO: 'EM_ANDAMENTO',
-  CONCLUIDA: 'CONCLUIDA',
-  ATRASADA: 'ATRASADA',
-} as const
-
-export const TAREFA_TIPO = {
-  EDITAR_FOTOS: 'EDITAR_FOTOS',
-  ENVIAR_PARA_SELECAO: 'ENVIAR_PARA_SELECAO',
-  ENTREGA_FINAL: 'ENTREGA_FINAL',
-} as const
-
 export const ORIGEM = {
   INDICACAO: 'INDICACAO',
   ANUNCIO: 'ANUNCIO',
@@ -79,6 +63,4 @@ export const ORIGEM = {
 } as const
 
 export type AgendamentoStatus = (typeof AGENDAMENTO_STATUS)[keyof typeof AGENDAMENTO_STATUS]
-export type TarefaStatus = (typeof TAREFA_STATUS)[keyof typeof TAREFA_STATUS]
-export type TarefaTipo = (typeof TAREFA_TIPO)[keyof typeof TAREFA_TIPO]
 export type Origem = (typeof ORIGEM)[keyof typeof ORIGEM]

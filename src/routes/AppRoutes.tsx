@@ -8,15 +8,12 @@ import { LoginPage, ProtectedRoute } from '@/features/auth'
 // RNF001: code splitting por rota — cada página é carregada sob demanda
 const GaleriaClientePage = lazy(() => import('@/features/ecommerce/pages/GaleriaClientePage').then(m => ({ default: m.GaleriaClientePage })))
 const AdminEcommercePage = lazy(() => import('@/features/ecommerce/pages/AdminEcommercePage').then(m => ({ default: m.AdminEcommercePage })))
-const AdminCuponsPage = lazy(() => import('@/features/ecommerce/pages/AdminCuponsPage').then(m => ({ default: m.AdminCuponsPage })))
-const AdminPedidosPage = lazy(() => import('@/features/ecommerce/pages/AdminPedidosPage').then(m => ({ default: m.AdminPedidosPage })))
 const AdminAnalyticsPage = lazy(() => import('@/features/ecommerce/pages/AdminAnalyticsPage').then(m => ({ default: m.AdminAnalyticsPage })))
 const PackageCatalogPage = lazy(() => import('@/features/ecommerce/pages/PackageCatalogPage').then(m => ({ default: m.PackageCatalogPage })))
 const CheckoutPage = lazy(() => import('@/features/ecommerce/pages/CheckoutPage').then(m => ({ default: m.CheckoutPage })))
 const CustomerLoginPage = lazy(() => import('@/features/auth/customer').then(m => ({ default: m.CustomerLoginPage })))
 const CustomerDashboardPage = lazy(() => import('@/features/auth/customer').then(m => ({ default: m.CustomerDashboardPage })))
 const CustomerProfilePage = lazy(() => import('@/features/auth/customer/CustomerProfilePage').then(m => ({ default: m.CustomerProfilePage })))
-const CustomerOrderDetailPage = lazy(() => import('@/features/auth/customer/CustomerOrderDetailPage').then(m => ({ default: m.CustomerOrderDetailPage })))
 const ClientesListPage = lazy(() => import('@/features/clientes').then(m => ({ default: m.ClientesListPage })))
 const ClienteFormPage = lazy(() => import('@/features/clientes').then(m => ({ default: m.ClienteFormPage })))
 const ClienteDetalhesPage = lazy(() => import('@/features/clientes').then(m => ({ default: m.ClienteDetalhesPage })))
@@ -24,7 +21,6 @@ const NovoAgendamentoPage = lazy(() => import('@/features/agenda').then(m => ({ 
 const AgendamentoDetalhesPage = lazy(() => import('@/features/agenda').then(m => ({ default: m.AgendamentoDetalhesPage })))
 const EditarAgendamentoPage = lazy(() => import('@/features/agenda').then(m => ({ default: m.EditarAgendamentoPage })))
 const AgendaPage = lazy(() => import('@/features/agenda').then(m => ({ default: m.AgendaPage })))
-const MinhasTarefasPage = lazy(() => import('@/features/agenda').then(m => ({ default: m.MinhasTarefasPage })))
 const AdminGaleriaPage = lazy(() => import('@/features/fotos').then(m => ({ default: m.AdminGaleriaPage })))
 const PacotesListPage = lazy(() => import('@/features/pacotes').then(m => ({ default: m.PacotesListPage })))
 const PacoteFormPage = lazy(() => import('@/features/pacotes').then(m => ({ default: m.PacoteFormPage })))
@@ -70,7 +66,6 @@ export function AppRoutes() {
           <Route path={ROUTES.ACESSO_CLIENTE} element={<CustomerLoginPage />} />
           <Route path={ROUTES.MINHA_CONTA} element={<CustomerDashboardPage />} />
           <Route path="/minha-conta/editar" element={<CustomerProfilePage />} />
-          <Route path="/minha-conta/pedidos/:id" element={<CustomerOrderDetailPage />} />
           <Route path={ROUTES.PACOTES_DISPONIVEIS} element={<PackageCatalogPage />} />
           <Route path={ROUTES.CHECKOUT} element={<CheckoutPage />} />
 
@@ -85,7 +80,6 @@ export function AppRoutes() {
             <Route path={ROUTES.AGENDA_NOVO} element={<NovoAgendamentoPage />} />
             <Route path={ROUTES.AGENDA_DETALHES} element={<AgendamentoDetalhesPage />} />
             <Route path={ROUTES.AGENDA_EDITAR} element={<EditarAgendamentoPage />} />
-            <Route path={ROUTES.TAREFAS} element={<MinhasTarefasPage />} />
             <Route path={ROUTES.PACOTES} element={<PacotesListPage />} />
             <Route path={ROUTES.PACOTES_NOVO} element={<PacoteFormPage />} />
             <Route path={ROUTES.PACOTES_EDITAR} element={<PacoteFormPage />} />
@@ -99,8 +93,6 @@ export function AppRoutes() {
             <Route path={ROUTES.EDICAO_UPLOAD_RAW} element={<UploadRawPage />} />
             <Route path={ROUTES.EDICAO_REVISAO} element={<EdicaoRevisaoPage />} />
             <Route path={ROUTES.ADMIN_ECOMMERCE} element={<AdminEcommercePage />} />
-            <Route path={ROUTES.ADMIN_CUPONS} element={<AdminCuponsPage />} />
-            <Route path={ROUTES.ADMIN_PEDIDOS} element={<AdminPedidosPage />} />
             <Route path={ROUTES.ADMIN_ANALYTICS} element={<AdminAnalyticsPage />} />
             <Route path={ROUTES.NOTIFICACOES} element={<NotificacoesPage />} />
           </Route>

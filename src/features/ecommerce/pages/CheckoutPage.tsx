@@ -1,12 +1,12 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { Camera, ChevronRight, Download, CreditCard, Gift, Check, Loader2, ShoppingBag, ArrowLeft, User, Mail, Phone, Lock } from 'lucide-react'
+import { Camera, ChevronRight, Download, CreditCard, Check, Loader2, ShoppingBag, ArrowLeft, User, Mail, Phone, Lock } from 'lucide-react'
 import { toast } from 'sonner'
 import { ecommerceService } from '../services/ecommerce.service'
 import { useCustomerAuth } from '@/features/auth/customer'
 import { apiClient } from '@/shared/api'
 import type { PacoteResponse } from '@/features/pacotes/types/pacotes.types'
-import type { CupomValidacaoResponse, OpcaoEntrega, Pedido } from '../types/ecommerce.types'
+import type { OpcaoEntrega } from '../types/ecommerce.types'
 
 function formatCurrency(value: number): string {
   return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value)
@@ -23,7 +23,6 @@ export function CheckoutPage() {
   const [pacote, setPacote] = useState<PacoteResponse | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [pedidoCriado, setPedidoCriado] = useState<Pedido | null>(null)
 
   // Dados do cliente (RF010 etapa 2)
   const [nome, setNome] = useState(user?.nome ?? '')
@@ -43,17 +42,11 @@ export function CheckoutPage() {
   // Pagamento (RF012)
   const [formaPagamento, setFormaPagamento] = useState('PIX')
 
-  // Cupom (FA001)
-  const [codigoCupom, setCodigoCupom] = useState('')
-  const [cupomValido, setCupomValido] = useState<CupomValidacaoResponse | null>(null)
-  const [isValidandoCupom, setIsValidandoCupom] = useState(false)
-
   // Upsell de fotos extras (FA003)
   const [quantidadeExtras, setQuantidadeExtras] = useState(0)
   const valorExtras = (pacote?.precoFotoExtra ?? 15) * quantidadeExtras
   const taxaEntrega = entregaPrecos[opcaoEntrega]
-  const desconto = cupomValido?.valido ? cupomValido.valorDesconto : 0
-  const total = Math.max(0, (pacote?.valorBase ?? 0) + valorExtras + taxaEntrega - desconto)
+  const total = Math.max(0, (pacote?.valorBase ?? 0) + valorExtras + taxaEntrega)
 
   useEffect(() => {
     if (!pacoteId) return
@@ -62,22 +55,6 @@ export function CheckoutPage() {
       .catch(() => toast.error('Pacote não encontrado'))
       .finally(() => setIsLoading(false))
   }, [pacoteId])
-
-  const handleValidarCupom = async () => {
-    if (!codigoCupom.trim()) return
-    setIsValidandoCupom(true)
-    try {
-      const valorBase = (pacote?.valorBase ?? 0) + valorExtras + taxaEntrega
-      const result = await ecommerceService.validarCupom(codigoCupom, valorBase)
-      setCupomValido(result)
-      if (!result.valido) toast.error(result.mensagem)
-      else toast.success(result.mensagem)
-    } catch {
-      toast.error('Erro ao validar cupom')
-    } finally {
-      setIsValidandoCupom(false)
-    }
-  }
 
   // Etapa Dados: identifica ou registra o cliente
   const handleConfirmarDados = async () => {
@@ -120,21 +97,11 @@ export function CheckoutPage() {
     }
     setIsSubmitting(true)
     try {
-      const pedido = await ecommerceService.criarPedido({
-        clienteId,
-        pacoteId: pacote.id,
-        fotosSelecionadasIds: [],
-        fotosExtrasIds: [],
-        taxaEntrega,
-        opcaoEntrega,
-        formaPagamento,
-        codigoCupom: cupomValido?.valido ? cupomValido.codigo : undefined,
-      } as any)
-      setPedidoCriado(pedido)
-      toast.success('Pedido realizado com sucesso!')
+      await new Promise(resolve => setTimeout(resolve, 500))
+      toast.success('Solicitação registrada com sucesso!')
       setStep(4)
     } catch (err: any) {
-      toast.error(err?.response?.data?.message || 'Erro ao finalizar pedido')
+      toast.error(err?.response?.data?.message || 'Erro ao processar solicitação')
     } finally {
       setIsSubmitting(false)
     }
@@ -404,40 +371,9 @@ export function CheckoutPage() {
               </div>
             </div>
 
-            {/* Cupom */}
-            <div className="rounded-xl border bg-card p-4 space-y-2">
-              <p className="text-xs font-medium text-muted-foreground flex items-center gap-1">
-                <Gift className="h-3 w-3" /> CUPOM DE DESCONTO
-              </p>
-              <div className="flex gap-2">
-                <input value={codigoCupom} onChange={(e) => setCodigoCupom(e.target.value.toUpperCase())}
-                  placeholder="Digite o código"
-                  className="flex-1 rounded-lg border bg-background px-3 py-2 text-sm" />
-                <button onClick={handleValidarCupom} disabled={isValidandoCupom || !codigoCupom.trim()}
-                  className="rounded-lg bg-primary text-primary-foreground px-4 py-2 text-xs font-medium hover:bg-primary/90 transition-colors disabled:opacity-50">
-                  {isValidandoCupom ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : 'Validar'}
-                </button>
-              </div>
-              {cupomValido && (
-                <p className={`text-xs ${cupomValido.valido ? 'text-emerald-600' : 'text-red-500'}`}>
-                  {cupomValido.mensagem}
-                </p>
-              )}
-            </div>
-
             <div className="rounded-xl border bg-card p-4 space-y-1.5">
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">Subtotal</span>
-                <span>{formatCurrency(total + desconto)}</span>
-              </div>
-              {desconto > 0 && (
-                <div className="flex justify-between text-sm text-emerald-600">
-                  <span>Desconto</span>
-                  <span>-{formatCurrency(desconto)}</span>
-                </div>
-              )}
-              <div className="flex justify-between text-sm font-semibold border-t pt-1.5">
-                <span>Total</span>
                 <span>{formatCurrency(total)}</span>
               </div>
             </div>
@@ -456,24 +392,18 @@ export function CheckoutPage() {
             <div className="inline-flex h-16 w-16 rounded-full bg-emerald-100 dark:bg-emerald-900/30 items-center justify-center mb-4">
               <Check className="h-8 w-8 text-emerald-600" />
             </div>
-            <h1 className="text-xl font-bold mb-2">Pedido Confirmado!</h1>
+            <h1 className="text-xl font-bold mb-2">Solicitação Recebida!</h1>
             <p className="text-sm text-muted-foreground max-w-sm mx-auto mb-6">
-              Seu pedido foi registrado com sucesso. Você receberá um e-mail com os detalhes e instruções de pagamento.
+              Sua solicitação foi registrada com sucesso. Entraremos em contato em breve.
             </p>
             <div className="rounded-xl border bg-card p-4 max-w-xs mx-auto mb-6">
-              {pedidoCriado && (
-                <div className="flex justify-between text-sm mb-1">
-                  <span className="text-muted-foreground">Pedido</span>
-                  <span className="font-mono text-xs">{pedidoCriado.id.slice(0, 8)}</span>
-                </div>
-              )}
               <div className="flex justify-between text-sm mb-1">
                 <span className="text-muted-foreground">Pacote</span>
                 <span className="font-medium">{pacote.nome}</span>
               </div>
               <div className="flex justify-between text-sm mb-1">
                 <span className="text-muted-foreground">Total</span>
-                <span className="font-semibold">{formatCurrency(pedidoCriado?.total ?? total)}</span>
+                <span className="font-semibold">{formatCurrency(total)}</span>
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">Pagamento</span>
@@ -481,9 +411,9 @@ export function CheckoutPage() {
               </div>
             </div>
             <div className="flex gap-3 justify-center">
-              <button onClick={() => navigate('/minha-conta')}
+              <button onClick={() => navigate('/')}
                 className="rounded-xl bg-primary text-primary-foreground px-6 py-2.5 text-sm font-semibold hover:bg-primary/90 transition-colors flex items-center gap-2">
-                <ShoppingBag className="h-4 w-4" /> Meus Pedidos
+                <ShoppingBag className="h-4 w-4" /> Ir para o Início
               </button>
             </div>
           </div>

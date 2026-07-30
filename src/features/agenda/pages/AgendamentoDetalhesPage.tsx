@@ -1,17 +1,16 @@
 import { useParams, useNavigate } from 'react-router-dom'
-import { FileText, ClipboardList, DollarSign, ListTodo, ScrollText, Pencil, Camera, ShoppingBag } from 'lucide-react'
+import { FileText, ClipboardList, DollarSign, ListTodo, Pencil, Camera, ShoppingBag } from 'lucide-react'
 import { Button } from '@/shared/components/ui/button'
 import { PageTitle } from '@/shared/components/layout/PageTitle'
 import { PageLoading } from '@/shared/components/layout/Loading'
 import { StatusBadge } from '@/shared/components/layout/StatusBadge'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/shared/components/ui/tabs'
 import { ROUTES, AGENDAMENTO_STATUS } from '@/shared/constants'
-import { useAgendamento, useTarefasList } from '../api/queries'
+import { useAgendamento } from '../api/queries'
 import { AgendamentoActions } from '../components/AgendamentoActions'
 import { AgendamentoResumo } from '../components/AgendamentoResumo'
 import { AgendamentoTimeline } from '../components/AgendamentoTimeline'
 import { AgendamentoFinanceiro } from '../components/AgendamentoFinanceiro'
-import { AgendamentoTarefas } from '../components/AgendamentoTarefas'
 import { AgendamentoContrato } from '../components/AgendamentoContrato'
 import { EcommerceAdminResumo } from '@/features/ecommerce/components/EcommerceAdminResumo'
 
@@ -32,7 +31,6 @@ export function AgendamentoDetalhesPage() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const { data: agendamento, isLoading, error } = useAgendamento(id ?? '')
-  const { data: tarefas = [] } = useTarefasList(id)
 
   if (isLoading) return <PageLoading />
   if (error || !agendamento) {
@@ -84,10 +82,6 @@ export function AgendamentoDetalhesPage() {
             <DollarSign className="mr-1.5 h-4 w-4" />
             Financeiro
           </TabsTrigger>
-          <TabsTrigger value="tarefas">
-            <ScrollText className="mr-1.5 h-4 w-4" />
-            Tarefas
-          </TabsTrigger>
           <TabsTrigger value="contrato">
             <FileText className="mr-1.5 h-4 w-4" />
             Contrato
@@ -103,15 +97,11 @@ export function AgendamentoDetalhesPage() {
         </TabsContent>
 
         <TabsContent value="timeline">
-          <AgendamentoTimeline agendamento={agendamento} tarefas={tarefas} />
+          <AgendamentoTimeline agendamento={agendamento} />
         </TabsContent>
 
         <TabsContent value="financeiro">
           <AgendamentoFinanceiro agendamento={agendamento} />
-        </TabsContent>
-
-        <TabsContent value="tarefas">
-          <AgendamentoTarefas tarefas={tarefas} />
         </TabsContent>
 
         <TabsContent value="contrato">

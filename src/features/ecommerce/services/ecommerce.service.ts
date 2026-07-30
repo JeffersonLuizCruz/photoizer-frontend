@@ -1,6 +1,6 @@
 import { apiClient } from '@/shared/api'
 import { env } from '@/shared/config/env'
-import type { FotoEnsaio, CompraExtraResponse, AdminEcommerceResumoResponse, CarrinhoResponse, CalculoCarrinhoResponse, MetodoPagamento, AdminCompraDetalheResponse, AdminComprasRelatorioResponse, PedidoRequest, Pedido, Cupom, CupomValidacaoResponse, Avaliacao, Sessao, EcommerceAnalyticsResponse, DashboardEcommerceResponse, DashboardEcommerceMensalResponse } from '../types/ecommerce.types'
+import type { FotoEnsaio, CompraExtraResponse, AdminEcommerceResumoResponse, CarrinhoResponse, CalculoCarrinhoResponse, MetodoPagamento, AdminCompraDetalheResponse, AdminComprasRelatorioResponse, Avaliacao, Sessao, EcommerceAnalyticsResponse, DashboardEcommerceResponse, DashboardEcommerceMensalResponse } from '../types/ecommerce.types'
 import type { PacoteResponse } from '@/features/pacotes/types/pacotes.types'
 import type { AgendamentoCliente } from '@/features/auth/customer/types'
 
@@ -198,46 +198,6 @@ export const ecommerceService = {
     return data
   },
 
-  // Pedidos
-  criarPedido: async (pedido: PedidoRequest): Promise<Pedido> => {
-    const { data } = await apiClient.post<Pedido>('/pedidos', pedido)
-    return data
-  },
-
-  listarPedidosCliente: async (clienteId: string): Promise<Pedido[]> => {
-    const { data } = await apiClient.get<Pedido[]>(`/pedidos/cliente/${clienteId}`)
-    return data
-  },
-
-  buscarPedido: async (id: string): Promise<Pedido> => {
-    const { data } = await apiClient.get<Pedido>(`/pedidos/${id}`)
-    return data
-  },
-
-  cancelarPedido: async (id: string): Promise<void> => {
-    await apiClient.patch(`/pedidos/${id}/cancelar`)
-  },
-
-  // Cupons
-  criarCupom: async (cupom: Omit<Cupom, 'id' | 'usosAtuais' | 'createdAt'>): Promise<Cupom> => {
-    const { data } = await apiClient.post<Cupom>('/cupons', cupom)
-    return data
-  },
-
-  listarCupons: async (): Promise<Cupom[]> => {
-    const { data } = await apiClient.get<Cupom[]>('/cupons')
-    return data
-  },
-
-  validarCupom: async (codigo: string, valorPedido?: number): Promise<CupomValidacaoResponse> => {
-    const { data } = await apiClient.post<CupomValidacaoResponse>('/cupons/validar', { codigo, valorPedido })
-    return data
-  },
-
-  deletarCupom: async (id: string): Promise<void> => {
-    await apiClient.delete(`/cupons/${id}`)
-  },
-
   // Avaliações
   criarAvaliacao: async (avaliacao: Omit<Avaliacao, 'id' | 'aprovado' | 'createdAt'>): Promise<Avaliacao> => {
     const { data } = await apiClient.post<Avaliacao>('/avaliacoes', avaliacao)
@@ -270,13 +230,4 @@ export const ecommerceService = {
     return data
   },
 
-  // Admin pedidos
-  adminListarPedidos: async (params?: { status?: string; page?: number; perPage?: number }): Promise<any> => {
-    const { data } = await apiClient.get('/admin/pedidos', { params })
-    return data
-  },
-
-  adminAtualizarStatusPedido: async (id: string, status: string): Promise<void> => {
-    await apiClient.patch(`/admin/pedidos/${id}/status`, null, { params: { status } })
-  },
 }

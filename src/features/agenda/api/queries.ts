@@ -3,7 +3,7 @@ import { toast } from 'sonner'
 import { agendamentoService, type RascunhoAgendamentoData } from '../services/agendamento.service'
 import type { WizardFormValues, EditarAgendamentoFormData } from '../schemas/agendamento.schema'
 import { QUERY_KEYS } from '@/shared/constants'
-import type { AgendamentoStatus, TarefaStatus, TarefaTipo } from '@/shared/constants'
+import type { AgendamentoStatus } from '@/shared/constants'
 
 export function useSalvarRascunho() {
   return useMutation({
@@ -243,77 +243,4 @@ export function useRegistrarPagamentoFinal() {
   })
 }
 
-export function useTarefasList(agendamentoId?: string) {
-  return useQuery({
-    queryKey: [...QUERY_KEYS.TAREFAS, agendamentoId ?? 'all'],
-    queryFn: () => agendamentoService.listTarefas(agendamentoId),
-  })
-}
 
-export function useCreateTarefa() {
-  const queryClient = useQueryClient()
-
-  return useMutation({
-    mutationFn: (payload: {
-      agendamentoId: string
-      tipo: TarefaTipo
-      responsavelId?: string | null
-      dataLimite: string
-    }) => agendamentoService.createTarefa(payload),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.TAREFAS })
-      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.AGENDA })
-      toast.success('Tarefa criada com sucesso')
-    },
-    onError: (error: Error) => {
-      toast.error(error.message || 'Erro ao criar tarefa')
-    },
-  })
-}
-
-export function useUpdateTarefa(id: string) {
-  const queryClient = useQueryClient()
-
-  return useMutation({
-    mutationFn: (payload: { tipo: TarefaTipo; responsavelId?: string | null; dataLimite: string }) =>
-      agendamentoService.updateTarefa(id, payload),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.TAREFAS })
-      toast.success('Tarefa atualizada')
-    },
-    onError: (error: Error) => {
-      toast.error(error.message || 'Erro ao atualizar tarefa')
-    },
-  })
-}
-
-export function useDeleteTarefa() {
-  const queryClient = useQueryClient()
-
-  return useMutation({
-    mutationFn: (id: string) => agendamentoService.deleteTarefa(id),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.TAREFAS })
-      toast.success('Tarefa excluída')
-    },
-    onError: (error: Error) => {
-      toast.error(error.message || 'Erro ao excluir tarefa')
-    },
-  })
-}
-
-export function useUpdateTarefaStatus() {
-  const queryClient = useQueryClient()
-
-  return useMutation({
-    mutationFn: ({ id, status }: { id: string; status: TarefaStatus }) =>
-      agendamentoService.updateTarefaStatus(id, status),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.TAREFAS })
-      toast.success('Tarefa atualizada')
-    },
-    onError: (error: Error) => {
-      toast.error(error.message || 'Erro ao atualizar tarefa')
-    },
-  })
-}

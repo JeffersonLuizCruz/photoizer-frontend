@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import { ShoppingCart, DollarSign, Camera, TrendingUp, Star, Users, Loader2 } from 'lucide-react'
+import { DollarSign, Camera, TrendingUp, Star, Users, Loader2 } from 'lucide-react'
 import { ecommerceService } from '@/features/ecommerce/services/ecommerce.service'
 import { PageTitle } from '@/shared/components/layout/PageTitle'
 
@@ -39,19 +39,6 @@ function StatusCard({ title, value, icon: Icon, subtitle, variant }: {
       </div>
       <p className="mt-2 text-2xl font-bold">{value}</p>
       {subtitle && <p className="mt-1 text-xs text-muted-foreground">{subtitle}</p>}
-    </div>
-  )
-}
-
-function MiniBar({ value, max, label }: { value: number; max: number; label: string }) {
-  const pct = max > 0 ? (value / max) * 100 : 0
-  return (
-    <div className="flex items-center gap-2">
-      <span className="w-24 text-xs text-muted-foreground truncate">{label}</span>
-      <div className="flex-1 h-2 bg-muted rounded-full overflow-hidden">
-        <div className="h-full bg-primary rounded-full transition-all" style={{ width: `${pct}%` }} />
-      </div>
-      <span className="w-12 text-xs text-right font-medium">{formatNumber(value)}</span>
     </div>
   )
 }
@@ -110,13 +97,7 @@ export function AdminAnalyticsPage() {
       <PageTitle title="Analytics" breadcrumbs={[{ label: 'Admin', href: '/admin/ecommerce' }, { label: 'Analytics' }]} />
 
       <div className="space-y-6">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <StatusCard
-            title="Total de Pedidos"
-            value={formatNumber(analytics.totalPedidos)}
-            icon={ShoppingCart}
-            variant="info"
-          />
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           <StatusCard
             title="Receita Total"
             value={formatCurrency(analytics.receitaTotal)}
@@ -177,24 +158,6 @@ export function AdminAnalyticsPage() {
               </div>
             ) : (
               <p className="text-sm text-muted-foreground py-8 text-center">Nenhum dado mensal disponível</p>
-            )}
-          </div>
-
-          <div className="rounded-xl border bg-card p-5">
-            <h3 className="text-sm font-semibold mb-4">Pedidos por Status</h3>
-            {Object.keys(analytics.pedidosPorStatus).length > 0 ? (
-              <div className="space-y-3">
-                {Object.entries(analytics.pedidosPorStatus).map(([status, qtd]) => (
-                  <MiniBar
-                    key={status}
-                    label={status}
-                    value={qtd}
-                    max={Math.max(...Object.values(analytics.pedidosPorStatus), 1)}
-                  />
-                ))}
-              </div>
-            ) : (
-              <p className="text-sm text-muted-foreground py-8 text-center">Nenhum pedido</p>
             )}
           </div>
         </div>

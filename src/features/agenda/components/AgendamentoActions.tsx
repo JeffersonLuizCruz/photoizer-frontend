@@ -14,8 +14,8 @@ import { Button } from '@/shared/components/ui/button'
 import { ConfirmDialog } from '@/shared/components/layout/ConfirmDialog'
 import { RegistrarPagamentoDialog } from './RegistrarPagamentoDialog'
 import { ReagendarDialog } from './ReagendarDialog'
-import { useUpdateAgendamentoStatus, useCreateTarefa, useToggleDestaque } from '../api/queries'
-import { AGENDAMENTO_STATUS, TAREFA_TIPO } from '@/shared/constants'
+import { useUpdateAgendamentoStatus, useToggleDestaque } from '../api/queries'
+import { AGENDAMENTO_STATUS } from '@/shared/constants'
 import type { Agendamento } from '../types'
 
 interface AgendamentoActionsProps {
@@ -101,7 +101,6 @@ export function AgendamentoActions({ agendamento }: AgendamentoActionsProps) {
   const [showPagamento, setShowPagamento] = useState(false)
   const [showReagendar, setShowReagendar] = useState(false)
   const { mutate: updateStatus, isPending } = useUpdateAgendamentoStatus()
-  const { mutate: createTarefa } = useCreateTarefa()
   const { mutate: toggleDestaque, isPending: isDestaquePending } = useToggleDestaque()
 
   const actions = statusActions[agendamento.status] ?? []
@@ -131,18 +130,6 @@ export function AgendamentoActions({ agendamento }: AgendamentoActionsProps) {
     updateStatus(
       { id: agendamento.id, status: config.status as Agendamento['status'] },
       {
-        onSuccess: () => {
-          if (config.status === AGENDAMENTO_STATUS.FOTOS_ENVIADAS_PARA_SELECAO) {
-            const dataLimite = new Date()
-            dataLimite.setDate(dataLimite.getDate() + 2)
-            createTarefa({
-              agendamentoId: agendamento.id,
-              tipo: TAREFA_TIPO.ENTREGA_FINAL,
-              responsavelId: agendamento.editorId,
-              dataLimite: dataLimite.toISOString(),
-            })
-          }
-        },
         onSettled: () => setConfirmAction(null),
       },
     )

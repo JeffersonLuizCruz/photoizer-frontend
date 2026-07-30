@@ -1,8 +1,8 @@
 import { format, differenceInDays } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
-import { CheckCircle2, Circle, XCircle, Clock, CalendarCheck, Send, FileCheck, Star, AlertTriangle } from 'lucide-react'
+import { CheckCircle2, Circle, XCircle, Clock, CalendarCheck, Send, FileCheck, Star } from 'lucide-react'
 import { cn } from '@/shared/lib/cn'
-import type { Agendamento, Tarefa } from '../types'
+import type { Agendamento } from '../types'
 import { AGENDAMENTO_STATUS } from '@/shared/constants'
 
 interface TimelineEvent {
@@ -14,7 +14,6 @@ interface TimelineEvent {
 
 interface AgendamentoTimelineProps {
   agendamento: Agendamento
-  tarefas?: Tarefa[]
 }
 
 function buildTimelineEvents(agendamento: Agendamento): TimelineEvent[] {
@@ -126,24 +125,11 @@ function TimelineDot({ status }: { status: TimelineEvent['status'] }) {
   )
 }
 
-export function AgendamentoTimeline({ agendamento, tarefas }: AgendamentoTimelineProps) {
+export function AgendamentoTimeline({ agendamento }: AgendamentoTimelineProps) {
   const events = buildTimelineEvents(agendamento)
-
-  const tarefasAtrasadas = tarefas?.filter(
-    (t) => t.status === 'PENDENTE' && t.dataLimite && new Date(t.dataLimite) < new Date(),
-  )
 
   return (
     <div className="space-y-0">
-      {tarefasAtrasadas && tarefasAtrasadas.length > 0 && (
-        <div className="mb-4 rounded-lg border border-destructive/50 bg-destructive/5 p-3">
-          <div className="flex items-center gap-2 text-sm font-medium text-destructive">
-            <AlertTriangle className="h-4 w-4" />
-            <span>{tarefasAtrasadas.length} tarefa(s) atrasada(s)</span>
-          </div>
-        </div>
-      )}
-
       <div className="relative">
         <div className="absolute left-4 top-0 h-full w-px bg-border" />
 

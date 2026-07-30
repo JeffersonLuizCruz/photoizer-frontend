@@ -1,8 +1,8 @@
 import { format } from 'date-fns'
 import { apiClient } from '@/shared/api'
-import type { Agendamento, FotoExtra, VideoExtra, Pacote, Pagamento, Tarefa, Usuario } from '../types'
+import type { Agendamento, FotoExtra, VideoExtra, Pacote, Pagamento, Usuario } from '../types'
 import type { WizardFormValues } from '../schemas/agendamento.schema'
-import type { AgendamentoStatus, TarefaStatus, TarefaTipo } from '@/shared/constants'
+import type { AgendamentoStatus } from '@/shared/constants'
 import type { Cliente } from '@/features/clientes/types'
 import type { EditarAgendamentoFormData } from '../schemas/agendamento.schema'
 
@@ -220,33 +220,4 @@ export const agendamentoService = {
     return data
   },
 
-  listTarefas: async (agendamentoId?: string): Promise<Tarefa[]> => {
-    const params = agendamentoId ? { agendamentoId } : undefined
-    const { data } = await apiClient.get<Tarefa[]>('/tarefas', { params })
-    return data
-  },
-
-  createTarefa: async (payload: {
-    agendamentoId: string
-    tipo: TarefaTipo
-    responsavelId?: string | null
-    dataLimite: string
-  }): Promise<Tarefa> => {
-    const { data } = await apiClient.post<Tarefa>('/tarefas', payload)
-    return data
-  },
-
-  updateTarefa: async (id: string, payload: { tipo: TarefaTipo; responsavelId?: string | null; dataLimite: string }): Promise<Tarefa> => {
-    const { data } = await apiClient.put<Tarefa>(`/tarefas/${id}`, payload)
-    return data
-  },
-
-  deleteTarefa: async (id: string): Promise<void> => {
-    await apiClient.delete(`/tarefas/${id}`)
-  },
-
-  updateTarefaStatus: async (id: string, status: TarefaStatus): Promise<Tarefa> => {
-    const { data } = await apiClient.patch<Tarefa>(`/tarefas/${id}/status`, { status })
-    return data
-  },
 }

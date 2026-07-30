@@ -102,59 +102,6 @@ export interface Sessao {
   createdAt: string
 }
 
-export interface Pedido {
-  id: string
-  clienteId: string
-  pacoteId: string
-  agendamentoId: string | null
-  subtotalPacote: number
-  subtotalExtras: number
-  taxaEntrega: number
-  desconto: number
-  total: number
-  status: string
-  formaPagamento: string | null
-  opcaoEntrega: string | null
-  dataPedido: string
-  dataConclusao: string | null
-}
-
-export interface PedidoRequest {
-  pacoteId: string
-  agendamentoId?: string
-  fotosSelecionadasIds?: string[]
-  fotosExtrasIds?: string[]
-  taxaEntrega: number
-  opcaoEntrega?: string
-  formaPagamento?: string
-  codigoCupom?: string
-}
-
-export interface Cupom {
-  id: string
-  codigo: string
-  descricao: string | null
-  tipoDesconto: string
-  valorDesconto: number
-  valorMinimoPedido: number | null
-  usoLimite: number | null
-  usosAtuais: number
-  dataValidade: string | null
-  ativo: boolean
-  usoUnico: boolean
-  createdAt: string
-}
-
-export interface CupomValidacaoResponse {
-  valido: boolean
-  mensagem: string
-  cupomId: string | null
-  codigo: string
-  tipoDesconto: string | null
-  valorDesconto: number
-  valorComDesconto: number
-}
-
 export interface Avaliacao {
   id: string
   clienteId: string
@@ -168,7 +115,6 @@ export interface Avaliacao {
 }
 
 export type OpcaoEntrega = 'DIGITAL' | 'FISICA' | 'AMBAS'
-export type StatusPedido = 'PENDENTE' | 'AGUARDANDO_PAGAMENTO' | 'PAGO' | 'PROCESSANDO' | 'ENVIADO' | 'CONCLUIDO' | 'CANCELADO'
 
 export interface FotoPopularResponse {
   fotoId: string
@@ -179,8 +125,6 @@ export interface FotoPopularResponse {
 }
 
 export interface EcommerceAnalyticsResponse {
-  totalPedidos: number
-  pedidosPorStatus: Record<string, number>
   receitaTotal: number
   receitaExtras: number
   totalFotosSelecionadas: number
