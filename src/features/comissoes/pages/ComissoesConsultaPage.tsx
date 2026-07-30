@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { Search, Plus, Pencil, Trash2, ChevronDown, ChevronRight, Package, Image, Video } from 'lucide-react'
+import { Search, Plus, Pencil, Trash2, ChevronDown, ChevronRight, Package, Image, Video, Percent } from 'lucide-react'
 import { toast } from 'sonner'
 import { PageTitle } from '@/shared/components/layout/PageTitle'
 import { Button } from '@/shared/components/ui/button'
@@ -52,7 +52,15 @@ function IndicadorRow({
           {expanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
         </button>
         <div className="flex-1 min-w-0">
-          <p className="font-medium truncate">{indicador.indicadorNome}</p>
+          <div className="flex items-center gap-2">
+            <p className="font-medium truncate">{indicador.indicadorNome}</p>
+            {indicador.percentualComissao != null && (
+              <span className="inline-flex items-center gap-1 text-[11px] font-medium text-muted-foreground bg-muted px-1.5 py-0.5 rounded">
+                <Percent className="h-3 w-3" />
+                {indicador.percentualComissao}%
+              </span>
+            )}
+          </div>
           <p className="text-xs text-muted-foreground">{indicador.indicadorTelefone}</p>
         </div>
         <div className="hidden sm:flex items-center gap-4 text-sm">
@@ -117,6 +125,7 @@ function IndicadorRow({
                 <div className="flex items-center gap-3 text-xs text-muted-foreground">
                   <span>{ind.pacoteNome}</span>
                   <span>Ref.: {currency(ind.valorReferencia)}</span>
+                  <span>{ind.percentual}%</span>
                   {ind.origem !== 'PACOTE' && (
                     <span>{ind.origem === 'FOTO_EXTRA' ? 'Foto extra' : 'Vídeo extra'}</span>
                   )}
@@ -222,6 +231,7 @@ export function ComissoesConsultaPage() {
           nome: editing.indicadorNome,
           telefone: editing.indicadorTelefone,
           observacoes: null,
+          percentualComissao: null,
           totalPendente: 0,
           totalPago: 0,
           totalIndicacoes: 0,

@@ -70,7 +70,11 @@ export const agendamentoService = {
   },
 
   update: async (id: string, payload: EditarAgendamentoFormData): Promise<Agendamento> => {
-    const { data } = await apiClient.put<Agendamento>(`/agendamentos/${id}`, payload)
+    const taxaDeslocamento = payload.repassarDeslocamento ? payload.custoDeslocamento : 0
+    const { data } = await apiClient.put<Agendamento>(`/agendamentos/${id}`, {
+      ...payload,
+      taxaDeslocamento,
+    })
     return data
   },
 
@@ -102,9 +106,13 @@ export const agendamentoService = {
     formData.append('localEnsaio', payload.localEnsaio)
     if (payload.enderecoCompleto) formData.append('enderecoCompleto', payload.enderecoCompleto)
     if (payload.editorId) formData.append('editorId', payload.editorId)
-    formData.append('taxaDeslocamento', String(payload.taxaDeslocamento))
+    const taxaDeslocamento = payload.repassarDeslocamento ? payload.custoDeslocamento : 0
+    formData.append('taxaDeslocamento', String(taxaDeslocamento))
+    formData.append('custoDeslocamento', String(payload.custoDeslocamento))
+    formData.append('repassarDeslocamento', String(payload.repassarDeslocamento))
     formData.append('autorizaUsoImagem', String(payload.autorizaUsoImagem))
 
+    if (payload.indicadorId) formData.append('indicadorId', payload.indicadorId)
     if (payload.indicadorNome) formData.append('indicadorNome', payload.indicadorNome)
     if (payload.indicadorTelefone) formData.append('indicadorTelefone', payload.indicadorTelefone)
 

@@ -7,6 +7,7 @@ import { Input } from '@/shared/components/ui/input'
 import { Label } from '@/shared/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/components/ui/select'
 import { Checkbox } from '@/shared/components/ui/checkbox'
+import { Switch } from '@/shared/components/ui/switch'
 import { Calendar } from '@/shared/components/ui/calendar'
 import { Popover, PopoverContent, PopoverTrigger } from '@/shared/components/ui/popover'
 import { CurrencyInput } from '@/shared/components/layout/CurrencyInput'
@@ -49,7 +50,8 @@ export function EditarAgendamentoForm({ agendamento, onSubmit, isPending }: Edit
       localEnsaio: agendamento.localEnsaio,
       enderecoCompleto: agendamento.enderecoCompleto ?? '',
       editorId: agendamento.editorId ?? '',
-      taxaDeslocamento: agendamento.taxaDeslocamento,
+      custoDeslocamento: agendamento.custoDeslocamento,
+      repassarDeslocamento: agendamento.repassarDeslocamento,
       autorizaUsoImagem: agendamento.autorizaUsoImagem,
       observacoes: agendamento.observacoes ?? '',
     },
@@ -191,12 +193,29 @@ export function EditarAgendamentoForm({ agendamento, onSubmit, isPending }: Edit
         </div>
 
         <div>
-          <Label htmlFor="taxaDeslocamento">Taxa de Deslocamento</Label>
+          <Label htmlFor="custoDeslocamento">Custo de Deslocamento (R$)</Label>
           <CurrencyInput
-            value={watch('taxaDeslocamento')}
-            onChange={(value) => setValue('taxaDeslocamento', value, { shouldValidate: true })}
+            value={watch('custoDeslocamento')}
+            onChange={(value) => setValue('custoDeslocamento', value, { shouldValidate: true })}
           />
-          {errors.taxaDeslocamento && <p className="mt-1 text-sm text-destructive">{errors.taxaDeslocamento.message}</p>}
+          {errors.custoDeslocamento && <p className="mt-1 text-sm text-destructive">{errors.custoDeslocamento.message}</p>}
+        </div>
+
+        <div className="flex items-end pb-2">
+          <div className="flex items-center justify-between rounded-lg border p-3 w-full">
+            <div>
+              <span className="text-sm font-medium">Repassar ao cliente</span>
+              <p className="text-xs text-muted-foreground">
+                {watch('repassarDeslocamento')
+                  ? `R$ ${(watch('custoDeslocamento') ?? 0).toFixed(2)} cobrado do cliente`
+                  : 'Custo absorvido (não cobrado)'}
+              </p>
+            </div>
+            <Switch
+              checked={watch('repassarDeslocamento')}
+              onCheckedChange={(checked) => setValue('repassarDeslocamento', checked, { shouldValidate: true })}
+            />
+          </div>
         </div>
 
         <div className="flex items-end pb-2">

@@ -37,6 +37,8 @@ export interface Agendamento {
   valorRestante: number
   valorExtras: number
   taxaDeslocamento: number
+  custoDeslocamento: number
+  repassarDeslocamento: boolean
   valorTotalFinal: number
   percentualEntrada: number
   valorPacote: number
@@ -57,6 +59,10 @@ export interface Agendamento {
   contratoGerado: boolean
 
   ensaioDestaque: boolean
+
+  valorComissao?: number | null
+  indicadorNome?: string | null
+  statusComissao?: string | null
 
   observacoes: string | null
 

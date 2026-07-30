@@ -21,7 +21,9 @@ export function StepFinanceiro({ comprovante, onComprovanteChange }: StepFinance
   const { data: pacotes } = usePacotesList()
 
   const pacoteId = watch('pacoteId')
-  const taxaDeslocamento = watch('taxaDeslocamento') ?? 0
+  const custoDeslocamento = watch('custoDeslocamento') ?? 0
+  const repassarDeslocamento = watch('repassarDeslocamento') ?? true
+  const taxaDeslocamento = repassarDeslocamento ? custoDeslocamento : 0
   const pacote = pacotes?.find((p) => p.id === pacoteId)
 
   const { data: valores, isLoading: previewLoading } = useFinanceiroPreview(pacoteId, taxaDeslocamento)
@@ -57,8 +59,14 @@ export function StepFinanceiro({ comprovante, onComprovanteChange }: StepFinance
               <span className="font-medium">{formatCurrency(pacote.valorBase)}</span>
             </div>
             <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground">Taxa de Deslocamento</span>
-              <span className="font-medium">{formatCurrency(taxaDeslocamento)}</span>
+              <span className="text-muted-foreground">Custo de Deslocamento</span>
+              <span className="font-medium">{formatCurrency(custoDeslocamento)}</span>
+            </div>
+            <div className="flex justify-between text-xs">
+              <span className="text-muted-foreground">Repassado ao cliente</span>
+              <span className={repassarDeslocamento ? 'font-medium' : 'text-destructive font-medium'}>
+                {repassarDeslocamento ? 'Sim' : 'Não'}
+              </span>
             </div>
             <div className="border-t pt-2">
               <div className="flex justify-between text-sm font-semibold">

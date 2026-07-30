@@ -25,7 +25,8 @@ export function StepConfirmacao({ confirmado, onConfirmadoChange }: StepConfirma
   const pacote = pacotes?.find((p) => p.id === values.pacoteId)
   const editor = usuarios?.find((u) => u.id === values.editorId)
 
-  const { data: valores } = useFinanceiroPreview(values.pacoteId, values.taxaDeslocamento ?? 0)
+  const taxaDeslocamento = values.repassarDeslocamento ? (values.custoDeslocamento ?? 0) : 0
+  const { data: valores } = useFinanceiroPreview(values.pacoteId, taxaDeslocamento)
 
   return (
     <div className="space-y-6">
@@ -97,8 +98,14 @@ export function StepConfirmacao({ confirmado, onConfirmadoChange }: StepConfirma
             </div>
           )}
           <div className="flex justify-between">
-            <dt className="text-muted-foreground">Taxa Deslocamento</dt>
-            <dd className="font-medium">{formatCurrency(values.taxaDeslocamento ?? 0)}</dd>
+            <dt className="text-muted-foreground">Custo Deslocamento</dt>
+            <dd className="font-medium">{formatCurrency(values.custoDeslocamento ?? 0)}</dd>
+          </div>
+          <div className="flex justify-between">
+            <dt className="text-muted-foreground">Repassado ao cliente</dt>
+            <dd className={values.repassarDeslocamento ? 'font-medium' : 'font-medium text-destructive'}>
+              {values.repassarDeslocamento ? 'Sim' : 'Não'}
+            </dd>
           </div>
           <div className="flex justify-between">
             <dt className="text-muted-foreground">Uso de Imagem</dt>

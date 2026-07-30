@@ -20,7 +20,9 @@ export function montarReciboPagamento(agendamento: Agendamento): string {
     '💰 *Detalhes do Pagamento*',
     `Entrada (${agendamento.percentualEntrada}%): R$ ${agendamento.valorEntradaExigido.toFixed(2)}`,
     `Valor Restante (${100 - agendamento.percentualEntrada}%): R$ ${agendamento.valorRestante.toFixed(2)}`,
-    `Taxa de Deslocamento: R$ ${agendamento.taxaDeslocamento.toFixed(2)}`,
+    agendamento.repassarDeslocamento
+      ? `Taxa de Deslocamento: R$ ${agendamento.custoDeslocamento.toFixed(2)} (repassada)`
+      : `Custo de Deslocamento: R$ ${agendamento.custoDeslocamento.toFixed(2)} (absorvido)`,
     agendamento.valorExtras > 0 ? `Fotos Extras: R$ ${agendamento.valorExtras.toFixed(2)}` : '',
     '',
     `*Total Pago: R$ ${agendamento.valorTotalFinal.toFixed(2)}*`,

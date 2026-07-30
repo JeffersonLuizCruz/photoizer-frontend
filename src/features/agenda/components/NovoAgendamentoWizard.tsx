@@ -90,23 +90,25 @@ export function NovoAgendamentoWizard({ dataInicial }: NovoAgendamentoWizardProp
 
   const form = useForm<WizardFormValues>({
     resolver: zodResolver(wizardFormSchema) as any,
-    defaultValues: {
-      nome: '',
-      telefone: '',
-      email: '',
-      cpf: '',
-      cidade: '',
-      estado: '',
-      pacoteId: '',
-      data: dataInicial,
-      hora: '',
-      localEnsaio: '',
-      enderecoCompleto: '',
-      editorId: '',
-      taxaDeslocamento: 0,
-      autorizaUsoImagem: false,
-      observacoes: '',
-    },
+      defaultValues: {
+        nome: '',
+        telefone: '',
+        email: '',
+        cpf: '',
+        cidade: '',
+        estado: '',
+        pacoteId: '',
+        data: dataInicial,
+        hora: '',
+        localEnsaio: '',
+        enderecoCompleto: '',
+        editorId: '',
+        custoDeslocamento: 0,
+        repassarDeslocamento: true,
+        autorizaUsoImagem: false,
+        indicadorId: '',
+        observacoes: '',
+      },
   })
 
   const { mutate: createAgendamento, isPending } = useCreateAgendamento()
@@ -142,7 +144,9 @@ export function NovoAgendamentoWizard({ dataInicial }: NovoAgendamentoWizardProp
       `Data: ${values.data ? format(values.data, 'dd/MM/yyyy') : ''} às ${values.hora}`,
       `Local: ${values.localEnsaio}`,
       `Pacote: ${values.pacoteId}`,
-      values.taxaDeslocamento > 0 ? `Taxa de Deslocamento: R$ ${values.taxaDeslocamento.toFixed(2)}` : '',
+      values.custoDeslocamento > 0
+        ? `Deslocamento: R$ ${values.custoDeslocamento.toFixed(2)}${values.repassarDeslocamento ? ' (repassado)' : ' (absorvido)'}`
+        : '',
       '',
       '*Status:* CONFIRMADO',
     ]

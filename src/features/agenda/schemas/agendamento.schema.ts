@@ -22,7 +22,8 @@ export const stepEnsaioSchema = z.object({
   localEnsaio: z.string().min(3, 'Informe o local do ensaio'),
   enderecoCompleto: z.string().optional().or(z.literal('')),
   editorId: z.string().optional().or(z.literal('')),
-  taxaDeslocamento: z.number().min(0, 'Taxa não pode ser negativa').default(0),
+  custoDeslocamento: z.number().min(0, 'Valor não pode ser negativo').default(0),
+  repassarDeslocamento: z.boolean().default(true),
   autorizaUsoImagem: z.boolean().default(false),
 })
 
@@ -30,6 +31,7 @@ const telefoneFormatado = (val: string) =>
   /^\(\d{2}\) \d{5}-\d{4}$/.test(val) || val === ''
 
 export const stepIndicacaoSchema = z.object({
+  indicadorId: z.string().optional().or(z.literal('')),
   indicadorNome: z.string().optional().or(z.literal('')),
   indicadorTelefone: z.string().refine(telefoneFormatado, 'Telefone inválido. Use: (11) 99999-9999').optional().or(z.literal('')),
 })
@@ -88,7 +90,8 @@ export const editarAgendamentoSchema = z.object({
   localEnsaio: z.string().min(3, 'Informe o local do ensaio'),
   enderecoCompleto: z.string().optional().or(z.literal('')),
   editorId: z.string().optional().or(z.literal('')),
-  taxaDeslocamento: z.number().min(0, 'Taxa não pode ser negativa'),
+  custoDeslocamento: z.number().min(0, 'Valor não pode ser negativo'),
+  repassarDeslocamento: z.boolean(),
   autorizaUsoImagem: z.boolean(),
   observacoes: z.string().optional().or(z.literal('')),
 })

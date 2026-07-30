@@ -21,22 +21,30 @@ export function IndicadorDialog({ open, onOpenChange, indicador }: IndicadorDial
   const [nome, setNome] = useState('')
   const [telefone, setTelefone] = useState('')
   const [observacoes, setObservacoes] = useState('')
+  const [percentualComissao, setPercentualComissao] = useState('')
 
   useEffect(() => {
     if (indicador) {
       setNome(indicador.nome)
       setTelefone(indicador.telefone)
       setObservacoes(indicador.observacoes ?? '')
+      setPercentualComissao(indicador.percentualComissao != null ? String(indicador.percentualComissao) : '')
     } else {
       setNome('')
       setTelefone('')
       setObservacoes('')
+      setPercentualComissao('')
     }
   }, [indicador, open])
 
   const { mutate: salvar, isPending } = useMutation({
     mutationFn: () => {
-      const payload = { nome, telefone, observacoes: observacoes || undefined }
+      const payload = {
+        nome,
+        telefone,
+        observacoes: observacoes || undefined,
+        percentualComissao: percentualComissao ? Number(percentualComissao) : null,
+      }
       return isEdit
         ? indicadorService.atualizar(indicador!.id, payload)
         : indicadorService.criar(payload)
@@ -77,6 +85,22 @@ export function IndicadorDialog({ open, onOpenChange, indicador }: IndicadorDial
               onChange={(e) => setTelefone(e.target.value)}
               placeholder="(11) 99999-9999"
             />
+          </div>
+          <div>
+            <Label htmlFor="percentualComissao">Percentual de Comissão (%)</Label>
+            <Input
+              id="percentualComissao"
+              type="number"
+              step="0.01"
+              min="0"
+              max="100"
+              value={percentualComissao}
+              onChange={(e) => setPercentualComissao(e.target.value)}
+              placeholder="Usar padrão do sistema"
+            />
+            <p className="text-xs text-muted-foreground mt-1">
+              Deixe em branco para usar o percentual global definido nas configurações.
+            </p>
           </div>
           <div>
             <Label htmlFor="observacoes">Observações</Label>

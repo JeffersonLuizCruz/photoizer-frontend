@@ -61,8 +61,8 @@ export function AgendamentoFinanceiro({ agendamento }: AgendamentoFinanceiroProp
       tipo: 'positivo',
     },
     {
-      descricao: 'Taxa de Deslocamento',
-      valor: agendamento.taxaDeslocamento,
+      descricao: agendamento.repassarDeslocamento ? 'Custo de Deslocamento' : 'Custo de Deslocamento (absorvido)',
+      valor: agendamento.custoDeslocamento,
       tipo: 'positivo',
     },
     {

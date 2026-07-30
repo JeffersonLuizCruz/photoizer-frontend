@@ -32,12 +32,14 @@ export interface IndicadorListagem {
   totalPago: number
   totalCancelado: number
   totalIndicacoes: number
+  percentualComissao: number | null
 }
 
 export interface IndicadorRequest {
   nome: string
   telefone: string
   observacoes?: string
+  percentualComissao?: number | null
 }
 
 export interface IndicadorResponse {
@@ -45,6 +47,7 @@ export interface IndicadorResponse {
   nome: string
   telefone: string
   observacoes: string | null
+  percentualComissao: number | null
   totalPendente: number
   totalPago: number
   totalIndicacoes: number

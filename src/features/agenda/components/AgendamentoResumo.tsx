@@ -96,21 +96,58 @@ export function AgendamentoResumo({ agendamento }: AgendamentoResumoProps) {
       </InfoCard>
 
       <InfoCard icon={DollarSign} title="Resumo Financeiro">
+        <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/60 mb-1">Receita</p>
         <InfoRow label="Valor do Pacote" value={`R$ ${agendamento.valorPacote.toFixed(2)}`} />
-        <InfoRow label="Taxa de Deslocamento" value={`R$ ${agendamento.taxaDeslocamento.toFixed(2)}`} />
-        <div className="border-t pt-2 mt-2">
-          <InfoRow label="Valor Total" value={`R$ ${agendamento.valorTotal.toFixed(2)}`} />
-        </div>
-        <InfoRow label={`Entrada (${agendamento.percentualEntrada}%)`} value={`R$ ${agendamento.valorEntradaExigido.toFixed(2)}`} />
-        {agendamento.valorEntradaPago > 0 && (
-          <div className="flex items-center gap-1 justify-end">
-            <Badge variant="success" className="text-[10px] px-1.5 py-0">Pago</Badge>
+        <div className="flex items-center justify-between gap-2">
+          <span className="text-muted-foreground shrink-0">Custo Deslocamento:</span>
+          <div className="flex items-center gap-1.5">
+            <span className="text-right font-medium">R$ {agendamento.custoDeslocamento.toFixed(2)}</span>
+            {agendamento.repassarDeslocamento ? (
+              <span className="text-[10px] text-muted-foreground">(repassado)</span>
+            ) : (
+              <span className="text-[10px] text-destructive">(absorvido)</span>
+            )}
           </div>
-        )}
-        <InfoRow label={`Restante (${100 - agendamento.percentualEntrada}%)`} value={`R$ ${agendamento.valorRestante.toFixed(2)}`} />
+        </div>
         <InfoRow label="Fotos Extras" value={agendamento.valorExtras > 0 ? `R$ ${agendamento.valorExtras.toFixed(2)}` : 'R$ 0,00'} />
         <div className="border-t pt-2 mt-2">
+          <InfoRow label="Total Bruto" value={`R$ ${agendamento.valorTotalFinal.toFixed(2)}`} />
+        </div>
+
+        {agendamento.valorComissao != null && agendamento.indicadorNome && (
+          <>
+            <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/60 mt-4 mb-1">Obrigações</p>
+            <div className="flex items-center justify-between gap-2">
+              <span className="text-muted-foreground shrink-0">Comissão ({agendamento.indicadorNome}):</span>
+              <div className="flex items-center gap-1.5">
+                <span className="text-right font-medium">R$ {agendamento.valorComissao.toFixed(2)}</span>
+                <Badge
+                  variant={agendamento.statusComissao === 'PAGA' ? 'success' : 'warning'}
+                  className="text-[10px] px-1.5 py-0"
+                >
+                  {agendamento.statusComissao === 'PAGA' ? 'Pago' : agendamento.statusComissao === 'CANCELADA' ? 'Cancelado' : 'Pendente'}
+                </Badge>
+              </div>
+            </div>
+          </>
+        )}
+
+        <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/60 mt-4 mb-1">Resultado</p>
+        <div className="flex items-center justify-between gap-2">
+          <span className="text-muted-foreground shrink-0">Entrada ({agendamento.percentualEntrada}%):</span>
+          <div className="flex items-center gap-1.5">
+            <span className="text-right font-medium">R$ {agendamento.valorEntradaExigido.toFixed(2)}</span>
+            {agendamento.valorEntradaPago > 0 && (
+              <Badge variant="success" className="text-[10px] px-1.5 py-0">Pago</Badge>
+            )}
+          </div>
+        </div>
+        <InfoRow label={`Restante (${100 - agendamento.percentualEntrada}%)`} value={`R$ ${agendamento.valorRestante.toFixed(2)}`} />
+        <div className="border-t pt-2 mt-2">
           <InfoRow label="Total Final" value={`R$ ${agendamento.valorTotalFinal.toFixed(2)}`} />
+          {agendamento.valorComissao != null && (
+            <InfoRow label="Líquido Estimado" value={`R$ ${(agendamento.valorTotalFinal - agendamento.valorComissao).toFixed(2)}`} />
+          )}
         </div>
       </InfoCard>
 

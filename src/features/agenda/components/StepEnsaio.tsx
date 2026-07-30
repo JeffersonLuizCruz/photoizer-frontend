@@ -16,6 +16,7 @@ import { Calendar } from '@/shared/components/ui/calendar'
 import { Popover, PopoverContent, PopoverTrigger } from '@/shared/components/ui/popover'
 import { Input } from '@/shared/components/ui/input'
 import { CurrencyInput } from '@/shared/components/layout/CurrencyInput'
+import { Switch } from '@/shared/components/ui/switch'
 import { cn } from '@/shared/lib/cn'
 import type { WizardFormValues } from '../schemas/agendamento.schema'
 
@@ -160,12 +161,27 @@ export function StepEnsaio() {
         </div>
 
         <div>
-          <Label>Taxa de Deslocamento (R$)</Label>
+          <Label>Custo de Deslocamento (R$)</Label>
           <CurrencyInput
-            value={watch('taxaDeslocamento') ?? 0}
-            onChange={(value) => setValue('taxaDeslocamento', value)}
+            value={watch('custoDeslocamento') ?? 0}
+            onChange={(value) => setValue('custoDeslocamento', value)}
           />
         </div>
+      </div>
+
+      <div className="flex items-center justify-between rounded-lg border p-3">
+        <div>
+          <span className="text-sm font-medium">Repassar ao cliente</span>
+          <p className="text-xs text-muted-foreground">
+            {watch('repassarDeslocamento')
+              ? `R$ ${(watch('custoDeslocamento') ?? 0).toFixed(2)} será cobrado do cliente`
+              : 'Custo será absorvido (não cobrado do cliente)'}
+          </p>
+        </div>
+        <Switch
+          checked={watch('repassarDeslocamento') ?? true}
+          onCheckedChange={(checked) => setValue('repassarDeslocamento', checked)}
+        />
       </div>
 
       <label className="flex items-center gap-3 rounded-lg border p-3 cursor-pointer hover:bg-accent transition-colors">
