@@ -6,6 +6,33 @@ import type { AgendamentoStatus, TarefaStatus, TarefaTipo } from '@/shared/const
 import type { Cliente } from '@/features/clientes/types'
 import type { EditarAgendamentoFormData } from '../schemas/agendamento.schema'
 
+export interface RascunhoAgendamentoData {
+  clienteId?: string
+  nome?: string
+  telefone?: string
+  email?: string
+  cpf?: string
+  cidade?: string
+  estado?: string
+  origem?: string
+  pacoteId?: string
+  data?: string
+  hora?: string
+  localEnsaio?: string
+  enderecoCompleto?: string
+  editorId?: string
+  custoDeslocamento?: number
+  repassarDeslocamento?: boolean
+  autorizaUsoImagem?: boolean
+  indicadorId?: string
+  indicadorNome?: string
+  indicadorTelefone?: string
+  observacoes?: string
+  currentStep?: number
+  comprovanteName?: string | null
+  confirmado?: boolean
+}
+
 export interface Config {
   valorUnitarioFotoExtra: number
   valorUnitarioVideoExtra: number
@@ -121,6 +148,30 @@ export const agendamentoService = {
 
     const { data } = await apiClient.post<Agendamento>('/agendamentos', formData)
     return data
+  },
+
+  salvarRascunho: async (data: RascunhoAgendamentoData): Promise<RascunhoAgendamentoData> => {
+    const params = new URLSearchParams()
+    Object.entries(data).forEach(([key, value]) => {
+      if (value !== undefined && value !== null) {
+        params.append(key, String(value))
+      }
+    })
+    const { data: result } = await apiClient.post<RascunhoAgendamentoData>('/rascunhos', null, { params })
+    return result
+  },
+
+  buscarRascunho: async (): Promise<RascunhoAgendamentoData | null> => {
+    try {
+      const { data } = await apiClient.get<RascunhoAgendamentoData>('/rascunhos/meu')
+      return data
+    } catch {
+      return null
+    }
+  },
+
+  deletarRascunho: async (): Promise<void> => {
+    await apiClient.delete('/rascunhos/meu')
   },
 
   updateStatus: async (id: string, status: AgendamentoStatus): Promise<Agendamento> => {

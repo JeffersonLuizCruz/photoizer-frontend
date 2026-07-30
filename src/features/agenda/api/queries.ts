@@ -1,9 +1,36 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
-import { agendamentoService } from '../services/agendamento.service'
+import { agendamentoService, type RascunhoAgendamentoData } from '../services/agendamento.service'
 import type { WizardFormValues, EditarAgendamentoFormData } from '../schemas/agendamento.schema'
 import { QUERY_KEYS } from '@/shared/constants'
 import type { AgendamentoStatus, TarefaStatus, TarefaTipo } from '@/shared/constants'
+
+export function useSalvarRascunho() {
+  return useMutation({
+    mutationFn: (data: RascunhoAgendamentoData) =>
+      agendamentoService.salvarRascunho(data),
+  })
+}
+
+export function useBuscarRascunho() {
+  return useQuery({
+    queryKey: [...QUERY_KEYS.AGENDA, 'rascunho'],
+    queryFn: () => agendamentoService.buscarRascunho(),
+    staleTime: 1000 * 30,
+    retry: false,
+  })
+}
+
+export function useDeletarRascunho() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: () => agendamentoService.deletarRascunho(),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [...QUERY_KEYS.AGENDA, 'rascunho'] })
+    },
+  })
+}
 
 export function useConfig() {
   return useQuery({

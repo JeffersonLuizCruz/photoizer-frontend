@@ -173,7 +173,7 @@ export function StepIndicacao() {
               <Input
                 id="indicadorNome"
                 placeholder="Quem indicou?"
-                value={hasSelection && selectedId ? indicadorNome : undefined}
+                value={watch('indicadorNome') ?? ''}
                 onChange={(e) => {
                   setValue('indicadorNome', e.target.value, { shouldValidate: true })
                   if (selectedId) {

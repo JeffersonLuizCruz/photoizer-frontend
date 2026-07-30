@@ -56,6 +56,7 @@ export const AGENDAMENTO_STATUS = {
   FINALIZADO: 'FINALIZADO',
   CANCELADO: 'CANCELADO',
   NO_SHOW: 'NO_SHOW',
+  RASCUNHO: 'RASCUNHO',
 } as const
 
 export const TAREFA_STATUS = {
