@@ -67,7 +67,7 @@ export function useUsuariosList() {
 
 export function useBuscarClientePorTelefone(telefone: string) {
   return useQuery({
-    queryKey: [...QUERY_KEYS.CLIENTES, 'search', telefone],
+    queryKey: ['clientes', 'search', telefone],
     queryFn: () => agendamentoService.buscarClientePorTelefone(telefone),
     enabled: telefone.length >= 14,
     staleTime: 1000 * 60,
@@ -127,7 +127,6 @@ export function useCreateAgendamento() {
       agendamentoService.createFromWizard(data, comprovante),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.AGENDA })
-      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.CLIENTES })
       toast.success('Agendamento criado com sucesso')
     },
     onError: (error: any) => {

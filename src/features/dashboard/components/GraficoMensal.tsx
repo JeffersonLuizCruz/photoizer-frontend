@@ -80,7 +80,7 @@ function MetricCard({ metric: m }: { metric: MetricDef }) {
   const Icon = m.icon
   const display = m.suffix ? `${m.value}${m.suffix}` : currencyFormat(m.value)
   return (
-    <div className={`relative rounded-lg border ${m.border} ${m.bg} p-3 group`}>
+    <div className={`relative rounded-lg border ${m.border} ${m.bg} p-3 group overflow-hidden`}>
       <div className="flex items-center justify-between gap-1.5 text-xs text-muted-foreground mb-1.5">
         <div className="flex items-center gap-1.5">
           <Icon className="h-3.5 w-3.5 shrink-0" />
@@ -88,7 +88,7 @@ function MetricCard({ metric: m }: { metric: MetricDef }) {
         </div>
         <Info className="h-3 w-3 shrink-0 opacity-40 group-hover:opacity-100 transition-opacity cursor-help" />
       </div>
-      <p className={`text-lg font-bold tabular-nums leading-tight ${m.color}`}>{display}</p>
+      <p className={`text-lg font-bold tabular-nums leading-tight whitespace-nowrap overflow-hidden text-ellipsis ${m.color}`}>{display}</p>
       <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:block z-10">
         <div className="rounded-md border bg-popover px-3 py-1.5 text-xs text-popover-foreground shadow-md whitespace-nowrap">
           {m.description}

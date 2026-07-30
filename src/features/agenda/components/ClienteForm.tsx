@@ -150,7 +150,7 @@ export function ClienteForm({ onSubmit, defaultValues, isLoading, mode }: Client
       </div>
 
       <div className="flex items-center justify-end gap-2">
-        <Button type="button" variant="outline" onClick={() => navigate(ROUTES.CLIENTES)}>
+        <Button type="button" variant="outline" onClick={() => navigate(ROUTES.AGENDA)}>
           Cancelar
         </Button>
         <Button type="submit" disabled={isLoading}>

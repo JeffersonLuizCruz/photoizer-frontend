@@ -93,7 +93,7 @@ export function EditarAgendamentoForm({ agendamento, onSubmit, isPending }: Edit
               type="button"
               variant="outline"
               size="sm"
-              onClick={() => navigate(ROUTES.CLIENTES_EDITAR.replace(':id', agendamento.clienteId))}
+                onClick={() => navigate(`${ROUTES.AGENDA}/${agendamento.id}`)}
             >
               Editar Cliente
             </Button>

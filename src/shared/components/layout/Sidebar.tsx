@@ -1,4 +1,4 @@
-import { LayoutDashboard, Settings, Users, Calendar, DollarSign, Percent, Package, ShoppingCart, Image, Bell } from 'lucide-react'
+import { LayoutDashboard, Settings, Calendar, DollarSign, Percent, Package, ShoppingCart, Image, Bell } from 'lucide-react'
 import { NavLink } from 'react-router-dom'
 import { cn } from '@/shared/lib/cn'
 import { ROUTES } from '@/shared/constants'
@@ -7,7 +7,6 @@ import { useAuth, type Papel } from '@/features/auth/AuthProvider'
 
 const navItems = [
   { to: ROUTES.DASHBOARD, label: 'Dashboard', icon: LayoutDashboard },
-  { to: ROUTES.CLIENTES, label: 'Clientes', icon: Users },
   { to: ROUTES.AGENDA, label: 'Agenda', icon: Calendar },
   { to: ROUTES.PACOTES, label: 'Pacotes', icon: Package },
   { to: ROUTES.EDICAO, label: 'Edição', icon: Image },

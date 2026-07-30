@@ -6,7 +6,6 @@ import { AGENDAMENTO_STATUS, ROUTES } from '@/shared/constants'
 import { PagamentosPendentes } from '../components/PagamentosPendentes'
 import { EntregasPendentes } from '../components/EntregasPendentes'
 import { EcommerceDashboardCards } from '../components/EcommerceDashboardCards'
-import { GraficoVendasExtras } from '../components/GraficoVendasExtras'
 import { GraficoMensal } from '../components/GraficoMensal'
 import { useNavigate } from 'react-router-dom'
 
@@ -73,10 +72,7 @@ export function DashboardPage() {
           </div>
           <EcommerceDashboardCards />
         </div>
-        <div className="grid gap-6 md:grid-cols-2">
-          <GraficoMensal />
-          <GraficoVendasExtras />
-        </div>
+        <GraficoMensal />
       </div>
     </div>
   )

@@ -14,9 +14,6 @@ const CheckoutPage = lazy(() => import('@/features/ecommerce/pages/CheckoutPage'
 const CustomerLoginPage = lazy(() => import('@/features/auth/customer').then(m => ({ default: m.CustomerLoginPage })))
 const CustomerDashboardPage = lazy(() => import('@/features/auth/customer').then(m => ({ default: m.CustomerDashboardPage })))
 const CustomerProfilePage = lazy(() => import('@/features/auth/customer/CustomerProfilePage').then(m => ({ default: m.CustomerProfilePage })))
-const ClientesListPage = lazy(() => import('@/features/clientes').then(m => ({ default: m.ClientesListPage })))
-const ClienteFormPage = lazy(() => import('@/features/clientes').then(m => ({ default: m.ClienteFormPage })))
-const ClienteDetalhesPage = lazy(() => import('@/features/clientes').then(m => ({ default: m.ClienteDetalhesPage })))
 const NovoAgendamentoPage = lazy(() => import('@/features/agenda').then(m => ({ default: m.NovoAgendamentoPage })))
 const AgendamentoDetalhesPage = lazy(() => import('@/features/agenda').then(m => ({ default: m.AgendamentoDetalhesPage })))
 const EditarAgendamentoPage = lazy(() => import('@/features/agenda').then(m => ({ default: m.EditarAgendamentoPage })))
@@ -72,10 +69,6 @@ export function AppRoutes() {
           <Route element={<ProtectedRoute><AppLayout /></ProtectedRoute>}>
             <Route path={ROUTES.DASHBOARD} element={<DashboardPage />} />
             <Route path={ROUTES.DASHBOARD_DETALHES} element={<DashboardDetalhesPage />} />
-            <Route path={ROUTES.CLIENTES} element={<ClientesListPage />} />
-            <Route path={ROUTES.CLIENTES_NOVO} element={<ClienteFormPage />} />
-            <Route path={ROUTES.CLIENTES_EDITAR} element={<ClienteFormPage />} />
-            <Route path={ROUTES.CLIENTES_DETALHES} element={<ClienteDetalhesPage />} />
             <Route path={ROUTES.AGENDA} element={<AgendaPage />} />
             <Route path={ROUTES.AGENDA_NOVO} element={<NovoAgendamentoPage />} />
             <Route path={ROUTES.AGENDA_DETALHES} element={<AgendamentoDetalhesPage />} />

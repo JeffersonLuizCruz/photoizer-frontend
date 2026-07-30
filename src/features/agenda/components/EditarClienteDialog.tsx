@@ -1,8 +1,8 @@
-import { useCliente, useUpdateCliente } from '@/features/clientes/api/queries'
-import { ClienteForm } from '@/features/clientes/components/ClienteForm'
+import { useCliente, useUpdateCliente } from '../api/cliente.queries'
+import { ClienteForm } from './ClienteForm'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/shared/components/ui/dialog'
 import { PageLoading } from '@/shared/components/layout/Loading'
-import type { ClienteFormData } from '@/features/clientes/schemas/cliente.schema'
+import type { ClienteFormData } from '../schemas/cliente.schema'
 
 interface EditarClienteDialogProps {
   clienteId: string

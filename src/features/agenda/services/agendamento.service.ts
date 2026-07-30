@@ -3,7 +3,7 @@ import { apiClient } from '@/shared/api'
 import type { Agendamento, FotoExtra, VideoExtra, Pacote, Pagamento, Usuario } from '../types'
 import type { WizardFormValues } from '../schemas/agendamento.schema'
 import type { AgendamentoStatus } from '@/shared/constants'
-import type { Cliente } from '@/features/clientes/types'
+import type { Cliente } from '../types/cliente'
 import type { EditarAgendamentoFormData } from '../schemas/agendamento.schema'
 
 export interface RascunhoAgendamentoData {
