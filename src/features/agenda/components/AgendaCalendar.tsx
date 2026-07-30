@@ -21,7 +21,8 @@ import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { cn } from '@/shared/lib/cn'
 import { Button } from '@/shared/components/ui/button'
 import { Skeleton } from '@/shared/components/ui/skeleton'
-import { AgendaCalendarEvent, statusColors } from './AgendaCalendarEvent'
+import { Popover, PopoverContent, PopoverTrigger } from '@/shared/components/ui/popover'
+import { AgendaCalendarEvent } from './AgendaCalendarEvent'
 import type { Agendamento } from '../types'
 
 type CalendarView = 'month' | 'week' | 'day'
@@ -121,25 +122,9 @@ function MonthView({
                 >
                   {format(day, 'd')}
                 </span>
-                {dayEvents.length > 0 && (
-                  <div className="flex gap-0.5">
-                    {dayEvents.slice(0, 4).map((ev) => (
-                      <span
-                        key={ev.id}
-                        className={cn(
-                          'h-1.5 w-1.5 rounded-full',
-                          statusColors[ev.status] ?? 'bg-gray-400',
-                        )}
-                      />
-                    ))}
-                    {dayEvents.length > 4 && (
-                      <span className="text-[9px] text-muted-foreground font-medium">+{dayEvents.length - 4}</span>
-                    )}
-                  </div>
-                )}
               </div>
               <div className="space-y-0.5">
-                {dayEvents.slice(0, 2).map((event) => (
+                {dayEvents.slice(0, 4).map((event) => (
                   <AgendaCalendarEvent
                     key={event.id}
                     agendamento={event}
@@ -147,10 +132,27 @@ function MonthView({
                     compact
                   />
                 ))}
-                {dayEvents.length > 2 && (
-                  <p className="text-[10px] text-muted-foreground text-center pt-0.5">
-                    +{dayEvents.length - 2} mais
-                  </p>
+                {dayEvents.length > 4 && (
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <button
+                        type="button"
+                        className="w-full text-[10px] text-muted-foreground text-center pt-0.5 hover:text-foreground transition-colors"
+                      >
+                        +{dayEvents.length - 4} mais
+                      </button>
+                    </PopoverTrigger>
+                    <PopoverContent side="right" className="w-56 p-2 space-y-1" align="start">
+                      {dayEvents.slice(4).map((event) => (
+                        <AgendaCalendarEvent
+                          key={event.id}
+                          agendamento={event}
+                          onClick={onEventClick}
+                          compact
+                        />
+                      ))}
+                    </PopoverContent>
+                  </Popover>
                 )}
               </div>
             </div>
@@ -283,7 +285,7 @@ export function AgendaCalendar({ agendamentos, view, onViewChange, onEventClick,
                     {format(day, 'd')}
                   </div>
                   <div className="space-y-0.5">
-                    {dayEvents.slice(0, 3).map((event) => (
+                    {dayEvents.slice(0, 4).map((event) => (
                       <AgendaCalendarEvent
                         key={event.id}
                         agendamento={event}
@@ -291,10 +293,27 @@ export function AgendaCalendar({ agendamentos, view, onViewChange, onEventClick,
                         compact
                       />
                     ))}
-                    {dayEvents.length > 3 && (
-                      <p className="text-[10px] text-muted-foreground text-center pt-0.5">
-                        +{dayEvents.length - 3} mais
-                      </p>
+                    {dayEvents.length > 4 && (
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <button
+                            type="button"
+                            className="w-full text-[10px] text-muted-foreground text-center pt-0.5 hover:text-foreground transition-colors"
+                          >
+                            +{dayEvents.length - 4} mais
+                          </button>
+                        </PopoverTrigger>
+                        <PopoverContent side="right" className="w-56 p-2 space-y-1" align="start">
+                          {dayEvents.slice(4).map((event) => (
+                            <AgendaCalendarEvent
+                              key={event.id}
+                              agendamento={event}
+                              onClick={onEventClick}
+                              compact
+                            />
+                          ))}
+                        </PopoverContent>
+                      </Popover>
                     )}
                   </div>
                 </div>
@@ -324,23 +343,6 @@ export function AgendaCalendar({ agendamentos, view, onViewChange, onEventClick,
               ))}
             </div>
           )}
-        </div>
-      )}
-
-      {view !== 'day' && selectedDateEvents.length > 0 && (
-        <div className="rounded-lg border bg-card p-4">
-          <h3 className="mb-3 text-sm font-medium text-muted-foreground">
-            Agendamentos para {selectedDate ? format(selectedDate, "dd 'de' MMM", { locale: ptBR }) : ''}
-          </h3>
-          <div className="space-y-2">
-            {selectedDateEvents.map((event) => (
-              <AgendaCalendarEvent
-                key={event.id}
-                agendamento={event}
-                onClick={onEventClick}
-              />
-            ))}
-          </div>
         </div>
       )}
 

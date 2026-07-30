@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { CalendarDays, Table2, FilterX, Search, FileEdit } from 'lucide-react'
+import { CalendarDays, Table2, FilterX, Search, FileEdit, Clock, MapPin } from 'lucide-react'
 import { format } from 'date-fns'
 import { Button } from '@/shared/components/ui/button'
 import { Input } from '@/shared/components/ui/input'
@@ -13,6 +13,7 @@ import { useDebounce } from '@/shared/hooks/useDebounce'
 import { useAgendamentosList, usePacotesList, useUsuariosList, useBuscarRascunho, useDeletarRascunho } from '../api/queries'
 import { AgendaCalendar, type CalendarView } from '../components/AgendaCalendar'
 import { AgendamentoList } from '../components/AgendamentoList'
+import { statusLabels } from '../components/AgendaCalendarEvent'
 import type { AgendamentoStatus } from '@/shared/constants'
 import type { Agendamento } from '../types'
 import { useWizardStore } from '../stores/wizard.store'
@@ -202,17 +203,15 @@ export function AgendaPage() {
             className="w-56"
           />
 
-          {viewMode === 'list' && (
-            <div className="relative">
-              <Search className="absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                placeholder="Buscar cliente..."
-                value={clientSearch}
-                onChange={(e) => setClientSearch(e.target.value)}
-                className="w-44 pl-8"
-              />
-            </div>
-          )}
+          <div className="relative">
+            <Search className="absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              placeholder="Buscar cliente..."
+              value={clientSearch}
+              onChange={(e) => setClientSearch(e.target.value)}
+              className="w-44 pl-8"
+            />
+          </div>
 
           {hasActiveFilters && (
             <Button variant="ghost" size="sm" onClick={clearFilters}>
@@ -299,6 +298,63 @@ export function AgendaPage() {
           pacotes={pacotes}
           usuarios={usuarios}
         />
+      )}
+
+      {viewMode === 'calendar' && debouncedClientSearch && (
+        <div className="mt-4 rounded-lg border bg-card">
+          <div className="border-b px-4 py-3">
+            <h3 className="text-sm font-semibold">
+              Resultados da busca
+              {filteredAgendamentos.length > 0 && (
+                <span className="ml-1.5 text-muted-foreground font-normal">
+                  ({filteredAgendamentos.length})
+                </span>
+              )}
+            </h3>
+          </div>
+          <div className="divide-y">
+            {filteredAgendamentos.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-8 text-muted-foreground">
+                <Search className="mb-2 h-5 w-5" />
+                <p className="text-sm">Nenhum cliente encontrado</p>
+              </div>
+            ) : (
+              filteredAgendamentos.map((a) => {
+                const dataHora = new Date(a.dataHoraEnsaio)
+                return (
+                  <div
+                    key={a.id}
+                    className="flex items-center justify-between px-4 py-3 transition-colors hover:bg-muted/50 cursor-pointer"
+                    onClick={() => navigate(ROUTES.AGENDA_DETALHES.replace(':id', a.id === 'rascunho' ? '' : a.id))}
+                  >
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm font-medium truncate">{a.clienteNome}</p>
+                      <div className="mt-0.5 flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground">
+                        <span className="flex items-center gap-1">
+                          <CalendarDays className="h-3 w-3" />
+                          {format(dataHora, "dd/MM/yyyy")}
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <Clock className="h-3 w-3" />
+                          {format(dataHora, "HH:mm")}
+                        </span>
+                        {a.localEnsaio && (
+                          <span className="flex items-center gap-1">
+                            <MapPin className="h-3 w-3" />
+                            {a.localEnsaio}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    <Badge variant={statusLabels[a.status]?.variant ?? 'default'}>
+                      {statusLabels[a.status]?.label ?? a.status}
+                    </Badge>
+                  </div>
+                )
+              })
+            )}
+          </div>
+        </div>
       )}
     </div>
   )

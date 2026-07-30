@@ -1,10 +1,9 @@
 import { useMemo } from 'react'
 import { format, startOfDay, endOfDay, addDays } from 'date-fns'
-import { CalendarDays, DollarSign, Camera, Bell, ArrowUpRight, ShoppingCart } from 'lucide-react'
+import { DollarSign, Camera, Bell, ArrowUpRight, ShoppingCart } from 'lucide-react'
 import { PageTitle } from '@/shared/components/layout/PageTitle'
 import { useAgendamentosList, useTarefasList } from '@/features/agenda/api/queries'
 import { AGENDAMENTO_STATUS, ROUTES } from '@/shared/constants'
-import { AgendaDoDia } from '../components/AgendaDoDia'
 import { PagamentosPendentes } from '../components/PagamentosPendentes'
 import { EntregasPendentes } from '../components/EntregasPendentes'
 import { Alertas } from '../components/Alertas'
@@ -12,14 +11,6 @@ import { EcommerceDashboardCards } from '../components/EcommerceDashboardCards'
 import { GraficoVendasExtras } from '../components/GraficoVendasExtras'
 import { GraficoMensal } from '../components/GraficoMensal'
 import { useNavigate } from 'react-router-dom'
-
-function hoje() {
-  const now = new Date()
-  return {
-    inicio: format(startOfDay(now), "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"),
-    fim: format(endOfDay(now), "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"),
-  }
-}
 
 function amanha() {
   const next = addDays(new Date(), 1)
@@ -34,16 +25,7 @@ export function DashboardPage() {
   const { data: agendamentos, isLoading: loadingAgenda } = useAgendamentosList()
   const { data: tarefas, isLoading: loadingTarefas } = useTarefasList()
 
-  const hojeDate = hoje()
   const amanhaDate = amanha()
-
-  const agendaHoje = useMemo(() => {
-    if (!agendamentos) return []
-    return agendamentos.filter((a) => {
-      const d = new Date(a.dataHoraEnsaio)
-      return d >= new Date(hojeDate.inicio) && d <= new Date(hojeDate.fim)
-    }).sort((a, b) => new Date(a.dataHoraEnsaio).getTime() - new Date(b.dataHoraEnsaio).getTime())
-  }, [agendamentos, hojeDate])
 
   const pagamentosPendentes = useMemo(() => {
     if (!agendamentos) return []
@@ -93,16 +75,6 @@ export function DashboardPage() {
       )}
 
       <div className="grid gap-6 md:grid-cols-2">
-        <div className="rounded-lg border bg-card">
-          <div className="flex items-center gap-2 border-b px-4 py-3">
-            <CalendarDays className="h-4 w-4 text-muted-foreground" />
-            <h2 className="text-sm font-semibold">Agenda do Dia</h2>
-          </div>
-          <div className="p-4">
-            <AgendaDoDia agendamentos={agendaHoje} isLoading={isLoading} />
-          </div>
-        </div>
-
         <div
           className="rounded-lg border bg-card cursor-pointer transition-colors hover:border-primary/50"
           onClick={() => navigate(ROUTES.DASHBOARD_DETALHES)}
