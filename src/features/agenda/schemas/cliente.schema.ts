@@ -2,7 +2,7 @@ import { z } from 'zod'
 
 export const clienteSchema = z.object({
   nome: z.string().min(3, 'Nome deve ter pelo menos 3 caracteres'),
-  telefone: z.string().regex(/^\(\d{2}\) \d{5}-\d{4}$/, 'Telefone inválido. Use o formato: (11) 99999-9999'),
+  telefone: z.string().regex(/^\(\d{2}\) \d{4,5}-\d{4}$/, 'Telefone inválido. Use o formato: (11) 99999-9999 ou (11) 4444-9999'),
   email: z.string().email('Email inválido').optional().or(z.literal('')),
   cpf: z.string().regex(/^\d{3}\.\d{3}\.\d{3}-\d{2}$/, 'CPF inválido. Use o formato: 000.000.000-00').optional().or(z.literal('')),
   cidade: z.string().optional(),

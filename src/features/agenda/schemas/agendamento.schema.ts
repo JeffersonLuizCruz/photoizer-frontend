@@ -1,6 +1,6 @@
 import { z } from 'zod'
 
-const telefoneRegex = /^\(\d{2}\) \d{5}-\d{4}$/
+const telefoneRegex = /^\(\d{2}\) \d{4,5}-\d{4}$/
 const cpfRegex = /^\d{3}\.\d{3}\.\d{3}-\d{2}$/
 
 export const stepClienteSchema = z.object({
@@ -27,13 +27,10 @@ export const stepEnsaioSchema = z.object({
   autorizaUsoImagem: z.boolean().default(false),
 })
 
-const telefoneFormatado = (val: string) =>
-  /^\(\d{2}\) \d{5}-\d{4}$/.test(val) || val === ''
-
 export const stepIndicacaoSchema = z.object({
   indicadorId: z.string().optional().or(z.literal('')),
   indicadorNome: z.string().optional().or(z.literal('')),
-  indicadorTelefone: z.string().refine(telefoneFormatado, 'Telefone inválido. Use: (11) 99999-9999').optional().or(z.literal('')),
+  indicadorTelefone: z.string().optional().or(z.literal('')),
 })
 
 export const stepFinanceiroSchema = z.object({

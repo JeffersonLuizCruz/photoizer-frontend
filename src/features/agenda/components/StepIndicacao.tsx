@@ -8,15 +8,8 @@ import { cn } from '@/shared/lib/cn'
 import { indicadorService } from '@/features/comissoes/services/indicador.service'
 import type { WizardFormValues } from '../schemas/agendamento.schema'
 
-function formatTelefone(value: string): string {
-  const raw = value.replace(/\D/g, '').slice(0, 11)
-  if (raw.length <= 2) return raw
-  if (raw.length <= 7) return `(${raw.slice(0, 2)}) ${raw.slice(2)}`
-  return `(${raw.slice(0, 2)}) ${raw.slice(2, 7)}-${raw.slice(7)}`
-}
-
 export function StepIndicacao() {
-  const { setValue, watch, setError, clearErrors, formState: { errors } } = useFormContext<WizardFormValues>()
+  const { setValue, watch } = useFormContext<WizardFormValues>()
   const [search, setSearch] = useState('')
   const [isOpen, setIsOpen] = useState(false)
   const [selectedId, setSelectedId] = useState<string | null>(null)
@@ -57,7 +50,6 @@ export function StepIndicacao() {
     setValue('indicadorTelefone', telefone, { shouldValidate: true })
     setSearch('')
     setIsOpen(false)
-    clearErrors('indicadorTelefone')
   }
 
   function handleClear() {
@@ -68,16 +60,6 @@ export function StepIndicacao() {
     setValue('indicadorTelefone', '', { shouldValidate: true })
     setSearch('')
     inputRef.current?.focus()
-  }
-
-  function handleManualTelefone(value: string) {
-    const formatted = formatTelefone(value)
-    setValue('indicadorTelefone', formatted, { shouldValidate: true })
-    if (selectedId) {
-      setSelectedId(null)
-      setSelectedPercentual(null)
-      setValue('indicadorId', '', { shouldValidate: true })
-    }
   }
 
   const hasSelection = selectedId || (!search && indicadorNome && indicadorTelefone)
@@ -173,7 +155,8 @@ export function StepIndicacao() {
               <Input
                 id="indicadorNome"
                 placeholder="Quem indicou?"
-                value={watch('indicadorNome') ?? ''}
+                disabled={!!selectedId}
+                value={indicadorNome ?? ''}
                 onChange={(e) => {
                   setValue('indicadorNome', e.target.value, { shouldValidate: true })
                   if (selectedId) {
@@ -193,9 +176,6 @@ export function StepIndicacao() {
                 </button>
               )}
             </div>
-            {errors.indicadorNome && (
-              <p className="mt-1 text-sm text-destructive">{errors.indicadorNome.message}</p>
-            )}
           </div>
 
           <div>
@@ -203,12 +183,17 @@ export function StepIndicacao() {
             <Input
               id="indicadorTelefone"
               placeholder="(11) 99999-9999"
-              value={hasSelection && selectedId ? indicadorTelefone : watch('indicadorTelefone') ?? ''}
-              onChange={(e) => handleManualTelefone(e.target.value)}
+              disabled={!!selectedId}
+              value={indicadorTelefone ?? ''}
+              onChange={(e) => {
+                setValue('indicadorTelefone', e.target.value, { shouldValidate: true })
+                if (selectedId) {
+                  setSelectedId(null)
+                  setSelectedPercentual(null)
+                  setValue('indicadorId', '', { shouldValidate: true })
+                }
+              }}
             />
-            {errors.indicadorTelefone && (
-              <p className="mt-1 text-sm text-destructive">{errors.indicadorTelefone.message}</p>
-            )}
           </div>
         </div>
       </div>

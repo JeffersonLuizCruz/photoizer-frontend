@@ -145,9 +145,7 @@ export function AgendamentoResumo({ agendamento }: AgendamentoResumoProps) {
         <InfoRow label={`Restante (${100 - agendamento.percentualEntrada}%)`} value={`R$ ${agendamento.valorRestante.toFixed(2)}`} />
         <div className="border-t pt-2 mt-2">
           <InfoRow label="Total Final" value={`R$ ${agendamento.valorTotalFinal.toFixed(2)}`} />
-          {agendamento.valorComissao != null && (
-            <InfoRow label="Líquido Estimado" value={`R$ ${(agendamento.valorTotalFinal - agendamento.valorComissao).toFixed(2)}`} />
-          )}
+          <InfoRow label="Líquido Estimado" value={`R$ ${(agendamento.valorTotalFinal - (agendamento.valorComissao ?? 0) - agendamento.custoDeslocamento).toFixed(2)}`} />
         </div>
       </InfoCard>
 
