@@ -6,7 +6,6 @@ export interface ConfigValues {
   percentualComissao: number
   percentualEntrada: number
   taxaDeslocamentoPadrao: number
-  notificarAutomaticamente: number
 }
 
 export const configService = {

@@ -1,4 +1,4 @@
-import { LayoutDashboard, Settings, Calendar, DollarSign, Percent, Package, ShoppingCart, Image, Bell } from 'lucide-react'
+import { LayoutDashboard, Settings, Calendar, DollarSign, Percent, Package, ShoppingCart, Image } from 'lucide-react'
 import { NavLink } from 'react-router-dom'
 import { cn } from '@/shared/lib/cn'
 import { ROUTES } from '@/shared/constants'
@@ -10,7 +10,6 @@ const navItems = [
   { to: ROUTES.AGENDA, label: 'Agenda', icon: Calendar },
   { to: ROUTES.PACOTES, label: 'Pacotes', icon: Package },
   { to: ROUTES.EDICAO, label: 'Edição', icon: Image },
-  { to: ROUTES.NOTIFICACOES, label: 'Notificações', icon: Bell },
   { to: ROUTES.ADMIN_ECOMMERCE, label: 'Ecommerce', icon: ShoppingCart },
   { to: ROUTES.COMISSOES, label: 'Comissões', icon: Percent },
   { to: ROUTES.FINANCEIRO, label: 'Financeiro', icon: DollarSign },

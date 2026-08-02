@@ -15,10 +15,6 @@ export interface Pacote {
   bloqueiaDiaInteiro: boolean
   duracaoEstimada: string
   ativo: boolean
-  fotografoId: string | null
-  fotografoNome: string | null
-  editorResponsavelId: string | null
-  editorResponsavelNome: string | null
   diasParaEntrega: number | null
   createdAt: string
   updatedAt: string

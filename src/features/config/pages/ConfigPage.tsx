@@ -5,7 +5,6 @@ import { useState, useEffect } from 'react'
 import { PageTitle } from '@/shared/components/layout/PageTitle'
 import { Button } from '@/shared/components/ui/button'
 import { Input } from '@/shared/components/ui/input'
-import { Switch } from '@/shared/components/ui/switch'
 import { Label } from '@/shared/components/ui/label'
 import { Skeleton } from '@/shared/components/ui/skeleton'
 import { configService } from '../services/config.service'
@@ -21,7 +20,6 @@ const FIELDS = [
 export function ConfigPage() {
   const queryClient = useQueryClient()
   const [values, setValues] = useState<Record<string, string>>({})
-  const [notificacaoAtiva, setNotificacaoAtiva] = useState(true)
 
   const { data, isLoading } = useQuery({
     queryKey: ['config'],
@@ -37,12 +35,11 @@ export function ConfigPage() {
         percentualEntrada: String(data.percentualEntrada ?? '30.00'),
         taxaDeslocamentoPadrao: String(data.taxaDeslocamentoPadrao ?? '0.00'),
       })
-      setNotificacaoAtiva(data.notificarAutomaticamente === 'true')
     }
   }, [data])
 
   const { mutate: save, isPending } = useMutation({
-    mutationFn: () => configService.update({ ...values, notificarAutomaticamente: notificacaoAtiva ? 'true' : 'false' }),
+    mutationFn: () => configService.update(values),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['config'] })
       toast.success('Configurações salvas com sucesso')
@@ -68,7 +65,7 @@ export function ConfigPage() {
 
       <div className="max-w-lg space-y-6">
         {isLoading ? (
-          Array.from({ length: 6 }).map((_, i) => (
+          Array.from({ length: 5 }).map((_, i) => (
             <div key={i} className="space-y-2">
               <Skeleton className="h-4 w-48" />
               <Skeleton className="h-9 w-full" />
@@ -90,19 +87,6 @@ export function ConfigPage() {
                 />
               </div>
             ))}
-            <div className="flex items-center justify-between rounded-lg border p-4">
-              <div className="space-y-0.5">
-                <Label htmlFor="notificarAutomaticamente">Notificação Automática</Label>
-                <p className="text-sm text-muted-foreground">
-                  Enviar notificação ao fotógrafo com os agendamentos do dia seguinte
-                </p>
-              </div>
-              <Switch
-                id="notificarAutomaticamente"
-                checked={notificacaoAtiva}
-                onCheckedChange={setNotificacaoAtiva}
-              />
-            </div>
           </>
         )}
       </div>

@@ -1,4 +1,4 @@
-import { PiggyBank, CreditCard, ImagePlus, TrendingUp, Loader2, ArrowDownFromLine, Handshake } from 'lucide-react'
+import { PiggyBank, CreditCard, ImagePlus, TrendingUp, Loader2, ArrowDownFromLine, Handshake, Receipt } from 'lucide-react'
 import type { FinanceiroResumo as FinanceiroResumoData } from '../services/financeiro.service'
 
 interface FinanceiroResumoProps {
@@ -7,7 +7,7 @@ interface FinanceiroResumoProps {
 }
 
 export function FinanceiroResumo({ data, isLoading }: FinanceiroResumoProps) {
-  const totalDespesas = (data?.despesasDeslocamento ?? 0) + (data?.despesasComissao ?? 0)
+  const totalDespesas = (data?.despesasDeslocamento ?? 0) + (data?.despesasComissao ?? 0) + (data?.despesasManuais ?? 0)
 
   const cards = [
     {
@@ -47,6 +47,12 @@ export function FinanceiroResumo({ data, isLoading }: FinanceiroResumoProps) {
       variant: 'text-rose-500 dark:text-rose-300' as const,
     },
     {
+      icon: Receipt,
+      label: 'Despesas (Outras)',
+      value: data?.despesasManuais ?? 0,
+      variant: 'text-rose-400 dark:text-rose-200' as const,
+    },
+    {
       icon: TrendingUp,
       label: 'Saldo Líquido (Fat. - Desp.)',
       value: (data?.faturamentoTotal ?? 0) - totalDespesas,
@@ -55,7 +61,7 @@ export function FinanceiroResumo({ data, isLoading }: FinanceiroResumoProps) {
   ]
 
   return (
-    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7">
+    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-4 2xl:grid-cols-8">
       {cards.map((card) => {
         const Icon = card.icon
         return (

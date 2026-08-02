@@ -12,10 +12,6 @@ export interface PacoteResponse {
   duracaoEstimada: string | null
   bloqueiaDiaInteiro: boolean
   ativo: boolean
-  fotografoId: string | null
-  fotografoNome: string | null
-  editorResponsavelId: string | null
-  editorResponsavelNome: string | null
   diasParaEntrega: number | null
   createdAt: string
   updatedAt: string

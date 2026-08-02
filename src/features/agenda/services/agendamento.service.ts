@@ -39,7 +39,6 @@ export interface Config {
   percentualComissao: number
   percentualEntrada: number
   taxaDeslocamentoPadrao: number
-  notificarAutomaticamente: number
 }
 
 export interface FinanceiroPreview {
@@ -59,7 +58,6 @@ export const agendamentoService = {
       percentualComissao: Number(data.percentualComissao) || 0,
       percentualEntrada: Number(data.percentualEntrada) || 0,
       taxaDeslocamentoPadrao: Number(data.taxaDeslocamentoPadrao) || 0,
-      notificarAutomaticamente: data.notificarAutomaticamente === 'true' ? 1 : Number(data.notificarAutomaticamente) || 0,
     }
   },
 

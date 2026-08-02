@@ -30,8 +30,6 @@ const UploadRawPage = lazy(() => import('@/features/edicao').then(m => ({ defaul
 const EdicaoRevisaoPage = lazy(() => import('@/features/edicao').then(m => ({ default: m.EdicaoRevisaoPage })))
 const FinanceiroDashboardPage = lazy(() => import('@/features/financeiro').then(m => ({ default: m.FinanceiroDashboardPage })))
 const RelatoriosPage = lazy(() => import('@/features/financeiro').then(m => ({ default: m.RelatoriosPage })))
-const NotificacoesPage = lazy(() => import('@/features/notificacao').then(m => ({ default: m.NotificacoesPage })))
-
 function PageLoader() {
   return (
     <div className="flex h-screen items-center justify-center" role="status" aria-label="Carregando página">
@@ -86,7 +84,6 @@ export function AppRoutes() {
             <Route path={ROUTES.EDICAO_REVISAO} element={<EdicaoRevisaoPage />} />
             <Route path={ROUTES.ADMIN_ECOMMERCE} element={<AdminEcommercePage />} />
             <Route path={ROUTES.ADMIN_ANALYTICS} element={<AdminAnalyticsPage />} />
-            <Route path={ROUTES.NOTIFICACOES} element={<NotificacoesPage />} />
           </Route>
 
           <Route path="*" element={<NotFound />} />

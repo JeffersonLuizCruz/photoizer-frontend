@@ -9,8 +9,6 @@ export const pacoteSchema = z.object({
   bloqueiaDiaInteiro: z.boolean().default(false),
   duracaoEstimada: z.string().min(1, 'Informe a duração estimada'),
   ativo: z.boolean().default(true),
-  fotografoId: z.string().optional().or(z.literal('')),
-  editorResponsavelId: z.string().optional().or(z.literal('')),
   diasParaEntrega: z.coerce.number().int().min(0).optional().or(z.literal('')),
 })
 
