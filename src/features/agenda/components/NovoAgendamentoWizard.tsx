@@ -89,6 +89,7 @@ export function NovoAgendamentoWizard({ dataInicial }: NovoAgendamentoWizardProp
   const [comprovante, setComprovanteState] = useState<File | undefined>()
   const [confirmado, setConfirmadoState] = useState(store.confirmado)
   const [agendamentoCriado, setAgendamentoCriado] = useState<string | null>(null)
+  const agendamentoCriadoRef = useRef(false)
   const navigate = useNavigate()
 
   const setCurrentStep = useCallback((fn: number | ((prev: number) => number)) => {
@@ -196,6 +197,7 @@ export function NovoAgendamentoWizard({ dataInicial }: NovoAgendamentoWizardProp
   // Restore server draft if no localStorage draft
   useEffect(() => {
     if (hasDraft) return
+    if (agendamentoCriadoRef.current) return
     if (!serverDraft || isLoadingDraft) return
 
     const restored: Record<string, unknown> = { ...serverDraft }
@@ -337,6 +339,7 @@ export function NovoAgendamentoWizard({ dataInicial }: NovoAgendamentoWizardProp
       { data, comprovante },
       {
         onSuccess: (result) => {
+          agendamentoCriadoRef.current = true
           setAgendamentoCriado(result.id)
           deletarRascunho(undefined)
           store.reset()
