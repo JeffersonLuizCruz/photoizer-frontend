@@ -9,7 +9,8 @@ import { cn } from '@/shared/lib/cn'
 import { comissoesService } from '../services/comissoes.service'
 import { indicadorService } from '../services/indicador.service'
 import { IndicadorDialog } from '../components/IndicadorDialog'
-import type { IndicadorListagem, IndicadorResponse } from '../types'
+import type { IndicadorListagem } from '../types'
+import type { IndicadorResponse } from '../types'
 
 const currency = (v: number) =>
   v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
@@ -143,12 +144,17 @@ export function ComissoesConsultaPage() {
   const queryClient = useQueryClient()
   const [search, setSearch] = useState('')
   const [dialogOpen, setDialogOpen] = useState(false)
-  const [editing, setEditing] = useState<IndicadorListagem | null>(null)
+  const [editIndicador, setEditIndicador] = useState<IndicadorResponse | null>(null)
   const [deleteTarget, setDeleteTarget] = useState<IndicadorListagem | null>(null)
 
   const { data: indicadores, isLoading } = useQuery({
     queryKey: ['comissoes', 'indicadores'],
     queryFn: () => comissoesService.listarIndicadores(),
+  })
+
+  const { data: indicadorList } = useQuery({
+    queryKey: ['indicadores'],
+    queryFn: () => indicadorService.listar(),
   })
 
   const filtered = indicadores?.filter(
@@ -181,7 +187,7 @@ export function ComissoesConsultaPage() {
         description="Gerencie indicadores e consulte comissões"
         breadcrumbs={[{ label: 'Comissões' }]}
         actions={
-          <Button onClick={() => { setEditing(null); setDialogOpen(true) }}>
+          <Button onClick={() => { setEditIndicador(null); setDialogOpen(true) }}>
             <Plus className="mr-2 h-4 w-4" />
             Novo Indicador
           </Button>
@@ -212,7 +218,11 @@ export function ComissoesConsultaPage() {
             <IndicadorRow
               key={ind.indicadorTelefone}
               indicador={ind}
-              onEdit={(i) => { setEditing(i); setDialogOpen(true) }}
+              onEdit={(i) => {
+                const match = indicadorList?.find(ind => ind.telefone === i.indicadorTelefone)
+                setEditIndicador(match ?? null)
+                setDialogOpen(true)
+              }}
               onDelete={(i) => setDeleteTarget(i)}
             />
           ))}
@@ -225,17 +235,11 @@ export function ComissoesConsultaPage() {
 
       <IndicadorDialog
         open={dialogOpen}
-        onOpenChange={setDialogOpen}
-        indicador={editing ? {
-          id: '',
-          nome: editing.indicadorNome,
-          telefone: editing.indicadorTelefone,
-          observacoes: null,
-          percentualComissao: null,
-          totalPendente: 0,
-          totalPago: 0,
-          totalIndicacoes: 0,
-        } as IndicadorResponse : null}
+        onOpenChange={(open) => {
+          setDialogOpen(open)
+          if (!open) setEditIndicador(null)
+        }}
+        indicador={editIndicador}
       />
 
       {deleteTarget && (

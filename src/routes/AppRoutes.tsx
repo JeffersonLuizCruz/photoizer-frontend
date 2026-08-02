@@ -1,5 +1,5 @@
 import { lazy, Suspense } from 'react'
-import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { Loader2 } from 'lucide-react'
 import { AppLayout } from '@/shared/components/layout/AppLayout'
 import { ROUTES } from '@/shared/constants'
@@ -22,7 +22,6 @@ const AdminGaleriaPage = lazy(() => import('@/features/fotos').then(m => ({ defa
 const PacotesListPage = lazy(() => import('@/features/pacotes').then(m => ({ default: m.PacotesListPage })))
 const PacoteFormPage = lazy(() => import('@/features/pacotes').then(m => ({ default: m.PacoteFormPage })))
 const DashboardPage = lazy(() => import('@/features/dashboard').then(m => ({ default: m.DashboardPage })))
-const DashboardDetalhesPage = lazy(() => import('@/features/dashboard').then(m => ({ default: m.DashboardDetalhesPage })))
 const ConfigPage = lazy(() => import('@/features/config').then(m => ({ default: m.ConfigPage })))
 const ComissoesConsultaPage = lazy(() => import('@/features/comissoes').then(m => ({ default: m.ComissoesConsultaPage })))
 const EdicaoListPage = lazy(() => import('@/features/edicao').then(m => ({ default: m.EdicaoListPage })))
@@ -67,8 +66,8 @@ export function AppRoutes() {
           <Route path={ROUTES.CHECKOUT} element={<CheckoutPage />} />
 
           <Route element={<ProtectedRoute><AppLayout /></ProtectedRoute>}>
+            <Route path="/" element={<Navigate to={ROUTES.AGENDA} replace />} />
             <Route path={ROUTES.DASHBOARD} element={<DashboardPage />} />
-            <Route path={ROUTES.DASHBOARD_DETALHES} element={<DashboardDetalhesPage />} />
             <Route path={ROUTES.AGENDA} element={<AgendaPage />} />
             <Route path={ROUTES.AGENDA_NOVO} element={<NovoAgendamentoPage />} />
             <Route path={ROUTES.AGENDA_DETALHES} element={<AgendamentoDetalhesPage />} />

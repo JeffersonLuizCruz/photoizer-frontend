@@ -25,7 +25,7 @@ export function ProtectedRoute({ children, allowedRoles }: ProtectedRouteProps) 
   }
 
   if (allowedRoles && papel && !allowedRoles.includes(papel)) {
-    return <Navigate to={ROUTES.DASHBOARD} replace />
+    return <Navigate to={ROUTES.AGENDA} replace />
   }
 
   return <>{children}</>

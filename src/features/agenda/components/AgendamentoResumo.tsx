@@ -111,7 +111,7 @@ export function AgendamentoResumo({ agendamento }: AgendamentoResumoProps) {
         </div>
         <InfoRow label="Fotos Extras" value={agendamento.valorExtras > 0 ? `R$ ${agendamento.valorExtras.toFixed(2)}` : 'R$ 0,00'} />
         <div className="border-t pt-2 mt-2">
-          <InfoRow label="Total Bruto" value={`R$ ${agendamento.valorTotalFinal.toFixed(2)}`} />
+          <InfoRow label="Total Bruto" value={`R$ ${agendamento.valorTotal.toFixed(2)}`} />
         </div>
 
         {agendamento.valorComissao != null && agendamento.indicadorNome && (

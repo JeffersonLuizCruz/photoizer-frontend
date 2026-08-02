@@ -53,7 +53,14 @@ export interface FinanceiroPreview {
 export const agendamentoService = {
   getConfig: async (): Promise<Config> => {
     const { data } = await apiClient.get<Config>('/config')
-    return data
+    return {
+      valorUnitarioFotoExtra: Number(data.valorUnitarioFotoExtra) || 0,
+      valorUnitarioVideoExtra: Number(data.valorUnitarioVideoExtra) || 0,
+      percentualComissao: Number(data.percentualComissao) || 0,
+      percentualEntrada: Number(data.percentualEntrada) || 0,
+      taxaDeslocamentoPadrao: Number(data.taxaDeslocamentoPadrao) || 0,
+      notificarAutomaticamente: data.notificarAutomaticamente === 'true' ? 1 : Number(data.notificarAutomaticamente) || 0,
+    }
   },
 
   previewFinanceiro: async (pacoteId: string, taxaDeslocamento: number): Promise<FinanceiroPreview> => {
@@ -97,11 +104,7 @@ export const agendamentoService = {
   },
 
   update: async (id: string, payload: EditarAgendamentoFormData): Promise<Agendamento> => {
-    const taxaDeslocamento = payload.repassarDeslocamento ? payload.custoDeslocamento : 0
-    const { data } = await apiClient.put<Agendamento>(`/agendamentos/${id}`, {
-      ...payload,
-      taxaDeslocamento,
-    })
+    const { data } = await apiClient.put<Agendamento>(`/agendamentos/${id}`, payload)
     return data
   },
 

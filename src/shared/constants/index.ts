@@ -1,6 +1,5 @@
 export const ROUTES = {
-  DASHBOARD: '/',
-  DASHBOARD_DETALHES: '/dashboard/detalhes',
+  DASHBOARD: '/dashboard',
   AGENDA: '/agenda',
   AGENDA_NOVO: '/agenda/novo',
   AGENDA_DETALHES: '/agenda/:id',

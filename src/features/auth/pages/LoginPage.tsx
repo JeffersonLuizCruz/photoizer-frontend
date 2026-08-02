@@ -13,7 +13,7 @@ export function LoginPage() {
   const [error, setError] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
 
-  const from = (location.state as { from?: { pathname: string } })?.from?.pathname || ROUTES.DASHBOARD
+  const from = (location.state as { from?: { pathname: string } })?.from?.pathname || ROUTES.AGENDA
 
   if (isAuthenticated) {
     return <Navigate to={from} replace />
