@@ -3,7 +3,7 @@ export interface IndicacaoResponse {
   indicadorId: string | null
   indicadorNome: string
   indicadorTelefone: string
-  origem: 'PACOTE' | 'FOTO_EXTRA' | 'VIDEO_EXTRA'
+  origem: 'PACOTE' | 'FOTO_EXTRA' | 'VIDEO_EXTRA' | 'INDICADOR'
   percentual: number
   valorReferencia: number
   valorComissao: number

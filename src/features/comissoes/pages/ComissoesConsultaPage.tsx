@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { Search, Plus, Pencil, Trash2, ChevronDown, ChevronRight, Package, Image, Video, Percent } from 'lucide-react'
+import { Search, Plus, Pencil, Trash2, ChevronDown, ChevronRight, Package, Image, Video, Percent, User } from 'lucide-react'
 import { toast } from 'sonner'
 import { PageTitle } from '@/shared/components/layout/PageTitle'
 import { Button } from '@/shared/components/ui/button'
@@ -19,12 +19,14 @@ const ORIGEM_ICON: Record<string, React.ComponentType<{ className?: string }>> =
   PACOTE: Package,
   FOTO_EXTRA: Image,
   VIDEO_EXTRA: Video,
+  INDICADOR: User,
 }
 
 const ORIGEM_LABEL: Record<string, string> = {
   PACOTE: 'Pacote',
   FOTO_EXTRA: 'Foto Extra',
   VIDEO_EXTRA: 'Vídeo Extra',
+  INDICADOR: 'Indicador',
 }
 
 function IndicadorRow({
