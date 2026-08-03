@@ -1,3 +1,4 @@
+import { format } from 'date-fns'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { agendamentoService, type RascunhoAgendamentoData } from '../services/agendamento.service'
@@ -71,6 +72,21 @@ export function useBuscarClientePorTelefone(telefone: string) {
     queryFn: () => agendamentoService.buscarClientePorTelefone(telefone),
     enabled: telefone.length >= 14,
     staleTime: 1000 * 60,
+  })
+}
+
+export function useDisponibilidade(data: Date | undefined, hora: string | undefined, duracao: number, bloqueiaDiaInteiro: boolean) {
+  return useQuery({
+    queryKey: [...QUERY_KEYS.AGENDA, 'disponibilidade', data?.toISOString(), hora, duracao, bloqueiaDiaInteiro],
+    queryFn: () => agendamentoService.verificarDisponibilidade(
+      data ? format(data, 'yyyy-MM-dd') : '',
+      hora!,
+      duracao,
+      bloqueiaDiaInteiro,
+    ),
+    enabled: !!data && !!hora,
+    retry: false,
+    staleTime: 1000 * 30,
   })
 }
 

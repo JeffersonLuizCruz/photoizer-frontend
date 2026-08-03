@@ -49,6 +49,28 @@ export interface FinanceiroPreview {
   percentualEntrada: number
 }
 
+export interface DisponibilidadeResponse {
+  disponivel: boolean
+  conflitos: Array<{
+    agendamentoId: string
+    horario: string
+    clienteNome: string
+  }>
+}
+
+export function parseDuracao(duracao: string | undefined): number {
+  if (!duracao) return 60
+  const match = duracao.match(/^(\d+)h(?:\s*(\d+)min)?$/)
+  if (match) {
+    const hours = parseInt(match[1])
+    const mins = match[2] ? parseInt(match[2]) : 0
+    return hours * 60 + mins
+  }
+  const onlyMins = duracao.match(/^(\d+)min$/)
+  if (onlyMins) return parseInt(onlyMins[1])
+  return 60
+}
+
 export const agendamentoService = {
   getConfig: async (): Promise<Config> => {
     const { data } = await apiClient.get<Config>('/config')
@@ -207,6 +229,18 @@ export const agendamentoService = {
   ): Promise<VideoExtra> => {
     const { data } = await apiClient.post<VideoExtra>(`/financeiro/agendamentos/${agendamentoId}/videos-extras`, null, { params: payload })
     return data
+  },
+
+  verificarDisponibilidade: async (
+    data: string,
+    hora: string,
+    duracaoMinutos: number,
+    bloqueiaDiaInteiro: boolean,
+  ): Promise<DisponibilidadeResponse> => {
+    const { data: result } = await apiClient.get<DisponibilidadeResponse>('/agendamentos/verificar-disponibilidade', {
+      params: { data, hora, duracaoMinutos, bloqueiaDiaInteiro },
+    })
+    return result
   },
 
   registrarPagamentoFinal: async (

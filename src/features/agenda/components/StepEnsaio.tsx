@@ -1,8 +1,9 @@
 import { useFormContext } from 'react-hook-form'
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
-import { CalendarIcon } from 'lucide-react'
-import { usePacotesList, useUsuariosList } from '../api/queries'
+import { CalendarIcon, AlertTriangle } from 'lucide-react'
+import { usePacotesList, useUsuariosList, useDisponibilidade } from '../api/queries'
+import { parseDuracao } from '../services/agendamento.service'
 import { Label } from '@/shared/components/ui/label'
 import { Button } from '@/shared/components/ui/button'
 import {
@@ -21,6 +22,8 @@ import { cn } from '@/shared/lib/cn'
 import type { WizardFormValues } from '../schemas/agendamento.schema'
 
 const HORARIOS = [
+  '05:00', '05:30', '06:00', '06:30', '07:00', '07:30',
+  '08:00', '08:30',
   '09:00', '09:30', '10:00', '10:30', '11:00', '11:30',
   '13:00', '13:30', '14:00', '14:30', '15:00', '15:30',
   '16:00', '16:30', '17:00', '17:30', '18:00',
@@ -39,8 +42,18 @@ export function StepEnsaio() {
   const { register, setValue, watch, formState: { errors } } = useFormContext<WizardFormValues>()
 
   const dataValue = watch('data')
+  const horaValue = watch('hora')
   const pacoteId = watch('pacoteId')
   const pacoteSelecionado = pacotes?.find((p) => p.id === pacoteId)
+  const duracao = parseDuracao(pacoteSelecionado?.duracaoEstimada)
+  const { data: disponibilidade } = useDisponibilidade(
+    dataValue,
+    horaValue,
+    duracao,
+    pacoteSelecionado?.bloqueiaDiaInteiro ?? false,
+  )
+
+  const conflito = disponibilidade && !disponibilidade.disponivel
 
   return (
     <div className="space-y-4">
@@ -124,6 +137,22 @@ export function StepEnsaio() {
           </Select>
           {errors.hora && (
             <p className="mt-1 text-sm text-destructive">{errors.hora.message}</p>
+          )}
+
+          {conflito && (
+            <div className="rounded-lg border border-destructive/50 bg-destructive/5 p-3 mt-3">
+              <div className="flex items-center gap-2">
+                <AlertTriangle className="h-4 w-4 text-destructive shrink-0" />
+                <p className="text-sm font-medium text-destructive">Horário indisponível</p>
+              </div>
+              <ul className="mt-2 space-y-1 text-xs text-muted-foreground list-disc list-inside">
+                {disponibilidade.conflitos.map((c) => (
+                  <li key={c.agendamentoId}>
+                    {c.clienteNome} — {c.horario}
+                  </li>
+                ))}
+              </ul>
+            </div>
           )}
         </div>
       </div>

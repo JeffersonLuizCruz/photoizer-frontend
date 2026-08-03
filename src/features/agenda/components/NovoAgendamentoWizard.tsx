@@ -9,9 +9,9 @@ import { cn } from '@/shared/lib/cn'
 import { Button } from '@/shared/components/ui/button'
 import { ROUTES } from '@/shared/constants'
 import { wizardFormSchema, type WizardFormValues } from '../schemas/agendamento.schema'
-import { useCreateAgendamento, useSalvarRascunho, useBuscarRascunho, useDeletarRascunho } from '../api/queries'
+import { useCreateAgendamento, useSalvarRascunho, useBuscarRascunho, useDeletarRascunho, usePacotesList } from '../api/queries'
 import { useWizardStore, type WizardPersistedData } from '../stores/wizard.store'
-import type { RascunhoAgendamentoData } from '../services/agendamento.service'
+import { agendamentoService, parseDuracao, type RascunhoAgendamentoData } from '../services/agendamento.service'
 import { StepCliente } from './StepCliente'
 import { StepEnsaio } from './StepEnsaio'
 import { StepIndicacao } from './StepIndicacao'
@@ -145,6 +145,7 @@ export function NovoAgendamentoWizard({ dataInicial }: NovoAgendamentoWizardProp
 
   const { mutate: createAgendamento, isPending } = useCreateAgendamento()
   const { data: serverDraft, isLoading: isLoadingDraft } = useBuscarRascunho()
+  const { data: pacotes } = usePacotesList()
   const { mutate: salvarRascunho } = useSalvarRascunho()
   const { mutate: deletarRascunho } = useDeletarRascunho()
   const [isSaving, setIsSaving] = useState(false)
@@ -242,6 +243,21 @@ export function NovoAgendamentoWizard({ dataInicial }: NovoAgendamentoWizardProp
     if (fields.length > 0) {
       const isValid = await form.trigger(fields)
       if (!isValid) return
+    }
+
+    if (currentStep === 1) {
+      const values = form.getValues()
+      if (values.data && values.hora) {
+        const pacote = pacotes?.find((p) => p.id === values.pacoteId)
+        const duracao = parseDuracao(pacote?.duracaoEstimada)
+        const bloqueiaDiaInteiro = pacote?.bloqueiaDiaInteiro ?? false
+        const dataStr = values.data instanceof Date ? format(values.data, 'yyyy-MM-dd') : values.data
+        const disponibilidade = await agendamentoService.verificarDisponibilidade(dataStr, values.hora, duracao, bloqueiaDiaInteiro)
+        if (!disponibilidade.disponivel) {
+          toast.error(`Horário indisponível: ${disponibilidade.conflitos.map((c) => `${c.clienteNome} (${c.horario})`).join(', ')}`)
+          return
+        }
+      }
     }
 
     if (currentStep === 3 && !comprovante) {
