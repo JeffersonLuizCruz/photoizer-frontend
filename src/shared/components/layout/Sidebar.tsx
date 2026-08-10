@@ -129,11 +129,11 @@ export function Sidebar() {
                 end={entry.end}
                 className={({ isActive }) =>
                   cn(
-                    'flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors',
+                    'flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors',
                     isOpen ? 'justify-start' : 'justify-center',
                     isActive
-                      ? 'bg-primary text-primary-foreground'
-                      : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground',
+                      ? 'bg-primary/10 text-primary font-semibold'
+                      : 'font-medium text-muted-foreground hover:bg-accent hover:text-accent-foreground',
                   )
                 }
               >
@@ -151,11 +151,11 @@ export function Sidebar() {
                 type="button"
                 onClick={handleGroupClick}
                 className={cn(
-                  'flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors',
+                  'flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors',
                   isOpen ? 'justify-start' : 'justify-center',
                   active
-                    ? 'bg-primary text-primary-foreground'
-                    : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground',
+                    ? 'bg-primary/10 text-primary font-semibold'
+                    : 'font-medium text-muted-foreground hover:bg-accent hover:text-accent-foreground',
                 )}
               >
                 <GroupIcon className="h-5 w-5 shrink-0" />
@@ -186,10 +186,10 @@ export function Sidebar() {
                             end={child.end}
                             className={({ isActive }) =>
                               cn(
-                                'flex items-center gap-3 rounded-md px-3 py-1.5 text-sm font-medium transition-colors',
+                                'flex items-center gap-3 rounded-md px-3 py-1.5 text-sm transition-colors',
                                 isActive
-                                  ? 'bg-primary text-primary-foreground'
-                                  : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground',
+                                  ? 'bg-primary/10 text-primary font-semibold'
+                                  : 'font-medium text-muted-foreground hover:bg-accent hover:text-accent-foreground',
                               )
                             }
                           >
