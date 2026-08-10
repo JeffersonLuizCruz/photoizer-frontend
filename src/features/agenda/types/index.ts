@@ -1,3 +1,5 @@
+import type { AgendamentoStatus } from '@/shared/constants'
+
 export interface Pacote {
   id: string
   nome: string
@@ -101,3 +103,10 @@ export interface Usuario {
   email: string
   papel: string
 }
+
+export type {
+  FinanceiroTrabalho,
+  FinanceiroTrabalhoReceita,
+  FinanceiroTrabalhoDespesa,
+  FinanceiroTrabalhoPagamento,
+} from './financeiro'

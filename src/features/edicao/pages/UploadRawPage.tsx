@@ -1,8 +1,8 @@
 import { useState, useCallback } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
-import { ArrowLeft, Loader2 } from 'lucide-react'
+import { ArrowLeft } from 'lucide-react'
 import { toast } from 'sonner'
-import { Button } from '@/shared/components/ui/button'
+import { buttonVariants } from '@/shared/components/ui/button'
 import { PageTitle } from '@/shared/components/layout/PageTitle'
 import { EdicaoUploader } from '../components/EdicaoUploader'
 import { edicaoService } from '../services/edicao.service'
@@ -34,11 +34,9 @@ export function UploadRawPage() {
   return (
     <div className="mx-auto max-w-2xl space-y-6">
       <div className="flex items-center gap-4">
-        <Button variant="ghost" size="icon" asChild>
-          <Link to="/edicao">
-            <ArrowLeft className="h-5 w-5" />
-          </Link>
-        </Button>
+        <Link to="/edicao" className={buttonVariants({ variant: 'ghost', size: 'icon' })}>
+          <ArrowLeft className="h-5 w-5" />
+        </Link>
         <PageTitle
           title="Upload de Fotos RAW"
           description="Selecione as fotos do ensaio para enviar ao editor"

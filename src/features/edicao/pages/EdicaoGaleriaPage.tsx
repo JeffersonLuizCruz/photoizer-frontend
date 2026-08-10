@@ -1,8 +1,7 @@
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { useState, useRef, useEffect } from 'react'
 import { ArrowLeft, Download, Upload, CheckCircle2, Store, Loader2, Save } from 'lucide-react'
-import { toast } from 'sonner'
-import { Button } from '@/shared/components/ui/button'
+import { Button, buttonVariants } from '@/shared/components/ui/button'
 import { Textarea } from '@/shared/components/ui/textarea'
 import { PageTitle } from '@/shared/components/layout/PageTitle'
 import { PageLoading } from '@/shared/components/layout/Loading'
@@ -23,7 +22,7 @@ export function EdicaoGaleriaPage() {
   const { mutate: uploadEditadas, isPending: isUploading } = useUploadEditadas(agendamentoId!)
   const { mutate: concluir, isPending: isConcluding } = useConcluirEdicao(agendamentoId!)
   const { mutate: publicar, isPending: isPublishing } = usePublicarNoEcommerce(agendamentoId!)
-  const { mutate: deletarFoto, isPending: isDeleting } = useDeleteFoto(agendamentoId!)
+  const { mutate: deletarFoto } = useDeleteFoto(agendamentoId!)
 
   const [editFiles, setEditFiles] = useState<File[]>([])
   const [showUpload, setShowUpload] = useState(false)
@@ -31,7 +30,7 @@ export function EdicaoGaleriaPage() {
   const { mutate: salvarObservacoes, isPending: savingObs } = useAtualizarObservacoes(agendamentoId!)
   const { mutate: reordenar } = useReordenarFotos(agendamentoId!)
   const obsRef = useRef('')
-  const { isAdmin, isFotografo, isEditor } = useAuth()
+  const { isAdmin, isEditor } = useAuth()
 
   useEffect(() => {
     if (edicao?.observacoes != null) {
@@ -107,11 +106,9 @@ export function EdicaoGaleriaPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-4">
-        <Button variant="ghost" size="icon" asChild>
-          <Link to="/edicao">
-            <ArrowLeft className="h-5 w-5" />
-          </Link>
-        </Button>
+        <Link to="/edicao" className={buttonVariants({ variant: 'ghost', size: 'icon' })}>
+          <ArrowLeft className="h-5 w-5" />
+        </Link>
         <div className="flex-1">
           <PageTitle
             title={`Workspace de Edição`}

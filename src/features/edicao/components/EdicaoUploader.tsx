@@ -1,5 +1,5 @@
 import { useState, useCallback, useRef } from 'react'
-import { Upload, X, File, Loader2, CheckCircle2, AlertCircle } from 'lucide-react'
+import { Upload, X, File, Loader2, CheckCircle2 } from 'lucide-react'
 import { cn } from '@/shared/lib/cn'
 import { Button } from '@/shared/components/ui/button'
 
@@ -89,7 +89,7 @@ export function EdicaoUploader({
   const removeFile = useCallback(
     (index: number) => {
       const updated = files.filter((_, i) => i !== index)
-      files[index]?.preview && URL.revokeObjectURL(files[index].preview)
+      if (files[index]?.preview) URL.revokeObjectURL(files[index]!.preview!)
       setFiles(updated)
       onFilesChange?.(updated.map((f) => f.file))
     },

@@ -1,6 +1,6 @@
 import { useState } from 'react'
-import { useNavigate, Link } from 'react-router-dom'
-import { Image, Upload, ArrowRight, CheckCircle2, Download, Eye } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
+import { Image, Upload, ArrowRight, Eye } from 'lucide-react'
 import { Button } from '@/shared/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/shared/components/ui/tabs'
 import { PageTitle } from '@/shared/components/layout/PageTitle'
@@ -23,7 +23,6 @@ export function EdicaoListPage() {
   const [tab, setTab] = useState('todos')
   const status = TABS.find((t) => t.value === tab)?.status
   const { data: edicoes, isLoading } = useEdicaoList(status)
-  const navigate = useNavigate()
 
   if (isLoading) return <PageLoading />
 

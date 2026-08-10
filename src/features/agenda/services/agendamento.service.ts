@@ -1,6 +1,6 @@
 import { format } from 'date-fns'
 import { apiClient } from '@/shared/api'
-import type { Agendamento, FotoExtra, VideoExtra, Pacote, Pagamento, Usuario } from '../types'
+import type { Agendamento, FotoExtra, VideoExtra, Pacote, Pagamento, Usuario, FinanceiroTrabalho } from '../types'
 import type { WizardFormValues } from '../schemas/agendamento.schema'
 import type { AgendamentoStatus } from '@/shared/constants'
 import type { Cliente } from '../types/cliente'
@@ -131,6 +131,15 @@ export const agendamentoService = {
   listarPagamentos: async (agendamentoId: string): Promise<Pagamento[]> => {
     const { data } = await apiClient.get<Pagamento[]>(`/financeiro/agendamentos/${agendamentoId}/pagamentos`)
     return data
+  },
+
+  resumoFinanceiro: async (agendamentoId: string): Promise<FinanceiroTrabalho> => {
+    const { data } = await apiClient.get<FinanceiroTrabalho>(`/financeiro/agendamentos/${agendamentoId}/financeiro`)
+    return data
+  },
+
+  vincularDespesa: async (despesaId: string, agendamentoId: string | null): Promise<void> => {
+    await apiClient.patch(`/despesas/${despesaId}/agendamento`, { agendamentoId })
   },
 
   createFromWizard: async (

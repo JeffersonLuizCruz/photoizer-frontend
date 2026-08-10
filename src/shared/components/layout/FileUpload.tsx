@@ -82,7 +82,7 @@ export function FileUpload({
   const removeFile = useCallback(
     (index: number) => {
       const updated = files.filter((_, i) => i !== index)
-      files[index]?.preview && URL.revokeObjectURL(files[index].preview)
+      if (files[index]?.preview) URL.revokeObjectURL(files[index]!.preview!)
       setFiles(updated)
       onFilesChange?.(updated.map((f) => f.file))
     },

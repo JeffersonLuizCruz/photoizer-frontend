@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { ArrowLeft, CheckCircle2, ExternalLink, Store, Loader2 } from 'lucide-react'
+import { ArrowLeft, CheckCircle2, Store, Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/shared/components/ui/button'
 import { PageLoading } from '@/shared/components/layout/Loading'

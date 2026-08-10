@@ -1,15 +1,8 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Package, Camera, Image, Shield, Zap, ChevronRight, Loader2 } from 'lucide-react'
+import { Camera, Shield, Zap, ChevronRight, Loader2 } from 'lucide-react'
 import { ecommerceService } from '../services/ecommerce.service'
 import type { PacoteResponse } from '@/features/pacotes/types/pacotes.types'
-
-const benefitIcons: Record<string, React.ReactNode> = {
-  'Camera': <Camera className="h-4 w-4" />,
-  'Image': <Image className="h-4 w-4" />,
-  'Shield': <Shield className="h-4 w-4" />,
-  'Zap': <Zap className="h-4 w-4" />,
-}
 
 function formatCurrency(value: number): string {
   return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value)
@@ -27,8 +20,6 @@ export function PackageCatalogPage() {
       .catch(() => {})
       .finally(() => setIsLoading(false))
   }, [])
-
-  const selectedPacote = pacotes.find((p) => p.id === selectedId)
 
   if (isLoading) {
     return (

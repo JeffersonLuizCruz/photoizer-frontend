@@ -17,7 +17,7 @@ export function MinhasComprasSection({ token }: MinhasComprasSectionProps) {
   const [isLoading, setIsLoading] = useState(true)
   const [expandedId, setExpandedId] = useState<string | null>(null)
   const [detalheMap, setDetalheMap] = useState<Record<string, AdminCompraDetalheResponse>>({})
-  const [comprovanteFiles, setComprovanteFiles] = useState<Record<string, File>>({})
+  const [comprovanteFiles, setComprovanteFiles] = useState<Record<string, File | null>>({})
   const [sendingIds, setSendingIds] = useState<Set<string>>(new Set())
 
   useEffect(() => {

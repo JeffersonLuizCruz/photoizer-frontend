@@ -1,18 +1,18 @@
 import { useState, useRef, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { Upload, Trash2, Send, ImagePlus, X, Loader2, Link2, Star, Pencil, Eye, EyeOff, RefreshCw, AlertTriangle } from 'lucide-react'
+import { Upload, Trash2, Send, ImagePlus, X, Loader2, Link2, Star, Pencil, Eye, EyeOff, RefreshCw } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/shared/components/ui/button'
 import { PageTitle } from '@/shared/components/layout/PageTitle'
 import { PageLoading } from '@/shared/components/layout/Loading'
 import { AuthImage } from '@/shared/components/ui/AuthImage'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/shared/components/ui/dialog'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/shared/components/ui/dialog'
 import { Input } from '@/shared/components/ui/input'
 import { Label } from '@/shared/components/ui/label'
 import { Checkbox } from '@/shared/components/ui/checkbox'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/components/ui/select'
 import { ConfirmDialog } from '@/shared/components/layout/ConfirmDialog'
-import { ROUTES, AGENDAMENTO_STATUS } from '@/shared/constants'
+import { ROUTES, AGENDAMENTO_STATUS, type AgendamentoStatus } from '@/shared/constants'
 import { useAgendamento, useFotosList, useUploadFotos, usePublicarFotos, useDeletarFoto, useUpdateFotoMetadata, useAlterarVisibilidade, useAlterarStatus, useSubstituirImagem } from '../api/queries'
 import type { FotoEnsaio } from '@/features/ecommerce/types/ecommerce.types'
 
@@ -148,7 +148,13 @@ export function AdminGaleriaPage() {
   }, [agendamento])
 
   const uploadLiberado = agendamento
-    ? [AGENDAMENTO_STATUS.EM_EDICAO, AGENDAMENTO_STATUS.SELECAO_DAS_FOTOS, AGENDAMENTO_STATUS.FOTOS_ENVIADAS_PARA_SELECAO, AGENDAMENTO_STATUS.FOTOS_ENTREGUES, AGENDAMENTO_STATUS.FINALIZADO].includes(agendamento.status)
+    ? ([
+        AGENDAMENTO_STATUS.EM_EDICAO,
+        AGENDAMENTO_STATUS.SELECAO_DAS_FOTOS,
+        AGENDAMENTO_STATUS.FOTOS_ENVIADAS_PARA_SELECAO,
+        AGENDAMENTO_STATUS.FOTOS_ENTREGUES,
+        AGENDAMENTO_STATUS.FINALIZADO,
+      ] as AgendamentoStatus[]).includes(agendamento.status)
     : false
 
   if (!id) return <PageLoading />

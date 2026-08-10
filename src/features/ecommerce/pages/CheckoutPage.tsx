@@ -77,7 +77,7 @@ export function CheckoutPage() {
         const { data } = await apiClient.post('/auth/cliente/registro', { nome, email, telefone, senha })
         auth = data
       }
-      login({ id: auth.id, nome: auth.nome, email: auth.email, telefone: auth.telefone, isLoggedIn: true })
+      login({ id: auth.id, nome: auth.nome, email: auth.email, telefone: auth.telefone, token: auth.token, isLoggedIn: true })
       toast.success(`Bem-vindo, ${auth.nome}!`)
       setStep(2)
     } catch (err: any) {
@@ -235,12 +235,6 @@ export function CheckoutPage() {
                 <span className="text-muted-foreground">Taxa de entrega</span>
                 <span>{taxaEntrega === 0 ? 'Grátis' : formatCurrency(taxaEntrega)}</span>
               </div>
-              {desconto > 0 && (
-                <div className="flex justify-between text-sm text-emerald-600">
-                  <span>Desconto</span>
-                  <span>-{formatCurrency(desconto)}</span>
-                </div>
-              )}
               <div className="flex justify-between text-sm font-semibold border-t pt-2">
                 <span>Total</span>
                 <span>{formatCurrency(total)}</span>

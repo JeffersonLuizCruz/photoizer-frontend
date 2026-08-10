@@ -1,5 +1,17 @@
 import { apiClient } from '@/shared/api'
 import type { Agendamento } from '@/features/agenda/types'
+import type { FinanceiroDashboardData, DashboardQueryParams } from '../types/dashboard.types'
+import type { Receita, ReceitaQueryParams, ReceitaRequest } from '../types/receita.types'
+import type { FluxoCaixaData, FluxoCaixaQueryParams } from '../types/fluxo-caixa.types'
+import type {
+  ResumoMensalRelatorio,
+  DespesasCategoriaRelatorio,
+  InadimplenciaRelatorio,
+  RentabilidadeServicoRelatorio,
+  RentabilidadeClienteRelatorio,
+  ComparativoRelatorio,
+  RelatorioFiscal,
+} from '../types/relatorio.types'
 
 export interface FinanceiroResumo {
   totalEntradas: number
@@ -35,6 +47,105 @@ export const financeiroService = {
 
   relatorios: async (dataInicio?: string, dataFim?: string): Promise<FinanceiroRelatorios> => {
     const { data } = await apiClient.get<FinanceiroRelatorios>('/financeiro/relatorios', {
+      params: { dataInicio, dataFim },
+    })
+    return data
+  },
+
+  dashboard: async (params?: DashboardQueryParams): Promise<FinanceiroDashboardData> => {
+    const { data } = await apiClient.get<FinanceiroDashboardData>('/financeiro/dashboard', { params })
+    return data
+  },
+
+  // ---- Receitas ----
+
+  listarReceitas: async (params?: ReceitaQueryParams): Promise<Receita[]> => {
+    const { data } = await apiClient.get<Receita[]>('/financeiro/receitas', { params })
+    return data
+  },
+
+  buscarReceita: async (id: string): Promise<Receita> => {
+    const { data } = await apiClient.get<Receita>(`/financeiro/receitas/${id}`)
+    return data
+  },
+
+  criarReceita: async (request: ReceitaRequest): Promise<Receita> => {
+    const { data } = await apiClient.post<Receita>('/financeiro/receitas', request)
+    return data
+  },
+
+  atualizarReceita: async (id: string, request: ReceitaRequest): Promise<Receita> => {
+    const { data } = await apiClient.put<Receita>(`/financeiro/receitas/${id}`, request)
+    return data
+  },
+
+  excluirReceita: async (id: string): Promise<void> => {
+    await apiClient.delete(`/financeiro/receitas/${id}`)
+  },
+
+  receberReceita: async (id: string): Promise<Receita> => {
+    const { data } = await apiClient.patch<Receita>(`/financeiro/receitas/${id}/receber`)
+    return data
+  },
+
+  duplicarReceita: async (id: string): Promise<Receita> => {
+    const { data } = await apiClient.post<Receita>(`/financeiro/receitas/${id}/duplicar`)
+    return data
+  },
+
+  // ---- Fluxo de caixa ----
+
+  fluxoCaixa: async (params?: FluxoCaixaQueryParams): Promise<FluxoCaixaData> => {
+    const { data } = await apiClient.get<FluxoCaixaData>('/financeiro/fluxo-caixa', { params })
+    return data
+  },
+
+  // ---- Relatórios ----
+
+  relatorioResumoMensal: async (dataInicio: string, dataFim: string): Promise<ResumoMensalRelatorio> => {
+    const { data } = await apiClient.get<ResumoMensalRelatorio>('/financeiro/relatorios/resumo-mensal', {
+      params: { dataInicio, dataFim },
+    })
+    return data
+  },
+
+  relatorioDespesasCategoria: async (dataInicio: string, dataFim: string): Promise<DespesasCategoriaRelatorio> => {
+    const { data } = await apiClient.get<DespesasCategoriaRelatorio>('/financeiro/relatorios/despesas-categoria', {
+      params: { dataInicio, dataFim },
+    })
+    return data
+  },
+
+  relatorioInadimplencia: async (dataInicio?: string, dataFim?: string): Promise<InadimplenciaRelatorio> => {
+    const { data } = await apiClient.get<InadimplenciaRelatorio>('/financeiro/relatorios/inadimplencia', {
+      params: { dataInicio, dataFim },
+    })
+    return data
+  },
+
+  relatorioRentabilidadeServico: async (dataInicio: string, dataFim: string): Promise<RentabilidadeServicoRelatorio[]> => {
+    const { data } = await apiClient.get<RentabilidadeServicoRelatorio[]>('/financeiro/relatorios/rentabilidade-servico', {
+      params: { dataInicio, dataFim },
+    })
+    return data
+  },
+
+  relatorioRentabilidadeCliente: async (dataInicio: string, dataFim: string): Promise<RentabilidadeClienteRelatorio> => {
+    const { data } = await apiClient.get<RentabilidadeClienteRelatorio>('/financeiro/relatorios/rentabilidade-cliente', {
+      params: { dataInicio, dataFim },
+    })
+    return data
+  },
+
+  relatorioComparativo: async (tipo: string, dataInicio: string, dataFim: string): Promise<ComparativoRelatorio> => {
+    const { data } = await apiClient.get<ComparativoRelatorio>('/financeiro/relatorios/comparativo', {
+      params: { tipo, dataInicio, dataFim },
+    })
+    return data
+  },
+
+  relatorioFiscal: async (dataInicio: string, dataFim: string): Promise<RelatorioFiscal> => {
+    const { data } = await apiClient.get<RelatorioFiscal>('/financeiro/relatorios/fiscal', {
       params: { dataInicio, dataFim },
     })
     return data

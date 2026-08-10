@@ -135,6 +135,27 @@ export function usePagamentosList(agendamentoId: string) {
   })
 }
 
+export function useResumoFinanceiroTrabalho(agendamentoId: string | undefined) {
+  return useQuery({
+    queryKey: [...QUERY_KEYS.FINANCEIRO, 'trabalho', agendamentoId],
+    queryFn: () => agendamentoService.resumoFinanceiro(agendamentoId!),
+    enabled: !!agendamentoId,
+  })
+}
+
+export function useVincularDespesaTrabalho() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ({ despesaId, agendamentoId }: { despesaId: string; agendamentoId: string | null }) =>
+      agendamentoService.vincularDespesa(despesaId, agendamentoId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.FINANCEIRO })
+      queryClient.invalidateQueries({ queryKey: ['despesas'] })
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.DASHBOARD })
+    },
+  })
+}
+
 export function useCreateAgendamento() {
   const queryClient = useQueryClient()
 
@@ -250,6 +271,7 @@ export function useRegistrarPagamentoFinal() {
       agendamentoService.registrarPagamentoFinal(id, comprovante),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.AGENDA })
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.FINANCEIRO })
       toast.success('Pagamento final registrado')
     },
     onError: (error: Error) => {

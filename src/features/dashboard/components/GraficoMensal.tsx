@@ -5,7 +5,7 @@ import {
 } from 'recharts'
 import { Button } from '@/shared/components/ui/button'
 import { useFinanceiroMensal } from '../api/queries'
-import { AdicionarDespesaDialog } from '@/features/despesas/components/AdicionarDespesaDialog'
+import { DespesaFormDialog } from '@/features/despesas/components/DespesaFormDialog'
 
 const currencyFormat = (v: number | null | undefined): string => {
   if (v == null || isNaN(v)) return 'R$ 0,00'
@@ -314,7 +314,7 @@ export function GraficoMensal() {
         </div>
       </div>
 
-      <AdicionarDespesaDialog open={dialogOpen} onOpenChange={setDialogOpen} />
+      <DespesaFormDialog open={dialogOpen} onOpenChange={setDialogOpen} />
     </div>
   )
 }

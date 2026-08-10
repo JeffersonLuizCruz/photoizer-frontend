@@ -1,5 +1,5 @@
-import { useState, useCallback } from 'react'
-import { ShoppingCart, Check, X, Eye, Loader2 } from 'lucide-react'
+import { useState } from 'react'
+import { Check, X, Eye } from 'lucide-react'
 import { toast } from 'sonner'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { ecommerceService } from '../services/ecommerce.service'
@@ -102,7 +102,12 @@ export function AdminEcommercePage() {
       header: 'Status',
       cell: ({ row }) => {
         const s = statusBadge(row.original.status)
-        return <StatusBadge variant={s.variant} customLabels={{ [s.variant]: { label: s.label, variant: s.variant } }} />
+        return (
+          <StatusBadge
+            status={row.original.status}
+            customLabels={{ [row.original.status]: { label: s.label, variant: s.variant } }}
+          />
+        )
       },
     },
     {
@@ -149,7 +154,6 @@ export function AdminEcommercePage() {
     <div>
       <PageTitle
         title="Pedidos - Ecommerce"
-        icon={<ShoppingCart className="h-5 w-5" />}
         breadcrumbs={[
           { label: 'Dashboard', href: ROUTES.DASHBOARD },
           { label: 'Ecommerce' },

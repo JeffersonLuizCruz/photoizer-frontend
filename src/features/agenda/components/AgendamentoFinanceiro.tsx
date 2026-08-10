@@ -1,14 +1,19 @@
 import { useState } from 'react'
-import { Plus, CreditCard, Receipt, Check, History } from 'lucide-react'
+import { Plus, CreditCard, Receipt, Check, History, Link2, Download, FileSpreadsheet } from 'lucide-react'
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import { toast } from 'sonner'
 import { Button } from '@/shared/components/ui/button'
 import { Badge } from '@/shared/components/ui/badge'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/shared/components/ui/table'
+import { formatCurrency } from '@/shared/lib/format'
+import { exportarCSV, exportarXLS } from '@/shared/lib/export'
+import { DespesaFormDialog } from '@/features/despesas/components/DespesaFormDialog'
 import { RegistrarPagamentoDialog } from './RegistrarPagamentoDialog'
 import { AdicionarExtrasDialog } from './AdicionarExtrasDialog'
-import { usePagamentosList } from '../api/queries'
+import { VincularDespesaDialog } from './VincularDespesaDialog'
+import { RegistrarRecebimentoDialog } from './RegistrarRecebimentoDialog'
+import { usePagamentosList, useResumoFinanceiroTrabalho, useVincularDespesaTrabalho } from '../api/queries'
 import { montarReciboPagamento } from '../utils/recibo'
 import type { Agendamento } from '../types'
 import { AGENDAMENTO_STATUS } from '@/shared/constants'
@@ -24,11 +29,33 @@ interface FinanceiroRow {
   status?: string
 }
 
+const statusPagamentoMap: Record<string, { label: string; variant: 'success' | 'warning' | 'destructive' }> = {
+  PAGO: { label: 'Pago', variant: 'success' },
+  PARCIAL: { label: 'Parcial', variant: 'warning' },
+  PENDENTE: { label: 'Pendente', variant: 'destructive' },
+}
+
+const statusReceitaMap: Record<string, { label: string; variant: 'success' | 'warning' | 'default' | 'destructive' }> = {
+  PAGO_TOTAL: { label: 'Pago total', variant: 'success' },
+  PAGO_PARCIAL: { label: 'Pago parcial', variant: 'warning' },
+  PENDENTE: { label: 'Pendente', variant: 'default' },
+  CANCELADO: { label: 'Cancelado', variant: 'destructive' },
+}
+
 export function AgendamentoFinanceiro({ agendamento }: AgendamentoFinanceiroProps) {
   const [showPagamento, setShowPagamento] = useState(false)
   const [showExtras, setShowExtras] = useState(false)
+  const [showVincular, setShowVincular] = useState(false)
+  const [showNovaDespesa, setShowNovaDespesa] = useState(false)
+  const [showReceber, setShowReceber] = useState(false)
   const [reciboCopiado, setReciboCopiado] = useState(false)
+
   const { data: pagamentos = [] } = usePagamentosList(agendamento.id)
+  const { data: resumo, isLoading } = useResumoFinanceiroTrabalho(agendamento.id)
+  const vincular = useVincularDespesaTrabalho()
+
+  const statusPagamento = resumo?.statusPagamento ?? 'PENDENTE'
+  const statusInfo = statusPagamentoMap[statusPagamento] ?? statusPagamentoMap.PENDENTE
 
   const podePagarFinal =
     agendamento.status === AGENDAMENTO_STATUS.AGUARDANDO_PAGAMENTO_FINAL ||
@@ -52,6 +79,45 @@ export function AgendamentoFinanceiro({ agendamento }: AgendamentoFinanceiroProp
     setReciboCopiado(true)
     toast.success('Recibo copiado para a área de transferência!')
     setTimeout(() => setReciboCopiado(false), 2000)
+  }
+
+  const margemVariant = (margem: number): 'success' | 'warning' | 'destructive' => {
+    if (margem > 60) return 'success'
+    if (margem >= 30) return 'warning'
+    return 'destructive'
+  }
+
+  const handleDesvincular = (despesaId: string) => {
+    vincular.mutate(
+      { despesaId, agendamentoId: null },
+      {
+        onSuccess: () => toast.success('Despesa desvinculada do trabalho'),
+        onError: (error: Error) => toast.error(error.message || 'Erro ao desvincular despesa'),
+      },
+    )
+  }
+
+  const handleExport = (formato: 'csv' | 'xls') => {
+    const header = ['Seção', 'Descrição', 'Categoria', 'Data', 'Valor', 'Status']
+    const rows: (string | number | null | undefined)[][] = []
+    rows.push(['Valor cobrado', resumo?.clienteNome ?? agendamento.clienteNome, '', '', resumo?.valorCobrado ?? 0, ''])
+    rows.push(['Total recebido', '', '', '', resumo?.totalRecebido ?? 0, statusPagamento])
+    rows.push(['Saldo devedor', '', '', '', resumo?.saldoDevedor ?? 0, ''])
+    rows.push(['Custo total', '', '', '', resumo?.custoTotal ?? 0, ''])
+    rows.push(['Lucro bruto', '', '', '', resumo?.lucroBruto ?? 0, ''])
+    rows.push(['Margem (%)', '', '', '', resumo?.margemLucro ?? 0, ''])
+    ;(resumo?.despesas ?? []).forEach((d) => {
+      rows.push(['Despesa', d.descricao, d.categoria, d.data, d.valor, d.status])
+    })
+    ;(resumo?.receitas ?? []).forEach((r) => {
+      rows.push(['Receita', r.descricao ?? r.clienteNome, r.tipoServico, r.dataPrevisaoRecebimento ?? '', r.valorFinal, r.status])
+    })
+    const filename = `resumo-financeiro-${agendamento.clienteNome.replace(/\s+/g, '-').toLowerCase()}-${format(new Date(), 'yyyyMMdd')}`
+    if (formato === 'csv') {
+      exportarCSV(`${filename}.csv`, header, rows)
+    } else {
+      exportarXLS(`${filename}.xls`, header, rows)
+    }
   }
 
   const rows: FinanceiroRow[] = [
@@ -102,7 +168,15 @@ export function AgendamentoFinanceiro({ agendamento }: AgendamentoFinanceiroProp
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h3 className="text-sm font-semibold text-muted-foreground">Detalhamento Financeiro</h3>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
+          <Button variant="outline" size="sm" onClick={() => handleExport('csv')} disabled={isLoading}>
+            <Download className="mr-1 h-4 w-4" />
+            CSV
+          </Button>
+          <Button variant="outline" size="sm" onClick={() => handleExport('xls')} disabled={isLoading}>
+            <FileSpreadsheet className="mr-1 h-4 w-4" />
+            XLS
+          </Button>
           {podeAdicionarExtras && (
             <Button variant="outline" size="sm" onClick={() => setShowExtras(true)}>
               <Plus className="mr-1 h-4 w-4" />
@@ -115,6 +189,10 @@ export function AgendamentoFinanceiro({ agendamento }: AgendamentoFinanceiroProp
               Registrar Pagamento Final
             </Button>
           )}
+          <Button size="sm" variant="secondary" onClick={() => setShowReceber(true)}>
+            <Check className="mr-1 h-4 w-4" />
+            Registrar Recebimento
+          </Button>
           {pagamentoFinalRealizado && (
             <Button variant="outline" size="sm" onClick={handleGerarRecibo}>
               {reciboCopiado ? (
@@ -178,24 +256,159 @@ export function AgendamentoFinanceiro({ agendamento }: AgendamentoFinanceiroProp
         </Table>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-3">
-        <div className="rounded-lg border bg-card p-4">
-          <p className="text-xs text-muted-foreground">Total do Pacote</p>
-          <p className="text-xl font-bold">R$ {agendamento.valorTotal.toFixed(2)}</p>
+      {isLoading ? (
+        <div className="space-y-3">
+          <div className="animate-pulse h-8 w-full bg-muted rounded" />
+          <div className="animate-pulse h-8 w-full bg-muted rounded" />
         </div>
-        <div className="rounded-lg border bg-card p-4">
-          <p className="text-xs text-muted-foreground">Valor Pago</p>
-          <p className="text-xl font-bold text-emerald-600">
-            R$ {agendamento.valorEntradaPago.toFixed(2)}
-          </p>
+      ) : (
+        resumo && (
+          <>
+            <div className="flex flex-wrap items-center gap-2">
+              <h4 className="text-sm font-semibold text-muted-foreground">Resumo do Trabalho</h4>
+              <Badge variant={statusInfo.variant}>{statusInfo.label}</Badge>
+            </div>
+
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              <div className="rounded-lg border bg-card p-4">
+                <p className="text-xs text-muted-foreground">Valor Cobrado</p>
+                <p className="text-xl font-bold tabular-nums">{formatCurrency(resumo.valorCobrado)}</p>
+              </div>
+              <div className="rounded-lg border bg-card p-4">
+                <p className="text-xs text-muted-foreground">Total Recebido</p>
+                <p className="text-xl font-bold tabular-nums text-emerald-600">{formatCurrency(resumo.totalRecebido)}</p>
+              </div>
+              <div className="rounded-lg border bg-card p-4">
+                <p className="text-xs text-muted-foreground">Saldo Devedor</p>
+                <p className="text-xl font-bold tabular-nums text-amber-600">{formatCurrency(resumo.saldoDevedor)}</p>
+              </div>
+              <div className="rounded-lg border bg-card p-4">
+                <p className="text-xs text-muted-foreground">Custo Total</p>
+                <p className="text-xl font-bold tabular-nums text-rose-600">
+                  {formatCurrency(resumo.custoTotal)}
+                </p>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Despesas {formatCurrency(resumo.totalDespesas)} · Deslocamento {formatCurrency(resumo.custoDeslocamento)}
+                  {resumo.comissao > 0 ? ` · Comissão ${formatCurrency(resumo.comissao)}` : ''}
+                </p>
+              </div>
+              <div className="rounded-lg border bg-card p-4">
+                <p className="text-xs text-muted-foreground">Lucro Bruto</p>
+                <p className="text-xl font-bold tabular-nums text-emerald-600">{formatCurrency(resumo.lucroBruto)}</p>
+              </div>
+              <div className="rounded-lg border bg-card p-4">
+                <p className="text-xs text-muted-foreground">Margem de Lucro</p>
+                <Badge variant={margemVariant(resumo.margemLucro)}>
+                  {resumo.margemLucro.toFixed(1)}%
+                </Badge>
+              </div>
+            </div>
+          </>
+        )
+      )}
+
+      <div className="space-y-2">
+        <div className="flex items-center justify-between">
+          <h4 className="flex items-center gap-2 text-sm font-semibold text-muted-foreground">
+            <Link2 className="h-4 w-4" />
+            Despesas Vinculadas
+          </h4>
+          <div className="flex gap-2">
+            <Button variant="outline" size="sm" onClick={() => setShowVincular(true)}>
+              <Link2 className="mr-1 h-4 w-4" />
+              Vincular existente
+            </Button>
+            <Button variant="outline" size="sm" onClick={() => setShowNovaDespesa(true)}>
+              <Plus className="mr-1 h-4 w-4" />
+              Nova despesa
+            </Button>
+          </div>
         </div>
-        <div className="rounded-lg border bg-card p-4">
-          <p className="text-xs text-muted-foreground">Saldo Restante</p>
-          <p className="text-xl font-bold text-amber-600">
-            R$ {agendamento.saldoDevedor.toFixed(2)}
-          </p>
+        <div className="rounded-md border">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Descrição</TableHead>
+                <TableHead>Categoria</TableHead>
+                <TableHead className="text-right">Valor</TableHead>
+                <TableHead className="text-right">Status</TableHead>
+                <TableHead className="text-right">Ações</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {(resumo?.despesas ?? []).length === 0 && (
+                <TableRow>
+                  <TableCell colSpan={5} className="py-6 text-center text-sm text-muted-foreground">
+                    Nenhuma despesa vinculada a este trabalho.
+                  </TableCell>
+                </TableRow>
+              )}
+              {(resumo?.despesas ?? []).map((d) => (
+                <TableRow key={d.id}>
+                  <TableCell className="font-medium">{d.descricao}</TableCell>
+                  <TableCell>
+                    <Badge variant="outline" className="gap-1">
+                      <span className="h-2 w-2 rounded-full" style={{ backgroundColor: d.cor ?? '#888' }} />
+                      {d.categoria}
+                    </Badge>
+                  </TableCell>
+                  <TableCell className="text-right tabular-nums">{formatCurrency(d.valor)}</TableCell>
+                  <TableCell className="text-right">
+                    <Badge variant={d.status === 'PAGO' ? 'success' : d.status === 'RECORRENTE' ? 'outline' : 'warning'}>
+                      {d.status === 'PAGO' ? 'Pago' : d.status === 'RECORRENTE' ? 'Recorrente' : 'Pendente'}
+                    </Badge>
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <Button variant="ghost" size="sm" onClick={() => handleDesvincular(d.id)} disabled={vincular.isPending}>
+                      Desvincular
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
         </div>
       </div>
+
+      {(resumo?.receitas ?? []).length > 0 && (
+        <div className="space-y-2">
+          <h4 className="flex items-center gap-2 text-sm font-semibold text-muted-foreground">
+            <History className="h-4 w-4" />
+            Receitas Vinculadas (Histórico de Parcelas)
+          </h4>
+          <div className="rounded-md border">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Descrição</TableHead>
+                  <TableHead className="text-right">Valor Final</TableHead>
+                  <TableHead className="text-right">Recebido</TableHead>
+                  <TableHead className="text-right">Vencimento</TableHead>
+                  <TableHead className="text-right">Status</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {resumo?.receitas.map((r) => {
+                  const st = statusReceitaMap[r.status] ?? statusReceitaMap.PENDENTE
+                  return (
+                    <TableRow key={r.id}>
+                      <TableCell className="font-medium">{r.descricao ?? r.clienteNome}</TableCell>
+                      <TableCell className="text-right tabular-nums">{formatCurrency(r.valorFinal)}</TableCell>
+                      <TableCell className="text-right tabular-nums text-emerald-600">{formatCurrency(r.valorRecebido)}</TableCell>
+                      <TableCell className="text-right tabular-nums">
+                        {r.dataPrevisaoRecebimento ? format(new Date(r.dataPrevisaoRecebimento), 'dd/MM/yyyy') : '—'}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <Badge variant={st.variant}>{st.label}</Badge>
+                      </TableCell>
+                    </TableRow>
+                  )
+                })}
+              </TableBody>
+            </Table>
+          </div>
+        </div>
+      )}
 
       {pagamentos.length > 0 && (
         <div className="space-y-2">
@@ -253,6 +466,26 @@ export function AgendamentoFinanceiro({ agendamento }: AgendamentoFinanceiroProp
         open={showExtras}
         onOpenChange={setShowExtras}
         agendamento={agendamento}
+      />
+
+      <VincularDespesaDialog
+        open={showVincular}
+        onOpenChange={setShowVincular}
+        agendamentoId={agendamento.id}
+      />
+
+      <DespesaFormDialog
+        open={showNovaDespesa}
+        onOpenChange={setShowNovaDespesa}
+        agendamentoFixoId={agendamento.id}
+        agendamentoFixoLabel={`${agendamento.clienteNome} — ${format(new Date(agendamento.dataHoraEnsaio), 'dd/MM/yyyy', { locale: ptBR })}`}
+      />
+
+      <RegistrarRecebimentoDialog
+        open={showReceber}
+        onOpenChange={setShowReceber}
+        agendamentoId={agendamento.id}
+        agendamentoLabel={`${agendamento.clienteNome} — ${format(new Date(agendamento.dataHoraEnsaio), 'dd/MM/yyyy', { locale: ptBR })}`}
       />
     </div>
   )

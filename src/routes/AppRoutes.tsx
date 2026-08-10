@@ -30,6 +30,9 @@ const UploadRawPage = lazy(() => import('@/features/edicao').then(m => ({ defaul
 const EdicaoRevisaoPage = lazy(() => import('@/features/edicao').then(m => ({ default: m.EdicaoRevisaoPage })))
 const FinanceiroDashboardPage = lazy(() => import('@/features/financeiro').then(m => ({ default: m.FinanceiroDashboardPage })))
 const RelatoriosPage = lazy(() => import('@/features/financeiro').then(m => ({ default: m.RelatoriosPage })))
+const ReceitasPage = lazy(() => import('@/features/financeiro').then(m => ({ default: m.ReceitasPage })))
+const FluxoCaixaPage = lazy(() => import('@/features/financeiro').then(m => ({ default: m.FluxoCaixaPage })))
+const DespesasPage = lazy(() => import('@/features/despesas').then(m => ({ default: m.DespesasPage })))
 function PageLoader() {
   return (
     <div className="flex h-screen items-center justify-center" role="status" aria-label="Carregando página">
@@ -74,6 +77,9 @@ export function AppRoutes() {
             <Route path={ROUTES.PACOTES_NOVO} element={<PacoteFormPage />} />
             <Route path={ROUTES.PACOTES_EDITAR} element={<PacoteFormPage />} />
             <Route path={ROUTES.FINANCEIRO} element={<FinanceiroDashboardPage />} />
+            <Route path={ROUTES.FINANCEIRO_RECEITAS} element={<ReceitasPage />} />
+            <Route path={ROUTES.FINANCEIRO_DESPESAS} element={<DespesasPage />} />
+            <Route path={ROUTES.FINANCEIRO_FLUXO_CAIXA} element={<FluxoCaixaPage />} />
             <Route path={ROUTES.FINANCEIRO_RELATORIOS} element={<RelatoriosPage />} />
             <Route path={ROUTES.CONFIG} element={<ConfigPage />} />
             <Route path={ROUTES.COMISSOES} element={<ComissoesConsultaPage />} />
