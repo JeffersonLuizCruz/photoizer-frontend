@@ -17,10 +17,12 @@ export interface ResumoMesAtual {
   totalAgendamentos: number
   confirmados: number
   valorTotalConfirmados: number
+  valorEnsaiosConfirmados: number
   entradasRecebidas: number
   saldoRestante: number
   finalizados: number
   valorTotalFinalizados: number
+  valorEnsaiosFinalizados: number
   despesasDeslocamento: number
   despesasComissao: number
   despesasManuais: number

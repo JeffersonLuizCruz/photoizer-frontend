@@ -36,7 +36,6 @@ function DetalhamentoBreakdown({ detalhamento }: { detalhamento: Detalhamento })
         <div>
           <DetalhamentoRow label="Entrada (30%) — Ensaios" value={detalhamento.entradaEnsaios} />
           <DetalhamentoRow label="Restante (70%) — Ensaios" value={detalhamento.restanteEnsaios} />
-          <DetalhamentoRow label="Receitas E-commerce" value={detalhamento.receitasEcommerce} />
           <DetalhamentoRow label="Receitas Avulsas" value={detalhamento.receitasAvulsas} />
         </div>
         <div>

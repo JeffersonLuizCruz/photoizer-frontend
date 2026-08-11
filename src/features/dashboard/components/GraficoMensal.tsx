@@ -136,8 +136,8 @@ export function GraficoMensal() {
 
   const { mesAtual, historico } = data
 
-  const pctRealizado = (mesAtual.valorTotalConfirmados ?? 0) > 0
-    ? Math.round(((mesAtual.valorTotalFinalizados ?? 0) / (mesAtual.valorTotalConfirmados ?? 0)) * 100)
+  const pctRealizado = (mesAtual.valorEnsaiosConfirmados ?? 0) > 0
+    ? Math.round(((mesAtual.valorEnsaiosFinalizados ?? 0) / (mesAtual.valorEnsaiosConfirmados ?? 0)) * 100)
     : 0
 
   const chartData = historico.map((h) => {
@@ -157,7 +157,7 @@ export function GraficoMensal() {
   const metrics: MetricDef[] = [
     {
       label: 'Faturamento do Mês',
-      description: 'Valor total (100%) de todos os agendamentos confirmados, incluindo taxa de deslocamento',
+      description: 'Valor total (100%) dos agendamentos confirmados + receitas avulsas previstas, incluindo taxa de deslocamento',
       value: mesAtual.valorTotalConfirmados ?? 0,
       icon: BarChart3,
       color: 'text-indigo-600 dark:text-indigo-400',
@@ -166,7 +166,7 @@ export function GraficoMensal() {
     },
     {
       label: 'Recebido',
-      description: 'Total dos valores de entrada já pagos pelos clientes nos agendamentos confirmados',
+      description: 'Total dos valores de entrada já pagos pelos clientes nos agendamentos confirmados + receitas avulsas recebidas',
       value: mesAtual.entradasRecebidas ?? 0,
       icon: DollarSign,
       color: 'text-emerald-600 dark:text-emerald-400',
@@ -183,8 +183,8 @@ export function GraficoMensal() {
       border: 'border-rose-200 dark:border-rose-800',
     },
     {
-      label: 'Líquido Atual',
-      description: 'Entradas recebidas menos despesas (deslocamento + comissão + manuais) — saldo disponível hoje',
+      label: 'Líquido Realizado',
+      description: 'Recebido real (entradas + receitas avulsas) menos despesas pagas (deslocamento efetivo + comissão PAGA + manuais pagas) — saldo já concretizado',
       value: mesAtual.liquidoAtual ?? 0,
       icon: PiggyBank,
       color: (mesAtual.liquidoAtual ?? 0) >= 0 ? 'text-blue-600 dark:text-blue-400' : 'text-destructive',
