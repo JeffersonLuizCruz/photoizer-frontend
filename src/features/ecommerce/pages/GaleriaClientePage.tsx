@@ -26,10 +26,7 @@ export function GaleriaClientePage() {
   const [viewerIndex, setViewerIndex] = useState<number | null>(null)
   const [isSaving, setIsSaving] = useState(false)
   const [showCheckout, setShowCheckout] = useState(false)
-  const [comprovante, setComprovante] = useState<File | null>(null)
-  const [isSubmitting, setIsSubmitting] = useState(false)
   const [compraFinalizada, setCompraFinalizada] = useState<CompraExtraResponse | null>(null)
-  const [comprovanteEnviado, setComprovanteEnviado] = useState(false)
 
   // Wishlist, comparação e carrinho lateral
   const [favoritoIds, setFavoritoIds] = useState<Set<string>>(new Set())
@@ -175,6 +172,11 @@ export function GaleriaClientePage() {
 
   const toggleSelect = useCallback((fotoId: string) => {
     if (selectedIds.has(fotoId)) {
+      const foto = fotos.find((f) => f.id === fotoId)
+      if (foto?.downloadada) {
+        toast.error('Foto já baixada não pode ser removida do pacote')
+        return
+      }
       setSelectedIds((prev) => {
         const next = new Set(prev)
         next.delete(fotoId)
@@ -196,7 +198,7 @@ export function GaleriaClientePage() {
     setIsSaving(true)
     try {
       const selected = Array.from(selectedIds)
-      const deselected = fotos.filter((f) => f.selecionadaPacote && !selectedIds.has(f.id)).map((f) => f.id)
+      const deselected = fotos.filter((f) => f.selecionadaPacote && !selectedIds.has(f.id) && !f.downloadada).map((f) => f.id)
       if (selected.length > 0) {
         const result = await ecommerceService.selecionar(token, selected, true)
         setGaleria((prev) => prev ? { ...prev, fotos: prev.fotos.map((f) => result.find((r) => r.id === f.id) ?? f) } : prev)
@@ -213,31 +215,38 @@ export function GaleriaClientePage() {
     }
   }
 
-  const handleCheckout = async (metodoPagamento: MetodoPagamento | null) => {
-    if (!token || carrinhoCount === 0) return
-    setIsSubmitting(true)
-    try {
-      const compra = await ecommerceService.checkout(token, metodoPagamento ?? undefined)
-      const enviouComp = !!comprovante
-      if (comprovante) {
-        await ecommerceService.uploadComprovante(token, compra.id, comprovante)
-      }
-      setCompraFinalizada(compra)
-      setComprovanteEnviado(enviouComp)
-      setShowCheckout(false)
-      setGaleria((prev) => prev ? {
-        ...prev,
-        fotos: prev.fotos.map((f) => carrinhoIds.has(f.id) ? { ...f, compraExtraId: compra.id, status: enviouComp ? 'AGUARDANDO_CONFIRMACAO' as const : 'AGUARDANDO_COMPROVANTE' as const } : f)
-      } : prev)
-      setCarrinhoIds(new Set())
-      setCarrinhoCount(0)
-      setComprovante(null)
-      toast.success('Compra finalizada!')
-    } catch (err: any) {
-      toast.error(err?.response?.data?.message || 'Erro ao finalizar compra')
-    } finally {
-      setIsSubmitting(false)
-    }
+  const handleCheckout = async (metodoPagamento: MetodoPagamento): Promise<CompraExtraResponse> => {
+    if (!token || carrinhoCount === 0) throw new Error('Carrinho vazio')
+    const compra = await ecommerceService.checkout(token, metodoPagamento)
+    setGaleria((prev) => prev ? {
+      ...prev,
+      fotos: prev.fotos.map((f) => carrinhoIds.has(f.id) ? { ...f, compraExtraId: compra.id, status: 'AGUARDANDO_COMPROVANTE' as const } : f)
+    } : prev)
+    setCarrinhoIds(new Set())
+    setCarrinhoCount(0)
+    return compra
+  }
+
+  const handlePagarSimulado = async (compra: CompraExtraResponse) => {
+    if (!token) return
+    const paga = await ecommerceService.simularPagamento(token, compra.id)
+    setGaleria((prev) => prev ? {
+      ...prev,
+      fotos: prev.fotos.map((f) => f.compraExtraId === compra.id ? { ...f, status: 'PAGA' as const } : f)
+    } : prev)
+    setCompraFinalizada(paga)
+    toast.success('Pagamento confirmado! Suas fotos estão liberadas.')
+  }
+
+  const handleEnviarComprovante = async (compra: CompraExtraResponse, file: File) => {
+    if (!token) return
+    const atualizada = await ecommerceService.uploadComprovante(token, compra.id, file)
+    setGaleria((prev) => prev ? {
+      ...prev,
+      fotos: prev.fotos.map((f) => f.compraExtraId === compra.id ? { ...f, status: 'AGUARDANDO_CONFIRMACAO' as const } : f)
+    } : prev)
+    setCompraFinalizada(atualizada)
+    toast.success('Comprovante enviado!')
   }
 
   const hasSelectionChanges = fotos.some((f) => f.selecionadaPacote !== selectedIds.has(f.id))
@@ -284,7 +293,6 @@ export function GaleriaClientePage() {
       <PurchaseConfirmation
         compra={compraFinalizada}
         token={token ?? ''}
-        comprovanteEnviado={comprovanteEnviado}
         onVoltar={() => setCompraFinalizada(null)} />
     )
   }
@@ -476,10 +484,9 @@ export function GaleriaClientePage() {
         token={token ?? ''}
         open={showCheckout}
         onClose={() => setShowCheckout(false)}
-        onConfirm={handleCheckout}
-        isSubmitting={isSubmitting}
-        comprovante={comprovante}
-        onComprovanteChange={setComprovante} />
+        onCheckout={handleCheckout}
+        onPagarSimulado={handlePagarSimulado}
+        onEnviarComprovante={handleEnviarComprovante} />
     </div>
   )
 }

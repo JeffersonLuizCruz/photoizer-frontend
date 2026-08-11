@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react'
 import { X, Download, Loader2 } from 'lucide-react'
 import { ecommerceService } from '../services/ecommerce.service'
 import type { AdminCompraDetalheResponse } from '../types/ecommerce.types'
+import { AuthImage } from '@/shared/components/ui/AuthImage'
+import { downloadProtected, openProtected } from '@/shared/api'
 
 interface AdminCompraDetalheDialogProps {
   compraId: string | null
@@ -68,7 +70,7 @@ export function AdminCompraDetalheDialog({ compraId, open, onOpenChange }: Admin
               <div className="col-span-2">
                 <span className="text-muted-foreground text-xs">Comprovante</span>
                 {detalhe.urlComprovante ? (
-                  <a href={detalhe.urlComprovante} target="_blank" rel="noopener noreferrer" className="block text-primary underline text-sm mt-0.5">Ver comprovante</a>
+                  <button onClick={() => openProtected(detalhe.urlComprovante!)} className="block text-primary underline text-sm mt-0.5">Ver comprovante</button>
                 ) : (
                   <p className="text-sm mt-0.5">—</p>
                 )}
@@ -81,12 +83,17 @@ export function AdminCompraDetalheDialog({ compraId, open, onOpenChange }: Admin
                 <div className="grid grid-cols-4 sm:grid-cols-6 gap-2">
                   {detalhe.fotos.map((foto) => (
                     <div key={foto.id} className="rounded-lg border bg-card overflow-hidden">
-                      <div className="aspect-[3/2] bg-muted bg-cover bg-center" style={{ backgroundImage: `url(${foto.thumbUrl})` }} />
+                      <AuthImage src={foto.thumbUrl} alt={foto.fileName} className="aspect-[3/2] w-full object-cover" />
                       <div className="p-1 flex justify-center">
-                        <a href={foto.originalUrl} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline text-[10px] flex items-center gap-0.5">
-                          <Download className="h-3 w-3" />
-                          Original
-                        </a>
+                        {foto.originalUrl ? (
+                          <button onClick={() => downloadProtected(foto.originalUrl!, foto.fileName)}
+                            className="text-primary hover:underline text-[10px] flex items-center gap-0.5">
+                            <Download className="h-3 w-3" />
+                            Original
+                          </button>
+                        ) : (
+                          <span className="text-[10px] text-muted-foreground">Original indisponível</span>
+                        )}
                       </div>
                     </div>
                   ))}

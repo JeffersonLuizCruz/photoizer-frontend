@@ -2,12 +2,13 @@ export interface FotoEnsaio {
   id: string
   agendamentoId: string
   fileName: string
-  originalUrl: string
+  originalUrl: string | null
   watermarkedUrl: string
   thumbUrl: string
   ordem: number
   status: 'INEDITA' | 'PUBLICADA' | 'AGUARDANDO_COMPROVANTE' | 'AGUARDANDO_CONFIRMACAO' | 'PAGA'
   selecionadaPacote: boolean
+  downloadada: boolean
   compraExtraId: string | null
   destaque: boolean
   tags: string[]

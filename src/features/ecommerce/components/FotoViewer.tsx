@@ -1,5 +1,5 @@
 import { useEffect } from 'react'
-import { ChevronLeft, ChevronRight, X, Check, ShoppingCart, Loader2 } from 'lucide-react'
+import { ChevronLeft, ChevronRight, X, Check, Clock, ShoppingCart, Loader2 } from 'lucide-react'
 import type { FotoEnsaio } from '../types/ecommerce.types'
 
 interface FotoViewerProps {
@@ -25,6 +25,7 @@ export function FotoViewer({
   const isSelected = selectedIds.has(foto.id)
   const isInCart = carrinhoIds.has(foto.id)
   const isLoading = cartLoadingIds.has(foto.id)
+  const pendente = !!foto.compraExtraId && foto.status !== 'PAGA'
   const packageFull = selectedCount >= pacoteLimit
 
   useEffect(() => {
@@ -64,11 +65,20 @@ export function FotoViewer({
         </button>
       )}
       <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-10 flex gap-3">
-        {isSelected ? (
-          <button onClick={(e) => { e.stopPropagation(); onToggleSelect(foto.id) }}
-            className="flex items-center gap-2 rounded-full px-5 py-2.5 text-sm font-medium transition-colors bg-emerald-500 text-white hover:bg-emerald-600">
+        {pendente ? (
+          <button disabled
+            className="flex items-center gap-2 rounded-full px-5 py-2.5 text-sm font-medium transition-colors bg-amber-500/40 text-white/70 cursor-default">
+            <Clock className="h-4 w-4" />
+            Aguardando confirmação
+          </button>
+        ) : isSelected ? (
+          <button onClick={(e) => { e.stopPropagation(); if (!foto.downloadada) onToggleSelect(foto.id) }}
+            disabled={foto.downloadada}
+            className={`flex items-center gap-2 rounded-full px-5 py-2.5 text-sm font-medium transition-colors ${
+              foto.downloadada ? 'bg-emerald-500/40 text-white/70 cursor-default' : 'bg-emerald-500 text-white hover:bg-emerald-600'
+            }`}>
             <Check className="h-4 w-4" />
-            Inclusa no pacote
+            {foto.downloadada ? 'Inclusa no pacote (baixada)' : 'Inclusa no pacote'}
           </button>
         ) : !packageFull ? (
           <button onClick={(e) => { e.stopPropagation(); onToggleSelect(foto.id) }}

@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query'
 import { DollarSign, Camera, TrendingUp, Star, Users, Loader2 } from 'lucide-react'
 import { ecommerceService } from '@/features/ecommerce/services/ecommerce.service'
 import { PageTitle } from '@/shared/components/layout/PageTitle'
+import { AuthImage } from '@/shared/components/ui/AuthImage'
 
 function formatCurrency(value: number): string {
   return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value)
@@ -174,7 +175,7 @@ export function AdminAnalyticsPage() {
                   <div key={foto.fotoId} className="flex items-center gap-3 rounded-lg border p-2">
                     <div className="h-10 w-10 rounded-md bg-muted flex-shrink-0 overflow-hidden">
                       {foto.thumbUrl ? (
-                        <img src={foto.thumbUrl} alt="" className="h-full w-full object-cover" />
+                        <AuthImage src={foto.thumbUrl} alt="" className="h-full w-full object-cover" />
                       ) : (
                         <Camera className="h-5 w-5 m-auto text-muted-foreground" />
                       )}

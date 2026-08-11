@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { ChevronDown, ChevronRight, Check, Clock, Upload, Download, Loader2, XCircle } from 'lucide-react'
+import { ChevronDown, ChevronRight, Check, Clock, Upload, Download, Loader2, XCircle, CreditCard } from 'lucide-react'
 import { toast } from 'sonner'
 import { ecommerceService } from '../services/ecommerce.service'
 import type { CompraExtraResponse, AdminCompraDetalheResponse } from '../types/ecommerce.types'
@@ -19,6 +19,7 @@ export function MinhasComprasSection({ token }: MinhasComprasSectionProps) {
   const [detalheMap, setDetalheMap] = useState<Record<string, AdminCompraDetalheResponse>>({})
   const [comprovanteFiles, setComprovanteFiles] = useState<Record<string, File | null>>({})
   const [sendingIds, setSendingIds] = useState<Set<string>>(new Set())
+  const [pagarIds, setPagarIds] = useState<Set<string>>(new Set())
 
   useEffect(() => {
     ecommerceService.listarCompras(token)
@@ -56,6 +57,19 @@ export function MinhasComprasSection({ token }: MinhasComprasSectionProps) {
       toast.error(err?.response?.data?.message || 'Erro ao enviar comprovante')
     } finally {
       setSendingIds((prev) => { const next = new Set(prev); next.delete(compraId); return next })
+    }
+  }
+
+  const pagarSimulado = async (compraId: string) => {
+    setPagarIds((prev) => new Set(prev).add(compraId))
+    try {
+      const paga = await ecommerceService.simularPagamento(token, compraId)
+      setCompras((prev) => prev.map((c) => c.id === compraId ? { ...c, status: 'PAGA', dataPagamento: paga.dataPagamento } : c))
+      toast.success('Pagamento confirmado! Fotos liberadas.')
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || 'Erro ao processar pagamento')
+    } finally {
+      setPagarIds((prev) => { const next = new Set(prev); next.delete(compraId); return next })
     }
   }
 
@@ -118,6 +132,14 @@ export function MinhasComprasSection({ token }: MinhasComprasSectionProps) {
 
               {isExpanded && (
                 <div className="px-3 pb-3 border-t pt-3 space-y-3">
+                  {(compra.status === 'AGUARDANDO_COMPROVANTE' || compra.status === 'AGUARDANDO_CONFIRMACAO') && (
+                    <button onClick={() => pagarSimulado(compra.id)} disabled={pagarIds.has(compra.id)}
+                      className="w-full rounded-lg bg-blue-600 text-white px-3 py-2 text-xs font-medium hover:bg-blue-700 transition-colors disabled:opacity-50 flex items-center justify-center gap-1.5">
+                      {pagarIds.has(compra.id) ? <Loader2 className="h-3 w-3 animate-spin" /> : <CreditCard className="h-3 w-3" />}
+                      {pagarIds.has(compra.id) ? 'Processando...' : 'Pagar agora (simulado)'}
+                    </button>
+                  )}
+
                   {compra.status === 'AGUARDANDO_COMPROVANTE' && (
                     <div className="flex items-center gap-2">
                       <input type="file" accept="image/*,.pdf" className="text-xs flex-1"
@@ -168,8 +190,8 @@ export function MinhasComprasSection({ token }: MinhasComprasSectionProps) {
                     </div>
                   )}
 
-                  {detalhe && detalhe.urlComprovante && (
-                    <a href={detalhe.urlComprovante} target="_blank" rel="noopener noreferrer"
+                  {(compra.status === 'AGUARDANDO_CONFIRMACAO' || compra.status === 'PAGA') && (
+                    <a href={ecommerceService.comprovanteUrl(token, compra.id)} target="_blank" rel="noopener noreferrer"
                       className="text-primary underline text-xs flex items-center gap-1">
                       <Download className="h-3 w-3" />
                       Ver comprovante

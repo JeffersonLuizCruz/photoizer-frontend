@@ -44,7 +44,8 @@ export function CheckoutPage() {
 
   // Upsell de fotos extras (FA003)
   const [quantidadeExtras, setQuantidadeExtras] = useState(0)
-  const valorExtras = (pacote?.precoFotoExtra ?? 15) * quantidadeExtras
+  const precoFotoExtra = (pacote?.precoFotoExtra ?? 0) > 0 ? (pacote?.precoFotoExtra ?? 0) : 15
+  const valorExtras = precoFotoExtra * quantidadeExtras
   const taxaEntrega = entregaPrecos[opcaoEntrega]
   const total = Math.max(0, (pacote?.valorBase ?? 0) + valorExtras + taxaEntrega)
 
@@ -195,7 +196,7 @@ export function CheckoutPage() {
                   )}
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  {formatCurrency(pacote.precoFotoExtra)} por foto extra
+                  {formatCurrency(precoFotoExtra)} por foto extra
                 </p>
                 <div className="flex items-center gap-3">
                   <div className="flex items-center rounded-lg border overflow-hidden">
@@ -227,7 +228,7 @@ export function CheckoutPage() {
               </div>
               {quantidadeExtras > 0 && (
                 <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Fotos extras ({quantidadeExtras} × {formatCurrency(pacote.precoFotoExtra)})</span>
+                  <span className="text-muted-foreground">Fotos extras ({quantidadeExtras} × {formatCurrency(precoFotoExtra)})</span>
                   <span>{formatCurrency(valorExtras)}</span>
                 </div>
               )}

@@ -7,6 +7,7 @@ import { Button } from '@/shared/components/ui/button'
 import { StatusBadge } from '@/shared/components/layout/StatusBadge'
 import { ConfirmDialog } from '@/shared/components/layout/ConfirmDialog'
 import { AuthImage } from '@/shared/components/ui/AuthImage'
+import { openProtected } from '@/shared/api'
 import { useState } from 'react'
 
 function formatCurrency(value: number): string {
@@ -45,6 +46,15 @@ export function EcommerceAdminResumo({ agendamentoId }: EcommerceAdminResumoProp
       toast.success('Token regenerado! O link anterior não funciona mais.')
     },
     onError: (error: Error) => toast.error(error.message || 'Erro ao regenerar token'),
+  })
+
+  const { mutate: confirmarCompra, isPending: isConfirming } = useMutation({
+    mutationFn: (compraId: string) => ecommerceService.adminConfirmarCompra(compraId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-ecommerce', agendamentoId] })
+      toast.success('Pagamento confirmado! Fotos liberadas para download.')
+    },
+    onError: (error: Error) => toast.error(error.message || 'Erro ao confirmar pagamento'),
   })
 
   if (isLoading) {
@@ -133,8 +143,8 @@ export function EcommerceAdminResumo({ agendamentoId }: EcommerceAdminResumoProp
             <div key={foto.id} className="group relative rounded-lg border bg-card overflow-hidden">
               <div className="aspect-[3/2] relative">
                 <AuthImage src={foto.thumbUrl} alt={foto.fileName} className="h-full w-full object-cover" />
-                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors flex items-center justify-center opacity-0 group-hover:opacity-100">
-                  {foto.status === 'PUBLICADA' && (
+                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors flex items-center justify-center gap-1.5 opacity-0 group-hover:opacity-100">
+                  {foto.status === 'PUBLICADA' && !foto.compraExtraId && (
                     <button
                       onClick={() => overrideSelecao({ fotoId: foto.id, selecionada: !foto.selecionadaPacote })}
                       className={`h-6 w-6 rounded-full flex items-center justify-center ${foto.selecionadaPacote ? 'bg-amber-500' : 'bg-emerald-500'}`}
@@ -143,11 +153,22 @@ export function EcommerceAdminResumo({ agendamentoId }: EcommerceAdminResumoProp
                       {foto.selecionadaPacote ? <X className="h-3 w-3 text-white" /> : <Check className="h-3 w-3 text-white" />}
                     </button>
                   )}
+                  {foto.compraExtraId && foto.status === 'PUBLICADA' && (
+                    <button
+                      onClick={() => confirmarCompra(foto.compraExtraId!)}
+                      disabled={isConfirming}
+                      className="h-6 w-6 rounded-full bg-emerald-500 flex items-center justify-center hover:bg-emerald-600"
+                      title="Confirmar pagamento (liberar download)"
+                    >
+                      <Check className="h-3 w-3 text-white" />
+                    </button>
+                  )}
                 </div>
               </div>
               <div className="p-1">
                 <span className={`block text-[9px] font-medium px-1 py-0.5 rounded text-center ${
                   foto.status === 'PAGA' ? 'bg-violet-100 text-violet-700 dark:bg-violet-900/30 dark:text-violet-400' :
+                  foto.compraExtraId && foto.status === 'PUBLICADA' ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400' :
                   foto.status === 'PUBLICADA' && foto.selecionadaPacote ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400' :
                   foto.status === 'PUBLICADA' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' :
                   foto.status === 'AGUARDANDO_CONFIRMACAO' ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400' :
@@ -155,6 +176,7 @@ export function EcommerceAdminResumo({ agendamentoId }: EcommerceAdminResumoProp
                   'bg-muted text-muted-foreground'
                 }`}>
                   {foto.status === 'PAGA' ? 'Paga' :
+                   foto.compraExtraId && foto.status === 'PUBLICADA' ? 'Aguad. Pag.' :
                    foto.status === 'PUBLICADA' && foto.selecionadaPacote ? 'Selec.' :
                    foto.status === 'PUBLICADA' ? 'Pub.' :
                    foto.status === 'AGUARDANDO_CONFIRMACAO' ? 'Aguad. Conf.' :
@@ -178,6 +200,7 @@ export function EcommerceAdminResumo({ agendamentoId }: EcommerceAdminResumoProp
                   <th className="text-center px-3 py-2 font-medium text-xs">Status</th>
                   <th className="text-center px-3 py-2 font-medium text-xs">Data Pagamento</th>
                   <th className="text-center px-3 py-2 font-medium text-xs">Comprovante</th>
+                  <th className="text-center px-3 py-2 font-medium text-xs">Ações</th>
                 </tr>
               </thead>
               <tbody>
@@ -198,8 +221,17 @@ export function EcommerceAdminResumo({ agendamentoId }: EcommerceAdminResumoProp
                     </td>
                     <td className="px-3 py-2 text-center">
                       {compra.urlComprovante ? (
-                        <a href={compra.urlComprovante} target="_blank" rel="noopener noreferrer" className="text-primary underline text-xs">Ver</a>
+                        <button onClick={() => openProtected(compra.urlComprovante!)} className="text-primary underline text-xs">Ver</button>
                       ) : '—'}
+                    </td>
+                    <td className="px-3 py-2 text-center">
+                      {(compra.status === 'AGUARDANDO_COMPROVANTE' || compra.status === 'AGUARDANDO_CONFIRMACAO') && (
+                        <button onClick={() => confirmarCompra(compra.id)} disabled={isConfirming}
+                          className="h-6 w-6 rounded hover:bg-emerald-100 hover:text-emerald-700 dark:hover:bg-emerald-900/30 dark:hover:text-emerald-400 flex items-center justify-center"
+                          title="Confirmar pagamento">
+                          <Check className="h-3.5 w-3.5" />
+                        </button>
+                      )}
                     </td>
                   </tr>
                 ))}

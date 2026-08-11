@@ -18,21 +18,51 @@ function getBaseUrl() {
   return env.VITE_API_URL
 }
 
-function getSessionId(): string {
-  let sessionId = localStorage.getItem(SESSION_STORAGE_KEY)
-  if (!sessionId) {
-    sessionId = crypto.randomUUID()
-    localStorage.setItem(SESSION_STORAGE_KEY, sessionId)
-  }
-  return sessionId
+let sessionPromise: Promise<string> | null = null
+
+function invalidarSessao() {
+  sessionPromise = null
+  localStorage.removeItem(SESSION_STORAGE_KEY)
 }
 
-function sessionHeader(): Record<string, string> {
-  return { 'X-Session-Id': getSessionId() }
+async function obterSessao(): Promise<string> {
+  const armazenada = localStorage.getItem(SESSION_STORAGE_KEY)
+  if (armazenada) return armazenada
+  if (!sessionPromise) {
+    sessionPromise = apiClient
+      .post<{ sessao: string }>('/ecommerce/sessao')
+      .then(({ data }) => {
+        localStorage.setItem(SESSION_STORAGE_KEY, data.sessao)
+        return data.sessao
+      })
+      .finally(() => {
+        sessionPromise = null
+      })
+  }
+  return sessionPromise
+}
+
+/**
+ * Executa uma operação do carrinho com a sessão assinada.
+ * Se o servidor rejeitar a sessão (422 "Sessão inválida"), reemite uma nova e
+ * tenta uma única vez.
+ */
+async function comSessao<T>(fn: (sessionId: string) => Promise<T>): Promise<T> {
+  try {
+    return await fn(await obterSessao())
+  } catch (err) {
+    const status = (err as { response?: { status?: number } })?.response?.status
+    const message = (err as { response?: { data?: { message?: string } } })?.response?.data?.message
+    if (status === 422 && String(message).toLowerCase().includes('sess')) {
+      invalidarSessao()
+      return await fn(await obterSessao())
+    }
+    throw err
+  }
 }
 
 export const ecommerceService = {
-  getSessionId,
+  obterSessao,
 
   galeria: async (token: string): Promise<GaleriaResponse> => {
     const { data } = await apiClient.get<GaleriaResponse>(`/ecommerce/galeria/${token}`)
@@ -48,36 +78,45 @@ export const ecommerceService = {
   },
 
   adicionarAoCarrinho: async (token: string): Promise<void> => {
-    await apiClient.post(`/ecommerce/galeria/${token}/carrinho`, null, { headers: sessionHeader() })
+    await comSessao((sessionId) =>
+      apiClient.post(`/ecommerce/galeria/${token}/carrinho`, null, { headers: { 'X-Session-Id': sessionId } }))
   },
 
   adicionarAoCarrinhoFoto: async (token: string, fotoId: string): Promise<void> => {
-    await apiClient.post(`/ecommerce/galeria/${token}/carrinho`, { fotoId }, { headers: sessionHeader() })
+    await comSessao((sessionId) =>
+      apiClient.post(`/ecommerce/galeria/${token}/carrinho`, { fotoId }, { headers: { 'X-Session-Id': sessionId } }))
   },
 
   removerDoCarrinho: async (token: string, fotoId: string): Promise<void> => {
-    await apiClient.delete(`/ecommerce/galeria/${token}/carrinho/${fotoId}`, { headers: sessionHeader() })
+    await comSessao((sessionId) =>
+      apiClient.delete(`/ecommerce/galeria/${token}/carrinho/${fotoId}`, { headers: { 'X-Session-Id': sessionId } }))
   },
 
   listarCarrinho: async (token: string): Promise<CarrinhoResponse> => {
-    const { data } = await apiClient.get<CarrinhoResponse>(`/ecommerce/galeria/${token}/carrinho`, { headers: sessionHeader() })
-    return data
+    return comSessao((sessionId) =>
+      apiClient.get<CarrinhoResponse>(`/ecommerce/galeria/${token}/carrinho`, { headers: { 'X-Session-Id': sessionId } }).then(({ data }) => data))
   },
 
   contarCarrinho: async (token: string): Promise<number> => {
-    const { data } = await apiClient.get<number>(`/ecommerce/galeria/${token}/carrinho/quantidade`, { headers: sessionHeader() })
-    return data
+    return comSessao((sessionId) =>
+      apiClient.get<number>(`/ecommerce/galeria/${token}/carrinho/quantidade`, { headers: { 'X-Session-Id': sessionId } }).then(({ data }) => data))
   },
 
   calcular: async (token: string): Promise<CalculoCarrinhoResponse> => {
-    const { data } = await apiClient.get<CalculoCarrinhoResponse>(`/ecommerce/galeria/${token}/calcular`, { headers: sessionHeader() })
-    return data
+    return comSessao((sessionId) =>
+      apiClient.get<CalculoCarrinhoResponse>(`/ecommerce/galeria/${token}/calcular`, { headers: { 'X-Session-Id': sessionId } }).then(({ data }) => data))
   },
 
   checkout: async (token: string, metodoPagamento?: MetodoPagamento): Promise<CompraExtraResponse> => {
-    const { data } = await apiClient.post<CompraExtraResponse>(`/ecommerce/galeria/${token}/checkout`,
-      metodoPagamento ? { metodoPagamento } : null,
-      { headers: sessionHeader() })
+    return comSessao((sessionId) =>
+      apiClient.post<CompraExtraResponse>(`/ecommerce/galeria/${token}/checkout`,
+        metodoPagamento ? { metodoPagamento } : null,
+        { headers: { 'X-Session-Id': sessionId } }).then(({ data }) => data))
+  },
+
+  simularPagamento: async (token: string, compraExtraId: string): Promise<CompraExtraResponse> => {
+    const { data } = await apiClient.post<CompraExtraResponse>(
+      `/ecommerce/galeria/${token}/compras/${compraExtraId}/simular-pagamento`)
     return data
   },
 
@@ -101,16 +140,18 @@ export const ecommerceService = {
 
   // Favoritos / Wishlist
   adicionarFavorito: async (token: string, fotoId: string): Promise<void> => {
-    await apiClient.post(`/ecommerce/galeria/${token}/favoritos/${fotoId}`, null, { headers: sessionHeader() })
+    await comSessao((sessionId) =>
+      apiClient.post(`/ecommerce/galeria/${token}/favoritos/${fotoId}`, null, { headers: { 'X-Session-Id': sessionId } }))
   },
 
   removerFavorito: async (token: string, fotoId: string): Promise<void> => {
-    await apiClient.delete(`/ecommerce/galeria/${token}/favoritos/${fotoId}`, { headers: sessionHeader() })
+    await comSessao((sessionId) =>
+      apiClient.delete(`/ecommerce/galeria/${token}/favoritos/${fotoId}`, { headers: { 'X-Session-Id': sessionId } }))
   },
 
   listarFavoritos: async (token: string): Promise<string[]> => {
-    const { data } = await apiClient.get<string[]>(`/ecommerce/galeria/${token}/favoritos`, { headers: sessionHeader() })
-    return data
+    return comSessao((sessionId) =>
+      apiClient.get<string[]>(`/ecommerce/galeria/${token}/favoritos`, { headers: { 'X-Session-Id': sessionId } }).then(({ data }) => data))
   },
 
   downloadUrl: (token: string, fotoId: string): string => {
@@ -119,6 +160,10 @@ export const ecommerceService = {
 
   downloadZipUrl: (token: string): string => {
     return `${getBaseUrl()}/ecommerce/galeria/${token}/download-zip`
+  },
+
+  comprovanteUrl: (token: string, compraId: string): string => {
+    return `${getBaseUrl()}/ecommerce/galeria/${token}/compras/${compraId}/comprovante`
   },
 
   // Admin endpoints
