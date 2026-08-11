@@ -1,6 +1,4 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { format } from 'date-fns'
-import { ptBR } from 'date-fns/locale'
 import { apiClient } from '@/shared/api'
 import { QUERY_KEYS } from '@/shared/constants'
 import { financeiroService } from '../services/financeiro.service'
@@ -131,34 +129,10 @@ export function useClientesSearch(search: string) {
   })
 }
 
-interface TrabalhoOpcao {
+interface ClienteOpcao {
   id: string
-  clienteId?: string | null
-  clienteNome?: string
-  valorTotalFinal?: number
-  label: string
-}
-
-export function useAgendamentosFinanceiro(): {
-  data?: TrabalhoOpcao[]
-  isLoading: boolean
-} {
-  return useQuery({
-    queryKey: ['agenda', 'opcoes-financeiro'],
-    queryFn: async () => {
-      const { data } = await apiClient.get<Array<{ id: string; clienteId?: string | null; clienteNome?: string; dataHoraEnsaio?: string; pacoteNome?: string; status?: string; valorTotalFinal?: number }>>('/agendamentos')
-      return data
-        .filter((a) => a.status !== 'CANCELADO' && a.status !== 'NO_SHOW')
-        .map((a) => ({
-          id: a.id,
-          clienteId: a.clienteId,
-          clienteNome: a.clienteNome,
-          valorTotalFinal: a.valorTotalFinal,
-          label: `${a.clienteNome ?? 'Sem cliente'} — ${a.dataHoraEnsaio ? format(new Date(a.dataHoraEnsaio), 'dd/MM/yyyy', { locale: ptBR }) : ''}${a.pacoteNome ? ` · ${a.pacoteNome}` : ''}`,
-        }))
-    },
-    staleTime: 1000 * 60 * 5,
-  })
+  nome: string
+  telefone?: string
 }
 
 export function useConfigFinanceiro() {

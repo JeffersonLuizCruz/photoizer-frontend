@@ -10,7 +10,7 @@ import { StatusBadge } from '@/shared/components/layout/StatusBadge'
 import { ConfirmDialog } from '@/shared/components/layout/ConfirmDialog'
 import { AdminCompraDetalheDialog } from '../components/AdminCompraDetalheDialog'
 import type { ColumnDef } from '@tanstack/react-table'
-import { ROUTES } from '@/shared/constants'
+import { QUERY_KEYS, ROUTES } from '@/shared/constants'
 
 function formatCurrency(value: number): string {
   return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value)
@@ -60,6 +60,7 @@ export function AdminEcommercePage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-compras'] })
       queryClient.invalidateQueries({ queryKey: ['admin-compras-relatorio'] })
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.FINANCEIRO })
       toast.success('Pagamento confirmado!')
     },
     onError: (err: Error) => toast.error(err.message || 'Erro ao confirmar'),
@@ -70,6 +71,7 @@ export function AdminEcommercePage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-compras'] })
       queryClient.invalidateQueries({ queryKey: ['admin-compras-relatorio'] })
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.FINANCEIRO })
       setConfirmCancelId(null)
       toast.success('Compra cancelada!')
     },

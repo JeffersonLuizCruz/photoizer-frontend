@@ -12,7 +12,6 @@ export {
   useExcluirReceita,
   useReceberReceita,
   useDuplicarReceita,
-  useAgendamentosFinanceiro,
   useClientesSearch,
   useConfigFinanceiro,
   useFluxoCaixa,

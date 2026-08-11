@@ -26,6 +26,21 @@ function statusBadge(status: Lancamento['status']): { label: string; variant: 's
   }
 }
 
+function origemLabel(origem: string): string {
+  switch (origem) {
+    case 'AGENDAMENTO':
+      return 'Ensaio'
+    case 'ECOMMERCE':
+      return 'E-commerce'
+    case 'DESPESA':
+      return 'Despesa'
+    case 'RECORRENTE':
+      return 'Recorrente'
+    default:
+      return 'Avulsa'
+  }
+}
+
 export function UltimosLancamentos({ lancamentos, isLoading }: UltimosLancamentosProps) {
   if (isLoading) {
     return (
@@ -67,7 +82,12 @@ export function UltimosLancamentos({ lancamentos, isLoading }: UltimosLancamento
               <TableCell className="text-muted-foreground">{formatDateBR(l.data)}</TableCell>
               <TableCell>
                 <div className="font-medium">{l.descricao}</div>
-                <div className="text-xs text-muted-foreground">{l.categoria}</div>
+                <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                  <Badge variant="outline" className="px-1.5 py-0 text-[10px] font-medium">
+                    {origemLabel(l.origem)}
+                  </Badge>
+                  <span>{l.categoria}</span>
+                </div>
               </TableCell>
               <TableCell className={isReceita ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'}>
                 {isReceita ? '+' : '−'}{formatCurrency(l.valor)}

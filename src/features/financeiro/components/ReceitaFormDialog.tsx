@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { toast } from 'sonner'
@@ -14,7 +14,6 @@ import { receitaSchema, type ReceitaFormValues } from '../schemas/receita.schema
 import {
   useCriarReceita,
   useAtualizarReceita,
-  useAgendamentosFinanceiro,
   useClientesSearch,
   useConfigFinanceiro,
 } from '../api/queries'
@@ -25,8 +24,6 @@ interface ReceitaFormDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   receita?: Receita | null
-  agendamentoFixoId?: string
-  agendamentoFixoLabel?: string
 }
 
 const tipoServicoLabels: Record<string, string> = {
@@ -52,10 +49,9 @@ const formaPagamentoLabels: Record<string, string> = {
   OUTRO: 'Outro',
 }
 
-export function ReceitaFormDialog({ open, onOpenChange, receita, agendamentoFixoId, agendamentoFixoLabel }: ReceitaFormDialogProps) {
+export function ReceitaFormDialog({ open, onOpenChange, receita }: ReceitaFormDialogProps) {
   const criar = useCriarReceita()
   const atualizar = useAtualizarReceita()
-  const { data: trabalhos, isLoading: loadingTrabalhos } = useAgendamentosFinanceiro()
   const config = useConfigFinanceiro()
 
   const [clienteSearch, setClienteSearch] = useState('')
@@ -81,12 +77,11 @@ export function ReceitaFormDialog({ open, onOpenChange, receita, agendamentoFixo
   const { register, setValue, watch, reset, formState: { errors } } = form
   const status = watch('status')
   const valorBruto = watch('valorBruto')
-  const agendamentoId = watch('agendamentoId')
 
   useEffect(() => {
     if (open) {
       reset({
-        agendamentoId: receita?.agendamentoId ?? agendamentoFixoId ?? null,
+        agendamentoId: null,
         clienteId: receita?.clienteId ?? null,
         tipoServico: receita?.tipoServico ?? 'ENSAIO',
         descricao: receita?.descricao ?? '',
@@ -100,23 +95,7 @@ export function ReceitaFormDialog({ open, onOpenChange, receita, agendamentoFixo
       })
       setClienteSearch('')
     }
-  }, [open, receita, reset, agendamentoFixoId])
-
-  useEffect(() => {
-    if (!open || receita || !agendamentoFixoId || !trabalhos) return
-    const trabalho = trabalhos.find((t) => t.id === agendamentoFixoId)
-    if (trabalho) {
-      setValue('clienteId', trabalho.clienteId ?? null)
-      if (trabalho.valorTotalFinal && trabalho.valorTotalFinal > 0 && watch('valorBruto') === 0) {
-        setValue('valorBruto', trabalho.valorTotalFinal)
-      }
-    }
-  }, [open, receita, agendamentoFixoId, trabalhos, setValue, watch])
-
-  const trabalhoSelecionado = useMemo(
-    () => trabalhos?.find((t) => t.id === agendamentoId),
-    [trabalhos, agendamentoId],
-  )
+  }, [open, receita, reset])
 
   const percentualComissao = config?.data?.percentualComissao ?? 10
   const valorComissaoEstimada = valorBruto * (percentualComissao / 100)
@@ -126,7 +105,7 @@ export function ReceitaFormDialog({ open, onOpenChange, receita, agendamentoFixo
 
   const onSubmit = form.handleSubmit((values) => {
     const payload = {
-      agendamentoId: values.agendamentoId || null,
+      agendamentoId: null,
       clienteId: values.clienteId || null,
       tipoServico: values.tipoServico,
       descricao: values.descricao || undefined,
@@ -154,63 +133,30 @@ export function ReceitaFormDialog({ open, onOpenChange, receita, agendamentoFixo
     }
   })
 
-  const handleTrabalhoChange = (id: string | null) => {
-    setValue('agendamentoId', id, { shouldValidate: true })
-    const trabalho = trabalhos?.find((t) => t.id === id)
-    if (trabalho) {
-      setValue('clienteId', trabalho.clienteId ?? null)
-      if (trabalho.valorTotalFinal && trabalho.valorTotalFinal > 0 && (!receita || !watch('valorBruto'))) {
-        setValue('valorBruto', trabalho.valorTotalFinal)
-      }
-    }
-  }
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-2xl">
         <DialogHeader>
           <DialogTitle>{receita ? 'Editar Receita' : 'Nova Receita'}</DialogTitle>
           <DialogDescription>
-            Registre uma receita vinculada a um trabalho ou cliente do CRM.
+            Registre uma receita avulsa do estúdio.
           </DialogDescription>
         </DialogHeader>
 
         <form onSubmit={onSubmit} className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <Label>Trabalho / Sessão vinculada</Label>
-              <SearchableSelect
-                options={agendamentoFixoId
-                  ? [{ value: agendamentoFixoId, label: agendamentoFixoLabel ?? 'Trabalho atual' }]
-                  : (trabalhos ?? []).map((t) => ({ value: t.id, label: t.label }))}
-                value={agendamentoId}
-                onChange={agendamentoFixoId ? () => {} : handleTrabalhoChange}
-                placeholder="Buscar trabalho..."
-                emptyText="Digite para buscar trabalho"
-                isLoading={loadingTrabalhos}
-                disabled={!!agendamentoFixoId}
-              />
-              {trabalhoSelecionado?.clienteNome && (
-                <p className="mt-1 text-xs text-muted-foreground">
-                  Cliente: {trabalhoSelecionado.clienteNome}
-                </p>
-              )}
-            </div>
-            <div>
-              <Label>Cliente</Label>
-              <SearchableSelect
-                options={(clientes ?? []).map((c) => ({ value: c.id, label: c.nome, sublabel: c.telefone }))}
-                value={watch('clienteId')}
-                onChange={(v) => {
-                  setValue('clienteId', v, { shouldValidate: true })
-                  if (v) setValue('agendamentoId', null)
-                }}
-                placeholder="Buscar cliente..."
-                emptyText="Digite para buscar cliente"
-                isLoading={loadingClientes}
-                onSearchChange={setClienteSearch}
-              />
-            </div>
+          <div>
+            <Label>Cliente</Label>
+            <SearchableSelect
+              options={(clientes ?? []).map((c) => ({ value: c.id, label: c.nome, sublabel: c.telefone }))}
+              value={watch('clienteId')}
+              onChange={(v) => {
+                setValue('clienteId', v, { shouldValidate: true })
+              }}
+              placeholder="Buscar cliente..."
+              emptyText="Digite para buscar cliente"
+              isLoading={loadingClientes}
+              onSearchChange={setClienteSearch}
+            />
           </div>
 
           <div className="grid grid-cols-2 gap-4">

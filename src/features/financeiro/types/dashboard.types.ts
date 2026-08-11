@@ -10,6 +10,18 @@ export interface CardsResumo {
   ticketMedio: number
   qtdTrabalhos: number
   variacoes: VariacaoCards | null
+  detalhamento: Detalhamento | null
+}
+
+export interface Detalhamento {
+  recebido: number
+  entradaEnsaios: number
+  restanteEnsaios: number
+  receitasEcommerce: number
+  receitasAvulsas: number
+  comissao: number
+  deslocamento: number
+  despesas: number
 }
 
 export interface VariacaoCards {

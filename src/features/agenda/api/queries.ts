@@ -119,6 +119,8 @@ export function useUpdateAgendamento(id: string) {
       agendamentoService.update(id, payload),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.AGENDA })
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.FINANCEIRO })
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.DASHBOARD })
       toast.success('Agendamento atualizado com sucesso')
     },
     onError: (error: Error) => {
@@ -164,6 +166,8 @@ export function useCreateAgendamento() {
       agendamentoService.createFromWizard(data, comprovante),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.AGENDA })
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.FINANCEIRO })
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.DASHBOARD })
       toast.success('Agendamento criado com sucesso')
     },
     onError: (error: any) => {
@@ -181,6 +185,8 @@ export function useUpdateAgendamentoStatus() {
       agendamentoService.updateStatus(id, status),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.AGENDA })
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.FINANCEIRO })
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.DASHBOARD })
       toast.success('Status atualizado com sucesso')
     },
     onError: (error: Error) => {
@@ -197,6 +203,8 @@ export function useReagendarAgendamento() {
       agendamentoService.reagendar(id, data, hora),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.AGENDA })
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.FINANCEIRO })
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.DASHBOARD })
       toast.success('Ensaio reagendado com sucesso')
     },
     onError: (error: Error) => {
@@ -233,6 +241,8 @@ export function useAddFotoExtra() {
     }) => agendamentoService.addFotoExtra(payload.agendamentoId, payload),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.AGENDA })
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.FINANCEIRO })
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.DASHBOARD })
       toast.success('Fotos extras adicionadas')
     },
     onError: (error: Error) => {
@@ -255,6 +265,8 @@ export function useAddVideoExtra() {
     }) => agendamentoService.addVideoExtra(payload.agendamentoId, payload),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.AGENDA })
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.FINANCEIRO })
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.DASHBOARD })
       toast.success('Vídeos extras adicionados')
     },
     onError: (error: Error) => {
@@ -272,6 +284,7 @@ export function useRegistrarPagamentoFinal() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.AGENDA })
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.FINANCEIRO })
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.DASHBOARD })
       toast.success('Pagamento final registrado')
     },
     onError: (error: Error) => {

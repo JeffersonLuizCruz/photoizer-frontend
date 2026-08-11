@@ -12,7 +12,6 @@ import { DespesaFormDialog } from '@/features/despesas/components/DespesaFormDia
 import { RegistrarPagamentoDialog } from './RegistrarPagamentoDialog'
 import { AdicionarExtrasDialog } from './AdicionarExtrasDialog'
 import { VincularDespesaDialog } from './VincularDespesaDialog'
-import { RegistrarRecebimentoDialog } from './RegistrarRecebimentoDialog'
 import { usePagamentosList, useResumoFinanceiroTrabalho, useVincularDespesaTrabalho } from '../api/queries'
 import { montarReciboPagamento } from '../utils/recibo'
 import type { Agendamento } from '../types'
@@ -35,19 +34,11 @@ const statusPagamentoMap: Record<string, { label: string; variant: 'success' | '
   PENDENTE: { label: 'Pendente', variant: 'destructive' },
 }
 
-const statusReceitaMap: Record<string, { label: string; variant: 'success' | 'warning' | 'default' | 'destructive' }> = {
-  PAGO_TOTAL: { label: 'Pago total', variant: 'success' },
-  PAGO_PARCIAL: { label: 'Pago parcial', variant: 'warning' },
-  PENDENTE: { label: 'Pendente', variant: 'default' },
-  CANCELADO: { label: 'Cancelado', variant: 'destructive' },
-}
-
 export function AgendamentoFinanceiro({ agendamento }: AgendamentoFinanceiroProps) {
   const [showPagamento, setShowPagamento] = useState(false)
   const [showExtras, setShowExtras] = useState(false)
   const [showVincular, setShowVincular] = useState(false)
   const [showNovaDespesa, setShowNovaDespesa] = useState(false)
-  const [showReceber, setShowReceber] = useState(false)
   const [reciboCopiado, setReciboCopiado] = useState(false)
 
   const { data: pagamentos = [] } = usePagamentosList(agendamento.id)
@@ -108,9 +99,6 @@ export function AgendamentoFinanceiro({ agendamento }: AgendamentoFinanceiroProp
     rows.push(['Margem (%)', '', '', '', resumo?.margemLucro ?? 0, ''])
     ;(resumo?.despesas ?? []).forEach((d) => {
       rows.push(['Despesa', d.descricao, d.categoria, d.data, d.valor, d.status])
-    })
-    ;(resumo?.receitas ?? []).forEach((r) => {
-      rows.push(['Receita', r.descricao ?? r.clienteNome, r.tipoServico, r.dataPrevisaoRecebimento ?? '', r.valorFinal, r.status])
     })
     const filename = `resumo-financeiro-${agendamento.clienteNome.replace(/\s+/g, '-').toLowerCase()}-${format(new Date(), 'yyyyMMdd')}`
     if (formato === 'csv') {
@@ -189,10 +177,6 @@ export function AgendamentoFinanceiro({ agendamento }: AgendamentoFinanceiroProp
               Registrar Pagamento Final
             </Button>
           )}
-          <Button size="sm" variant="secondary" onClick={() => setShowReceber(true)}>
-            <Check className="mr-1 h-4 w-4" />
-            Registrar Recebimento
-          </Button>
           {pagamentoFinalRealizado && (
             <Button variant="outline" size="sm" onClick={handleGerarRecibo}>
               {reciboCopiado ? (
@@ -370,46 +354,6 @@ export function AgendamentoFinanceiro({ agendamento }: AgendamentoFinanceiroProp
         </div>
       </div>
 
-      {(resumo?.receitas ?? []).length > 0 && (
-        <div className="space-y-2">
-          <h4 className="flex items-center gap-2 text-sm font-semibold text-muted-foreground">
-            <History className="h-4 w-4" />
-            Receitas Vinculadas (Histórico de Parcelas)
-          </h4>
-          <div className="rounded-md border">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Descrição</TableHead>
-                  <TableHead className="text-right">Valor Final</TableHead>
-                  <TableHead className="text-right">Recebido</TableHead>
-                  <TableHead className="text-right">Vencimento</TableHead>
-                  <TableHead className="text-right">Status</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {resumo?.receitas.map((r) => {
-                  const st = statusReceitaMap[r.status] ?? statusReceitaMap.PENDENTE
-                  return (
-                    <TableRow key={r.id}>
-                      <TableCell className="font-medium">{r.descricao ?? r.clienteNome}</TableCell>
-                      <TableCell className="text-right tabular-nums">{formatCurrency(r.valorFinal)}</TableCell>
-                      <TableCell className="text-right tabular-nums text-emerald-600">{formatCurrency(r.valorRecebido)}</TableCell>
-                      <TableCell className="text-right tabular-nums">
-                        {r.dataPrevisaoRecebimento ? format(new Date(r.dataPrevisaoRecebimento), 'dd/MM/yyyy') : '—'}
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <Badge variant={st.variant}>{st.label}</Badge>
-                      </TableCell>
-                    </TableRow>
-                  )
-                })}
-              </TableBody>
-            </Table>
-          </div>
-        </div>
-      )}
-
       {pagamentos.length > 0 && (
         <div className="space-y-2">
           <h4 className="flex items-center gap-2 text-sm font-semibold text-muted-foreground">
@@ -479,13 +423,6 @@ export function AgendamentoFinanceiro({ agendamento }: AgendamentoFinanceiroProp
         onOpenChange={setShowNovaDespesa}
         agendamentoFixoId={agendamento.id}
         agendamentoFixoLabel={`${agendamento.clienteNome} — ${format(new Date(agendamento.dataHoraEnsaio), 'dd/MM/yyyy', { locale: ptBR })}`}
-      />
-
-      <RegistrarRecebimentoDialog
-        open={showReceber}
-        onOpenChange={setShowReceber}
-        agendamentoId={agendamento.id}
-        agendamentoLabel={`${agendamento.clienteNome} — ${format(new Date(agendamento.dataHoraEnsaio), 'dd/MM/yyyy', { locale: ptBR })}`}
       />
     </div>
   )
