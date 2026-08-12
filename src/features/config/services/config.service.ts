@@ -17,4 +17,18 @@ export const configService = {
   update: async (valores: Record<string, string>): Promise<void> => {
     await apiClient.put('/config', valores)
   },
+
+  getTemplate: async (): Promise<string> => {
+    const { data } = await apiClient.get<{ template: string }>('/config/contrato/template')
+    return data.template
+  },
+
+  updateTemplate: async (template: string): Promise<void> => {
+    await apiClient.put('/config/contrato/template', { template })
+  },
+
+  restaurarTemplatePadrao: async (): Promise<string> => {
+    const { data } = await apiClient.put<{ template: string }>('/config/contrato/template/padrao')
+    return data.template
+  },
 }

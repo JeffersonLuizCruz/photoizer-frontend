@@ -13,7 +13,6 @@ import { CONTRATO_STATUS } from '@/shared/constants'
 import { assinarContratoSchema, type AssinarContratoFormValues, formatCpf } from '../schemas/contrato.schema'
 import { useContratoPublico, useAssinarContrato } from '../api/queries'
 import { STATUS_LABEL } from './status'
-import { cn } from '@/shared/lib/cn'
 
 export function ContratoPublicoPage() {
   const { token } = useParams<{ token: string }>()
@@ -126,10 +125,6 @@ export function ContratoPublicoPage() {
     }
   }
 
-  const dataHora = new Date(contrato.dataHoraEnsaio)
-  const dataFormatada = dataHora.toLocaleDateString('pt-BR')
-  const horaFormatada = dataHora.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
-
   return (
     <div className="min-h-screen bg-gray-50 py-4 sm:py-8">
       <div className="mx-auto max-w-3xl px-3 sm:px-4">
@@ -152,8 +147,16 @@ export function ContratoPublicoPage() {
           )}
 
           <form onSubmit={handleSubmit(onSubmit)}>
-            <Section title="1. Dados do Cliente">
-              {podeAssinar ? (
+            {contrato.clausulasHtml && (
+              <div
+                className="prose prose-sm max-w-none mb-8"
+                dangerouslySetInnerHTML={{ __html: contrato.clausulasHtml }}
+              />
+            )}
+
+            {podeAssinar && (
+              <div className="space-y-4 border-t pt-6">
+                <h2 className="text-base font-semibold">Preencha seus dados</h2>
                 <div className="space-y-3">
                   <div>
                     <Label htmlFor="nome">Nome completo *</Label>
@@ -213,108 +216,31 @@ export function ContratoPublicoPage() {
                     </div>
                   </div>
                 </div>
-              ) : (
-                <div className="space-y-1 text-sm">
-                  <p>Nome completo: _______________________________</p>
-                  <p>CPF: _______________________________________</p>
-                  <p>E-mail: _____________________________________</p>
-                  <p>Telefone: ____________________________________</p>
-                  <p>Cidade / Estado: _____________________________</p>
-                </div>
-              )}
-              <p className="mt-3 text-sm text-muted-foreground">
-                Contratada: {contrato.contratadaNome}, inscrita no CNPJ nº {contrato.contratadaCnpj},
-                com sede em {contrato.contratadaCidade}.
-              </p>
-            </Section>
 
-            <Section title="2. Informações do Ensaio">
-              <p>Data do ensaio: {dataFormatada}</p>
-              <p>Horário do ensaio: {horaFormatada}</p>
-              <p>Local do ensaio: {contrato.localEnsaio}</p>
-              {contrato.enderecoCompleto && <p>Endereço completo: {contrato.enderecoCompleto}</p>}
-            </Section>
-
-            <Section title="3. Pacote Contratado">
-              <p>Pacote: {contrato.pacoteNome}</p>
-              <p className="text-sm text-muted-foreground">Inclui: serviço conforme pacote contratado.</p>
-            </Section>
-
-            <Section title="4. Valores">
-              <p>Valor total do serviço: {formatCurrency(contrato.valorTotal)}</p>
-              <p>
-                Valor pago como reserva ({contrato.percentualEntrada}%):{' '}
-                <strong>{formatCurrency(contrato.valorEntradaExigido)}</strong>
-              </p>
-              <p>Valor restante a pagar no final do ensaio: {formatCurrency(contrato.valorRestante)}</p>
-              <p className="mt-2 text-sm text-muted-foreground">
-                O pagamento da reserva garante o bloqueio da data e horário na agenda da Contratada.
-                O valor restante deverá ser pago ao final da realização do ensaio fotográfico.
-              </p>
-            </Section>
-
-            <Section title="Dados para pagamento (PIX)">
-              <p className={cn('text-sm', contrato.pixChave ? 'text-blue-700' : 'text-muted-foreground')}>
-                Chave PIX ({contrato.pixTipoChave}):{' '}
-                <strong>{contrato.pixChave || 'Não informada (consulte o fotógrafo)'}</strong>
-              </p>
-            </Section>
-
-            <Section title="5. Entrega das Fotografias">
-              <p>As fotos do ensaio serão enviadas ao Cliente em até 2 dias após a realização do ensaio para que ele faça a seleção das imagens desejadas.</p>
-              <p>Após a seleção, a entrega final das fotografias ocorrerá em até 2 dias.</p>
-              <p>As fotos serão entregues em formato digital, em alta resolução.</p>
-              <p>Caso o Cliente opte por fotos extras além do pacote contratado, será cobrado o valor de {formatCurrency(contrato.precoFotoExtra)} por foto adicional.</p>
-            </Section>
-
-            <Section title="6. Cancelamento">
-              <p>Caso o Cliente cancele o ensaio por qualquer motivo, o valor pago como reserva não será reembolsado, pois garante a reserva da data na agenda da Contratada.</p>
-              <p>Caso ocorra algum imprevisto que impeça a presença da Contratada, poderá haver a substituição por outro fotógrafo profissional de padrão equivalente.</p>
-              <p>Caso não seja possível a substituição, o valor pago será devolvido integralmente ao Cliente.</p>
-              <p>Se houver algum imprevisto relacionado à antecipação de voo, chuva ou doença, o ensaio será cancelado e haverá o reembolso completo do valor da reserva.</p>
-            </Section>
-
-            <Section title="7. USO DE IMAGEM (OPCIONAL)">
-              {podeAssinar ? (
+                <h2 className="text-base font-semibold">7. USO DE IMAGEM (OPCIONAL)</h2>
                 <div className="space-y-3">
                   <label className="flex min-h-[44px] cursor-pointer items-center gap-3 rounded-md border border-input px-3 py-2 hover:bg-accent/50 transition-colors has-[:checked]:border-primary has-[:checked]:bg-primary/5">
-                    <input
-                      type="radio"
-                      value="true"
-                      {...register('autorizaUsoImagem')}
-                      className="h-5 w-5 shrink-0 accent-primary"
-                    />
+                    <input type="radio" value="true" {...register('autorizaUsoImagem')} className="h-5 w-5 shrink-0 accent-primary" />
                     <span className="font-medium">AUTORIZO</span>
                   </label>
                   <label className="flex min-h-[44px] cursor-pointer items-center gap-3 rounded-md border border-input px-3 py-2 hover:bg-accent/50 transition-colors has-[:checked]:border-primary has-[:checked]:bg-primary/5">
-                    <input
-                      type="radio"
-                      value="false"
-                      {...register('autorizaUsoImagem')}
-                      className="h-5 w-5 shrink-0 accent-primary"
-                    />
+                    <input type="radio" value="false" {...register('autorizaUsoImagem')} className="h-5 w-5 shrink-0 accent-primary" />
                     <span className="font-medium">NÃO AUTORIZO</span>
                   </label>
                   {errors.autorizaUsoImagem && (
                     <p className="text-xs text-destructive">{errors.autorizaUsoImagem.message}</p>
                   )}
-                  <p className="mt-2 text-sm text-muted-foreground">
+                  <p className="text-sm text-muted-foreground">
                     Ao autorizar, as imagens poderão ser utilizadas para fins profissionais e promocionais da
                     Contratada (redes sociais, portfólio, website, materiais publicitários).
                   </p>
                 </div>
-              ) : (
-                <p className="text-muted-foreground">Responda na seção de assinatura abaixo.</p>
-              )}
-            </Section>
-
-            <Section title="8. Disposições Gerais">
-              <p>Este contrato passa a vigorar a partir da assinatura das partes.</p>
-              <p>Qualquer alteração neste contrato deverá ser realizada por escrito.</p>
-            </Section>
+              </div>
+            )}
 
             {podeAssinar && (
-              <Section title="9. Assinatura Digital">
+              <div className="space-y-4">
+                <h2 className="text-base font-semibold">9. Assinatura Digital</h2>
                 <p className="text-sm text-muted-foreground">
                   Preencha seus dados acima e assine digitalmente para confirmar a leitura e concordância com
                   todos os termos do contrato.
@@ -375,7 +301,7 @@ export function ContratoPublicoPage() {
                     </>
                   )}
                 </Button>
-              </Section>
+              </div>
             )}
           </form>
         </div>
@@ -384,11 +310,3 @@ export function ContratoPublicoPage() {
   )
 }
 
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
-  return (
-    <div className="mb-6">
-      <h2 className="mb-2 text-base font-semibold">{title}</h2>
-      <div className="space-y-1 text-sm">{children}</div>
-    </div>
-  )
-}

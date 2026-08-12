@@ -66,6 +66,20 @@ export const contratoService = {
     return data
   },
 
+  getTemplate: async (): Promise<string> => {
+    const { data } = await apiClient.get<{ template: string }>('/config/contrato/template')
+    return data.template
+  },
+
+  updateTemplate: async (template: string): Promise<void> => {
+    await apiClient.put('/config/contrato/template', { template })
+  },
+
+  restaurarTemplatePadrao: async (): Promise<string> => {
+    const { data } = await apiClient.put<{ template: string }>('/config/contrato/template/padrao')
+    return data.template
+  },
+
   async baixarArquivo(id: string, tipo: 'pdf' | 'comprovante'): Promise<Blob> {
     const { data } = await apiClient.get<Blob>(`/contratos/${id}/${tipo}`, { responseType: 'blob' })
     return data

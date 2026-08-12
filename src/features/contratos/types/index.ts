@@ -85,6 +85,7 @@ export interface ContratoPublico {
   valorTotal: number
   valorEntradaExigido: number
   valorRestante: number
+  clausulasHtml: string
 }
 
 export interface ContratoStatusPublico {
