@@ -33,6 +33,10 @@ const RelatoriosPage = lazy(() => import('@/features/financeiro').then(m => ({ d
 const ReceitasPage = lazy(() => import('@/features/financeiro').then(m => ({ default: m.ReceitasPage })))
 const FluxoCaixaPage = lazy(() => import('@/features/financeiro').then(m => ({ default: m.FluxoCaixaPage })))
 const DespesasPage = lazy(() => import('@/features/despesas').then(m => ({ default: m.DespesasPage })))
+const ContratosPage = lazy(() => import('@/features/contratos').then(m => ({ default: m.ContratosPage })))
+const CriarContratoPage = lazy(() => import('@/features/contratos').then(m => ({ default: m.CriarContratoPage })))
+const ContratoDetalhesPage = lazy(() => import('@/features/contratos').then(m => ({ default: m.ContratoDetalhesPage })))
+const ContratoPublicoPage = lazy(() => import('@/features/contratos').then(m => ({ default: m.ContratoPublicoPage })))
 function PageLoader() {
   return (
     <div className="flex h-screen items-center justify-center" role="status" aria-label="Carregando página">
@@ -58,6 +62,7 @@ export function AppRoutes() {
       <Suspense fallback={<PageLoader />}>
         <Routes>
           <Route path="/g/:token" element={<GaleriaClientePage />} />
+          <Route path={ROUTES.CONTRATO_PUBLICO} element={<ContratoPublicoPage />} />
 
           <Route path={ROUTES.LOGIN} element={<LoginPage />} />
           <Route path={ROUTES.ACESSO_CLIENTE} element={<CustomerLoginPage />} />
@@ -73,6 +78,9 @@ export function AppRoutes() {
             <Route path={ROUTES.AGENDA_NOVO} element={<NovoAgendamentoPage />} />
             <Route path={ROUTES.AGENDA_DETALHES} element={<AgendamentoDetalhesPage />} />
             <Route path={ROUTES.AGENDA_EDITAR} element={<EditarAgendamentoPage />} />
+            <Route path={ROUTES.CONTRATOS} element={<ContratosPage />} />
+            <Route path={ROUTES.CONTRATOS_NOVO} element={<CriarContratoPage />} />
+            <Route path={ROUTES.CONTRATO_DETALHES} element={<ContratoDetalhesPage />} />
             <Route path={ROUTES.PACOTES} element={<PacotesListPage />} />
             <Route path={ROUTES.PACOTES_NOVO} element={<PacoteFormPage />} />
             <Route path={ROUTES.PACOTES_EDITAR} element={<PacoteFormPage />} />

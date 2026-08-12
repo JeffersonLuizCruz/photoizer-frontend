@@ -27,6 +27,10 @@ export const ROUTES = {
   EDICAO_AGENDAMENTO: '/edicao/:agendamentoId',
   EDICAO_UPLOAD_RAW: '/edicao/:agendamentoId/upload-raw',
   EDICAO_REVISAO: '/edicao/:agendamentoId/revisao',
+  CONTRATOS: '/contratos',
+  CONTRATOS_NOVO: '/contratos/novo',
+  CONTRATO_DETALHES: '/contratos/:id',
+  CONTRATO_PUBLICO: '/contrato/:token',
 } as const
 
 export const QUERY_KEYS = {
@@ -36,6 +40,7 @@ export const QUERY_KEYS = {
   FINANCEIRO: ['financeiro'],
   DASHBOARD: ['dashboard'],
   EDICAO: ['edicao'],
+  CONTRATOS: ['contratos'],
 } as const
 
 export const AGENDAMENTO_STATUS = {
@@ -58,5 +63,17 @@ export const ORIGEM = {
   OUTROS: 'OUTROS',
 } as const
 
+export const CONTRATO_STATUS = {
+  RASCUNHO: 'RASCUNHO',
+  PUBLICADO: 'PUBLICADO',
+  ASSINADO_PELO_CLIENTE: 'ASSINADO_PELO_CLIENTE',
+  PAGAMENTO_CONFIRMADO: 'PAGAMENTO_CONFIRMADO',
+  APROVADO: 'APROVADO',
+  DEVOLVIDO: 'DEVOLVIDO',
+  CANCELADO: 'CANCELADO',
+  EXPIRADO: 'EXPIRADO',
+} as const
+
 export type AgendamentoStatus = (typeof AGENDAMENTO_STATUS)[keyof typeof AGENDAMENTO_STATUS]
 export type Origem = (typeof ORIGEM)[keyof typeof ORIGEM]
+export type ContratoStatus = (typeof CONTRATO_STATUS)[keyof typeof CONTRATO_STATUS]

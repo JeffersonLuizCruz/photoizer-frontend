@@ -5,6 +5,7 @@ import {
   ChevronDown,
   DollarSign,
   FileBarChart2,
+  FileSignature,
   Image,
   LayoutDashboard,
   Package,
@@ -53,6 +54,7 @@ const navEntries: NavEntry[] = [
   { to: ROUTES.PACOTES, label: 'Pacotes', icon: Package },
   { to: ROUTES.EDICAO, label: 'Edição', icon: Image },
   { to: ROUTES.ADMIN_ECOMMERCE, label: 'Ecommerce', icon: ShoppingCart },
+  { to: ROUTES.CONTRATOS, label: 'Contratos', icon: FileSignature },
   { to: ROUTES.COMISSOES, label: 'Comissões', icon: Percent },
   financeiroGroup,
   { to: ROUTES.CONFIG, label: 'Configurações', icon: Settings },
@@ -63,6 +65,7 @@ const agendadorRoutes = new Set<string>([
   ROUTES.PACOTES,
   ROUTES.EDICAO,
   ROUTES.COMISSOES,
+  ROUTES.CONTRATOS,
 ])
 
 function isNavItem(entry: NavEntry): entry is NavItem {
