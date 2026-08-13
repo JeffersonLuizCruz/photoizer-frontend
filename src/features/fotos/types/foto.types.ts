@@ -1,1 +1,1 @@
-export type { FotoEnsaio } from '@/features/ecommerce/types/ecommerce.types'
+export type { FotoEnsaio, FotoComentario, ComentariosPorFotoResponse, OrigemComentario } from '@/features/ecommerce/types/ecommerce.types'

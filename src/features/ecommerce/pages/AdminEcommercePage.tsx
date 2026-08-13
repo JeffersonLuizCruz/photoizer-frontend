@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Check, X, Eye } from 'lucide-react'
+import { Check, X, Eye, AlertTriangle } from 'lucide-react'
 import { toast } from 'sonner'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { ecommerceService } from '../services/ecommerce.service'
@@ -20,7 +20,7 @@ function statusBadge(status: string) {
   if (status === 'PAGA') return { variant: 'success' as const, label: 'Pago' }
   if (status === 'AGUARDANDO_CONFIRMACAO') return { variant: 'warning' as const, label: 'Aguad. Confirmação' }
   if (status === 'AGUARDANDO_COMPROVANTE') return { variant: 'secondary' as const, label: 'Aguad. Comprovante' }
-  if (status === 'CANCELADA') return { variant: 'destructive' as const, label: 'Cancelada' }
+  if (status === 'CANCELADA') return { variant: 'secondary' as const, label: 'Cancelada' }
   return { variant: 'secondary' as const, label: status }
 }
 
@@ -31,6 +31,7 @@ export function AdminEcommercePage() {
   const [statusFilter, setStatusFilter] = useState<string | undefined>()
   const [detailCompraId, setDetailCompraId] = useState<string | null>(null)
   const [confirmCancelId, setConfirmCancelId] = useState<string | null>(null)
+  const [motivoRecusa, setMotivoRecusa] = useState('')
 
   const { data: pageData, isLoading } = useQuery({
     queryKey: ['admin-compras', page, perPage, statusFilter],
@@ -67,12 +68,13 @@ export function AdminEcommercePage() {
   })
 
   const { mutate: cancelar, isPending: isCancelling } = useMutation({
-    mutationFn: (id: string) => ecommerceService.adminCancelarCompra(id),
+    mutationFn: ({ id, motivo }: { id: string; motivo?: string }) => ecommerceService.adminCancelarCompra(id, motivo),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-compras'] })
       queryClient.invalidateQueries({ queryKey: ['admin-compras-relatorio'] })
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.FINANCEIRO })
       setConfirmCancelId(null)
+      setMotivoRecusa('')
       toast.success('Compra cancelada!')
     },
     onError: (err: Error) => toast.error(err.message || 'Erro ao cancelar'),
@@ -227,13 +229,28 @@ export function AdminEcommercePage() {
 
       <ConfirmDialog
         open={confirmCancelId !== null}
-        onOpenChange={(open) => { if (!open) setConfirmCancelId(null) }}
-        onConfirm={() => confirmCancelId && cancelar(confirmCancelId)}
+        onOpenChange={(open) => { if (!open) { setConfirmCancelId(null); setMotivoRecusa('') } }}
+        onConfirm={() => confirmCancelId && cancelar({ id: confirmCancelId, motivo: motivoRecusa.trim() || undefined })}
         isLoading={isCancelling}
-        title="Cancelar Compra?"
-        description="Tem certeza que deseja cancelar esta compra? As fotos serão desvinculadas."
-        confirmText="Cancelar Compra"
-        variant="destructive" />
+        title="Recusar Compra?"
+        description="Esta ação cancelará a compra e desvinculará as fotos. Informe o motivo para o cliente ficar ciente."
+        confirmText="Recusar Compra"
+        variant="default">
+        <div className="space-y-1">
+          <label className="text-xs font-medium flex items-center gap-1">
+            <AlertTriangle className="h-3 w-3 text-destructive" />
+            Motivo da recusa <span className="text-muted-foreground">(opcional)</span>
+          </label>
+          <textarea
+            value={motivoRecusa}
+            onChange={(e) => setMotivoRecusa(e.target.value)}
+            rows={3}
+            maxLength={2000}
+            className="w-full rounded-lg border bg-background p-2.5 text-sm outline-none focus:ring-2 focus:ring-ring resize-none"
+            placeholder="Ex.: Comprovante ilegível, valor divergente..."
+          />
+        </div>
+      </ConfirmDialog>
     </div>
   )
 }

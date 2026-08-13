@@ -28,6 +28,7 @@ export interface CompraExtraResponse {
   dataPagamento: string | null
   quantidadeFotos: number | null
   metodoPagamento: string | null
+  motivoRecusa: string | null
 }
 
 export interface AdminEcommerceResumoResponse {
@@ -158,4 +159,22 @@ export interface DadosEcommerceMensal {
 
 export interface DashboardEcommerceMensalResponse {
   historico: DadosEcommerceMensal[]
+}
+
+export type OrigemComentario = 'CLIENTE' | 'STAFF'
+
+export interface FotoComentario {
+  id: string
+  fotoId: string
+  autorNome: string | null
+  mensagem: string
+  origem: OrigemComentario
+  lida: boolean
+  createdAt: string
+}
+
+export interface ComentariosPorFotoResponse {
+  foto: FotoEnsaio
+  comentarios: FotoComentario[]
+  naoLidas: number
 }

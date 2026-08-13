@@ -156,7 +156,7 @@ export function ContratoPublicoPage() {
 
             {podeAssinar && (
               <div className="space-y-4 border-t pt-6">
-                <h2 className="text-base font-semibold">Preencha seus dados</h2>
+                <h2 className="text-base font-semibold">1. Dados do Cliente</h2>
                 <div className="space-y-3">
                   <div>
                     <Label htmlFor="nome">Nome completo *</Label>

@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { RefreshCw, Link2, Loader2, Check, X, ImagePlus, DollarSign } from 'lucide-react'
+import { RefreshCw, Link2, Loader2, Check, X, ImagePlus, DollarSign, AlertTriangle } from 'lucide-react'
 import { toast } from 'sonner'
 import { useNavigate } from 'react-router-dom'
 import { ecommerceService } from '@/features/ecommerce/services/ecommerce.service'
@@ -55,6 +55,21 @@ export function EcommerceAdminResumo({ agendamentoId }: EcommerceAdminResumoProp
       toast.success('Pagamento confirmado! Fotos liberadas para download.')
     },
     onError: (error: Error) => toast.error(error.message || 'Erro ao confirmar pagamento'),
+  })
+
+  const [confirmRecusarId, setConfirmRecusarId] = useState<string | null>(null)
+  const [motivoRecusa, setMotivoRecusa] = useState('')
+
+  const { mutate: recusarCompra, isPending: isRecusing } = useMutation({
+    mutationFn: ({ id, motivo }: { id: string; motivo?: string }) =>
+      ecommerceService.adminCancelarCompra(id, motivo),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-ecommerce', agendamentoId] })
+      setConfirmRecusarId(null)
+      setMotivoRecusa('')
+      toast.success('Compra recusada!')
+    },
+    onError: (error: Error) => toast.error(error.message || 'Erro ao recusar compra'),
   })
 
   if (isLoading) {
@@ -209,10 +224,11 @@ export function EcommerceAdminResumo({ agendamentoId }: EcommerceAdminResumoProp
                     <td className="px-3 py-2 text-xs font-mono">{compra.id.slice(0, 8)}</td>
                     <td className="px-3 py-2 text-right font-medium">{formatCurrency(compra.valorTotal)}</td>
                     <td className="px-3 py-2 text-center">
-                      <StatusBadge status={compra.status === 'PAGA' ? 'active' : compra.status === 'AGUARDANDO_CONFIRMACAO' ? 'warning' : 'inactive'}
+                      <StatusBadge status={compra.status === 'PAGA' ? 'paid' : compra.status === 'AGUARDANDO_CONFIRMACAO' ? 'warning' : compra.status === 'CANCELADA' ? 'cancelled' : 'inactive'}
                         customLabels={{
-                          active: { label: 'Pago', variant: 'success' },
+                          paid: { label: 'Pago', variant: 'success' },
                           warning: { label: 'Aguad. Confirmação', variant: 'warning' },
+                          cancelled: { label: 'Cancelada', variant: 'secondary' },
                           inactive: { label: 'Aguad. Comprovante', variant: 'secondary' },
                         }} />
                     </td>
@@ -225,13 +241,22 @@ export function EcommerceAdminResumo({ agendamentoId }: EcommerceAdminResumoProp
                       ) : '—'}
                     </td>
                     <td className="px-3 py-2 text-center">
-                      {(compra.status === 'AGUARDANDO_COMPROVANTE' || compra.status === 'AGUARDANDO_CONFIRMACAO') && (
-                        <button onClick={() => confirmarCompra(compra.id)} disabled={isConfirming}
-                          className="h-6 w-6 rounded hover:bg-emerald-100 hover:text-emerald-700 dark:hover:bg-emerald-900/30 dark:hover:text-emerald-400 flex items-center justify-center"
-                          title="Confirmar pagamento">
-                          <Check className="h-3.5 w-3.5" />
-                        </button>
-                      )}
+                      <div className="flex items-center justify-center gap-1">
+                        {(compra.status === 'AGUARDANDO_COMPROVANTE' || compra.status === 'AGUARDANDO_CONFIRMACAO') && (
+                          <>
+                            <button onClick={() => confirmarCompra(compra.id)} disabled={isConfirming}
+                              className="h-6 w-6 rounded hover:bg-emerald-100 hover:text-emerald-700 dark:hover:bg-emerald-900/30 dark:hover:text-emerald-400 flex items-center justify-center"
+                              title="Confirmar pagamento">
+                              <Check className="h-3.5 w-3.5" />
+                            </button>
+                            <button onClick={() => setConfirmRecusarId(compra.id)} disabled={isRecusing}
+                              className="h-6 w-6 rounded hover:bg-red-100 hover:text-red-700 dark:hover:bg-red-900/30 dark:hover:text-red-400 flex items-center justify-center"
+                              title="Recusar compra">
+                              <X className="h-3.5 w-3.5" />
+                            </button>
+                          </>
+                        )}
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -249,8 +274,33 @@ export function EcommerceAdminResumo({ agendamentoId }: EcommerceAdminResumoProp
         title="Regenerar Token?"
         description="O link atual da galeria deixará de funcionar. Um novo link será gerado. Tem certeza?"
         confirmText="Regenerar"
-        variant="destructive"
+        variant="default"
       />
+
+      <ConfirmDialog
+        open={confirmRecusarId !== null}
+        onOpenChange={(open) => { if (!open) { setConfirmRecusarId(null); setMotivoRecusa('') } }}
+        onConfirm={() => confirmRecusarId && recusarCompra({ id: confirmRecusarId, motivo: motivoRecusa.trim() || undefined })}
+        isLoading={isRecusing}
+        title="Recusar Compra?"
+        description="Esta ação cancelará a compra e desvinculará as fotos. Informe o motivo para o cliente ficar ciente."
+        confirmText="Recusar Compra"
+        variant="default">
+        <div className="space-y-1">
+          <label className="text-xs font-medium flex items-center gap-1">
+            <AlertTriangle className="h-3 w-3 text-muted-foreground" />
+            Motivo da recusa <span className="text-muted-foreground">(opcional)</span>
+          </label>
+          <textarea
+            value={motivoRecusa}
+            onChange={(e) => setMotivoRecusa(e.target.value)}
+            rows={3}
+            maxLength={2000}
+            className="w-full rounded-lg border bg-background p-2.5 text-sm outline-none focus:ring-2 focus:ring-ring resize-none"
+            placeholder="Ex.: Comprovante ilegível, valor divergente..."
+          />
+        </div>
+      </ConfirmDialog>
     </div>
   )
 }

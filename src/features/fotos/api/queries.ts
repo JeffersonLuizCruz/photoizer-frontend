@@ -106,3 +106,34 @@ export function useSubstituirImagem(agendamentoId: string) {
     onError: (error: Error) => toast.error(error.message || 'Erro ao substituir imagem'),
   })
 }
+
+export function useComentariosAdmin(agendamentoId: string | undefined) {
+  return useQuery({
+    queryKey: ['comentarios-fotos', agendamentoId],
+    queryFn: () => fotoService.listarComentarios(agendamentoId!),
+    enabled: !!agendamentoId,
+  })
+}
+
+export function useResponderComentario(agendamentoId: string) {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ({ fotoId, mensagem }: { fotoId: string; mensagem: string }) =>
+      fotoService.responderComentario(agendamentoId, fotoId, mensagem),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['comentarios-fotos', agendamentoId] })
+      toast.success('Resposta enviada!')
+    },
+    onError: (error: Error) => toast.error(error.message || 'Erro ao responder comentário'),
+  })
+}
+
+export function useMarcarComentariosLidos(agendamentoId: string) {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (fotoId: string) => fotoService.marcarComentariosLidos(agendamentoId, fotoId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['comentarios-fotos', agendamentoId] })
+    },
+  })
+}

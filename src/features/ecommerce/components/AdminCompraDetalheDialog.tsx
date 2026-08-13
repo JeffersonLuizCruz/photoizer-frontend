@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { X, Download, Loader2 } from 'lucide-react'
+import { X, Download, Loader2, AlertTriangle } from 'lucide-react'
 import { ecommerceService } from '../services/ecommerce.service'
 import type { AdminCompraDetalheResponse } from '../types/ecommerce.types'
 import { AuthImage } from '@/shared/components/ui/AuthImage'
@@ -75,6 +75,15 @@ export function AdminCompraDetalheDialog({ compraId, open, onOpenChange }: Admin
                   <p className="text-sm mt-0.5">—</p>
                 )}
               </div>
+              {detalhe.motivoRecusa && (
+                <div className="col-span-2 rounded-lg bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-800 p-3 space-y-1">
+                  <div className="flex items-center gap-1.5 text-xs font-medium text-red-700 dark:text-red-400">
+                    <AlertTriangle className="h-3.5 w-3.5" />
+                    Motivo da recusa
+                  </div>
+                  <p className="text-sm text-red-600 dark:text-red-300">{detalhe.motivoRecusa}</p>
+                </div>
+              )}
             </div>
 
             {detalhe.fotos.length > 0 && (

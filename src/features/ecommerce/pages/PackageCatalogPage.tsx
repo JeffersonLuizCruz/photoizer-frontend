@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Camera, Shield, Zap, ChevronRight, Loader2 } from 'lucide-react'
+import { Camera, Shield, Zap, ChevronRight } from 'lucide-react'
 import { ecommerceService } from '../services/ecommerce.service'
 import type { PacoteResponse } from '@/features/pacotes/types/pacotes.types'
 
@@ -23,8 +23,26 @@ export function PackageCatalogPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-background to-muted/30 flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      <div className="min-h-screen bg-gradient-to-b from-background to-muted/30">
+        <div className="max-w-7xl mx-auto px-4 py-12 md:py-20">
+          <div className="h-8 w-64 mx-auto rounded-xl bg-muted animate-pulse mb-3" />
+          <div className="h-4 w-80 max-w-full mx-auto rounded-xl bg-muted/70 animate-pulse" />
+          <div className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto mt-12">
+            {Array.from({ length: 3 }).map((_, i) => (
+              <div key={i} className="rounded-2xl border-2 bg-card p-6">
+                <div className="h-20 w-20 rounded-full bg-muted animate-pulse mx-auto mb-4" />
+                <div className="h-5 w-32 mx-auto rounded-xl bg-muted animate-pulse mb-2" />
+                <div className="h-3 w-44 mx-auto rounded-xl bg-muted/70 animate-pulse" />
+                <div className="h-8 w-40 mx-auto rounded-xl bg-muted animate-pulse mt-6 mb-8" />
+                <div className="space-y-2.5">
+                  {Array.from({ length: 3 }).map((_, j) => (
+                    <div key={j} className="h-3.5 w-full rounded-xl bg-muted/70 animate-pulse" />
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
     )
   }

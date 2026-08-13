@@ -1,6 +1,6 @@
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, useMemo } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { Upload, Trash2, Send, ImagePlus, X, Loader2, Link2, Star, Pencil, Eye, EyeOff, RefreshCw } from 'lucide-react'
+import { Upload, Trash2, Send, ImagePlus, X, Loader2, Link2, Star, Pencil, Eye, EyeOff, RefreshCw, MessageCircle } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/shared/components/ui/button'
 import { PageTitle } from '@/shared/components/layout/PageTitle'
@@ -13,7 +13,8 @@ import { Checkbox } from '@/shared/components/ui/checkbox'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/components/ui/select'
 import { ConfirmDialog } from '@/shared/components/layout/ConfirmDialog'
 import { ROUTES, AGENDAMENTO_STATUS, type AgendamentoStatus } from '@/shared/constants'
-import { useAgendamento, useFotosList, useUploadFotos, usePublicarFotos, useDeletarFoto, useUpdateFotoMetadata, useAlterarVisibilidade, useAlterarStatus, useSubstituirImagem } from '../api/queries'
+import { useAgendamento, useFotosList, useUploadFotos, usePublicarFotos, useDeletarFoto, useUpdateFotoMetadata, useAlterarVisibilidade, useAlterarStatus, useSubstituirImagem, useComentariosAdmin } from '../api/queries'
+import { ComentariosDialog } from '../components/ComentariosDialog'
 import type { FotoEnsaio } from '@/features/ecommerce/types/ecommerce.types'
 
 const CATEGORIAS = [
@@ -131,8 +132,10 @@ export function AdminGaleriaPage() {
   const [editFoto, setEditFoto] = useState<FotoEnsaio | null>(null)
   const [replaceFotoId, setReplaceFotoId] = useState<string | null>(null)
   const [confirmDeleteFotoId, setConfirmDeleteFotoId] = useState<string | null>(null)
+  const [comentariosFoto, setComentariosFoto] = useState<FotoEnsaio | null>(null)
 
   const { data: fotos = [], isLoading } = useFotosList(id)
+  const { data: comentariosAdmin = [] } = useComentariosAdmin(id)
   const { mutate: uploadFotos, isPending: isUploading } = useUploadFotos(id ?? '')
   const { mutate: publicar, isPending: isPublishing } = usePublicarFotos(id ?? '')
   const { mutate: deletar } = useDeletarFoto(id ?? '')
@@ -140,6 +143,11 @@ export function AdminGaleriaPage() {
   const { mutate: alterarStatus } = useAlterarStatus(id ?? '')
   const { mutate: substituirImagem, isPending: isReplacing } = useSubstituirImagem(id ?? '')
   const { data: agendamento } = useAgendamento(id)
+
+  const comentariosPorFoto = useMemo(
+    () => new Map(comentariosAdmin.map((item) => [item.foto.id, item])),
+    [comentariosAdmin]
+  )
 
   useEffect(() => {
     if (agendamento?.tokenGaleria) {
@@ -351,12 +359,23 @@ export function AdminGaleriaPage() {
                       Aprovada
                     </div>
                   )}
+                  {(comentariosPorFoto.get(foto.id)?.naoLidas ?? 0) > 0 && (
+                    <button
+                      type="button"
+                      onClick={() => setComentariosFoto(foto)}
+                      title={`Comentários: ${comentariosPorFoto.get(foto.id)!.naoLidas} não lido(s)`}
+                      className="absolute bottom-1 right-1 z-10 inline-flex items-center gap-1 rounded-md bg-red-500 px-1.5 py-0.5 text-[10px] font-semibold text-white shadow-sm hover:bg-red-600 transition-colors"
+                    >
+                      <MessageCircle className="h-3 w-3" />
+                      {comentariosPorFoto.get(foto.id)!.naoLidas}
+                    </button>
+                  )}
                   <AuthImage
                     src={foto.thumbUrl}
                     alt={foto.fileName}
                     className="h-full w-full object-cover"
                   />
-                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100">
+                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors flex items-center justify-center gap-1.5 flex-wrap px-1.5 opacity-0 group-hover:opacity-100">
                     <button
                       type="button"
                       onClick={() => setEditFoto(foto)}
@@ -391,6 +410,19 @@ export function AdminGaleriaPage() {
                       title={foto.visivel ? 'Ocultar da loja' : 'Exibir na loja'}
                     >
                       {foto.visivel ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setComentariosFoto(foto)}
+                      className="h-8 w-8 rounded-full bg-indigo-500 text-white flex items-center justify-center relative"
+                      title="Ver comentários dos clientes"
+                    >
+                      <MessageCircle className="h-4 w-4" />
+                      {(comentariosPorFoto.get(foto.id)?.naoLidas ?? 0) > 0 && (
+                        <span className="absolute -top-1 -right-1 h-4 min-w-4 px-1 rounded-full bg-red-500 text-white text-[10px] font-bold flex items-center justify-center">
+                          {comentariosPorFoto.get(foto.id)!.naoLidas}
+                        </span>
+                      )}
                     </button>
                     <button
                       type="button"
@@ -460,6 +492,13 @@ export function AdminGaleriaPage() {
           onOpenChange={(open) => { if (!open) setEditFoto(null) }}
         />
       )}
+
+      <ComentariosDialog
+        agendamentoId={id}
+        foto={comentariosFoto}
+        open={comentariosFoto !== null}
+        onOpenChange={(open) => { if (!open) setComentariosFoto(null) }}
+      />
     </div>
   )
 }

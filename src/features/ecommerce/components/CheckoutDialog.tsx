@@ -1,8 +1,11 @@
-import { useState, useEffect } from 'react'
-import { Loader2, Copy, Check, ArrowLeft, CreditCard, Send } from 'lucide-react'
+import { useState, useEffect, useRef } from 'react'
+import { Loader2, Copy, Check, Zap, Banknote, Send, CreditCard, Upload, X } from 'lucide-react'
 import { toast } from 'sonner'
 import type { CalculoCarrinhoResponse, CompraExtraResponse, MetodoPagamento } from '../types/ecommerce.types'
 import { ecommerceService } from '../services/ecommerce.service'
+import { cn } from '@/shared/lib/cn'
+
+type PaymentMode = 'online' | 'manual'
 
 interface CheckoutDialogProps {
   token: string
@@ -13,30 +16,33 @@ interface CheckoutDialogProps {
   onEnviarComprovante: (compra: CompraExtraResponse, file: File) => Promise<void>
 }
 
+const CHAVE_PIX = 'photoizer@email.com'
+
 export function CheckoutDialog({
   token, open, onClose, onCheckout, onPagarSimulado, onEnviarComprovante,
 }: CheckoutDialogProps) {
   const [calculo, setCalculo] = useState<CalculoCarrinhoResponse | null>(null)
-  const [isCalculando, setIsCalculando] = useState(false)
-  const [metodoSelecionado, setMetodoSelecionado] = useState<MetodoPagamento>('PIX')
-  const [pixCopiado, setPixCopiado] = useState(false)
+  const [paymentMode, setPaymentMode] = useState<PaymentMode | null>(null)
   const [compra, setCompra] = useState<CompraExtraResponse | null>(null)
   const [comprovante, setComprovante] = useState<File | null>(null)
-  const [isCriandoCompra, setIsCriandoCompra] = useState(false)
-  const [isPagando, setIsPagando] = useState(false)
+  const [isProcessing, setIsProcessing] = useState(false)
   const [isEnviando, setIsEnviando] = useState(false)
-
-  const CHAVE_PIX = 'photoizer@email.com'
+  const [pixCopiado, setPixCopiado] = useState(false)
+  const [successMessage, setSuccessMessage] = useState<string | null>(null)
+  const [errorMessage, setErrorMessage] = useState<string | null>(null)
+  const [dragOver, setDragOver] = useState(false)
+  const inputFileRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     if (!open || !token) return
     setCompra(null)
     setComprovante(null)
-    setIsCalculando(true)
+    setPaymentMode(null)
+    setSuccessMessage(null)
+    setErrorMessage(null)
     ecommerceService.calcular(token)
       .then(setCalculo)
       .catch(() => toast.error('Erro ao calcular carrinho'))
-      .finally(() => setIsCalculando(false))
   }, [open, token])
 
   const copiarChavePix = () => {
@@ -46,28 +52,27 @@ export function CheckoutDialog({
     toast.success('Chave PIX copiada!')
   }
 
-  const finalizar = async () => {
-    setIsCriandoCompra(true)
+  const handleConfirmar = async () => {
+    if (!paymentMode || !calculo) return
+    const metodoPagamento: MetodoPagamento = paymentMode === 'online' ? 'PIX' : 'TRANSFERENCIA'
+    setIsProcessing(true)
+    setErrorMessage(null)
     try {
-      const compraCriada = await onCheckout(metodoSelecionado)
+      const compraCriada = await onCheckout(metodoPagamento)
       setCompra(compraCriada)
-    } catch (err: any) {
-      toast.error(err?.response?.data?.message || 'Erro ao criar compra')
-    } finally {
-      setIsCriandoCompra(false)
-    }
-  }
 
-  const pagarSimulado = async () => {
-    if (!compra) return
-    setIsPagando(true)
-    try {
-      await onPagarSimulado(compra)
-      onClose()
+      if (paymentMode === 'online') {
+        await onPagarSimulado(compraCriada)
+        setSuccessMessage('Pagamento confirmado! Suas fotos já estão disponíveis para download.')
+      } else {
+        setSuccessMessage('Compra criada! Envie o comprovante para liberar as fotos.')
+      }
     } catch (err: any) {
-      toast.error(err?.response?.data?.message || 'Erro ao processar pagamento')
+      const msg = err?.response?.data?.message || 'Erro ao processar pagamento'
+      setErrorMessage(msg)
+      toast.error(msg)
     } finally {
-      setIsPagando(false)
+      setIsProcessing(false)
     }
   }
 
@@ -76,6 +81,7 @@ export function CheckoutDialog({
     setIsEnviando(true)
     try {
       await onEnviarComprovante(compra, comprovante)
+      toast.success('Comprovante enviado! O estúdio irá liberar as fotos em breve.')
       onClose()
     } catch (err: any) {
       toast.error(err?.response?.data?.message || 'Erro ao enviar comprovante')
@@ -84,168 +90,230 @@ export function CheckoutDialog({
     }
   }
 
+  const selecionarArquivo = (file: File | null) => {
+    setComprovante(file)
+  }
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault()
+    setDragOver(false)
+    const file = e.dataTransfer.files?.[0]
+    if (file && (file.type.startsWith('image/') || file.type === 'application/pdf')) {
+      selecionarArquivo(file)
+    } else {
+      toast.error('Formato não aceito. Use JPEG, PNG ou PDF.')
+    }
+  }
+
   if (!open) return null
 
-  const methodLabel = (metodo: string | null | undefined) =>
-    metodo === 'PIX' ? 'PIX' : metodo === 'TRANSFERENCIA' ? 'Transferência' : metodo === 'DINHEIRO' ? 'Dinheiro' : '-'
-
   return (
-    <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4" onClick={() => !isCriandoCompra && !isPagando && !isEnviando && onClose()}>
-      <div className="bg-background rounded-xl border shadow-lg max-w-lg w-full p-6 space-y-4 max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+    <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4" onClick={() => !isProcessing && !isEnviando && onClose()}>
+      <div className="bg-background rounded-xl border shadow-lg max-w-lg w-full p-6 space-y-5 max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
         <h2 className="text-base font-semibold">
-          {compra ? 'Pagamento' : 'Finalizar Compra'}
+          {successMessage && compra?.status === 'PAGA' ? 'Pagamento Confirmado' : 'Finalizar Compra'}
         </h2>
 
-        {!compra ? (
-          <>
-            {isCalculando ? (
-              <div className="flex items-center justify-center py-8">
-                <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-              </div>
-            ) : calculo ? (
-              <>
-                {/* Preview dos itens */}
-                <div className="space-y-2">
-                  <h3 className="text-xs font-medium text-muted-foreground">ITENS NO CARRINHO ({calculo.quantidade})</h3>
-                  <div className="max-h-32 overflow-y-auto space-y-1.5">
-                    {calculo.itens.map((item) => (
-                      <div key={item.fotoId} className="flex items-center justify-between text-sm">
-                        <span className="truncate flex-1 text-muted-foreground">{item.fileName}</span>
-                        <span className="font-medium ml-2">R$ {item.valorUnitario.toFixed(2)}</span>
-                      </div>
-                    ))}
-                  </div>
+        {/* Cart summary (before success) */}
+        {!successMessage && calculo && (
+          <div className="space-y-2">
+            <h3 className="text-xs font-medium text-muted-foreground">ITENS NO CARRINHO ({calculo.quantidade})</h3>
+            <div className="max-h-32 overflow-y-auto space-y-1.5">
+              {calculo.itens.map((item) => (
+                <div key={item.fotoId} className="flex items-center justify-between text-sm">
+                  <span className="truncate flex-1 text-muted-foreground">{item.fileName}</span>
+                  <span className="font-medium ml-2">R$ {item.valorUnitario.toFixed(2)}</span>
                 </div>
+              ))}
+            </div>
+            <div className="border-t pt-2 flex justify-between text-sm font-medium">
+              <span>Total</span>
+              <span>R$ {calculo.total.toFixed(2)}</span>
+            </div>
+          </div>
+        )}
 
-                <div className="border-t pt-2 space-y-1">
-                  <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Subtotal ({calculo.quantidade} × R$ {calculo.valorUnitario.toFixed(2)})</span>
-                    <span>R$ {calculo.subtotal.toFixed(2)}</span>
-                  </div>
-                  <div className="flex justify-between text-sm font-medium border-t pt-2">
-                    <span>Total</span>
-                    <span>R$ {calculo.total.toFixed(2)}</span>
-                  </div>
+        {/* Payment mode selection (before checkout) */}
+        {!compra && !successMessage && (
+          <div className="space-y-3">
+            <h3 className="text-xs font-medium text-muted-foreground">COMO DESEJA PAGAR?</h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <button
+                onClick={() => setPaymentMode('online')}
+                role="radio"
+                aria-checked={paymentMode === 'online'}
+                className={cn(
+                  'flex flex-col items-center gap-2 rounded-xl border-2 p-4 text-center transition-all',
+                  paymentMode === 'online'
+                    ? 'border-blue-500 bg-blue-50/50 dark:bg-blue-950/20 shadow-sm'
+                    : 'border-border hover:border-blue-300 hover:bg-accent/50'
+                )}>
+                <div className={cn(
+                  'h-10 w-10 rounded-full flex items-center justify-center transition-colors',
+                  paymentMode === 'online' ? 'bg-blue-500 text-white' : 'bg-muted text-muted-foreground'
+                )}>
+                  <Zap className="h-5 w-5" />
                 </div>
-
-                {/* Método de pagamento */}
-                <div className="space-y-2">
-                  <h3 className="text-xs font-medium text-muted-foreground">FORMA DE PAGAMENTO</h3>
-                  <div className="grid grid-cols-3 gap-2">
-                    {(['PIX', 'TRANSFERENCIA', 'DINHEIRO'] as MetodoPagamento[]).map((metodo) => (
-                      <button key={metodo} onClick={() => setMetodoSelecionado(metodo)}
-                        className={`rounded-lg border px-3 py-2 text-xs font-medium transition-colors text-center ${
-                          metodoSelecionado === metodo
-                            ? 'border-primary bg-primary/10 text-primary'
-                            : 'hover:bg-accent'
-                        }`}>
-                        {metodo === 'PIX' ? 'PIX' : metodo === 'TRANSFERENCIA' ? 'Transferência' : 'Dinheiro'}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Instruções de pagamento */}
-                {metodoSelecionado === 'PIX' && (
-                  <div className="rounded-lg bg-muted p-3 text-xs text-muted-foreground space-y-2">
-                    <p className="font-medium text-foreground">Pagamento via PIX</p>
-                    <div className="flex items-center justify-between gap-2 bg-background rounded px-2 py-1.5 border">
-                      <code className="text-xs font-mono">{CHAVE_PIX}</code>
-                      <button onClick={copiarChavePix}
-                        className="flex items-center gap-1 text-primary hover:text-primary/80 font-medium whitespace-nowrap">
-                        {pixCopiado ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
-                        {pixCopiado ? 'Copiado' : 'Copiar'}
-                      </button>
-                    </div>
-                    <p>Após o pagamento, você poderá simular o pagamento para liberar as fotos.</p>
-                  </div>
-                )}
-
-                {metodoSelecionado === 'TRANSFERENCIA' && (
-                  <div className="rounded-lg bg-muted p-3 text-xs text-muted-foreground space-y-1">
-                    <p className="font-medium text-foreground">Transferência Bancária</p>
-                    <p>Banco: Photoizer Bank (237)</p>
-                    <p>Agência: 0001 | Conta: 12345-6</p>
-                    <p>Após a transferência, confirme o pagamento para liberar as fotos.</p>
-                  </div>
-                )}
-
-                {metodoSelecionado === 'DINHEIRO' && (
-                  <div className="rounded-lg bg-muted p-3 text-xs text-muted-foreground space-y-1">
-                    <p className="font-medium text-foreground">Pagamento em Dinheiro</p>
-                    <p>Pague o valor total ao fotógrafo no dia do ensaio.</p>
-                    <p>Depois confirme o pagamento para liberar as fotos.</p>
-                  </div>
-                )}
-              </>
-            ) : null}
-
-            <div className="flex items-center justify-end gap-2 pt-2">
-              <button onClick={onClose}
-                disabled={isCriandoCompra}
-                className="rounded-lg border px-4 py-2 text-sm font-medium hover:bg-accent transition-colors disabled:opacity-50">
-                Cancelar
+                <span className="text-sm font-semibold">Pagamento Online</span>
+                <span className="text-[11px] text-muted-foreground leading-relaxed">
+                  Pagamento processado automaticamente. Suas fotos são liberadas na hora.
+                </span>
               </button>
-              <button onClick={finalizar} disabled={isCriandoCompra || isCalculando}
-                className="rounded-lg bg-blue-600 text-white px-4 py-2 text-sm font-medium hover:bg-blue-700 transition-colors disabled:opacity-50 flex items-center gap-1.5">
-                {isCriandoCompra ? <Loader2 className="h-4 w-4 animate-spin" /> : <CreditCard className="h-4 w-4" />}
-                {isCriandoCompra ? 'Criando...' : `Finalizar${calculo ? ` (R$ ${calculo.total.toFixed(2)})` : ''}`}
+              <button
+                onClick={() => setPaymentMode('manual')}
+                role="radio"
+                aria-checked={paymentMode === 'manual'}
+                className={cn(
+                  'flex flex-col items-center gap-2 rounded-xl border-2 p-4 text-center transition-all',
+                  paymentMode === 'manual'
+                    ? 'border-blue-500 bg-blue-50/50 dark:bg-blue-950/20 shadow-sm'
+                    : 'border-border hover:border-blue-300 hover:bg-accent/50'
+                )}>
+                <div className={cn(
+                  'h-10 w-10 rounded-full flex items-center justify-center transition-colors',
+                  paymentMode === 'manual' ? 'bg-blue-500 text-white' : 'bg-muted text-muted-foreground'
+                )}>
+                  <Banknote className="h-5 w-5" />
+                </div>
+                <span className="text-sm font-semibold">PIX ou Transferência</span>
+                <span className="text-[11px] text-muted-foreground leading-relaxed">
+                  Você faz o pagamento e envia o comprovante. O estúdio libera após confirmar.
+                </span>
               </button>
             </div>
-          </>
-        ) : (
+
+            {/* Confirmation button */}
+            {paymentMode && (
+              <button onClick={handleConfirmar} disabled={isProcessing}
+                className={cn(
+                  'w-full rounded-xl px-4 py-3 text-sm font-semibold transition-all active:scale-[0.98] flex items-center justify-center gap-2',
+                  isProcessing
+                    ? 'bg-muted text-muted-foreground cursor-not-allowed'
+                    : 'bg-blue-600 text-white hover:bg-blue-700 shadow-sm'
+                )}>
+                {isProcessing ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : paymentMode === 'online' ? (
+                  <Zap className="h-4 w-4" />
+                ) : (
+                  <CreditCard className="h-4 w-4" />
+                )}
+                {isProcessing
+                  ? 'Processando...'
+                  : paymentMode === 'online'
+                    ? `Confirmar e Pagar${calculo ? ` (R$ ${calculo.total.toFixed(2)})` : ''}`
+                    : `Finalizar${calculo ? ` (R$ ${calculo.total.toFixed(2)})` : ''}`}
+              </button>
+            )}
+
+            {errorMessage && (
+              <div className="rounded-lg bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-800 p-3 text-xs text-red-700 dark:text-red-400">
+                {errorMessage}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Post-checkout: manual payment instructions + comprovante */}
+        {compra && paymentMode === 'manual' && !successMessage?.includes('já estão disponíveis') && (
           <>
-            {/* Fase 2: pagamento */}
-            <div className="rounded-lg border bg-muted p-4 space-y-2 text-sm">
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Total</span>
-                <span className="font-semibold">R$ {compra.valorTotal.toFixed(2)}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Forma de pagamento</span>
-                <span className="font-medium">{methodLabel(compra.metodoPagamento)}</span>
-              </div>
-              <p className="text-[11px] text-muted-foreground pt-1 border-t">
-                Simulação de gateway de pagamento. Confirme o pagamento para liberar as fotos na hora.
-              </p>
-            </div>
+            <div className="rounded-xl bg-muted p-4 space-y-3 text-sm">
+              <p className="font-semibold text-foreground">Instruções de pagamento</p>
 
-            <button onClick={pagarSimulado} disabled={isPagando || isEnviando}
-              className="w-full rounded-lg bg-blue-600 text-white px-4 py-2.5 text-sm font-medium hover:bg-blue-700 transition-colors disabled:opacity-50 flex items-center justify-center gap-1.5">
-              {isPagando ? <Loader2 className="h-4 w-4 animate-spin" /> : <CreditCard className="h-4 w-4" />}
-              {isPagando ? 'Processando...' : 'Pagar agora (simulado)'}
-            </button>
+              <div className="space-y-2">
+                <p className="text-xs text-muted-foreground font-medium">PIX (Chave aleatória)</p>
+                <div className="flex items-center justify-between gap-2 bg-background rounded-lg px-3 py-2 border">
+                  <code className="text-xs font-mono">{CHAVE_PIX}</code>
+                  <button onClick={copiarChavePix}
+                    className="flex items-center gap-1 text-primary hover:text-primary/80 font-medium whitespace-nowrap text-xs">
+                    {pixCopiado ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
+                    {pixCopiado ? 'Copiado' : 'Copiar'}
+                  </button>
+                </div>
+              </div>
 
-            <div className="flex items-center gap-3 py-1">
-              <div className="flex-1 h-px bg-border" />
-              <span className="text-[10px] text-muted-foreground uppercase">ou</span>
-              <div className="flex-1 h-px bg-border" />
+              <div className="space-y-1 text-xs text-muted-foreground">
+                <p><span className="font-medium text-foreground">Transferência Bancária:</span></p>
+                <p>Banco: Photoizer Bank (237)</p>
+                <p>Agência: 0001 | Conta: 12345-6</p>
+                <p className="font-medium text-foreground">Valor: R$ {compra.valorTotal.toFixed(2)}</p>
+              </div>
             </div>
 
             <div className="space-y-2">
-              <label className="text-xs font-medium mb-1 block">Enviar comprovante para confirmação manual</label>
-              <input type="file" accept="image/*,.pdf" className="text-xs flex-1"
-                onChange={(e) => setComprovante(e.target.files?.[0] ?? null)} />
-              <button onClick={enviarComprovante} disabled={isEnviando || isPagando || !comprovante}
-                className="w-full rounded-lg border px-4 py-2 text-sm font-medium hover:bg-accent transition-colors disabled:opacity-50 flex items-center justify-center gap-1.5">
-                {isEnviando ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
-                {isEnviando ? 'Enviando...' : 'Enviar comprovante'}
-              </button>
-            </div>
+              <p className="text-xs font-medium text-muted-foreground">ANEXAR COMPROVANTE</p>
 
-            <div className="flex items-center justify-between pt-2">
-              <button onClick={() => { setCompra(null); setComprovante(null) }}
-                disabled={isPagando || isEnviando}
-                className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors disabled:opacity-50">
-                <ArrowLeft className="h-3.5 w-3.5" />
-                Voltar
+              <input ref={inputFileRef} type="file" accept="image/*,.pdf" className="hidden"
+                onChange={(e) => selecionarArquivo(e.target.files?.[0] ?? null)} />
+
+              {!comprovante ? (
+                <div
+                  onClick={() => inputFileRef.current?.click()}
+                  onDragOver={(e) => { e.preventDefault(); setDragOver(true) }}
+                  onDragLeave={() => setDragOver(false)}
+                  onDrop={handleDrop}
+                  className={cn(
+                    'flex flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed p-6 cursor-pointer transition-all',
+                    dragOver
+                      ? 'border-blue-500 bg-blue-50/50 dark:bg-blue-950/20'
+                      : 'border-muted-foreground/30 hover:border-blue-400 hover:bg-accent/50'
+                  )}>
+                  <div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center">
+                    <Upload className="h-5 w-5 text-muted-foreground" />
+                  </div>
+                  <p className="text-sm font-medium">Clique para selecionar o comprovante</p>
+                  <p className="text-xs text-muted-foreground">ou arraste o arquivo até aqui</p>
+                  <p className="text-[10px] text-muted-foreground mt-1">JPEG, PNG ou PDF</p>
+                </div>
+              ) : (
+                <div className="flex items-center justify-between rounded-xl border bg-muted/50 px-4 py-3">
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div className="h-8 w-8 rounded-lg bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center shrink-0">
+                      <Upload className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-sm font-medium truncate">{comprovante.name}</p>
+                      <p className="text-[11px] text-muted-foreground">
+                        {(comprovante.size / 1024 / 1024).toFixed(2)} MB
+                      </p>
+                    </div>
+                  </div>
+                  <button onClick={() => inputFileRef.current?.click()}
+                    className="text-xs text-primary hover:text-primary/80 font-medium shrink-0 mr-2">
+                    Trocar
+                  </button>
+                  <button onClick={() => selecionarArquivo(null)}
+                    className="h-7 w-7 rounded-full hover:bg-destructive/10 hover:text-destructive flex items-center justify-center shrink-0">
+                    <X className="h-3.5 w-3.5" />
+                  </button>
+                </div>
+              )}
+
+              <button onClick={enviarComprovante} disabled={isEnviando || !comprovante}
+                className="w-full rounded-xl bg-blue-600 text-white px-4 py-2.5 text-sm font-medium hover:bg-blue-700 transition-colors disabled:opacity-50 flex items-center justify-center gap-1.5">
+                {isEnviando ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+                {isEnviando ? 'Enviando...' : 'Enviar comprovante e finalizar'}
               </button>
-              <button onClick={onClose} disabled={isPagando || isEnviando}
-                className="text-xs text-muted-foreground hover:text-foreground transition-colors disabled:opacity-50">
-                Fechar (pagar depois)
+              <button onClick={onClose} disabled={isEnviando}
+                className="w-full text-center text-xs text-muted-foreground hover:text-foreground transition-colors disabled:opacity-50 py-1">
+                Pagar depois
               </button>
             </div>
           </>
+        )}
+
+        {/* Success state (apenas pagamento online) */}
+        {successMessage && compra?.status === 'PAGA' && (
+          <div className="flex flex-col items-center gap-3 py-4 text-center">
+            <div className="h-14 w-14 rounded-full bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center">
+              <Check className="h-7 w-7 text-emerald-600 dark:text-emerald-400" />
+            </div>
+            <p className="text-sm font-medium">{successMessage}</p>
+            <button onClick={onClose}
+              className="rounded-xl bg-blue-600 text-white px-6 py-2.5 text-sm font-medium hover:bg-blue-700 transition-colors">
+              Voltar para galeria
+            </button>
+          </div>
         )}
       </div>
     </div>

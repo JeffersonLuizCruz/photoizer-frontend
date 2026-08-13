@@ -1,5 +1,5 @@
 import { apiClient } from '@/shared/api'
-import type { FotoEnsaio } from '../types/foto.types'
+import type { FotoEnsaio, FotoComentario, ComentariosPorFotoResponse } from '../types/foto.types'
 import type { AgendamentoStatus } from '@/shared/constants'
 
 interface AgendamentoRef {
@@ -70,5 +70,23 @@ export const fotoService = {
   }): Promise<FotoEnsaio> => {
     const { data } = await apiClient.patch<FotoEnsaio>(`/agendamentos/${agendamentoId}/fotos/${fotoId}/metadata`, metadata)
     return data
+  },
+
+  // Comentários dos clientes nas fotos
+  listarComentarios: async (agendamentoId: string): Promise<ComentariosPorFotoResponse[]> => {
+    const { data } = await apiClient.get<ComentariosPorFotoResponse[]>(`/ecommerce/admin/comentarios/agendamentos/${agendamentoId}`)
+    return data
+  },
+
+  responderComentario: async (agendamentoId: string, fotoId: string, mensagem: string): Promise<FotoComentario> => {
+    const { data } = await apiClient.post<FotoComentario>(
+      `/ecommerce/admin/comentarios/agendamentos/${agendamentoId}/fotos/${fotoId}/comentarios`,
+      { mensagem }
+    )
+    return data
+  },
+
+  marcarComentariosLidos: async (agendamentoId: string, fotoId: string): Promise<void> => {
+    await apiClient.patch(`/ecommerce/admin/comentarios/agendamentos/${agendamentoId}/fotos/${fotoId}/comentarios/lidas`)
   },
 }

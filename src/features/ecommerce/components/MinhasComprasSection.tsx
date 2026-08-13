@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { ChevronDown, ChevronRight, Check, Clock, Upload, Download, Loader2, XCircle, CreditCard } from 'lucide-react'
+import { ChevronDown, ChevronRight, Check, Clock, Upload, Download, Loader2, X, AlertTriangle } from 'lucide-react'
 import { toast } from 'sonner'
 import { ecommerceService } from '../services/ecommerce.service'
 import type { CompraExtraResponse, AdminCompraDetalheResponse } from '../types/ecommerce.types'
@@ -19,8 +19,6 @@ export function MinhasComprasSection({ token }: MinhasComprasSectionProps) {
   const [detalheMap, setDetalheMap] = useState<Record<string, AdminCompraDetalheResponse>>({})
   const [comprovanteFiles, setComprovanteFiles] = useState<Record<string, File | null>>({})
   const [sendingIds, setSendingIds] = useState<Set<string>>(new Set())
-  const [pagarIds, setPagarIds] = useState<Set<string>>(new Set())
-
   useEffect(() => {
     ecommerceService.listarCompras(token)
       .then(setCompras)
@@ -60,19 +58,6 @@ export function MinhasComprasSection({ token }: MinhasComprasSectionProps) {
     }
   }
 
-  const pagarSimulado = async (compraId: string) => {
-    setPagarIds((prev) => new Set(prev).add(compraId))
-    try {
-      const paga = await ecommerceService.simularPagamento(token, compraId)
-      setCompras((prev) => prev.map((c) => c.id === compraId ? { ...c, status: 'PAGA', dataPagamento: paga.dataPagamento } : c))
-      toast.success('Pagamento confirmado! Fotos liberadas.')
-    } catch (err: any) {
-      toast.error(err?.response?.data?.message || 'Erro ao processar pagamento')
-    } finally {
-      setPagarIds((prev) => { const next = new Set(prev); next.delete(compraId); return next })
-    }
-  }
-
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-8">
@@ -88,7 +73,7 @@ export function MinhasComprasSection({ token }: MinhasComprasSectionProps) {
       case 'PAGA': return <Check className="h-4 w-4 text-emerald-500" />
       case 'AGUARDANDO_CONFIRMACAO': return <Clock className="h-4 w-4 text-orange-500" />
       case 'AGUARDANDO_COMPROVANTE': return <Upload className="h-4 w-4 text-amber-500" />
-      case 'CANCELADA': return <XCircle className="h-4 w-4 text-red-500" />
+      case 'CANCELADA': return <X className="h-4 w-4 text-red-500" />
       default: return null
     }
   }
@@ -132,12 +117,14 @@ export function MinhasComprasSection({ token }: MinhasComprasSectionProps) {
 
               {isExpanded && (
                 <div className="px-3 pb-3 border-t pt-3 space-y-3">
-                  {(compra.status === 'AGUARDANDO_COMPROVANTE' || compra.status === 'AGUARDANDO_CONFIRMACAO') && (
-                    <button onClick={() => pagarSimulado(compra.id)} disabled={pagarIds.has(compra.id)}
-                      className="w-full rounded-lg bg-blue-600 text-white px-3 py-2 text-xs font-medium hover:bg-blue-700 transition-colors disabled:opacity-50 flex items-center justify-center gap-1.5">
-                      {pagarIds.has(compra.id) ? <Loader2 className="h-3 w-3 animate-spin" /> : <CreditCard className="h-3 w-3" />}
-                      {pagarIds.has(compra.id) ? 'Processando...' : 'Pagar agora (simulado)'}
-                    </button>
+                  {compra.status === 'CANCELADA' && compra.motivoRecusa && (
+                    <div className="rounded-lg bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-800 p-3 text-xs space-y-1">
+                      <div className="flex items-center gap-1.5 font-medium text-red-700 dark:text-red-400">
+                        <AlertTriangle className="h-3.5 w-3.5" />
+                        Compra recusada
+                      </div>
+                      <p className="text-red-600 dark:text-red-300 ml-5">Motivo: {compra.motivoRecusa}</p>
+                    </div>
                   )}
 
                   {compra.status === 'AGUARDANDO_COMPROVANTE' && (

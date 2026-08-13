@@ -1,6 +1,6 @@
 import { apiClient } from '@/shared/api'
 import { env } from '@/shared/config/env'
-import type { FotoEnsaio, CompraExtraResponse, AdminEcommerceResumoResponse, CarrinhoResponse, CalculoCarrinhoResponse, MetodoPagamento, AdminCompraDetalheResponse, AdminComprasRelatorioResponse, Avaliacao, Sessao, EcommerceAnalyticsResponse, DashboardEcommerceResponse, DashboardEcommerceMensalResponse } from '../types/ecommerce.types'
+import type { FotoEnsaio, CompraExtraResponse, AdminEcommerceResumoResponse, CarrinhoResponse, CalculoCarrinhoResponse, MetodoPagamento, AdminCompraDetalheResponse, AdminComprasRelatorioResponse, Avaliacao, Sessao, EcommerceAnalyticsResponse, DashboardEcommerceResponse, DashboardEcommerceMensalResponse, FotoComentario, ComentariosPorFotoResponse } from '../types/ecommerce.types'
 import type { PacoteResponse } from '@/features/pacotes/types/pacotes.types'
 import type { AgendamentoCliente } from '@/features/auth/customer/types'
 
@@ -154,6 +154,17 @@ export const ecommerceService = {
       apiClient.get<string[]>(`/ecommerce/galeria/${token}/favoritos`, { headers: { 'X-Session-Id': sessionId } }).then(({ data }) => data))
   },
 
+  // Comentários por foto
+  comentarFoto: async (token: string, fotoId: string, payload: { mensagem: string; autorNome?: string }): Promise<FotoComentario> => {
+    const { data } = await apiClient.post<FotoComentario>(`/ecommerce/galeria/${token}/fotos/${fotoId}/comentarios`, payload)
+    return data
+  },
+
+  listarComentarios: async (token: string, fotoId: string): Promise<FotoComentario[]> => {
+    const { data } = await apiClient.get<FotoComentario[]>(`/ecommerce/galeria/${token}/fotos/${fotoId}/comentarios`)
+    return data
+  },
+
   downloadUrl: (token: string, fotoId: string): string => {
     return `${getBaseUrl()}/ecommerce/galeria/${token}/download/${fotoId}`
   },
@@ -183,6 +194,21 @@ export const ecommerceService = {
     await apiClient.post(`/admin/agendamentos/${agendamentoId}/ecommerce/regen-token`)
   },
 
+  // Admin comentários
+  adminListarComentarios: async (agendamentoId: string): Promise<ComentariosPorFotoResponse[]> => {
+    const { data } = await apiClient.get<ComentariosPorFotoResponse[]>(`/ecommerce/admin/comentarios/agendamentos/${agendamentoId}`)
+    return data
+  },
+
+  adminResponderComentario: async (agendamentoId: string, fotoId: string, payload: { mensagem: string; autorNome?: string }): Promise<FotoComentario> => {
+    const { data } = await apiClient.post<FotoComentario>(`/ecommerce/admin/comentarios/agendamentos/${agendamentoId}/fotos/${fotoId}/comentarios`, payload)
+    return data
+  },
+
+  adminMarcarComentariosLidos: async (agendamentoId: string, fotoId: string): Promise<void> => {
+    await apiClient.patch(`/ecommerce/admin/comentarios/agendamentos/${agendamentoId}/fotos/${fotoId}/comentarios/lidas`)
+  },
+
   // Admin compras
   adminListarCompras: async (params?: {
     status?: string
@@ -204,8 +230,8 @@ export const ecommerceService = {
     await apiClient.patch(`/admin/ecommerce/compras/${id}/confirmar`)
   },
 
-  adminCancelarCompra: async (id: string): Promise<void> => {
-    await apiClient.patch(`/admin/ecommerce/compras/${id}/cancelar`)
+  adminCancelarCompra: async (id: string, motivo?: string): Promise<void> => {
+    await apiClient.patch(`/admin/ecommerce/compras/${id}/cancelar`, motivo ? { motivo } : undefined)
   },
 
   adminRelatorioCompras: async (): Promise<AdminComprasRelatorioResponse> => {

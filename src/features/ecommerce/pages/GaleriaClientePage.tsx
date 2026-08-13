@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useMemo } from 'react'
 import { useParams } from 'react-router-dom'
-import { ShieldAlert, Camera, Loader2, ShoppingCart, Download, Search, Filter, X, Heart, Columns2 } from 'lucide-react'
+import { ShieldAlert, Camera, ShoppingCart, Download, Search, Filter, X, Heart, Columns2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { ecommerceService } from '../services/ecommerce.service'
 import type { FotoEnsaio, CompraExtraResponse, MetodoPagamento } from '../types/ecommerce.types'
@@ -8,7 +8,6 @@ import type { GaleriaResponse } from '../services/ecommerce.service'
 import { FotoViewer } from '../components/FotoViewer'
 import { PhotoGrid } from '../components/PhotoGrid'
 import { CheckoutDialog } from '../components/CheckoutDialog'
-import { PurchaseConfirmation } from '../components/PurchaseConfirmation'
 import { MinhasComprasSection } from '../components/MinhasComprasSection'
 import { ComparadorFotos } from '../components/ComparadorFotos'
 import { CartSummaryPanel } from '../components/CartSummaryPanel'
@@ -24,9 +23,9 @@ export function GaleriaClientePage() {
   const [carrinhoCount, setCarrinhoCount] = useState(0)
   const [cartLoadingIds, setCartLoadingIds] = useState<Set<string>>(new Set())
   const [viewerIndex, setViewerIndex] = useState<number | null>(null)
+  const [commentsOpen, setCommentsOpen] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
   const [showCheckout, setShowCheckout] = useState(false)
-  const [compraFinalizada, setCompraFinalizada] = useState<CompraExtraResponse | null>(null)
 
   // Wishlist, comparação e carrinho lateral
   const [favoritoIds, setFavoritoIds] = useState<Set<string>>(new Set())
@@ -229,23 +228,20 @@ export function GaleriaClientePage() {
 
   const handlePagarSimulado = async (compra: CompraExtraResponse) => {
     if (!token) return
-    const paga = await ecommerceService.simularPagamento(token, compra.id)
+    await ecommerceService.simularPagamento(token, compra.id)
     setGaleria((prev) => prev ? {
       ...prev,
       fotos: prev.fotos.map((f) => f.compraExtraId === compra.id ? { ...f, status: 'PAGA' as const } : f)
     } : prev)
-    setCompraFinalizada(paga)
-    toast.success('Pagamento confirmado! Suas fotos estão liberadas.')
   }
 
   const handleEnviarComprovante = async (compra: CompraExtraResponse, file: File) => {
     if (!token) return
-    const atualizada = await ecommerceService.uploadComprovante(token, compra.id, file)
+    await ecommerceService.uploadComprovante(token, compra.id, file)
     setGaleria((prev) => prev ? {
       ...prev,
       fotos: prev.fotos.map((f) => f.compraExtraId === compra.id ? { ...f, status: 'AGUARDANDO_CONFIRMACAO' as const } : f)
     } : prev)
-    setCompraFinalizada(atualizada)
     toast.success('Comprovante enviado!')
   }
 
@@ -254,10 +250,17 @@ export function GaleriaClientePage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="flex flex-col items-center gap-3">
-          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-          <p className="text-sm text-muted-foreground">Carregando galeria...</p>
+      <div className="min-h-screen bg-background">
+        <div className="sticky top-0 z-40 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 px-4 md:px-6 py-3">
+          <div className="h-4 w-48 rounded bg-muted animate-pulse" />
+          <div className="h-3 w-72 max-w-full rounded bg-muted/70 animate-pulse mt-2" />
+        </div>
+        <div className="px-4 md:px-6 py-6">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 sm:gap-4">
+            {Array.from({ length: 12 }).map((_, i) => (
+              <div key={i} className="aspect-[3/2] rounded-xl bg-muted animate-pulse" />
+            ))}
+          </div>
         </div>
       </div>
     )
@@ -288,37 +291,28 @@ export function GaleriaClientePage() {
     )
   }
 
-  if (compraFinalizada) {
-    return (
-      <PurchaseConfirmation
-        compra={compraFinalizada}
-        token={token ?? ''}
-        onVoltar={() => setCompraFinalizada(null)} />
-    )
-  }
-
   return (
     <div className="min-h-screen bg-background" onContextMenu={(e) => e.preventDefault()}>
       <header className="sticky top-0 z-40 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="flex items-center justify-between px-4 md:px-6 h-14">
-          <div>
-            <h1 className="text-sm font-semibold">{galeria?.pacoteNome || 'Sua Galeria de Fotos'}</h1>
-            <p className="text-[11px] text-muted-foreground">
+        <div className="flex flex-col gap-2 px-4 md:px-6 py-3 md:h-14 md:flex-row md:items-center md:justify-between">
+          <div className="min-w-0">
+            <h1 className="text-sm font-semibold truncate">{galeria?.pacoteNome || 'Sua Galeria de Fotos'}</h1>
+            <p className="text-[11px] text-muted-foreground truncate">
               {selectedIds.size} de {pacoteLimit} no pacote
               {carrinhoCount > 0 && ` · ${carrinhoCount} extra(s): R$ ${totalExtras.toFixed(2)}`}
               {filteredFotos.length < fotos.length && ` · ${filteredFotos.length} exibidas`}
               {galeria?.localEnsaio && ` · ${galeria.localEnsaio}`}
             </p>
           </div>
-          <div className="flex items-center gap-2">
-            {favoritoIds.size > 0 && (
+          <div className="flex items-center gap-2 overflow-x-auto flex-nowrap -mx-1 px-1 pb-0.5 md:overflow-visible md:mx-0 md:px-0 md:pb-0">
+            <span className="shrink-0">{favoritoIds.size > 0 && (
               <span className="flex items-center gap-1 text-xs text-muted-foreground" title="Fotos favoritas">
                 <Heart className="h-3.5 w-3.5 text-red-500" fill="currentColor" />
                 {favoritoIds.size}
               </span>
-            )}
+            )}</span>
             <button onClick={() => setCompareMode((prev) => !prev)}
-              className={`flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-medium transition-colors ${
+              className={`shrink-0 flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-medium transition-colors ${
                 compareMode ? 'bg-blue-600 text-white border-blue-600 hover:bg-blue-700' : 'hover:bg-accent'
               }`}>
               <Columns2 className="h-3.5 w-3.5" />
@@ -326,12 +320,12 @@ export function GaleriaClientePage() {
             </button>
             {compareMode && compareIds.size >= 2 && (
               <button onClick={() => setShowComparador(true)}
-                className="rounded-lg bg-blue-600 text-white px-3 py-1.5 text-xs font-medium hover:bg-blue-700 transition-colors">
+                className="shrink-0 rounded-lg bg-blue-600 text-white px-3 py-1.5 text-xs font-medium hover:bg-blue-700 transition-colors">
                 Ver comparação ({compareIds.size})
               </button>
             )}
             <button onClick={() => setShowCart(true)}
-              className="relative rounded-lg border p-1.5 hover:bg-accent transition-colors" title="Meu carrinho">
+              className="shrink-0 relative rounded-lg border p-1.5 hover:bg-accent transition-colors" title="Meu carrinho">
               <ShoppingCart className="h-4 w-4" />
               {carrinhoCount > 0 && (
                 <span className="absolute -top-1.5 -right-1.5 h-4 min-w-4 px-0.5 rounded-full bg-blue-600 text-white text-[10px] font-medium flex items-center justify-center">
@@ -341,20 +335,20 @@ export function GaleriaClientePage() {
             </button>
             {hasSelectionChanges && (
               <button onClick={handleSaveSelection} disabled={isSaving}
-                className="rounded-lg bg-primary text-primary-foreground px-3 py-1.5 text-xs font-medium hover:bg-primary/90 transition-colors disabled:opacity-50">
+                className="shrink-0 rounded-lg bg-primary text-primary-foreground px-3 py-1.5 text-xs font-medium hover:bg-primary/90 transition-colors disabled:opacity-50">
                 {isSaving ? 'Salvando...' : 'Salvar Seleção'}
               </button>
             )}
             {downloadableFotos.length > 0 && (
               <a href={ecommerceService.downloadZipUrl(token ?? '')}
-                className="flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-medium hover:bg-accent transition-colors">
+                className="shrink-0 flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-medium hover:bg-accent transition-colors">
                 <Download className="h-3.5 w-3.5" />
                 ZIP ({downloadableFotos.length})
               </a>
             )}
             {carrinhoCount > 0 && (
               <button onClick={() => setShowCheckout(true)}
-                className="flex items-center gap-1.5 rounded-lg bg-blue-600 text-white px-3 py-1.5 text-xs font-medium hover:bg-blue-700 transition-colors">
+                className="shrink-0 flex items-center gap-1.5 rounded-lg bg-blue-600 text-white px-3 py-1.5 text-xs font-medium hover:bg-blue-700 transition-colors">
                 <ShoppingCart className="h-3.5 w-3.5" />
                 Finalizar ({carrinhoCount})
               </button>
@@ -362,7 +356,7 @@ export function GaleriaClientePage() {
           </div>
         </div>
         {/* Barra de filtros */}
-        <div className="px-4 md:px-6 pb-3 flex items-center gap-2">
+        <div className="px-4 md:px-6 pb-3 flex items-center gap-2 flex-wrap">
           <div className="relative flex-1 max-w-xs">
             <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
             <input value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)}
@@ -445,7 +439,17 @@ export function GaleriaClientePage() {
           onView={(index) => {
             // Find the index in the original fotos array for the viewer
             const originalIndex = fotos.findIndex((f) => f.id === filteredFotos[index]?.id)
-            if (originalIndex >= 0) setViewerIndex(originalIndex)
+            if (originalIndex >= 0) {
+              setCommentsOpen(false)
+              setViewerIndex(originalIndex)
+            }
+          }}
+          onOpenComments={(index) => {
+            const originalIndex = fotos.findIndex((f) => f.id === filteredFotos[index]?.id)
+            if (originalIndex >= 0) {
+              setViewerIndex(originalIndex)
+              setCommentsOpen(true)
+            }
           }} />
 
         {token && <MinhasComprasSection token={token} />}
@@ -454,10 +458,11 @@ export function GaleriaClientePage() {
       {viewerIndex !== null && (
         <FotoViewer fotos={fotos} currentIndex={viewerIndex}
           onClose={() => setViewerIndex(null)} onToggleSelect={toggleSelect}
-          onNavigate={(i) => setViewerIndex(i)} selectedIds={selectedIds}
+          onNavigate={(i) => { setCommentsOpen(false); setViewerIndex(i) }} selectedIds={selectedIds}
           carrinhoIds={carrinhoIds} pacoteLimit={pacoteLimit}
           selectedCount={selectedIds.size} onToggleCarrinho={toggleCarrinho}
-          valorUnitario={valorUnitario} cartLoadingIds={cartLoadingIds} />
+          valorUnitario={valorUnitario} cartLoadingIds={cartLoadingIds}
+          token={token ?? ''} commentsOpen={commentsOpen} onCommentsOpenChange={setCommentsOpen} />
       )}
 
       {showComparador && (
