@@ -70,13 +70,13 @@ export function PacoteForm({ onSubmit, defaultValues, isLoading, mode }: PacoteF
 
         <div>
           <Label htmlFor="quantidadeFotos">Quantidade de Fotos *</Label>
-          <Input id="quantidadeFotos" type="number" min={0} {...register('quantidadeFotos')} placeholder="0" />
+          <Input id="quantidadeFotos" type="number" min={0} onFocus={(e) => e.target.select()} {...register('quantidadeFotos')} placeholder="0" />
           {errors.quantidadeFotos && <p className="mt-1 text-sm text-destructive">{errors.quantidadeFotos.message}</p>}
         </div>
 
         <div>
           <Label htmlFor="quantidadeVideos">Quantidade de Vídeos *</Label>
-          <Input id="quantidadeVideos" type="number" min={0} {...register('quantidadeVideos')} placeholder="0" />
+          <Input id="quantidadeVideos" type="number" min={0} onFocus={(e) => e.target.select()} {...register('quantidadeVideos')} placeholder="0" />
           {errors.quantidadeVideos && <p className="mt-1 text-sm text-destructive">{errors.quantidadeVideos.message}</p>}
         </div>
 
@@ -87,6 +87,7 @@ export function PacoteForm({ onSubmit, defaultValues, isLoading, mode }: PacoteF
             type="number"
             step="0.01"
             min={0}
+            onFocus={(e) => e.target.select()}
             {...register('valorBase')}
             placeholder="0,00"
           />
@@ -101,7 +102,7 @@ export function PacoteForm({ onSubmit, defaultValues, isLoading, mode }: PacoteF
 
         <div>
           <Label htmlFor="diasParaEntrega">Prazo de Entrega (dias)</Label>
-          <Input id="diasParaEntrega" type="number" min={0} {...register('diasParaEntrega')} placeholder="Ex: 15" />
+          <Input id="diasParaEntrega" type="number" min={0} onFocus={(e) => e.target.select()} {...register('diasParaEntrega')} placeholder="Ex: 15" />
           {errors.diasParaEntrega && <p className="mt-1 text-sm text-destructive">{errors.diasParaEntrega.message}</p>}
         </div>
 

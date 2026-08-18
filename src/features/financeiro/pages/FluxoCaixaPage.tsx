@@ -208,13 +208,13 @@ export function FluxoCaixaPage() {
           label="Saídas previstas"
           value={formatCurrency(data?.saidasPrevistasTotal)}
           detail={`${formatCurrency(data?.saidasRealizadas)} realizadas`}
-          icon={<ArrowDownLeft className="h-4 w-4 text-rose-500" />}
+          icon={<ArrowDownLeft className="h-4 w-4 text-rose-400" />}
           isLoading={isLoading}
         />
         <InfoCard
           label="Saldo projetado final"
           value={formatCurrency(data?.saldoProjetadoFinal)}
-          icon={<Wallet className={cn('h-4 w-4', (data?.saldoProjetadoFinal ?? 0) < 0 ? 'text-rose-500' : 'text-violet-500')} />}
+          icon={<Wallet className={cn('h-4 w-4', (data?.saldoProjetadoFinal ?? 0) < 0 ? 'text-rose-400' : 'text-violet-500')} />}
           isLoading={isLoading}
         />
         <InfoCard
@@ -226,7 +226,7 @@ export function FluxoCaixaPage() {
       </div>
 
       {saldoNegativo && (
-        <div className="mb-6 flex items-center gap-2 rounded-lg border border-rose-200 bg-rose-50 p-3 text-sm text-rose-700">
+        <div className="mb-6 flex items-center gap-2 rounded-lg border border-rose-200 bg-rose-50 p-3 text-sm text-rose-600">
           <AlertTriangle className="h-4 w-4 shrink-0" />
           Atenção: há períodos com saldo projetado negativo. Considere antecipar recebimentos ou revisar despesas.
         </div>
@@ -254,7 +254,7 @@ export function FluxoCaixaPage() {
                   />
                   <Tooltip content={<TooltipContent />} />
                   <Bar dataKey="entradasPrevistas" name="Entradas" fill="#10b981" radius={[4, 4, 0, 0]} />
-                  <Bar dataKey="saidasPrevistas" name="Saídas" fill="#f43f5e" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="saidasPrevistas" name="Saídas" fill="#e1749a" radius={[4, 4, 0, 0]} />
                   <Line type="monotone" dataKey="saldoAcumulado" name="Saldo acumulado" stroke="#8b5cf6" strokeWidth={2.5} dot={{ r: 3, fill: '#8b5cf6', strokeWidth: 0 }} />
                 </ComposedChart>
               </ResponsiveContainer>
@@ -294,7 +294,7 @@ export function FluxoCaixaPage() {
                       <span
                         className={cn(
                           'inline-flex items-center gap-1 text-xs font-medium',
-                          item.tipo === 'RECEITA' ? 'text-emerald-600' : 'text-rose-600',
+                          item.tipo === 'RECEITA' ? 'text-emerald-600' : 'text-rose-500',
                         )}
                       >
                         {item.tipo === 'RECEITA' ? (

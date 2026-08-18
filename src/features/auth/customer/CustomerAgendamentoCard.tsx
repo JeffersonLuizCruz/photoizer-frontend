@@ -13,7 +13,7 @@ function statusColor(status: string): string {
     case 'EM_EDICAO': return 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400'
     case 'REALIZADO': return 'bg-violet-100 text-violet-700 dark:bg-violet-900/30 dark:text-violet-400'
     case 'SELECAO_ENVIADA': return 'bg-sky-100 text-sky-700 dark:bg-sky-900/30 dark:text-sky-400'
-    case 'CANCELADO': return 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
+    case 'CANCELADO': return 'bg-rose-100 text-rose-600 dark:bg-rose-900/30 dark:text-rose-300'
     default: return 'bg-muted text-muted-foreground'
   }
 }

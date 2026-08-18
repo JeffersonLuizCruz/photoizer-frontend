@@ -262,7 +262,7 @@ export function RelatoriosPage() {
           <Card label="Receitas brutas" value={formatCurrency(resumo.data?.receitasBrutas)} isLoading={resumo.isLoading} />
           <Card label="Receitas recebidas" value={formatCurrency(resumo.data?.receitasRecebidas)} accent="text-emerald-600" isLoading={resumo.isLoading} />
           <Card label="A receber" value={formatCurrency(resumo.data?.aReceber)} accent="text-amber-600" isLoading={resumo.isLoading} />
-          <Card label="Despesas totais" value={formatCurrency(resumo.data?.despesasTotal)} accent="text-rose-600" isLoading={resumo.isLoading} />
+          <Card label="Despesas totais" value={formatCurrency(resumo.data?.despesasTotal)} accent="text-rose-500" isLoading={resumo.isLoading} />
           <Card label="Despesas pagas" value={formatCurrency(resumo.data?.despesasPagas)} accent="text-emerald-600" isLoading={resumo.isLoading} />
           <Card label="A pagar" value={formatCurrency(resumo.data?.aPagar)} accent="text-amber-600" isLoading={resumo.isLoading} />
           <Card label="Lucro previsto" value={formatCurrency(resumo.data?.lucroPrevisto)} isLoading={resumo.isLoading} />
@@ -325,7 +325,7 @@ export function RelatoriosPage() {
       {tipo === 'inadimplencia' && (
         <div>
           <div className="mb-4 grid gap-4 sm:grid-cols-3">
-            <Card label="Total em aberto" value={formatCurrency(inadimplencia.data?.totalEmAberto)} accent="text-rose-600" isLoading={inadimplencia.isLoading} />
+            <Card label="Total em aberto" value={formatCurrency(inadimplencia.data?.totalEmAberto)} accent="text-rose-500" isLoading={inadimplencia.isLoading} />
             <Card
               label="Itens vencidos"
               value={inadimplencia.data ? String(inadimplencia.data.itens.length) : undefined}
@@ -365,7 +365,7 @@ export function RelatoriosPage() {
                         <td className="px-4 py-2 font-medium">{i.clienteNome}</td>
                         <td className="px-4 py-2 text-muted-foreground">{i.descricao ?? '—'}</td>
                         <td className="px-4 py-2">{TIPO_SERVICO_LABEL[i.tipoServico] ?? i.tipoServico}</td>
-                        <td className="px-4 py-2 text-right font-medium tabular-nums text-rose-600">{formatCurrency(i.valorEmAberto)}</td>
+                        <td className="px-4 py-2 text-right font-medium tabular-nums text-rose-500">{formatCurrency(i.valorEmAberto)}</td>
                         <td className="px-4 py-2 text-right tabular-nums">
                           {i.dataPrevisaoRecebimento ? i.dataPrevisaoRecebimento.split('-').reverse().join('/') : '—'}
                         </td>
@@ -483,7 +483,7 @@ export function RelatoriosPage() {
                     <tr key={p.periodo} className="border-b last:border-0 hover:bg-muted/50">
                       <td className="px-4 py-2 font-medium">{p.periodo}</td>
                       <td className="px-4 py-2 text-right tabular-nums">{formatCurrency(p.receitas)}</td>
-                      <td className="px-4 py-2 text-right tabular-nums text-rose-600">{formatCurrency(p.despesas)}</td>
+                      <td className="px-4 py-2 text-right tabular-nums text-rose-500">{formatCurrency(p.despesas)}</td>
                       <td className="px-4 py-2 text-right font-medium tabular-nums">{formatCurrency(p.lucro)}</td>
                       <td className="px-4 py-2 text-right">
                         <Badge variant={p.variacao >= 0 ? 'success' : 'destructive'}>
@@ -504,7 +504,7 @@ export function RelatoriosPage() {
           <div className="mb-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <Card label="Total de receitas" value={formatCurrency(fiscal.data?.totalReceitas)} isLoading={fiscal.isLoading} />
             <Card label="Comissões" value={formatCurrency(fiscal.data?.totalComissoes)} accent="text-amber-600" isLoading={fiscal.isLoading} />
-            <Card label="Total de despesas" value={formatCurrency(fiscal.data?.totalDespesas)} accent="text-rose-600" isLoading={fiscal.isLoading} />
+            <Card label="Total de despesas" value={formatCurrency(fiscal.data?.totalDespesas)} accent="text-rose-500" isLoading={fiscal.isLoading} />
             <Card label="Lucro líquido" value={formatCurrency(fiscal.data?.lucroLiquido)} accent="text-emerald-600" isLoading={fiscal.isLoading} />
           </div>
           <div className="rounded-md border">

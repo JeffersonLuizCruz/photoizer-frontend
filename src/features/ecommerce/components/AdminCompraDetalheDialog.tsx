@@ -76,12 +76,12 @@ export function AdminCompraDetalheDialog({ compraId, open, onOpenChange }: Admin
                 )}
               </div>
               {detalhe.motivoRecusa && (
-                <div className="col-span-2 rounded-lg bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-800 p-3 space-y-1">
-                  <div className="flex items-center gap-1.5 text-xs font-medium text-red-700 dark:text-red-400">
+                <div className="col-span-2 rounded-lg bg-rose-50 dark:bg-rose-950/20 border border-rose-200 dark:border-rose-800 p-3 space-y-1">
+                  <div className="flex items-center gap-1.5 text-xs font-medium text-rose-600 dark:text-rose-300">
                     <AlertTriangle className="h-3.5 w-3.5" />
                     Motivo da recusa
                   </div>
-                  <p className="text-sm text-red-600 dark:text-red-300">{detalhe.motivoRecusa}</p>
+                  <p className="text-sm text-rose-500 dark:text-rose-200">{detalhe.motivoRecusa}</p>
                 </div>
               )}
             </div>

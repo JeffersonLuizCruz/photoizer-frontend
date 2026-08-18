@@ -178,7 +178,7 @@ export function GraficoMensal() {
       description: `Deslocamento: ${currencyFormat(mesAtual.despesasDeslocamento ?? 0)} | Comissões: ${currencyFormat(mesAtual.despesasComissao ?? 0)} | Repasse parceiros: ${currencyFormat(mesAtual.despesasRepasse ?? 0)} | Manuais: ${currencyFormat(mesAtual.despesasManuais ?? 0)}`,
       value: totalDespesas,
       icon: ArrowDownFromLine,
-      color: 'text-rose-600 dark:text-rose-400',
+      color: 'text-rose-500 dark:text-rose-400',
       bg: 'bg-rose-50 dark:bg-rose-950/30',
       border: 'border-rose-200 dark:border-rose-800',
     },
@@ -304,7 +304,7 @@ export function GraficoMensal() {
               />
               <Bar stackId="a" dataKey="Recebido" fill="#10b981" radius={[0, 0, 0, 0]} fillOpacity={0.85} />
               <Bar stackId="a" dataKey="Pendente" fill="#fbbf24" radius={[4, 4, 0, 0]} fillOpacity={0.7} />
-              <Bar dataKey="Despesas" fill="#f43f5e" radius={[4, 4, 0, 0]} fillOpacity={0.45} />
+              <Bar dataKey="Despesas" fill="#e1749a" radius={[4, 4, 0, 0]} fillOpacity={0.45} />
               <Line
                 type="monotone"
                 dataKey="Líquido Previsto"

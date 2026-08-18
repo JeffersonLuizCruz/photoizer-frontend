@@ -135,3 +135,12 @@ export interface IndicadorOption {
   telefone: string
   percentualComissao: number | null
 }
+
+export interface DisponibilidadeResponse {
+  disponivel: boolean
+  conflitos: Array<{
+    agendamentoId: string
+    horario: string
+    clienteNome: string
+  }>
+}

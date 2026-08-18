@@ -92,7 +92,7 @@ export function CartSummaryPanel({
                     </div>
                     <button
                       onClick={() => onRemoveFromCart(foto.id)}
-                      className="p-1.5 rounded-lg text-muted-foreground hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors"
+                      className="p-1.5 rounded-lg text-muted-foreground hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition-colors"
                       title="Remover do carrinho">
                       <Trash2 className="h-3.5 w-3.5" />
                     </button>

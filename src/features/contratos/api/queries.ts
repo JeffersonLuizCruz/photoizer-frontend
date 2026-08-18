@@ -1,6 +1,8 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { format } from 'date-fns'
 import { toast } from 'sonner'
 import { QUERY_KEYS } from '@/shared/constants'
+import { parseDuracao } from '@/shared/lib/duracao'
 import type { ContratoStatus } from '@/shared/constants'
 import { contratoService } from '../services/contrato.service'
 import { contratoPublicoService } from '../services/contratoPublico.service'
@@ -46,14 +48,34 @@ export function useIndicadoresSearch(search: string) {
   })
 }
 
+export function useDisponibilidadeContrato(
+  data: Date | undefined,
+  hora: string | undefined,
+  pacote?: { duracaoEstimada?: string; bloqueiaDiaInteiro?: boolean },
+) {
+  return useQuery({
+    queryKey: [...QUERY_KEYS.CONTRATOS, 'disponibilidade', data?.toISOString(), hora, pacote?.duracaoEstimada, pacote?.bloqueiaDiaInteiro],
+    queryFn: () =>
+      contratoService.verificarDisponibilidade(
+        data ? format(data, 'yyyy-MM-dd') : '',
+        hora!,
+        parseDuracao(pacote?.duracaoEstimada),
+        pacote?.bloqueiaDiaInteiro ?? false,
+      ),
+    enabled: !!data && !!hora,
+    retry: false,
+    staleTime: 1000 * 30,
+  })
+}
+
 export function useCriarContrato() {
   const queryClient = useQueryClient()
 
   return useMutation({
     mutationFn: (payload: CriarContratoFormValues) => {
       const [h, m] = payload.hora.split(':').map(Number)
-      const [y, mo, d] = payload.data.split('-').map(Number)
-      const dataHoraEnsaio = new Date(y, mo - 1, d, h, m, 0, 0)
+      const base = payload.data instanceof Date ? payload.data : new Date(payload.data)
+      const dataHoraEnsaio = new Date(base.getFullYear(), base.getMonth(), base.getDate(), h, m, 0, 0)
       const fotografos = (payload.fotografos ?? [])
         .filter((f) => f?.fotografoId)
         .map((f) => ({

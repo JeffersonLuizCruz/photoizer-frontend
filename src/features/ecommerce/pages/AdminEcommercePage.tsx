@@ -182,9 +182,9 @@ export function AdminEcommercePage() {
             <p className="text-xs text-emerald-600 dark:text-emerald-400">Pagas</p>
             <p className="text-lg font-bold text-emerald-700 dark:text-emerald-300">{relatorio.pagas}</p>
           </div>
-          <div className="rounded-lg border bg-red-50 dark:bg-red-950/30 border-red-200 dark:border-red-800 p-3">
-            <p className="text-xs text-red-600 dark:text-red-400">Canceladas</p>
-            <p className="text-lg font-bold text-red-700 dark:text-red-300">{relatorio.canceladas}</p>
+          <div className="rounded-lg border bg-rose-50 dark:bg-rose-950/30 border-rose-200 dark:border-rose-800 p-3">
+            <p className="text-xs text-rose-500 dark:text-rose-300">Canceladas</p>
+            <p className="text-lg font-bold text-rose-600 dark:text-rose-200">{relatorio.canceladas}</p>
           </div>
           <div className="rounded-lg border bg-card p-3">
             <p className="text-xs text-muted-foreground">Faturado</p>

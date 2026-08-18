@@ -71,7 +71,7 @@ export function PhotoGrid({
                 title={isFavorito ? 'Remover dos favoritos' : 'Adicionar aos favoritos'}
                 className="absolute top-2 right-2 p-1.5 rounded-full bg-black/30 hover:bg-black/60 motion-safe:transition-all motion-safe:duration-200 hover:scale-110 active:scale-95">
                 <Heart
-                  className={cn('h-4 w-4 motion-safe:transition-transform motion-safe:duration-200', isFavorito ? 'text-red-500' : 'text-white/80')}
+                  className={cn('h-4 w-4 motion-safe:transition-transform motion-safe:duration-200', isFavorito ? 'text-rose-400' : 'text-white/80')}
                   fill={isFavorito ? 'currentColor' : 'none'} />
               </button>
 

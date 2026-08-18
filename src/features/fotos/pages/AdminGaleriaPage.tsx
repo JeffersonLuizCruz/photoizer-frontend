@@ -364,7 +364,7 @@ export function AdminGaleriaPage() {
                       type="button"
                       onClick={() => setComentariosFoto(foto)}
                       title={`Comentários: ${comentariosPorFoto.get(foto.id)!.naoLidas} não lido(s)`}
-                      className="absolute bottom-1 right-1 z-10 inline-flex items-center gap-1 rounded-md bg-red-500 px-1.5 py-0.5 text-[10px] font-semibold text-white shadow-sm hover:bg-red-600 transition-colors"
+                      className="absolute bottom-1 right-1 z-10 inline-flex items-center gap-1 rounded-md bg-rose-400 px-1.5 py-0.5 text-[10px] font-semibold text-white shadow-sm hover:bg-rose-500 transition-colors"
                     >
                       <MessageCircle className="h-3 w-3" />
                       {comentariosPorFoto.get(foto.id)!.naoLidas}
@@ -419,7 +419,7 @@ export function AdminGaleriaPage() {
                     >
                       <MessageCircle className="h-4 w-4" />
                       {(comentariosPorFoto.get(foto.id)?.naoLidas ?? 0) > 0 && (
-                        <span className="absolute -top-1 -right-1 h-4 min-w-4 px-1 rounded-full bg-red-500 text-white text-[10px] font-bold flex items-center justify-center">
+                        <span className="absolute -top-1 -right-1 h-4 min-w-4 px-1 rounded-full bg-rose-400 text-white text-[10px] font-bold flex items-center justify-center">
                           {comentariosPorFoto.get(foto.id)!.naoLidas}
                         </span>
                       )}

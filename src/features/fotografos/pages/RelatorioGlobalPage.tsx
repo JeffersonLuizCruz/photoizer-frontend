@@ -61,7 +61,7 @@ export function RelatorioGlobalPage() {
             </div>
             <div className="rounded-lg border bg-card p-4">
               <p className="text-xs text-muted-foreground">Custos Totais</p>
-              <p className="text-lg font-bold tabular-nums text-rose-600">{formatCurrency(relatorio.totalCustos)}</p>
+              <p className="text-lg font-bold tabular-nums text-rose-500">{formatCurrency(relatorio.totalCustos)}</p>
             </div>
             <div className="rounded-lg border bg-card p-4">
               <p className="text-xs text-muted-foreground">Total Repasses</p>
@@ -94,7 +94,7 @@ export function RelatorioGlobalPage() {
                     <TableCell className="font-medium">{f.fotografoNome}</TableCell>
                     <TableCell className="text-right">{f.totalEnsaios}</TableCell>
                     <TableCell className="text-right tabular-nums">{formatCurrency(f.totalValorCobrado)}</TableCell>
-                    <TableCell className="text-right tabular-nums text-rose-600">{formatCurrency(f.totalCustos)}</TableCell>
+                    <TableCell className="text-right tabular-nums text-rose-500">{formatCurrency(f.totalCustos)}</TableCell>
                     <TableCell className="text-right tabular-nums">{formatCurrency(f.totalPartilha)}</TableCell>
                     <TableCell className="text-right tabular-nums text-amber-600">{formatCurrency(f.totalRepasse)}</TableCell>
                     <TableCell className="text-right tabular-nums text-emerald-600">{formatCurrency(f.totalLucroCrm)}</TableCell>

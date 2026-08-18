@@ -60,6 +60,7 @@ export function RepasseInlineEditor({ initial, isSaving, onSave, onCancel }: Rep
             min="0"
             max="100"
             value={percentual ?? ''}
+            onFocus={(e) => e.target.select()}
             onChange={(e) => setPercentual(e.target.value === '' ? undefined : Number(e.target.value))}
             placeholder="Ex: 40"
           />

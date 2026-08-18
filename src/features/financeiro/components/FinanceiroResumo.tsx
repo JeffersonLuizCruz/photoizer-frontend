@@ -38,13 +38,13 @@ export function FinanceiroResumo({ data, isLoading }: FinanceiroResumoProps) {
       icon: ArrowDownFromLine,
       label: 'Despesas (Deslocamento)',
       value: data?.despesasDeslocamento ?? 0,
-      variant: 'text-rose-600 dark:text-rose-400' as const,
+      variant: 'text-rose-500 dark:text-rose-400' as const,
     },
     {
       icon: Handshake,
       label: 'Despesas (Comissões)',
       value: data?.despesasComissao ?? 0,
-      variant: 'text-rose-500 dark:text-rose-300' as const,
+      variant: 'text-rose-400 dark:text-rose-300' as const,
     },
     {
       icon: Receipt,

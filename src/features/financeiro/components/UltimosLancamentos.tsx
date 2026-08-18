@@ -89,7 +89,7 @@ export function UltimosLancamentos({ lancamentos, isLoading }: UltimosLancamento
                   <span>{l.categoria}</span>
                 </div>
               </TableCell>
-              <TableCell className={isReceita ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'}>
+              <TableCell className={isReceita ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-500 dark:text-rose-300'}>
                 {isReceita ? '+' : '−'}{formatCurrency(l.valor)}
               </TableCell>
               <TableCell>

@@ -117,7 +117,7 @@ function IndicadorRow({
                       className={cn(
                         'text-[11px] px-1.5 py-0.5 rounded font-medium',
                         ind.status === 'PAGA' && 'bg-green-100 text-green-700',
-                        ind.status === 'CANCELADA' && 'bg-red-100 text-red-700',
+                        ind.status === 'CANCELADA' && 'bg-rose-100 text-rose-600',
                         ind.status === 'PENDENTE' && 'bg-yellow-100 text-yellow-700',
                       )}
                     >

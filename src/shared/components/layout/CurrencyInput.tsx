@@ -1,4 +1,4 @@
-import { forwardRef, useState, useCallback, type InputHTMLAttributes } from 'react'
+import { forwardRef, useState, useCallback, useRef, useEffect, type InputHTMLAttributes } from 'react'
 import { cn } from '@/shared/lib/cn'
 
 interface CurrencyInputProps extends Omit<InputHTMLAttributes<HTMLInputElement>, 'onChange' | 'value' | 'type'> {
@@ -27,6 +27,13 @@ export const CurrencyInput = forwardRef<HTMLInputElement, CurrencyInputProps>(
   ({ value, onChange, locale = 'pt-BR', currency = 'BRL', className, disabled, ...props }, ref) => {
     const [displayValue, setDisplayValue] = useState(() => formatCurrency(value, locale, currency))
     const [focused, setFocused] = useState(false)
+    const inputRef = useRef<HTMLInputElement>(null)
+
+    useEffect(() => {
+      if (focused) {
+        inputRef.current?.select()
+      }
+    }, [focused])
 
     const handleFocus = useCallback(() => {
       setFocused(true)
@@ -61,7 +68,11 @@ export const CurrencyInput = forwardRef<HTMLInputElement, CurrencyInputProps>(
           R$
         </span>
         <input
-          ref={ref}
+          ref={(node) => {
+            inputRef.current = node
+            if (typeof ref === 'function') ref(node)
+            else if (ref) ref.current = node
+          }}
           type="text"
           inputMode="decimal"
           value={focused ? displayValue : formatCurrency(value, locale, currency)}

@@ -307,7 +307,7 @@ export function GaleriaClientePage() {
           <div className="flex items-center gap-2 overflow-x-auto flex-nowrap -mx-1 px-1 pb-0.5 md:overflow-visible md:mx-0 md:px-0 md:pb-0">
             <span className="shrink-0">{favoritoIds.size > 0 && (
               <span className="flex items-center gap-1 text-xs text-muted-foreground" title="Fotos favoritas">
-                <Heart className="h-3.5 w-3.5 text-red-500" fill="currentColor" />
+                <Heart className="h-3.5 w-3.5 text-rose-400" fill="currentColor" />
                 {favoritoIds.size}
               </span>
             )}</span>
@@ -412,7 +412,7 @@ export function GaleriaClientePage() {
               style={{
                 width: `${Math.min((selectedIds.size / pacoteLimit) * 100, 100)}%`,
                 background: selectedIds.size >= pacoteLimit
-                  ? 'linear-gradient(to right, #f59e0b, #ef4444)'
+                  ? 'linear-gradient(to right, #f59e0b, #e1749a)'
                   : 'linear-gradient(to right, #10b981, #059669)'
               }}
             />

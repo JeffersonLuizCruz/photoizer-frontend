@@ -2,7 +2,7 @@ import { z } from 'zod'
 
 export const criarContratoSchema = z.object({
   pacoteId: z.string().min(1, 'Selecione o pacote'),
-  data: z.string().min(1, 'Informe a data do ensaio'),
+  data: z.date({ message: 'Informe a data do ensaio' }),
   hora: z.string().regex(/^\d{2}:\d{2}$/, 'Horário inválido (HH:mm)'),
   localEnsaio: z.string().min(3, 'Informe o local do ensaio'),
   enderecoCompleto: z.string().optional(),

@@ -250,7 +250,7 @@ export function EcommerceAdminResumo({ agendamentoId }: EcommerceAdminResumoProp
                               <Check className="h-3.5 w-3.5" />
                             </button>
                             <button onClick={() => setConfirmRecusarId(compra.id)} disabled={isRecusing}
-                              className="h-6 w-6 rounded hover:bg-red-100 hover:text-red-700 dark:hover:bg-red-900/30 dark:hover:text-red-400 flex items-center justify-center"
+                              className="h-6 w-6 rounded hover:bg-rose-100 hover:text-rose-600 dark:hover:bg-rose-900/30 dark:hover:text-rose-300 flex items-center justify-center"
                               title="Recusar compra">
                               <X className="h-3.5 w-3.5" />
                             </button>

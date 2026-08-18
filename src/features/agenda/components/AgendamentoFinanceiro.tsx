@@ -275,7 +275,7 @@ export function AgendamentoFinanceiro({ agendamento }: AgendamentoFinanceiroProp
               </div>
               <div className="rounded-lg border bg-card p-4">
                 <p className="text-xs text-muted-foreground">Custo Total</p>
-                <p className="text-xl font-bold tabular-nums text-rose-600">
+                <p className="text-xl font-bold tabular-nums text-rose-500">
                   {formatCurrency(resumo.custoTotal)}
                 </p>
                 <p className="mt-1 text-xs text-muted-foreground">

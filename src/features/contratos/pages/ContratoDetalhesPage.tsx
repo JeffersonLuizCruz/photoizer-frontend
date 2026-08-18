@@ -170,7 +170,7 @@ export function ContratoDetalhesPage() {
             {podeDevolver && (
               <Dialog open={dialogDevolver} onOpenChange={setDialogDevolver}>
                 <DialogTrigger asChild>
-                  <Button className="bg-red-600 text-white hover:bg-red-700">
+                  <Button variant="destructive">
                     <ThumbsDown className="mr-1 h-4 w-4" />
                     Devolver
                   </Button>
@@ -203,7 +203,7 @@ export function ContratoDetalhesPage() {
                     </div>
                     <div className="flex justify-end gap-2">
                       <Button variant="outline" onClick={() => setDialogDevolver(false)}>Cancelar</Button>
-                      <Button className="bg-red-600 text-white hover:bg-red-700" onClick={handleDevolver} disabled={devolver.isPending}>
+                      <Button variant="destructive" onClick={handleDevolver} disabled={devolver.isPending}>
                         Devolver
                       </Button>
                     </div>

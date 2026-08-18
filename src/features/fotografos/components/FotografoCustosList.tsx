@@ -31,7 +31,7 @@ export function FotografoCustosList({ fotografoId }: FotografoCustosListProps) {
           {custos.length} custo{custos.length !== 1 ? 's' : ''} encontrado{custos.length !== 1 ? 's' : ''}
         </p>
         <p className="text-sm font-semibold">
-          Total: <span className="text-rose-600">{formatCurrency(total)}</span>
+          Total: <span className="text-rose-500">{formatCurrency(total)}</span>
         </p>
       </div>
 
@@ -64,7 +64,7 @@ export function FotografoCustosList({ fotografoId }: FotografoCustosListProps) {
                   <TableCell className="tabular-nums">
                     {format(new Date(c.data), 'dd/MM/yyyy', { locale: ptBR })}
                   </TableCell>
-                  <TableCell className="text-right tabular-nums text-rose-600">
+                  <TableCell className="text-right tabular-nums text-rose-500">
                     {formatCurrency(c.valor)}
                   </TableCell>
                   <TableCell>

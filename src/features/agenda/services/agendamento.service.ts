@@ -1,10 +1,13 @@
 import { format } from 'date-fns'
 import { apiClient } from '@/shared/api'
+import { parseDuracao } from '@/shared/lib/duracao'
 import type { Agendamento, FotoExtra, VideoExtra, Pacote, Pagamento, Usuario, FinanceiroTrabalho } from '../types'
 import type { WizardFormValues } from '../schemas/agendamento.schema'
 import type { AgendamentoStatus } from '@/shared/constants'
 import type { Cliente } from '../types/cliente'
 import type { EditarAgendamentoFormData } from '../schemas/agendamento.schema'
+
+export { parseDuracao }
 
 export interface RascunhoAgendamentoData {
   clienteId?: string
@@ -56,19 +59,6 @@ export interface DisponibilidadeResponse {
     horario: string
     clienteNome: string
   }>
-}
-
-export function parseDuracao(duracao: string | undefined): number {
-  if (!duracao) return 60
-  const match = duracao.match(/^(\d+)h(?:\s*(\d+)min)?$/)
-  if (match) {
-    const hours = parseInt(match[1])
-    const mins = match[2] ? parseInt(match[2]) : 0
-    return hours * 60 + mins
-  }
-  const onlyMins = duracao.match(/^(\d+)min$/)
-  if (onlyMins) return parseInt(onlyMins[1])
-  return 60
 }
 
 export const agendamentoService = {

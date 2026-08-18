@@ -73,7 +73,7 @@ export function MinhasComprasSection({ token }: MinhasComprasSectionProps) {
       case 'PAGA': return <Check className="h-4 w-4 text-emerald-500" />
       case 'AGUARDANDO_CONFIRMACAO': return <Clock className="h-4 w-4 text-orange-500" />
       case 'AGUARDANDO_COMPROVANTE': return <Upload className="h-4 w-4 text-amber-500" />
-      case 'CANCELADA': return <X className="h-4 w-4 text-red-500" />
+      case 'CANCELADA': return <X className="h-4 w-4 text-rose-400" />
       default: return null
     }
   }
@@ -118,12 +118,12 @@ export function MinhasComprasSection({ token }: MinhasComprasSectionProps) {
               {isExpanded && (
                 <div className="px-3 pb-3 border-t pt-3 space-y-3">
                   {compra.status === 'CANCELADA' && compra.motivoRecusa && (
-                    <div className="rounded-lg bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-800 p-3 text-xs space-y-1">
-                      <div className="flex items-center gap-1.5 font-medium text-red-700 dark:text-red-400">
+                    <div className="rounded-lg bg-rose-50 dark:bg-rose-950/20 border border-rose-200 dark:border-rose-800 p-3 text-xs space-y-1">
+                      <div className="flex items-center gap-1.5 font-medium text-rose-600 dark:text-rose-300">
                         <AlertTriangle className="h-3.5 w-3.5" />
                         Compra recusada
                       </div>
-                      <p className="text-red-600 dark:text-red-300 ml-5">Motivo: {compra.motivoRecusa}</p>
+                      <p className="text-rose-500 dark:text-rose-200 ml-5">Motivo: {compra.motivoRecusa}</p>
                     </div>
                   )}
 

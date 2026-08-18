@@ -22,7 +22,7 @@ function TooltipContent({ active, payload, label }: any) {
       </p>
       <p className="flex items-center justify-between gap-4 text-xs">
         <span className="flex items-center gap-1.5">
-          <span className="h-2.5 w-2.5 rounded-sm bg-rose-500" />
+          <span className="h-2.5 w-2.5 rounded-sm bg-rose-400" />
           Despesas
         </span>
         <span className="font-medium tabular-nums">{formatCurrency(payload[1]?.value)}</span>
@@ -51,7 +51,7 @@ export function GraficoReceitasDespesas({ data, isLoading }: GraficoReceitasDesp
           <Tooltip content={<TooltipContent />} />
           <Legend wrapperStyle={{ fontSize: 12, paddingTop: 8 }} iconType="circle" />
           <Bar dataKey="receitas" name="Receitas" fill="#10b981" radius={[4, 4, 0, 0]} fillOpacity={0.85} />
-          <Bar dataKey="despesas" name="Despesas" fill="#f43f5e" radius={[4, 4, 0, 0]} fillOpacity={0.5} />
+          <Bar dataKey="despesas" name="Despesas" fill="#e1749a" radius={[4, 4, 0, 0]} fillOpacity={0.5} />
         </BarChart>
       </ResponsiveContainer>
     </div>

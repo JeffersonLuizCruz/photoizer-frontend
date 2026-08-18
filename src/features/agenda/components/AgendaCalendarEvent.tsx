@@ -20,8 +20,8 @@ export const statusColors: Record<string, string> = {
   FOTOS_ENVIADAS_PARA_SELECAO: 'bg-purple-500',
   FOTOS_ENTREGUES: 'bg-teal-500',
   FINALIZADO: 'bg-gray-400',
-  CANCELADO: 'bg-red-500',
-  NO_SHOW: 'bg-red-500',
+  CANCELADO: 'bg-rose-400',
+  NO_SHOW: 'bg-rose-400',
   RASCUNHO: 'bg-slate-300',
 }
 
@@ -34,7 +34,7 @@ export const statusBgColors: Record<string, string> = {
   FOTOS_ENVIADAS_PARA_SELECAO: 'bg-purple-50 border-purple-200 hover:bg-purple-100 dark:bg-purple-950 dark:border-purple-800',
   FOTOS_ENTREGUES: 'bg-teal-50 border-teal-200 hover:bg-teal-100 dark:bg-teal-950 dark:border-teal-800',
   FINALIZADO: 'bg-gray-50 border-gray-200 hover:bg-gray-100 dark:bg-gray-900 dark:border-gray-700',
-  CANCELADO: 'bg-red-50 border-red-200 hover:bg-red-100 dark:bg-red-950 dark:border-red-800',
+  CANCELADO: 'bg-rose-50 border-rose-200 hover:bg-rose-100 dark:bg-rose-950 dark:border-rose-800',
   RASCUNHO: 'bg-slate-50 border-dashed border-slate-300 hover:bg-slate-100 dark:bg-slate-900 dark:border-slate-700',
 }
 

@@ -2,7 +2,9 @@ import { useState, useRef, useEffect } from 'react'
 import { useForm, FormProvider } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useNavigate } from 'react-router-dom'
-import { Loader2, Percent, Search, User, X } from 'lucide-react'
+import { format } from 'date-fns'
+import { ptBR } from 'date-fns/locale'
+import { AlertTriangle, CalendarIcon, Loader2, Percent, Search, User, X } from 'lucide-react'
 import { PageTitle } from '@/shared/components/layout/PageTitle'
 import { Button } from '@/shared/components/ui/button'
 import { Input } from '@/shared/components/ui/input'
@@ -10,16 +12,33 @@ import { Label } from '@/shared/components/ui/label'
 import { Textarea } from '@/shared/components/ui/textarea'
 import { Switch } from '@/shared/components/ui/switch'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/components/ui/select'
+import { Calendar } from '@/shared/components/ui/calendar'
+import { Popover, PopoverContent, PopoverTrigger } from '@/shared/components/ui/popover'
+import { CurrencyInput } from '@/shared/components/layout/CurrencyInput'
 import { ROUTES } from '@/shared/constants'
 import { formatCurrency } from '@/shared/lib/format'
 import { cn } from '@/shared/lib/cn'
 import { criarContratoSchema, type CriarContratoFormValues } from '../schemas/contrato.schema'
-import { useCriarContrato, usePacotesOptions, useUsuariosOptions, useIndicadoresSearch } from '../api/queries'
+import {
+  useCriarContrato,
+  usePacotesOptions,
+  useUsuariosOptions,
+  useIndicadoresSearch,
+  useDisponibilidadeContrato,
+} from '../api/queries'
 import { ParceirosRepasseList } from '@/shared/components/parceiros/ParceirosRepasseList'
+
+const HORARIOS = [
+  '05:00', '05:30', '06:00', '06:30', '07:00', '07:30',
+  '08:00', '08:30',
+  '09:00', '09:30', '10:00', '10:30', '11:00', '11:30',
+  '13:00', '13:30', '14:00', '14:30', '15:00', '15:30',
+  '16:00', '16:30', '17:00', '17:30', '18:00',
+]
 
 const defaultValues: CriarContratoFormValues = {
   pacoteId: '',
-  data: '',
+  data: undefined as unknown as Date,
   hora: '',
   localEnsaio: '',
   enderecoCompleto: '',
@@ -36,14 +55,13 @@ export function CriarContratoPage() {
   const criar = useCriarContrato()
   const { data: pacotes = [] } = usePacotesOptions()
   const { data: usuarios = [] } = useUsuariosOptions()
-  const [pacoteSelecionado, setPacoteSelecionado] = useState<string>('')
   const [searchIndicador, setSearchIndicador] = useState('')
   const [isOpen, setIsOpen] = useState(false)
   const [selectedIndicadorId, setSelectedIndicadorId] = useState<string | null>(null)
   const [selectedPercentual, setSelectedPercentual] = useState<number | null>(null)
   const inputIndicadorRef = useRef<HTMLInputElement>(null)
   const dropdownIndicadorRef = useRef<HTMLDivElement>(null)
-  const { data: indicadores = [] } = useIndicadoresSearch(searchIndicador)
+  const { data: indicadores = [], isFetching: isFetchingIndicadores } = useIndicadoresSearch(searchIndicador)
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -74,10 +92,20 @@ export function CriarContratoPage() {
   } = methods
 
   const repassar = watch('repassarDeslocamento')
-  const custoDeslocamento = watch('custoDeslocamento')
+  const custoDeslocamento = Number(watch('custoDeslocamento')) || 0
+  const dataValue = watch('data')
+  const horaValue = watch('hora')
+  const pacoteId = watch('pacoteId')
 
-  const pacoteEscolhido = pacotes.find((p) => p.id === pacoteSelecionado)
-  const baseCaculoRepasse = (pacoteEscolhido?.valorBase ?? 0) + (Number(custoDeslocamento) || 0)
+  const pacoteEscolhido = pacotes.find((p) => p.id === pacoteId)
+  const baseCaculoRepasse = (pacoteEscolhido?.valorBase ?? 0) + (repassar ? custoDeslocamento : 0)
+
+  const { data: disponibilidade } = useDisponibilidadeContrato(
+    dataValue instanceof Date ? dataValue : undefined,
+    horaValue || undefined,
+    pacoteEscolhido,
+  )
+  const conflito = disponibilidade && !disponibilidade.disponivel
 
   const indicadorNome = watch('indicadorNome')
   const indicadorTelefone = watch('indicadorTelefone')
@@ -87,9 +115,9 @@ export function CriarContratoPage() {
   function handleSelectIndicador(id: string, nome: string, telefone: string, percentualComissao: number | null) {
     setSelectedIndicadorId(id)
     setSelectedPercentual(percentualComissao)
-    setValue('indicadorId', id)
-    setValue('indicadorNome', nome)
-    setValue('indicadorTelefone', telefone)
+    setValue('indicadorId', id, { shouldValidate: true })
+    setValue('indicadorNome', nome, { shouldValidate: true })
+    setValue('indicadorTelefone', telefone, { shouldValidate: true })
     setSearchIndicador('')
     setIsOpen(false)
   }
@@ -97,9 +125,9 @@ export function CriarContratoPage() {
   function handleClearIndicador() {
     setSelectedIndicadorId(null)
     setSelectedPercentual(null)
-    setValue('indicadorId', '')
-    setValue('indicadorNome', '')
-    setValue('indicadorTelefone', '')
+    setValue('indicadorId', '', { shouldValidate: true })
+    setValue('indicadorNome', '', { shouldValidate: true })
+    setValue('indicadorTelefone', '', { shouldValidate: true })
     setSearchIndicador('')
     inputIndicadorRef.current?.focus()
   }
@@ -130,11 +158,8 @@ export function CriarContratoPage() {
           <div className="sm:col-span-2">
             <Label htmlFor="pacoteId">Pacote *</Label>
             <Select
-              value={pacoteSelecionado}
-              onValueChange={(value) => {
-                setPacoteSelecionado(value)
-                setValue('pacoteId', value)
-              }}
+              value={pacoteId ?? ''}
+              onValueChange={(value) => setValue('pacoteId', value, { shouldValidate: true })}
             >
               <SelectTrigger>
                 <SelectValue placeholder="Selecione o pacote" />
@@ -151,15 +176,72 @@ export function CriarContratoPage() {
           </div>
 
           <div>
-            <Label htmlFor="data">Data do ensaio *</Label>
-            <Input id="data" type="date" {...register('data')} />
+            <Label>Data do Ensaio *</Label>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  className={cn(
+                    'w-full justify-start text-left font-normal',
+                    !dataValue && 'text-muted-foreground',
+                  )}
+                >
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {dataValue instanceof Date
+                    ? format(dataValue, "dd 'de' MMMM 'de' yyyy", { locale: ptBR })
+                    : 'Selecione uma data'}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0">
+                <Calendar
+                  mode="single"
+                  selected={dataValue instanceof Date ? dataValue : undefined}
+                  onSelect={(date) => {
+                    if (date) setValue('data', date, { shouldValidate: true })
+                  }}
+                  disabled={(date: Date) => date < new Date()}
+                  locale={ptBR}
+                  initialFocus
+                />
+              </PopoverContent>
+            </Popover>
             {errors.data && <p className="mt-1 text-sm text-destructive">{errors.data.message}</p>}
           </div>
 
           <div>
-            <Label htmlFor="hora">Horário *</Label>
-            <Input id="hora" type="time" {...register('hora')} />
+            <Label>Horário *</Label>
+            <Select
+              value={horaValue ?? ''}
+              onValueChange={(value) => setValue('hora', value, { shouldValidate: true })}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Selecione um horário" />
+              </SelectTrigger>
+              <SelectContent>
+                {HORARIOS.map((h) => (
+                  <SelectItem key={h} value={h}>
+                    {h}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
             {errors.hora && <p className="mt-1 text-sm text-destructive">{errors.hora.message}</p>}
+
+            {conflito && (
+              <div className="rounded-lg border border-destructive/50 bg-destructive/5 p-3 mt-3">
+                <div className="flex items-center gap-2">
+                  <AlertTriangle className="h-4 w-4 text-destructive shrink-0" />
+                  <p className="text-sm font-medium text-destructive">Horário indisponível</p>
+                </div>
+                <ul className="mt-2 space-y-1 text-xs text-muted-foreground list-disc list-inside">
+                  {disponibilidade.conflitos.map((c) => (
+                    <li key={c.agendamentoId}>
+                      {c.clienteNome} — {c.horario}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
           </div>
 
           <div className="sm:col-span-2">
@@ -175,9 +257,7 @@ export function CriarContratoPage() {
 
           <div>
             <Label htmlFor="editorId">Editor responsável</Label>
-            <Select
-              onValueChange={(value) => setValue('editorId', value || '')}
-            >
+            <Select onValueChange={(value) => setValue('editorId', value || '')}>
               <SelectTrigger>
                 <SelectValue placeholder="Nenhum" />
               </SelectTrigger>
@@ -196,25 +276,29 @@ export function CriarContratoPage() {
           </div>
 
           <div>
-            <Label htmlFor="custoDeslocamento">
-              Custo de deslocamento
-            </Label>
-            <Input
+            <Label htmlFor="custoDeslocamento">Custo de Deslocamento (R$)</Label>
+            <CurrencyInput
               id="custoDeslocamento"
-              type="number"
-              step="0.01"
-              defaultValue={0}
-              {...register('custoDeslocamento', { valueAsNumber: true })}
+              value={custoDeslocamento}
+              onChange={(value) => setValue('custoDeslocamento', value, { shouldValidate: true })}
             />
           </div>
 
-          <div className="flex items-center gap-2 pt-6">
-            <Switch
-              id="repassarDeslocamento"
-              checked={repassar}
-              onCheckedChange={(checked) => setValue('repassarDeslocamento', checked)}
-            />
-            <Label htmlFor="repassarDeslocamento">Repassar deslocamento ao cliente</Label>
+          <div className="flex items-end pb-2">
+            <div className="flex items-center justify-between rounded-lg border p-3 w-full">
+              <div>
+                <span className="text-sm font-medium">Repassar ao cliente</span>
+                <p className="text-xs text-muted-foreground">
+                  {repassar
+                    ? `R$ ${custoDeslocamento.toFixed(2)} será cobrado do cliente`
+                    : 'Custo será absorvido (não cobrado do cliente)'}
+                </p>
+              </div>
+              <Switch
+                checked={repassar}
+                onCheckedChange={(checked) => setValue('repassarDeslocamento', checked)}
+              />
+            </div>
           </div>
 
           <div className="sm:col-span-2">
@@ -238,94 +322,100 @@ export function CriarContratoPage() {
               </div>
             )}
 
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                ref={inputIndicadorRef}
-                placeholder="Digite nome ou telefone do indicador..."
-                className="pl-9 pr-8"
-                value={searchIndicador}
-                onChange={(e) => { setSearchIndicador(e.target.value); setIsOpen(true) }}
-                onFocus={() => setIsOpen(true)}
-              />
-            </div>
-
-            {isOpen && searchIndicador.length >= 2 && (
-              <div ref={dropdownIndicadorRef} className="rounded-lg border bg-card shadow-lg max-h-60 overflow-y-auto">
-                {indicadores.length > 0 ? indicadores.map((r) => (
-                  <button
-                    key={r.id}
-                    type="button"
-                    className={cn(
-                      'flex w-full items-center gap-3 px-3 py-2.5 text-left text-sm hover:bg-muted transition-colors',
-                      selectedIndicadorId === r.id && 'bg-muted/50',
-                    )}
-                    onClick={() => handleSelectIndicador(r.id, r.nome, r.telefone, r.percentualComissao)}
-                  >
-                    <User className="h-4 w-4 shrink-0 text-muted-foreground" />
-                    <div className="flex-1 min-w-0">
-                      <p className="font-medium truncate">{r.nome}</p>
-                      <p className="text-xs text-muted-foreground">{r.telefone}</p>
-                    </div>
-                    {r.percentualComissao != null && (
-                      <span className="shrink-0 text-xs font-medium text-muted-foreground bg-muted px-1.5 py-0.5 rounded">
-                        {r.percentualComissao}%
-                      </span>
-                    )}
-                  </button>
-                )) : (
-                  <p className="px-3 py-4 text-sm text-muted-foreground text-center">
-                    Nenhum indicador encontrado. Continue digitando para cadastrar um novo.
-                  </p>
+            <div className="space-y-3">
+              <Label>Buscar Indicador</Label>
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  ref={inputIndicadorRef}
+                  placeholder="Digite nome ou telefone do indicador..."
+                  className="pl-9 pr-8"
+                  value={searchIndicador}
+                  onChange={(e) => { setSearchIndicador(e.target.value); setIsOpen(true) }}
+                  onFocus={() => setIsOpen(true)}
+                />
+                {isFetchingIndicadores && (
+                  <Loader2 className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 animate-spin text-muted-foreground" />
                 )}
               </div>
-            )}
 
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center"><span className="w-full border-t" /></div>
-              <div className="relative flex justify-center text-xs uppercase"><span className="bg-card px-2 text-muted-foreground">ou digite manualmente</span></div>
-            </div>
+              {isOpen && searchIndicador.length >= 2 && (
+                <div ref={dropdownIndicadorRef} className="rounded-lg border bg-card shadow-lg max-h-60 overflow-y-auto">
+                  {indicadores.length > 0 ? indicadores.map((r) => (
+                    <button
+                      key={r.id}
+                      type="button"
+                      className={cn(
+                        'flex w-full items-center gap-3 px-3 py-2.5 text-left text-sm hover:bg-muted transition-colors',
+                        selectedIndicadorId === r.id && 'bg-muted/50',
+                      )}
+                      onClick={() => handleSelectIndicador(r.id, r.nome, r.telefone, r.percentualComissao)}
+                    >
+                      <User className="h-4 w-4 shrink-0 text-muted-foreground" />
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium truncate">{r.nome}</p>
+                        <p className="text-xs text-muted-foreground">{r.telefone}</p>
+                      </div>
+                      {r.percentualComissao != null && (
+                        <span className="shrink-0 text-xs font-medium text-muted-foreground bg-muted px-1.5 py-0.5 rounded">
+                          {r.percentualComissao}%
+                        </span>
+                      )}
+                    </button>
+                  )) : (
+                    <p className="px-3 py-4 text-sm text-muted-foreground text-center">
+                      Nenhum indicador encontrado. Continue digitando para cadastrar um novo.
+                    </p>
+                  )}
+                </div>
+              )}
 
-            <div className="grid gap-3 sm:grid-cols-2">
-              <div>
-                <Label htmlFor="indicadorNome">Nome do Indicador</Label>
-                <div className="relative">
+              <div className="relative">
+                <div className="absolute inset-0 flex items-center"><span className="w-full border-t" /></div>
+                <div className="relative flex justify-center text-xs uppercase"><span className="bg-card px-2 text-muted-foreground">ou digite manualmente</span></div>
+              </div>
+
+              <div className="grid gap-3 sm:grid-cols-2">
+                <div>
+                  <Label htmlFor="indicadorNome">Nome do Indicador</Label>
+                  <div className="relative">
+                    <Input
+                      id="indicadorNome"
+                      placeholder="Quem indicou?"
+                      disabled={!!selectedIndicadorId}
+                      value={(indicadorNome as string) ?? ''}
+                      onChange={(e) => {
+                        setValue('indicadorNome', e.target.value, { shouldValidate: true })
+                        if (selectedIndicadorId) {
+                          setSelectedIndicadorId(null); setSelectedPercentual(null)
+                          setValue('indicadorId', '', { shouldValidate: true })
+                        }
+                      }}
+                    />
+                    {hasIndicador && (
+                      <button type="button" onClick={handleClearIndicador}
+                        className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
+                        <X className="h-4 w-4" />
+                      </button>
+                    )}
+                  </div>
+                </div>
+                <div>
+                  <Label htmlFor="indicadorTelefone">Telefone do Indicador</Label>
                   <Input
-                    id="indicadorNome"
-                    placeholder="Quem indicou?"
+                    id="indicadorTelefone"
+                    placeholder="(11) 99999-9999"
                     disabled={!!selectedIndicadorId}
-                    value={(indicadorNome as string) ?? ''}
+                    value={(indicadorTelefone as string) ?? ''}
                     onChange={(e) => {
-                      setValue('indicadorNome', e.target.value)
+                      setValue('indicadorTelefone', e.target.value, { shouldValidate: true })
                       if (selectedIndicadorId) {
                         setSelectedIndicadorId(null); setSelectedPercentual(null)
-                        setValue('indicadorId', '')
+                        setValue('indicadorId', '', { shouldValidate: true })
                       }
                     }}
                   />
-                  {hasIndicador && (
-                    <button type="button" onClick={handleClearIndicador}
-                      className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
-                      <X className="h-4 w-4" />
-                    </button>
-                  )}
                 </div>
-              </div>
-              <div>
-                <Label htmlFor="indicadorTelefone">Telefone do Indicador</Label>
-                <Input
-                  id="indicadorTelefone"
-                  placeholder="(11) 99999-9999"
-                  disabled={!!selectedIndicadorId}
-                  value={(indicadorTelefone as string) ?? ''}
-                  onChange={(e) => {
-                    setValue('indicadorTelefone', e.target.value)
-                    if (selectedIndicadorId) {
-                      setSelectedIndicadorId(null); setSelectedPercentual(null)
-                      setValue('indicadorId', '')
-                    }
-                  }}
-                />
               </div>
             </div>
           </div>

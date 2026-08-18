@@ -3,6 +3,7 @@ import type { ContratoStatus } from '@/shared/constants'
 import type {
   Contrato,
   CriarContratoPayload,
+  DisponibilidadeResponse,
   IndicadorOption,
   PacoteOption,
   PublicarContratoResponse,
@@ -24,6 +25,18 @@ export const contratoService = {
     const params = search ? { search } : undefined
     const { data } = await apiClient.get<IndicadorOption[]>('/indicadores', { params })
     return data
+  },
+
+  verificarDisponibilidade: async (
+    data: string,
+    hora: string,
+    duracaoMinutos: number,
+    bloqueiaDiaInteiro: boolean,
+  ): Promise<DisponibilidadeResponse> => {
+    const { data: result } = await apiClient.get<DisponibilidadeResponse>('/agendamentos/verificar-disponibilidade', {
+      params: { data, hora, duracaoMinutos, bloqueiaDiaInteiro },
+    })
+    return result
   },
 
   listar: async (params?: { status?: ContratoStatus; search?: string }): Promise<Contrato[]> => {

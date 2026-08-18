@@ -136,8 +136,8 @@ export function EdicaoRevisaoGrid({ fotos, onSalvar, isSaving }: EdicaoRevisaoGr
                   className={cn(
                     'flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-sm transition-colors',
                     revisao.aprovado === false
-                      ? 'border-red-500 bg-red-50 text-red-700 dark:bg-red-950 dark:text-red-400'
-                      : 'border-border text-muted-foreground hover:border-red-300 hover:text-red-600',
+                      ? 'border-rose-400 bg-rose-50 text-rose-600 dark:bg-rose-950 dark:text-rose-300'
+                      : 'border-border text-muted-foreground hover:border-rose-200 hover:text-rose-500',
                   )}
                 >
                   <ThumbsDown className="h-4 w-4" />

@@ -134,7 +134,7 @@ export function ContratoPublicoPage() {
           </h1>
 
           {erroEnvio && (
-            <div className="mb-6 rounded-md bg-red-50 p-3 text-sm text-red-700 border border-red-200">
+            <div className="mb-6 rounded-md bg-rose-50 p-3 text-sm text-rose-600 border border-rose-200">
               {erroEnvio}
             </div>
           )}

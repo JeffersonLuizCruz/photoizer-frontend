@@ -124,6 +124,7 @@ export function AdicionarExtrasDialog({ open, onOpenChange, agendamento }: Adici
                 type="number"
                 min={1}
                 value={quantidade}
+                onFocus={(e) => e.target.select()}
                 onChange={(e) => setQuantidade(Math.max(1, parseInt(e.target.value) || 1))}
               />
             </div>

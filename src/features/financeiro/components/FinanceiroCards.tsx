@@ -69,7 +69,7 @@ function Variacao({
     <span
       className={cn(
         'inline-flex items-center gap-0.5 text-xs font-medium',
-        good ? 'text-emerald-600 dark:text-emerald-400' : bad ? 'text-red-600 dark:text-red-400' : 'text-muted-foreground',
+        good ? 'text-emerald-600 dark:text-emerald-400' : bad ? 'text-rose-500 dark:text-rose-300' : 'text-muted-foreground',
       )}
     >
       <Icon className="h-3.5 w-3.5" />

@@ -130,6 +130,7 @@ export function ConfigPage() {
                     min="0"
                     placeholder={placeholder}
                     value={values[key] ?? ''}
+                    onFocus={(e) => e.target.select()}
                     onChange={(e) => setValues((prev) => ({ ...prev, [key]: e.target.value }))}
                   />
                 </div>

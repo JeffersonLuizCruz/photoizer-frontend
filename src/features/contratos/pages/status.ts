@@ -19,6 +19,6 @@ export const STATUS_COR: Record<ContratoStatus, string> = {
   [CONTRATO_STATUS.PAGAMENTO_CONFIRMADO]: 'bg-purple-100 text-purple-700',
   [CONTRATO_STATUS.APROVADO]: 'bg-green-100 text-green-700',
   [CONTRATO_STATUS.DEVOLVIDO]: 'bg-orange-100 text-orange-700',
-  [CONTRATO_STATUS.CANCELADO]: 'bg-red-100 text-red-700',
+  [CONTRATO_STATUS.CANCELADO]: 'bg-rose-100 text-rose-600',
   [CONTRATO_STATUS.EXPIRADO]: 'bg-gray-100 text-gray-500',
 }

@@ -19,7 +19,7 @@ interface GerenciarCategoriasDialogProps {
   onOpenChange: (open: boolean) => void
 }
 
-const CORES = ['#0ea5e9', '#22c55e', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#14b8a6', '#64748b']
+const CORES = ['#0ea5e9', '#22c55e', '#f59e0b', '#e1749a', '#8b5cf6', '#ec4899', '#14b8a6', '#64748b']
 
 export function GerenciarCategoriasDialog({ open, onOpenChange }: GerenciarCategoriasDialogProps) {
   const { data: categorias, isLoading } = useDespesasCategorias(false)

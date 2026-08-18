@@ -98,7 +98,7 @@ export function FotografoFinanceiroDetalhado({ fotografoId }: FotografoFinanceir
                   <p className="text-sm font-medium">{c.clienteNome}</p>
                   <p className="text-xs text-muted-foreground">{c.dataEnsaio}</p>
                 </div>
-                <p className="text-sm font-medium text-rose-600">{formatCurrency(c.total)}</p>
+                <p className="text-sm font-medium text-rose-500">{formatCurrency(c.total)}</p>
               </div>
             ))}
           </div>

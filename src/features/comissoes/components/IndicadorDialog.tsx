@@ -95,6 +95,7 @@ export function IndicadorDialog({ open, onOpenChange, indicador }: IndicadorDial
               min="0"
               max="100"
               value={percentualComissao}
+              onFocus={(e) => e.target.select()}
               onChange={(e) => setPercentualComissao(e.target.value)}
               placeholder="Usar padrão do sistema"
             />

@@ -47,6 +47,7 @@ export function StepFotografo() {
           type="number"
           step="0.01"
           min="0"
+          onFocus={(e) => e.target.select()}
           placeholder="Ex: 200.00"
           {...register('valorRepassarFotografo', { valueAsNumber: true })}
         />

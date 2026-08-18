@@ -114,6 +114,7 @@ export function ParceirosRepasseList({ base }: ParceirosRepasseListProps) {
                     min="0"
                     max="100"
                     value={row.percentual ?? ''}
+                    onFocus={(e) => e.target.select()}
                     onChange={(e) =>
                       setRow(idx, { percentual: e.target.value === '' ? undefined : Number(e.target.value) })
                     }

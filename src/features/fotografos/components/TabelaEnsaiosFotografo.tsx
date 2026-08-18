@@ -55,7 +55,7 @@ export function TabelaEnsaiosFotografo({ ensaios, showStudioProfit }: TabelaEnsa
                   {format(new Date(e.dataHoraEnsaio), 'dd/MM/yyyy', { locale: ptBR })}
                 </TableCell>
                 <TableCell className="text-right tabular-nums">{formatCurrency(e.valorTotal)}</TableCell>
-                <TableCell className="text-right tabular-nums text-rose-600">{formatCurrency(e.custosFotografo)}</TableCell>
+                <TableCell className="text-right tabular-nums text-rose-500">{formatCurrency(e.custosFotografo)}</TableCell>
                 <TableCell className="text-right tabular-nums">{formatCurrency(e.partilhaFotografo)}</TableCell>
                 <TableCell className="text-right tabular-nums text-amber-600">{formatCurrency(e.repassarFotografo)}</TableCell>
                 {showStudioProfit && (
