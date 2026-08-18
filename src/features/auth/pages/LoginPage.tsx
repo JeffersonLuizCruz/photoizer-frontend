@@ -24,8 +24,9 @@ export function LoginPage() {
     setError('')
     setIsSubmitting(true)
     try {
-      await login(email, password)
-      navigate(from, { replace: true })
+      const user = await login(email, password)
+      const destino = user.papel === 'FOTOGRAFO' ? ROUTES.MINHA_AGENDA : from
+      navigate(destino, { replace: true })
     } catch (err: any) {
       setError(err?.response?.data?.message || 'Email ou senha inválidos')
     } finally {

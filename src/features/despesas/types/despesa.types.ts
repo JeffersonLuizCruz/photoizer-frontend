@@ -40,6 +40,7 @@ export interface DespesaRequest {
   status: StatusDespesa
   recorrencia: RecorrenciaDespesa
   agendamentoId?: string
+  fotografoId?: string
   observacao?: string
 }
 
@@ -57,6 +58,7 @@ export interface DespesaResponse {
   dataProximaGeracao: string | null
   geradaDeId: string | null
   agendamentoId: string | null
+  fotografoId: string | null
   dataPagamento: string | null
   urlComprovante: string | null
   observacao: string | null
@@ -68,6 +70,7 @@ export interface DespesaQueryParams {
   categoriaId?: string
   status?: StatusDespesa
   agendamentoId?: string
+  fotografoId?: string
   sortBy?: string
   sortDir?: 'asc' | 'desc'
 }

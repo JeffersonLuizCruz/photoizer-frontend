@@ -7,6 +7,16 @@ export const criarContratoSchema = z.object({
   localEnsaio: z.string().min(3, 'Informe o local do ensaio'),
   enderecoCompleto: z.string().optional(),
   editorId: z.string().optional(),
+  fotografoId: z.string().optional(),
+  valorRepassarFotografo: z.number().min(0).optional(),
+  fotografos: z.array(
+    z.object({
+      fotografoId: z.string().min(1, 'Selecione o parceiro'),
+      tipoValor: z.enum(['FIXO', 'PERCENTUAL']).default('FIXO'),
+      valorRepassar: z.number().min(0).optional(),
+      percentual: z.number().min(0).max(100).optional(),
+    }),
+  ),
   custoDeslocamento: z.number().min(0).optional(),
   repassarDeslocamento: z.boolean().optional(),
   clienteId: z.string().optional(),

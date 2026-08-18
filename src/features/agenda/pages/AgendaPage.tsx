@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, Navigate } from 'react-router-dom'
 import { CalendarDays, Table2, FilterX, Search, FileEdit, Clock, MapPin } from 'lucide-react'
 import { format } from 'date-fns'
 import { Button } from '@/shared/components/ui/button'
@@ -15,6 +15,7 @@ import { AgendaCalendar, type CalendarView } from '../components/AgendaCalendar'
 import { AgendamentoList } from '../components/AgendamentoList'
 import { statusLabels } from '../components/AgendaCalendarEvent'
 import type { AgendamentoStatus } from '@/shared/constants'
+import { useAuth } from '@/features/auth/AuthProvider'
 import type { Agendamento } from '../types'
 import { useWizardStore } from '../stores/wizard.store'
 
@@ -32,6 +33,16 @@ const statusOptions: { value: string; label: string }[] = [
 ]
 
 export function AgendaPage() {
+  const { papel } = useAuth()
+
+  if (papel === 'FOTOGRAFO') {
+    return <Navigate to={ROUTES.MINHA_AGENDA} replace />
+  }
+
+  return <AgendaPageContent />
+}
+
+function AgendaPageContent() {
   const navigate = useNavigate()
   const [viewMode, setViewMode] = useState<'calendar' | 'list'>('calendar')
   const [calendarView, setCalendarView] = useState<CalendarView>('month')

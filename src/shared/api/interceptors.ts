@@ -27,18 +27,16 @@ apiClient.interceptors.response.use(
   (error) => {
     if (error.response?.status === 401) {
       const requestUrl = error.config?.url || ''
-      if (requestUrl.includes('/ecommerce/galeria/')) {
+      if (requestUrl.includes('/ecommerce/galeria/') || requestUrl.includes('/auth/login')) {
         return Promise.reject(error)
       }
-      if (!requestUrl.includes('/auth/login')) {
-        const customerUser = useCustomerAuth.getState().user
-        if (customerUser) {
-          useCustomerAuth.getState().logout()
-          window.location.href = '/acesso-cliente'
-        } else {
-          authService.logout()
-          window.location.href = '/login'
-        }
+      const customerUser = useCustomerAuth.getState().user
+      if (customerUser) {
+        useCustomerAuth.getState().logout()
+        window.dispatchEvent(new CustomEvent('auth:redirect', { detail: '/acesso-cliente' }))
+      } else {
+        authService.logout()
+        window.dispatchEvent(new CustomEvent('auth:redirect', { detail: '/login' }))
       }
       return Promise.reject(error)
     }

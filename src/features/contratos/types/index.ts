@@ -1,5 +1,14 @@
 import type { ContratoStatus } from '@/shared/constants'
 
+export interface FotografoContrato {
+  fotografoId: string
+  fotografoNome: string
+  valorRepassar: number | null
+  tipoValor: 'FIXO' | 'PERCENTUAL'
+  percentual: number | null
+  papelParceiro: string | null
+}
+
 export interface Contrato {
   id: string
   status: ContratoStatus
@@ -17,6 +26,9 @@ export interface Contrato {
   pacoteNome: string
   valorPacote: number
   editorId: string | null
+  fotografoId: string | null
+  valorRepassarFotografo: number | null
+  fotografos: FotografoContrato[]
   dataHoraEnsaio: string
   duracaoMinutos: number
   localEnsaio: string
@@ -53,6 +65,12 @@ export interface CriarContratoPayload {
   editorId?: string
   custoDeslocamento?: number
   repassarDeslocamento?: boolean
+  fotografos?: Array<{
+    fotografoId: string
+    tipoValor: 'FIXO' | 'PERCENTUAL'
+    valorRepassar?: number
+    percentual?: number
+  }>
   observacoes?: string
   indicadorId?: string
   indicadorNome?: string
@@ -86,6 +104,7 @@ export interface ContratoPublico {
   valorEntradaExigido: number
   valorRestante: number
   clausulasHtml: string
+  profissionais: Array<{ nome: string; papel: string }>
 }
 
 export interface ContratoStatusPublico {

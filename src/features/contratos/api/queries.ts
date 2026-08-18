@@ -54,6 +54,14 @@ export function useCriarContrato() {
       const [h, m] = payload.hora.split(':').map(Number)
       const [y, mo, d] = payload.data.split('-').map(Number)
       const dataHoraEnsaio = new Date(y, mo - 1, d, h, m, 0, 0)
+      const fotografos = (payload.fotografos ?? [])
+        .filter((f) => f?.fotografoId)
+        .map((f) => ({
+          fotografoId: f.fotografoId,
+          tipoValor: (f.tipoValor ?? 'FIXO') as 'FIXO' | 'PERCENTUAL',
+          valorRepassar: (f.tipoValor ?? 'FIXO') === 'FIXO' ? f.valorRepassar : undefined,
+          percentual: (f.tipoValor ?? 'FIXO') === 'PERCENTUAL' ? f.percentual : undefined,
+        }))
       return contratoService.criar({
         clienteId: payload.clienteId || undefined,
         pacoteId: payload.pacoteId,
@@ -63,6 +71,7 @@ export function useCriarContrato() {
         editorId: payload.editorId || undefined,
         custoDeslocamento: payload.custoDeslocamento,
         repassarDeslocamento: payload.repassarDeslocamento,
+        fotografos: fotografos.length > 0 ? fotografos : undefined,
         observacoes: payload.observacoes || undefined,
         indicadorId: payload.indicadorId || undefined,
         indicadorNome: payload.indicadorNome || undefined,

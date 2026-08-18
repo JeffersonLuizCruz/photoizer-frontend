@@ -42,12 +42,13 @@ function DetalhamentoBreakdown({ detalhamento }: { detalhamento: Detalhamento })
           <DetalhamentoRow label="Total Recebido" value={detalhamento.recebido} />
           <DetalhamentoRow label="Comissão (indicação)" value={detalhamento.comissao} />
           <DetalhamentoRow label="Deslocamento (efetivo)" value={detalhamento.deslocamento} />
+          <DetalhamentoRow label="Repasse (parceiros)" value={detalhamento.repasses} />
           <DetalhamentoRow label="Despesas" value={detalhamento.despesas} />
         </div>
       </div>
       <p className="mt-2 text-xs text-muted-foreground">
-        Líquido previsto = Valor bruto − (deslocamento efetivo + comissão + despesas). Deslocamento repassado ao
-        fotógrafo não é descontado.
+        Líquido previsto = Valor bruto − (deslocamento efetivo + comissão + repasse de parceiros + despesas).
+        Deslocamento repassado ao fotógrafo não é descontado.
       </p>
     </div>
   )

@@ -9,6 +9,7 @@ export const despesaSchema = z.object({
   status: z.enum(['PAGO', 'PENDENTE', 'RECORRENTE']),
   recorrencia: z.enum(['UNICA', 'MENSAL', 'ANUAL']),
   agendamentoId: z.string().nullable().optional(),
+  fotografoId: z.string().nullable().optional(),
   observacao: z.string().optional(),
 })
 

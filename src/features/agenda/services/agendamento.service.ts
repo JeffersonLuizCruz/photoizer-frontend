@@ -175,6 +175,10 @@ export const agendamentoService = {
     if (payload.indicadorNome) formData.append('indicadorNome', payload.indicadorNome)
     if (payload.indicadorTelefone) formData.append('indicadorTelefone', payload.indicadorTelefone)
 
+    if (payload.fotografos && payload.fotografos.length > 0) {
+      formData.append('fotografos', JSON.stringify(payload.fotografos))
+    }
+
     if (payload.observacoes) formData.append('observacoes', payload.observacoes)
     if (comprovante) formData.append('comprovanteEntrada', comprovante)
 

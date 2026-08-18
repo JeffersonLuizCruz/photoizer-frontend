@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { Loader2 } from 'lucide-react'
 import { AppLayout } from '@/shared/components/layout/AppLayout'
 import { ROUTES } from '@/shared/constants'
+import { useAuth } from '@/features/auth/AuthProvider'
 import { LoginPage, ProtectedRoute } from '@/features/auth'
 
 // RNF001: code splitting por rota — cada página é carregada sob demanda
@@ -37,6 +38,20 @@ const ContratosPage = lazy(() => import('@/features/contratos').then(m => ({ def
 const CriarContratoPage = lazy(() => import('@/features/contratos').then(m => ({ default: m.CriarContratoPage })))
 const ContratoDetalhesPage = lazy(() => import('@/features/contratos').then(m => ({ default: m.ContratoDetalhesPage })))
 const ContratoPublicoPage = lazy(() => import('@/features/contratos').then(m => ({ default: m.ContratoPublicoPage })))
+const FotografosListPage = lazy(() => import('@/features/fotografos/pages/FotografosListPage').then(m => ({ default: m.FotografosListPage })))
+const FotografoDashboardPage = lazy(() => import('@/features/fotografos/pages/FotografoDashboardPage').then(m => ({ default: m.FotografoDashboardPage })))
+const FotografosNovoPage = lazy(() => import('@/features/fotografos/pages/FotografosNovoPage').then(m => ({ default: m.FotografosNovoPage })))
+const FotografosEditarPage = lazy(() => import('@/features/fotografos/pages/FotografosEditarPage').then(m => ({ default: m.FotografosEditarPage })))
+const MeuPainelPage = lazy(() => import('@/features/fotografos/pages/MeuPainelPage').then(m => ({ default: m.MeuPainelPage })))
+const RelatorioGlobalPage = lazy(() => import('@/features/fotografos/pages/RelatorioGlobalPage').then(m => ({ default: m.RelatorioGlobalPage })))
+const RepassesPendentesPage = lazy(() => import('@/features/fotografos/pages/RepassesPendentesPage').then(m => ({ default: m.RepassesPendentesPage })))
+const MinhaAgendaPage = lazy(() => import('@/features/fotografos/pages/MinhaAgendaPage').then(m => ({ default: m.MinhaAgendaPage })))
+const MinhasFinancasPage = lazy(() => import('@/features/fotografos/pages/MinhasFinancasPage').then(m => ({ default: m.MinhasFinancasPage })))
+function HomeRedirect() {
+  const { papel } = useAuth()
+  return <Navigate to={papel === 'FOTOGRAFO' ? ROUTES.MINHA_AGENDA : ROUTES.AGENDA} replace />
+}
+
 function PageLoader() {
   return (
     <div className="flex h-screen items-center justify-center" role="status" aria-label="Carregando página">
@@ -72,7 +87,7 @@ export function AppRoutes() {
           <Route path={ROUTES.CHECKOUT} element={<CheckoutPage />} />
 
           <Route element={<ProtectedRoute><AppLayout /></ProtectedRoute>}>
-            <Route path="/" element={<Navigate to={ROUTES.AGENDA} replace />} />
+            <Route path="/" element={<HomeRedirect />} />
             <Route path={ROUTES.DASHBOARD} element={<DashboardPage />} />
             <Route path={ROUTES.AGENDA} element={<AgendaPage />} />
             <Route path={ROUTES.AGENDA_NOVO} element={<NovoAgendamentoPage />} />
@@ -98,6 +113,15 @@ export function AppRoutes() {
             <Route path={ROUTES.EDICAO_REVISAO} element={<EdicaoRevisaoPage />} />
             <Route path={ROUTES.ADMIN_ECOMMERCE} element={<AdminEcommercePage />} />
             <Route path={ROUTES.ADMIN_ANALYTICS} element={<AdminAnalyticsPage />} />
+            <Route path={ROUTES.FOTOGRAFOS} element={<FotografosListPage />} />
+            <Route path={ROUTES.FOTOGRAFOS_NOVO} element={<FotografosNovoPage />} />
+            <Route path={ROUTES.FOTOGRAFOS_RELATORIO} element={<RelatorioGlobalPage />} />
+            <Route path={ROUTES.REPASSES_PENDENTES} element={<RepassesPendentesPage />} />
+            <Route path={ROUTES.FOTOGRAFOS_DETALHES} element={<FotografoDashboardPage />} />
+            <Route path={ROUTES.FOTOGRAFOS_EDITAR} element={<FotografosEditarPage />} />
+            <Route path={ROUTES.MEU_PAINEL} element={<MeuPainelPage />} />
+            <Route path={ROUTES.MINHA_AGENDA} element={<MinhaAgendaPage />} />
+            <Route path={ROUTES.MINHAS_FINANCAS} element={<MinhasFinancasPage />} />
           </Route>
 
           <Route path="*" element={<NotFound />} />

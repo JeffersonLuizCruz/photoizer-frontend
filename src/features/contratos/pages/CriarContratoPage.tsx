@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react'
-import { useForm } from 'react-hook-form'
+import { useForm, FormProvider } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useNavigate } from 'react-router-dom'
 import { Loader2, Percent, Search, User, X } from 'lucide-react'
@@ -15,6 +15,7 @@ import { formatCurrency } from '@/shared/lib/format'
 import { cn } from '@/shared/lib/cn'
 import { criarContratoSchema, type CriarContratoFormValues } from '../schemas/contrato.schema'
 import { useCriarContrato, usePacotesOptions, useUsuariosOptions, useIndicadoresSearch } from '../api/queries'
+import { ParceirosRepasseList } from '@/shared/components/parceiros/ParceirosRepasseList'
 
 const defaultValues: CriarContratoFormValues = {
   pacoteId: '',
@@ -23,6 +24,7 @@ const defaultValues: CriarContratoFormValues = {
   localEnsaio: '',
   enderecoCompleto: '',
   editorId: '',
+  fotografos: [],
   custoDeslocamento: 0,
   repassarDeslocamento: true,
   clienteId: '',
@@ -58,18 +60,24 @@ export function CriarContratoPage() {
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [])
 
+  const methods = useForm<CriarContratoFormValues>({
+    resolver: zodResolver(criarContratoSchema),
+    defaultValues,
+  })
+
   const {
     register,
     handleSubmit,
     setValue,
     watch,
     formState: { errors },
-  } = useForm<CriarContratoFormValues>({
-    resolver: zodResolver(criarContratoSchema),
-    defaultValues,
-  })
+  } = methods
 
   const repassar = watch('repassarDeslocamento')
+  const custoDeslocamento = watch('custoDeslocamento')
+
+  const pacoteEscolhido = pacotes.find((p) => p.id === pacoteSelecionado)
+  const baseCaculoRepasse = (pacoteEscolhido?.valorBase ?? 0) + (Number(custoDeslocamento) || 0)
 
   const indicadorNome = watch('indicadorNome')
   const indicadorTelefone = watch('indicadorTelefone')
@@ -116,7 +124,8 @@ export function CriarContratoPage() {
         ]}
       />
 
-      <form onSubmit={handleSubmit(onSubmit)} className="mx-auto max-w-2xl space-y-6">
+      <FormProvider {...methods}>
+        <form onSubmit={handleSubmit(onSubmit)} className="mx-auto max-w-2xl space-y-6">
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="sm:col-span-2">
             <Label htmlFor="pacoteId">Pacote *</Label>
@@ -180,6 +189,10 @@ export function CriarContratoPage() {
                 ))}
               </SelectContent>
             </Select>
+          </div>
+
+          <div className="sm:col-span-2 space-y-3 rounded-lg border bg-muted/30 p-4">
+            <ParceirosRepasseList base={baseCaculoRepasse} />
           </div>
 
           <div>
@@ -328,6 +341,7 @@ export function CriarContratoPage() {
           </Button>
         </div>
       </form>
+      </FormProvider>
     </div>
   )
 }

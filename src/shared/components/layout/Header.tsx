@@ -13,6 +13,7 @@ import {
   DropdownMenuTrigger,
 } from '@/shared/components/ui/dropdown-menu'
 import { useAuth } from '@/features/auth/AuthProvider'
+import { NotificationBell } from '@/features/notificacoes/components/NotificationBell'
 
 const papelConfig = {
   ADMIN: { label: 'Admin', variant: 'default' as const },
@@ -45,6 +46,8 @@ export function Header() {
         <Button variant="ghost" size="icon" onClick={toggleTheme} aria-label="Toggle theme">
           {theme === 'light' ? <Moon className="h-5 w-5" /> : <Sun className="h-5 w-5" />}
         </Button>
+
+        <NotificationBell />
 
         {user && (
           <DropdownMenu>

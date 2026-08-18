@@ -253,6 +253,26 @@ export function ContratoDetalhesPage() {
               <Info label="Editor" value={editorNome} />
               <Info label="Duração" value={`${contrato.duracaoMinutos} min`} />
             </div>
+            {contrato.fotografos && contrato.fotografos.length > 0 && (
+              <div className="border-t pt-3">
+                <p className="mb-2 text-sm font-medium">Equipe de parceiros</p>
+                <ul className="space-y-1.5">
+                  {contrato.fotografos.map((f) => (
+                    <li key={f.fotografoId} className="flex items-center justify-between gap-2 text-sm">
+                      <span className="font-medium">{f.fotografoNome}</span>
+                      <span className="flex items-center gap-2 text-muted-foreground">
+                        {f.papelParceiro && <span>{f.papelParceiro}</span>}
+                        <span>
+                          {f.tipoValor === 'PERCENTUAL'
+                            ? `${f.percentual}% do repasse`
+                            : formatCurrency(f.valorRepassar || 0)}
+                        </span>
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
           </div>
 
           <div className="rounded-lg border bg-card p-4 space-y-4">

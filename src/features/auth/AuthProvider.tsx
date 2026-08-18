@@ -3,7 +3,7 @@ import { authService } from './services/auth.service'
 
 export type Papel = 'ADMIN' | 'FOTOGRAFO' | 'EDITOR' | 'AGENDADOR'
 
-interface AuthUser {
+export interface AuthUser {
   nome: string
   email: string
   papel: Papel
@@ -14,7 +14,7 @@ interface AuthContextType {
   user: AuthUser | null
   isAuthenticated: boolean
   isLoading: boolean
-  login: (email: string, password: string) => Promise<void>
+  login: (email: string, password: string) => Promise<AuthUser>
   logout: () => void
   papel: Papel | null
   isAdmin: boolean
@@ -35,6 +35,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUser(saved as AuthUser)
     }
     setIsLoading(false)
+
+    const handleRedirect = (e: Event) => {
+      const path = (e as CustomEvent).detail
+      window.location.href = path
+    }
+    window.addEventListener('auth:redirect', handleRedirect)
+    return () => window.removeEventListener('auth:redirect', handleRedirect)
   }, [])
 
   const login = useCallback(async (email: string, password: string) => {
@@ -46,6 +53,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       userId: response.userId,
     }
     setUser(userData)
+    return userData
   }, [])
 
   const logout = useCallback(() => {

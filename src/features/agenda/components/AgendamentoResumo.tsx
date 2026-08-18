@@ -86,6 +86,21 @@ export function AgendamentoResumo({ agendamento }: AgendamentoResumoProps) {
         )}
         <InfoRow label="Pacote" value={agendamento.pacoteNome} />
         <InfoRow label="Editor" value={agendamento.editorNome} />
+        {agendamento.fotografos && agendamento.fotografos.length > 0 && (
+          <div>
+            <span className="text-muted-foreground shrink-0">Equipe do ensaio:</span>
+            <ul className="mt-1 space-y-1">
+              {agendamento.fotografos.map((f) => (
+                <li key={f.fotografoId} className="flex items-center justify-between gap-2">
+                  <span className="text-right font-medium">{f.fotografoNome}</span>
+                  {f.papelParceiro && (
+                    <Badge variant="secondary" className="text-[10px] px-1.5 py-0">{f.papelParceiro}</Badge>
+                  )}
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
         {agendamento.ensaioDestaque && (
           <div className="flex items-center gap-1 text-amber-600">
             <Award className="h-3.5 w-3.5" />

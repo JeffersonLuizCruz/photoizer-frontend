@@ -21,6 +21,7 @@ export interface Detalhamento {
   receitasAvulsas: number
   comissao: number
   deslocamento: number
+  repasses: number
   despesas: number
 }
 

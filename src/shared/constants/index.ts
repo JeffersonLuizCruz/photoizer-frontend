@@ -25,12 +25,21 @@ export const ROUTES = {
   CHECKOUT: '/checkout/pacote/:pacoteId',
   EDICAO: '/edicao',
   EDICAO_AGENDAMENTO: '/edicao/:agendamentoId',
+  FOTOGRAFOS: '/fotografos',
+  FOTOGRAFOS_NOVO: '/fotografos/novo',
+  FOTOGRAFOS_RELATORIO: '/fotografos/relatorio-global',
+  MINHA_AGENDA: '/minha-agenda',
+  MINHAS_FINANCAS: '/minhas-financas',
+  FOTOGRAFOS_DETALHES: '/fotografos/:id',
+  FOTOGRAFOS_EDITAR: '/fotografos/:id/editar',
+  MEU_PAINEL: '/meu-painel',
   EDICAO_UPLOAD_RAW: '/edicao/:agendamentoId/upload-raw',
   EDICAO_REVISAO: '/edicao/:agendamentoId/revisao',
   CONTRATOS: '/contratos',
   CONTRATOS_NOVO: '/contratos/novo',
   CONTRATO_DETALHES: '/contratos/:id',
   CONTRATO_PUBLICO: '/contrato/:token',
+  REPASSES_PENDENTES: '/repasses-pendentes',
 } as const
 
 export const QUERY_KEYS = {

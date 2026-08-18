@@ -6,6 +6,7 @@ import { PageLoading } from '@/shared/components/layout/Loading'
 import { StatusBadge } from '@/shared/components/layout/StatusBadge'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/shared/components/ui/tabs'
 import { ROUTES, AGENDAMENTO_STATUS } from '@/shared/constants'
+import { useAuth } from '@/features/auth/AuthProvider'
 import { useAgendamento } from '../api/queries'
 import { AgendamentoActions } from '../components/AgendamentoActions'
 import { AgendamentoResumo } from '../components/AgendamentoResumo'
@@ -31,6 +32,9 @@ export function AgendamentoDetalhesPage() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const { data: agendamento, isLoading, error } = useAgendamento(id ?? '')
+  const { user } = useAuth()
+  const podeEditar = user?.papel === 'ADMIN' || user?.papel === 'EDITOR'
+  const isAdmin = user?.papel === 'ADMIN'
 
   if (isLoading) return <PageLoading />
   if (error || !agendamento) {
@@ -54,14 +58,18 @@ export function AgendamentoDetalhesPage() {
         ]}
         actions={
           <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" onClick={() => navigate(`/agenda/${agendamento.id}/editar`)}>
-              <Pencil className="mr-1 h-4 w-4" />
-              Editar
-            </Button>
-            <Button variant="outline" size="sm" onClick={() => navigate(`/agenda/${agendamento.id}/fotos`)}>
-              <Camera className="mr-1 h-4 w-4" />
-              Fotos
-            </Button>
+            {podeEditar && (
+              <Button variant="outline" size="sm" onClick={() => navigate(`/agenda/${agendamento.id}/editar`)}>
+                <Pencil className="mr-1 h-4 w-4" />
+                Editar
+              </Button>
+            )}
+            {podeEditar && (
+              <Button variant="outline" size="sm" onClick={() => navigate(`/agenda/${agendamento.id}/fotos`)}>
+                <Camera className="mr-1 h-4 w-4" />
+                Fotos
+              </Button>
+            )}
             <StatusBadge status={agendamento.status} customLabels={statusCustomLabels} />
             <AgendamentoActions agendamento={agendamento} />
           </div>
@@ -78,18 +86,22 @@ export function AgendamentoDetalhesPage() {
             <ListTodo className="mr-1.5 h-4 w-4" />
             Linha do Tempo
           </TabsTrigger>
-          <TabsTrigger value="financeiro">
-            <DollarSign className="mr-1.5 h-4 w-4" />
-            Financeiro
-          </TabsTrigger>
+          {isAdmin && (
+            <TabsTrigger value="financeiro">
+              <DollarSign className="mr-1.5 h-4 w-4" />
+              Financeiro
+            </TabsTrigger>
+          )}
           <TabsTrigger value="contrato">
             <FileText className="mr-1.5 h-4 w-4" />
             Contrato
           </TabsTrigger>
-          <TabsTrigger value="ecommerce">
-            <ShoppingBag className="mr-1.5 h-4 w-4" />
-            Ecommerce
-          </TabsTrigger>
+          {isAdmin && (
+            <TabsTrigger value="ecommerce">
+              <ShoppingBag className="mr-1.5 h-4 w-4" />
+              Ecommerce
+            </TabsTrigger>
+          )}
         </TabsList>
 
         <TabsContent value="resumo">
@@ -100,16 +112,20 @@ export function AgendamentoDetalhesPage() {
           <AgendamentoTimeline agendamento={agendamento} />
         </TabsContent>
 
-        <TabsContent value="financeiro">
-          <AgendamentoFinanceiro agendamento={agendamento} />
-        </TabsContent>
+        {isAdmin && (
+          <TabsContent value="financeiro">
+            <AgendamentoFinanceiro agendamento={agendamento} />
+          </TabsContent>
+        )}
 
         <TabsContent value="contrato">
           <AgendamentoContrato agendamento={agendamento} />
         </TabsContent>
-        <TabsContent value="ecommerce">
-          <EcommerceAdminResumo agendamentoId={agendamento.id} />
-        </TabsContent>
+        {isAdmin && (
+          <TabsContent value="ecommerce">
+            <EcommerceAdminResumo agendamentoId={agendamento.id} />
+          </TabsContent>
+        )}
       </Tabs>
     </div>
   )

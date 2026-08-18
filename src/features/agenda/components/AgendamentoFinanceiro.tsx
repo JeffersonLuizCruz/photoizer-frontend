@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import { Plus, CreditCard, Receipt, Check, History, Link2, Download, FileSpreadsheet } from 'lucide-react'
+import { useState, Fragment } from 'react'
+import { Plus, CreditCard, Receipt, Check, History, Link2, Download, FileSpreadsheet, HandCoins, Pencil } from 'lucide-react'
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import { toast } from 'sonner'
@@ -13,6 +13,9 @@ import { RegistrarPagamentoDialog } from './RegistrarPagamentoDialog'
 import { AdicionarExtrasDialog } from './AdicionarExtrasDialog'
 import { VincularDespesaDialog } from './VincularDespesaDialog'
 import { usePagamentosList, useResumoFinanceiroTrabalho, useVincularDespesaTrabalho } from '../api/queries'
+import { usePagarRepasse, useAtualizarRepasse } from '@/features/fotografos/api/queries'
+import { RepasseInlineEditor } from '@/features/fotografos/components/RepasseInlineEditor'
+import { useAuth } from '@/features/auth/AuthProvider'
 import { montarReciboPagamento } from '../utils/recibo'
 import type { Agendamento } from '../types'
 import { AGENDAMENTO_STATUS } from '@/shared/constants'
@@ -40,10 +43,14 @@ export function AgendamentoFinanceiro({ agendamento }: AgendamentoFinanceiroProp
   const [showVincular, setShowVincular] = useState(false)
   const [showNovaDespesa, setShowNovaDespesa] = useState(false)
   const [reciboCopiado, setReciboCopiado] = useState(false)
+  const [editandoFotografoId, setEditandoFotografoId] = useState<string | null>(null)
 
   const { data: pagamentos = [] } = usePagamentosList(agendamento.id)
   const { data: resumo, isLoading } = useResumoFinanceiroTrabalho(agendamento.id)
   const vincular = useVincularDespesaTrabalho()
+  const { isAdmin } = useAuth()
+  const pagarRepasse = usePagarRepasse()
+  const atualizarRepasse = useAtualizarRepasse()
 
   const statusPagamento = resumo?.statusPagamento ?? 'PENDENTE'
   const statusInfo = statusPagamentoMap[statusPagamento] ?? statusPagamentoMap.PENDENTE
@@ -289,6 +296,155 @@ export function AgendamentoFinanceiro({ agendamento }: AgendamentoFinanceiroProp
             </div>
           </>
         )
+      )}
+
+      {resumo?.fotografos && resumo.fotografos.length > 0 && (
+        <>
+          <div className="flex items-center gap-2">
+            <h4 className="text-sm font-semibold text-muted-foreground">
+              Partilha dos Parceiros
+            </h4>
+            {resumo.valorPartilhaGlobal != null && (
+              <Badge variant="outline" className="text-xs">
+                Partilha Global: {formatCurrency(resumo.valorPartilhaGlobal)}
+              </Badge>
+            )}
+          </div>
+
+          <div className="rounded-md border">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Parceiro</TableHead>
+                  <TableHead className="text-right">Custos</TableHead>
+                  <TableHead className="text-right">Repasse</TableHead>
+                  <TableHead className="text-center">Tipo</TableHead>
+                  <TableHead className="text-center">Status</TableHead>
+                  <TableHead className="text-right">Ações</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {resumo.fotografos.map((f) => (
+                  <Fragment key={f.fotografoId}>
+                    <TableRow>
+                      <TableCell className="font-medium">{f.fotografoNome}</TableCell>
+                      <TableCell className="text-right tabular-nums">{formatCurrency(f.custos)}</TableCell>
+                      <TableCell className="text-right tabular-nums font-semibold">{formatCurrency(f.valorRepassar)}</TableCell>
+                      <TableCell className="text-center text-sm text-muted-foreground">
+                        {f.tipoValor === 'PERCENTUAL'
+                          ? `${f.percentual != null ? f.percentual : 0}%`
+                          : 'R$'}
+                      </TableCell>
+                      <TableCell className="text-center">
+                        <Badge
+                          variant={
+                            f.statusRepasse === 'PAGO'
+                              ? 'success'
+                              : f.statusRepasse === 'CANCELADO'
+                                ? 'destructive'
+                                : 'warning'
+                          }
+                        >
+                          {f.statusRepasse === 'PAGO'
+                            ? 'Pago'
+                            : f.statusRepasse === 'CANCELADO'
+                              ? 'Cancelado'
+                              : 'Pendente'}
+                        </Badge>
+                        {f.dataPagamento && (
+                          <p className="text-xs text-muted-foreground mt-1">
+                            {format(new Date(f.dataPagamento), 'dd/MM/yyyy')}
+                          </p>
+                        )}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        {isAdmin && f.statusRepasse === 'PENDENTE' && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => setEditandoFotografoId(f.fotografoId)}
+                            disabled={atualizarRepasse.isPending}
+                          >
+                            <Pencil className="mr-1 h-4 w-4" />
+                            Editar
+                          </Button>
+                        )}
+                        {isAdmin && f.statusRepasse === 'PENDENTE' && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => pagarRepasse.mutate({ agendamentoId: agendamento.id, fotografoId: f.fotografoId })}
+                            disabled={pagarRepasse.isPending}
+                          >
+                            <HandCoins className="mr-1 h-4 w-4" />
+                            Pagar
+                          </Button>
+                        )}
+                        {f.statusRepasse === 'PAGO' && (
+                          <span className="text-xs text-emerald-600 font-medium">Pago</span>
+                        )}
+                      </TableCell>
+                    </TableRow>
+                    {editandoFotografoId === f.fotografoId && (
+                      <TableRow>
+                        <TableCell colSpan={6}>
+                          <RepasseInlineEditor
+                            initial={{
+                              tipoValor: f.tipoValor,
+                              percentual: f.percentual,
+                              valorRepassar: f.valorRepassar,
+                            }}
+                            isSaving={atualizarRepasse.isPending}
+                            onSave={(payload) =>
+                              atualizarRepasse.mutate(
+                                { agendamentoId: agendamento.id, fotografoId: f.fotografoId, payload },
+                                { onSuccess: () => setEditandoFotografoId(null) },
+                              )
+                            }
+                            onCancel={() => setEditandoFotografoId(null)}
+                          />
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </Fragment>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+
+          {resumo.custosFotografo && resumo.custosFotografo.length > 0 && (
+            <div className="space-y-2">
+              <h5 className="flex items-center gap-2 text-xs font-semibold text-muted-foreground">
+                Custos dos Fotógrafos
+              </h5>
+              <div className="rounded-md border">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Descrição</TableHead>
+                      <TableHead>Categoria</TableHead>
+                      <TableHead className="text-right">Valor</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {resumo.custosFotografo.map((d) => (
+                      <TableRow key={d.id}>
+                        <TableCell className="font-medium">{d.descricao}</TableCell>
+                        <TableCell>
+                          <Badge variant="outline" className="gap-1">
+                            <span className="h-2 w-2 rounded-full" style={{ backgroundColor: d.cor ?? '#888' }} />
+                            {d.categoria}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="text-right tabular-nums">{formatCurrency(d.valor)}</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            </div>
+          )}
+        </>
       )}
 
       <div className="space-y-2">

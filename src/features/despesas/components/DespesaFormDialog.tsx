@@ -12,7 +12,9 @@ import { CurrencyInput } from '@/shared/components/layout/CurrencyInput'
 import { FileUpload } from '@/shared/components/layout/FileUpload'
 import { despesaSchema, type DespesaFormValues } from '../schemas/despesa.schema'
 import { useCriarDespesa, useAtualizarDespesa, useUploadComprovanteDespesa, useDespesasCategorias, useAgendamentosOpcoes } from '../api/queries'
-import type { DespesaRequest, DespesaResponse } from '../types/despesa.types'
+import { useFotografosList } from '@/features/fotografos/api/queries'
+import type { FormaPagamento } from '../types/despesa.types'
+import type { DespesaResponse } from '../types/despesa.types'
 
 interface DespesaFormDialogProps {
   open: boolean
@@ -47,6 +49,7 @@ export function DespesaFormDialog({ open, onOpenChange, despesa, onOpenCategoria
   const [arquivo, setArquivo] = useState<File | null>(null)
   const { data: categorias, isLoading: loadingCategorias } = useDespesasCategorias(true)
   const { data: agendamentos, isLoading: loadingAgendamentos } = useAgendamentosOpcoes()
+  const { data: fotografos = [] } = useFotografosList()
   const criar = useCriarDespesa()
   const atualizar = useAtualizarDespesa()
   const upload = useUploadComprovanteDespesa()
@@ -62,6 +65,7 @@ export function DespesaFormDialog({ open, onOpenChange, despesa, onOpenCategoria
       status: 'PENDENTE',
       recorrencia: 'UNICA',
       agendamentoId: null,
+      fotografoId: null,
       observacao: '',
     },
   })
@@ -79,6 +83,7 @@ export function DespesaFormDialog({ open, onOpenChange, despesa, onOpenCategoria
         status: despesa?.status ?? 'PENDENTE',
         recorrencia: despesa?.recorrencia ?? 'UNICA',
         agendamentoId: despesa?.agendamentoId ?? agendamentoFixoId ?? null,
+        fotografoId: despesa?.fotografoId ?? null,
         observacao: despesa?.observacao ?? '',
       })
       setArquivo(null)
@@ -105,10 +110,11 @@ export function DespesaFormDialog({ open, onOpenChange, despesa, onOpenCategoria
       valor: values.valor,
       categoriaId: values.categoriaId,
       data: values.data,
-      formaPagamento: (values.formaPagamento || undefined) as DespesaRequest['formaPagamento'],
+      formaPagamento: (values.formaPagamento ?? undefined) as FormaPagamento | undefined,
       status: values.status,
       recorrencia: values.recorrencia,
       agendamentoId: values.agendamentoId ?? undefined,
+      fotografoId: values.fotografoId ?? undefined,
       observacao: values.observacao || undefined,
     }
 
@@ -263,6 +269,28 @@ export function DespesaFormDialog({ open, onOpenChange, despesa, onOpenCategoria
                 </SelectContent>
               </Select>
             )}
+          </div>
+
+          <div>
+            <Label htmlFor="fotografoId">Custo do Fotógrafo</Label>
+            <Select
+              value={watch('fotografoId') ?? undefined}
+              onValueChange={(v) => setValue('fotografoId', v || null)}
+            >
+              <SelectTrigger id="fotografoId">
+                <SelectValue placeholder="Não é custo de fotógrafo" />
+              </SelectTrigger>
+              <SelectContent>
+                {fotografos.map((f) => (
+                  <SelectItem key={f.id} value={f.id}>
+                    {f.nome}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <p className="mt-1 text-xs text-muted-foreground">
+              Selecione o fotógrafo se esta despesa for um custo dele (parceiro, material, etc.)
+            </p>
           </div>
 
           <div>

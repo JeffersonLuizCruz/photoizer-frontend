@@ -2,10 +2,12 @@ import { useEffect, useState } from 'react'
 import {
   ArrowDownLeft,
   Calendar,
+  Camera,
   ChevronDown,
   DollarSign,
   FileBarChart2,
   FileSignature,
+  HandCoins,
   Image,
   LayoutDashboard,
   Package,
@@ -48,6 +50,16 @@ const financeiroGroup: NavGroup = {
   ],
 }
 
+const fotografosGroup: NavGroup = {
+  label: 'Parceiros',
+  icon: Camera,
+  children: [
+    { to: ROUTES.FOTOGRAFOS, label: 'Lista', icon: Camera },
+    { to: ROUTES.FOTOGRAFOS_RELATORIO, label: 'Relatório Global', icon: FileBarChart2 },
+    { to: ROUTES.REPASSES_PENDENTES, label: 'Repasses Pendentes', icon: HandCoins },
+  ],
+}
+
 const navEntries: NavEntry[] = [
   { to: ROUTES.DASHBOARD, label: 'Dashboard', icon: LayoutDashboard, end: true },
   { to: ROUTES.AGENDA, label: 'Agenda', icon: Calendar },
@@ -57,28 +69,53 @@ const navEntries: NavEntry[] = [
   { to: ROUTES.CONTRATOS, label: 'Contratos', icon: FileSignature },
   { to: ROUTES.COMISSOES, label: 'Comissões', icon: Percent },
   financeiroGroup,
+  fotografosGroup,
   { to: ROUTES.CONFIG, label: 'Configurações', icon: Settings },
 ]
 
-const agendadorRoutes = new Set<string>([
-  ROUTES.AGENDA,
-  ROUTES.PACOTES,
-  ROUTES.EDICAO,
-  ROUTES.COMISSOES,
-  ROUTES.CONTRATOS,
-])
+const fotografoEntries: NavEntry[] = [
+  { to: ROUTES.MEU_PAINEL, label: 'Meu Painel', icon: LayoutDashboard, end: true },
+  { to: ROUTES.MINHA_AGENDA, label: 'Minha Agenda', icon: Calendar },
+  { to: ROUTES.MINHAS_FINANCAS, label: 'Minhas Finanças', icon: DollarSign },
+]
+
+const allowedRoutesByPapel: Record<string, Set<string>> = {
+  AGENDADOR: new Set([
+    ROUTES.AGENDA,
+    ROUTES.PACOTES,
+    ROUTES.EDICAO,
+    ROUTES.COMISSOES,
+    ROUTES.CONTRATOS,
+    ROUTES.CONFIG,
+  ]),
+}
 
 function isNavItem(entry: NavEntry): entry is NavItem {
   return 'to' in entry
 }
 
 function getVisibleEntries(papel: Papel | null): NavEntry[] {
-  if (papel !== 'AGENDADOR') return navEntries
-  return navEntries.filter((entry) =>
-    isNavItem(entry)
-      ? agendadorRoutes.has(entry.to)
-      : entry.children.some((child) => agendadorRoutes.has(child.to)),
-  )
+  if (!papel) return []
+
+  if (papel === 'FOTOGRAFO') {
+    return fotografoEntries
+  }
+
+  const base =
+    papel in allowedRoutesByPapel
+      ? navEntries.filter((entry) =>
+          isNavItem(entry)
+            ? allowedRoutesByPapel[papel].has(entry.to)
+            : entry.children.some((child) => allowedRoutesByPapel[papel].has(child.to)),
+        )
+      : navEntries
+
+  // Parceiro (FOTOGRAFO/EDITOR/AGENDADOR) também acessa o autoatendimento (Minhas Finanças, Meu Painel, Minha Agenda)
+  if (papel === 'EDITOR' || papel === 'AGENDADOR') {
+    return [...fotografoEntries, ...base]
+  }
+
+  return base
 }
 
 export function Sidebar() {
@@ -88,20 +125,30 @@ export function Sidebar() {
   const location = useLocation()
   const entries = getVisibleEntries(papel)
 
-  const financeiroActive = location.pathname.startsWith(ROUTES.FINANCEIRO)
-  const [groupOpen, setGroupOpen] = useState(financeiroActive)
+  const [groupsOpen, setGroupsOpen] = useState<Record<string, boolean>>({
+    Financeiro: location.pathname.startsWith(ROUTES.FINANCEIRO),
+    Parceiros: location.pathname.startsWith(ROUTES.FOTOGRAFOS),
+  })
 
   useEffect(() => {
-    if (financeiroActive) setGroupOpen(true)
-  }, [financeiroActive])
+    if (location.pathname.startsWith(ROUTES.FINANCEIRO)) {
+      setGroupsOpen((prev) => ({ ...prev, Financeiro: true }))
+    }
+  }, [location.pathname])
 
-  const handleGroupClick = () => {
+  useEffect(() => {
+    if (location.pathname.startsWith(ROUTES.FOTOGRAFOS) || location.pathname.startsWith(ROUTES.REPASSES_PENDENTES)) {
+      setGroupsOpen((prev) => ({ ...prev, 'Parceiros': true }))
+    }
+  }, [location.pathname])
+
+  const handleGroupClick = (label: string) => {
     if (!isOpen) {
       setOpen(true)
-      setGroupOpen(true)
+      setGroupsOpen((prev) => ({ ...prev, [label]: true }))
       return
     }
-    setGroupOpen((value) => !value)
+    setGroupsOpen((prev) => ({ ...prev, [label]: !prev[label] }))
   }
 
   const isGroupActive = (group: NavGroup) => group.children.some((child) => location.pathname === child.to)
@@ -152,7 +199,7 @@ export function Sidebar() {
             <div key={entry.label}>
               <button
                 type="button"
-                onClick={handleGroupClick}
+                onClick={() => handleGroupClick(entry.label)}
                 className={cn(
                   'flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors',
                   isOpen ? 'justify-start' : 'justify-center',
@@ -166,7 +213,7 @@ export function Sidebar() {
                   <>
                     <span className="flex-1 text-left">{entry.label}</span>
                     <ChevronDown
-                      className={cn('h-4 w-4 shrink-0 transition-transform', groupOpen && 'rotate-180')}
+                      className={cn('h-4 w-4 shrink-0 transition-transform', groupsOpen[entry.label] && 'rotate-180')}
                     />
                   </>
                 )}
@@ -175,7 +222,7 @@ export function Sidebar() {
                 <div
                   className={cn(
                     'grid transition-all duration-200',
-                    groupOpen ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]',
+                    groupsOpen[entry.label] ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]',
                   )}
                 >
                   <div className="overflow-hidden">

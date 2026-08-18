@@ -1,3 +1,15 @@
+export interface FotografoInfo {
+  fotografoId: string
+  fotografoNome: string
+  custos: number
+  valorRepassar: number
+  statusRepasse: 'PENDENTE' | 'PAGO' | 'CANCELADO'
+  dataPagamento: string | null
+  tipoValor: 'FIXO' | 'PERCENTUAL'
+  percentual: number | null
+  papelParceiro: string | null
+}
+
 export interface FinanceiroTrabalho {
   agendamentoId: string
   clienteNome: string
@@ -13,8 +25,13 @@ export interface FinanceiroTrabalho {
   custoTotal: number
   lucroBruto: number
   margemLucro: number
+  fotografos: FotografoInfo[]
+  valorPartilhaGlobal: number | null
+  valorLucroCrm: number | null
+  totalCustosFotografo: number | null
   receitas: FinanceiroTrabalhoReceita[]
   despesas: FinanceiroTrabalhoDespesa[]
+  custosFotografo: FinanceiroTrabalhoDespesa[]
   pagamentos: FinanceiroTrabalhoPagamento[]
 }
 

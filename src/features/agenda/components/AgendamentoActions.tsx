@@ -15,6 +15,7 @@ import { ConfirmDialog } from '@/shared/components/layout/ConfirmDialog'
 import { RegistrarPagamentoDialog } from './RegistrarPagamentoDialog'
 import { ReagendarDialog } from './ReagendarDialog'
 import { useUpdateAgendamentoStatus, useToggleDestaque } from '../api/queries'
+import { useAuth } from '@/features/auth/AuthProvider'
 import { AGENDAMENTO_STATUS } from '@/shared/constants'
 import type { Agendamento } from '../types'
 
@@ -100,10 +101,14 @@ export function AgendamentoActions({ agendamento }: AgendamentoActionsProps) {
   const [confirmAction, setConfirmAction] = useState<ActionType | null>(null)
   const [showPagamento, setShowPagamento] = useState(false)
   const [showReagendar, setShowReagendar] = useState(false)
+  const { papel } = useAuth()
+  const isAdmin = papel === 'ADMIN'
   const { mutate: updateStatus, isPending } = useUpdateAgendamentoStatus()
   const { mutate: toggleDestaque, isPending: isDestaquePending } = useToggleDestaque()
 
-  const actions = statusActions[agendamento.status] ?? []
+  const actions = (statusActions[agendamento.status] ?? []).filter(
+    (actionType) => isAdmin || (actionType !== 'reagendar' && actionType !== 'cancelar'),
+  )
 
   const handleAction = (actionType: ActionType) => {
     const config = actionConfig[actionType]

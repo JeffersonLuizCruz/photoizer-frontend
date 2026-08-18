@@ -1,4 +1,4 @@
-import { useForm } from 'react-hook-form'
+import { useForm, FormProvider } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { format } from 'date-fns'
 import { Loader2 } from 'lucide-react'
@@ -18,6 +18,7 @@ import { editarAgendamentoSchema, type EditarAgendamentoFormData } from '../sche
 import type { Agendamento } from '../types'
 import { ROUTES } from '@/shared/constants'
 import { useNavigate } from 'react-router-dom'
+import { ParceirosRepasseList } from '@/shared/components/parceiros/ParceirosRepasseList'
 
 const HORARIOS = Array.from({ length: 19 }, (_, i) => {
   const hora = Math.floor(i / 2) + 9
@@ -36,26 +37,34 @@ export function EditarAgendamentoForm({ agendamento, onSubmit, isPending }: Edit
   const { data: pacotes } = usePacotesList()
   const { data: usuarios } = useUsuariosList()
 
-  const {
-    register,
-    handleSubmit,
-    setValue,
-    watch,
-    formState: { errors },
-  } = useForm<EditarAgendamentoFormData>({
-    resolver: zodResolver(editarAgendamentoSchema),
+  const methods = useForm<EditarAgendamentoFormData>({
+    resolver: zodResolver(editarAgendamentoSchema) as any,
     defaultValues: {
       pacoteId: agendamento.pacoteId,
       dataHoraEnsaio: agendamento.dataHoraEnsaio,
       localEnsaio: agendamento.localEnsaio,
       enderecoCompleto: agendamento.enderecoCompleto ?? '',
       editorId: agendamento.editorId ?? '',
+      fotografos: (agendamento.fotografos ?? []).map((f) => ({
+        fotografoId: f.fotografoId,
+        valorRepassar: f.tipoValor === 'PERCENTUAL' ? undefined : f.valorRepassar,
+        tipoValor: f.tipoValor ?? 'FIXO',
+        percentual: f.tipoValor === 'PERCENTUAL' ? (f.percentual ?? undefined) : undefined,
+      })),
       custoDeslocamento: agendamento.custoDeslocamento,
       repassarDeslocamento: agendamento.repassarDeslocamento,
       autorizaUsoImagem: agendamento.autorizaUsoImagem,
       observacoes: agendamento.observacoes ?? '',
     },
   })
+
+  const {
+    register,
+    handleSubmit,
+    setValue,
+    watch,
+    formState: { errors },
+  } = methods
 
   const selectedDate = watch('dataHoraEnsaio') ? new Date(watch('dataHoraEnsaio')) : undefined
 
@@ -76,6 +85,7 @@ export function EditarAgendamentoForm({ agendamento, onSubmit, isPending }: Edit
   }
 
   return (
+    <FormProvider {...methods}>
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
       <div className="rounded-lg border bg-card p-4">
         <h3 className="mb-3 text-sm font-semibold text-muted-foreground">Dados do Cliente</h3>
@@ -139,6 +149,10 @@ export function EditarAgendamentoForm({ agendamento, onSubmit, isPending }: Edit
               ))}
             </SelectContent>
           </Select>
+        </div>
+
+        <div className="sm:col-span-2">
+          <ParceirosRepasseList base={agendamento.valorTotal} />
         </div>
 
         <div>
@@ -251,5 +265,6 @@ export function EditarAgendamentoForm({ agendamento, onSubmit, isPending }: Edit
         </Button>
       </div>
     </form>
+    </FormProvider>
   )
 }

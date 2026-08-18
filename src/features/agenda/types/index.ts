@@ -1,5 +1,20 @@
 import type { AgendamentoStatus } from '@/shared/constants'
 
+export type TipoRepasse = 'FIXO' | 'PERCENTUAL'
+export type RepasseStatus = 'PENDENTE' | 'PAGO' | 'CANCELADO'
+export type PapelParceiro = 'ADMIN' | 'FOTOGRAFO' | 'EDITOR' | 'AGENDADOR'
+
+export interface FotografoNoAgendamento {
+  fotografoId: string
+  fotografoNome: string
+  valorRepassar: number
+  status: RepasseStatus
+  dataPagamento: string | null
+  tipoValor: TipoRepasse
+  percentual: number | null
+  papelParceiro: PapelParceiro | null
+}
+
 export interface Pacote {
   id: string
   nome: string
@@ -25,6 +40,9 @@ export interface Agendamento {
   pacoteNome: string
   editorId: string | null
   editorNome: string | null
+  fotografos: FotografoNoAgendamento[] | null
+  valorPartilhaGlobal: number | null
+  valorLucroCrm: number | null
 
   dataHoraEnsaio: string
   duracaoMinutos: number

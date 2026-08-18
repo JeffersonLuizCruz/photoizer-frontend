@@ -20,6 +20,7 @@ export interface FinanceiroResumo {
   faturamentoTotal: number
   despesasDeslocamento: number
   despesasComissao: number
+  despesasRepasse: number
   despesasManuais: number
 }
 
@@ -29,6 +30,7 @@ export interface RelatoriosTotais {
   restante: number
   extras: number
   totalFinal: number
+  repasses: number
 }
 
 export interface FinanceiroRelatorios {

@@ -16,10 +16,10 @@ import {
 import { Calendar } from '@/shared/components/ui/calendar'
 import { Popover, PopoverContent, PopoverTrigger } from '@/shared/components/ui/popover'
 import { Input } from '@/shared/components/ui/input'
-import { CurrencyInput } from '@/shared/components/layout/CurrencyInput'
 import { Switch } from '@/shared/components/ui/switch'
 import { cn } from '@/shared/lib/cn'
 import type { WizardFormValues } from '../schemas/agendamento.schema'
+import { ParceirosRepasseList } from '@/shared/components/parceiros/ParceirosRepasseList'
 
 const HORARIOS = [
   '05:00', '05:30', '06:00', '06:30', '07:00', '07:30',
@@ -172,31 +172,25 @@ export function StepEnsaio() {
         />
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2">
-        <div>
-          <Label>Editor Responsável</Label>
-          <Select value={watch('editorId') ?? ''} onValueChange={(value) => setValue('editorId', value)}>
-            <SelectTrigger>
-              <SelectValue placeholder="Selecione um editor" />
-            </SelectTrigger>
-            <SelectContent>
-              {usuarios?.map((user) => (
-                <SelectItem key={user.id} value={user.id}>
-                  {user.nome}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-
-        <div>
-          <Label>Custo de Deslocamento (R$)</Label>
-          <CurrencyInput
-            value={watch('custoDeslocamento') ?? 0}
-            onChange={(value) => setValue('custoDeslocamento', value)}
-          />
-        </div>
+      <div>
+        <Label>Editor Responsável</Label>
+        <Select value={watch('editorId') ?? ''} onValueChange={(value) => setValue('editorId', value)}>
+          <SelectTrigger>
+            <SelectValue placeholder="Selecione um editor" />
+          </SelectTrigger>
+          <SelectContent>
+            {usuarios?.map((user) => (
+              <SelectItem key={user.id} value={user.id}>
+                {user.nome}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
+
+      <ParceirosRepasseList
+        base={(pacoteSelecionado?.valorBase ?? 0) + (watch('repassarDeslocamento') ? (watch('custoDeslocamento') ?? 0) : 0)}
+      />
 
       <div className="flex items-center justify-between rounded-lg border p-3">
         <div>

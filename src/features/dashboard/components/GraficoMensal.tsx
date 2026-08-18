@@ -46,7 +46,7 @@ function ChartTooltip({ active, payload, label }: any) {
           <div className="flex items-center justify-between text-xs border-t pt-1 mt-1">
             <span className="flex items-center gap-1.5">
               <span className="h-2.5 w-2.5 rounded-sm bg-rose-400 inline-block" />
-              Despesas (desl. + comissão + manuais)
+              Despesas (desl. + comissão + repasse + manuais)
             </span>
             <span className="font-medium tabular-nums">{currencyFormat(despesas)}</span>
           </div>
@@ -147,12 +147,12 @@ export function GraficoMensal() {
       Recebido: h.entradasRecebidas ?? 0,
       Pendente: pend,
       faturamento: h.valorConfirmados ?? 0,
-      Despesas: (h.despesasDeslocamento ?? 0) + (h.despesasComissao ?? 0) + (h.despesasManuais ?? 0),
+      Despesas: (h.despesasDeslocamento ?? 0) + (h.despesasComissao ?? 0) + (h.despesasRepasse ?? 0) + (h.despesasManuais ?? 0),
       'Líquido Previsto': h.liquidoPrevisto ?? 0,
     }
   })
 
-  const totalDespesas = (mesAtual.despesasDeslocamento ?? 0) + (mesAtual.despesasComissao ?? 0) + (mesAtual.despesasManuais ?? 0)
+  const totalDespesas = (mesAtual.despesasDeslocamento ?? 0) + (mesAtual.despesasComissao ?? 0) + (mesAtual.despesasRepasse ?? 0) + (mesAtual.despesasManuais ?? 0)
 
   const metrics: MetricDef[] = [
     {
@@ -175,7 +175,7 @@ export function GraficoMensal() {
     },
     {
       label: 'Despesas',
-      description: `Deslocamento: ${currencyFormat(mesAtual.despesasDeslocamento ?? 0)} | Comissões: ${currencyFormat(mesAtual.despesasComissao ?? 0)} | Manuais: ${currencyFormat(mesAtual.despesasManuais ?? 0)}`,
+      description: `Deslocamento: ${currencyFormat(mesAtual.despesasDeslocamento ?? 0)} | Comissões: ${currencyFormat(mesAtual.despesasComissao ?? 0)} | Repasse parceiros: ${currencyFormat(mesAtual.despesasRepasse ?? 0)} | Manuais: ${currencyFormat(mesAtual.despesasManuais ?? 0)}`,
       value: totalDespesas,
       icon: ArrowDownFromLine,
       color: 'text-rose-600 dark:text-rose-400',
@@ -184,7 +184,7 @@ export function GraficoMensal() {
     },
     {
       label: 'Líquido Realizado',
-      description: 'Recebido real (entradas + receitas avulsas) menos despesas pagas (deslocamento efetivo + comissão PAGA + manuais pagas) — saldo já concretizado',
+      description: 'Recebido real (entradas + receitas avulsas) menos despesas pagas (deslocamento efetivo + comissão PAGA + repasse PAGO + manuais pagas) — saldo já concretizado',
       value: mesAtual.liquidoAtual ?? 0,
       icon: PiggyBank,
       color: (mesAtual.liquidoAtual ?? 0) >= 0 ? 'text-blue-600 dark:text-blue-400' : 'text-destructive',
@@ -193,7 +193,7 @@ export function GraficoMensal() {
     },
     {
       label: 'Líquido Previsto',
-      description: 'Projeção para o fim do mês: faturamento total menos despesas (deslocamento + comissão + manuais)',
+      description: 'Projeção para o fim do mês: faturamento total menos despesas (deslocamento + comissão + repasse + manuais)',
       value: mesAtual.liquidoPrevisto ?? 0,
       icon: TrendingUp,
       color: 'text-violet-600 dark:text-violet-400',
@@ -248,6 +248,10 @@ export function GraficoMensal() {
             <span className="flex items-center gap-1">
               <span className="h-2 w-2 rounded-sm bg-rose-400/60 inline-block" />
               Comissões: {currencyFormat(mesAtual.despesasComissao ?? 0)}
+            </span>
+            <span className="flex items-center gap-1">
+              <span className="h-2 w-2 rounded-sm bg-rose-400/60 inline-block" />
+              Repasse parceiros: {currencyFormat(mesAtual.despesasRepasse ?? 0)}
             </span>
             <span className="flex items-center gap-1">
               <span className="h-2 w-2 rounded-sm bg-rose-400/60 inline-block" />
