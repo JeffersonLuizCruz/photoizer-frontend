@@ -144,7 +144,7 @@ export function ConfigPage() {
         </div>
 
         <div className="space-y-6">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-wrap items-center justify-between gap-2">
             <h2 className="text-lg font-semibold flex items-center gap-2">
               <FileSignature className="h-5 w-5" />
               Template do Contrato

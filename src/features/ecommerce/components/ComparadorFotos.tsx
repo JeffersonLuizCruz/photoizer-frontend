@@ -25,7 +25,7 @@ export function ComparadorFotos({ fotos, onClose, selectedIds, pacoteLimit, onTo
     <div className="fixed inset-0 z-50 bg-black/95 flex flex-col" onContextMenu={(e) => e.preventDefault()}>
       <div className="flex items-center justify-between px-4 h-14 shrink-0">
         <h2 className="text-sm font-semibold text-white">Comparar Fotos ({fotos.length})</h2>
-        <button onClick={onClose} className="p-2 rounded-lg text-white/70 hover:text-white hover:bg-white/10 transition-colors" title="Fechar (Esc)">
+        <button onClick={onClose} className="p-2 rounded-lg text-white/70 hover:text-white hover:bg-white/10 transition-colors" aria-label="Fechar comparador de fotos">
           <X className="h-5 w-5" />
         </button>
       </div>

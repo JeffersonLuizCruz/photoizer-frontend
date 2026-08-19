@@ -95,21 +95,23 @@ export function EdicaoGaleriaGrid({ fotos, onDownloadRaw, onDownloadEdited, onDe
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="h-7 w-7"
+                    className="h-9 w-9"
                     onClick={() => onDownloadRaw(foto.id)}
                     title="Baixar RAW"
+                    aria-label={`Baixar arquivo RAW de ${foto.rawFileName}`}
                   >
-                    <Download className="h-3.5 w-3.5" />
+                    <Download className="h-4 w-4" />
                   </Button>
                   {foto.editedDownloadUrl && (
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="h-7 w-7"
+                      className="h-9 w-9"
                       onClick={() => onDownloadEdited(foto.id)}
                       title="Baixar Editada"
+                      aria-label={`Baixar versão editada de ${foto.rawFileName}`}
                     >
-                      <Download className="h-3.5 w-3.5 text-emerald-500" />
+                      <Download className="h-4 w-4 text-emerald-500" />
                     </Button>
                   )}
                   {onReorder && (
@@ -117,22 +119,24 @@ export function EdicaoGaleriaGrid({ fotos, onDownloadRaw, onDownloadEdited, onDe
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="h-7 w-6"
+                        className="h-9 w-7"
                         onClick={() => mover(foto.id, -1)}
                         disabled={index === 0}
                         title="Mover para cima"
+                        aria-label={`Mover ${foto.rawFileName} para cima`}
                       >
-                        <ChevronUp className="h-3.5 w-3.5" />
+                        <ChevronUp className="h-4 w-4" />
                       </Button>
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="h-7 w-6"
+                        className="h-9 w-7"
                         onClick={() => mover(foto.id, 1)}
                         disabled={index === fotos.length - 1}
                         title="Mover para baixo"
+                        aria-label={`Mover ${foto.rawFileName} para baixo`}
                       >
-                        <ChevronDown className="h-3.5 w-3.5" />
+                        <ChevronDown className="h-4 w-4" />
                       </Button>
                     </div>
                   )}
@@ -140,11 +144,12 @@ export function EdicaoGaleriaGrid({ fotos, onDownloadRaw, onDownloadEdited, onDe
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="h-7 w-7 text-destructive hover:text-destructive"
+                      className="h-9 w-9 text-destructive hover:text-destructive"
                       onClick={() => onDelete(foto.id)}
                       title="Remover foto"
+                      aria-label={`Remover ${foto.rawFileName}`}
                     >
-                      <Trash2 className="h-3.5 w-3.5" />
+                      <Trash2 className="h-4 w-4" />
                     </Button>
                   )}
                 </div>

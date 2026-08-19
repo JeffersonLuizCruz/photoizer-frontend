@@ -26,6 +26,8 @@ export interface DataTableProps<TData> {
   renderActions?: (row: TData) => ReactNode
   globalFilter?: string
   onGlobalFilterChange?: (value: string) => void
+  mobileHiddenIds?: string[]
+  minWidthClassName?: string
 }
 
 export function DataTable<TData>({
@@ -44,6 +46,8 @@ export function DataTable<TData>({
   renderActions,
   globalFilter,
   onGlobalFilterChange,
+  mobileHiddenIds,
+  minWidthClassName,
 }: DataTableProps<TData>) {
   const [sorting, setSorting] = useState<SortingState>([])
   const [pagination, setPagination] = useState<PaginationState>({ pageIndex, pageSize })
@@ -136,17 +140,20 @@ export function DataTable<TData>({
           placeholder="Pesquisar..."
           value={globalFilter ?? ''}
           onChange={(e) => onGlobalFilterChange?.(e.target.value)}
-          className="max-w-64"
+          className="w-full sm:max-w-64"
         />
       )}
 
-      <div className="rounded-md border">
-        <Table>
+      <div className="rounded-md border overflow-x-auto">
+        <Table className={minWidthClassName}>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
                 {headerGroup.headers.map((header) => (
-                  <TableHead key={header.id}>
+                  <TableHead
+                    key={header.id}
+                    className={cn(mobileHiddenIds?.includes(header.column.id) && 'hidden md:table-cell')}
+                  >
                     {header.isPlaceholder ? null : (
                       <button
                         type="button"
@@ -175,7 +182,10 @@ export function DataTable<TData>({
             {table.getRowModel().rows.map((row) => (
               <TableRow key={row.id}>
                 {row.getVisibleCells().map((cell) => (
-                  <TableCell key={cell.id}>
+                  <TableCell
+                    key={cell.id}
+                    className={cn(mobileHiddenIds?.includes(cell.column.id) && 'hidden md:table-cell')}
+                  >
                     {flexRender(cell.column.columnDef.cell, cell.getContext())}
                   </TableCell>
                 ))}
@@ -186,7 +196,7 @@ export function DataTable<TData>({
       </div>
 
       {enablePagination && pageCount && pageCount > 1 && (
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <span>Linhas por página:</span>
             <Select
@@ -198,7 +208,7 @@ export function DataTable<TData>({
                 onPageChange?.(0)
               }}
             >
-              <SelectTrigger className="h-8 w-16">
+              <SelectTrigger className="h-10 w-16">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -220,6 +230,7 @@ export function DataTable<TData>({
                 onPageChange?.(pagination.pageIndex - 1)
               }}
               disabled={pagination.pageIndex <= 0}
+              aria-label="Página anterior"
             >
               <ChevronLeft className="h-4 w-4" />
             </Button>
@@ -236,6 +247,7 @@ export function DataTable<TData>({
                 onPageChange?.(pagination.pageIndex + 1)
               }}
               disabled={pagination.pageIndex >= pageCount - 1}
+              aria-label="Próxima página"
             >
               <ChevronRight className="h-4 w-4" />
             </Button>

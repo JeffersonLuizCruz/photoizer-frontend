@@ -6,6 +6,7 @@ import { cn } from '@/shared/lib/cn'
 import { Button } from '@/shared/components/ui/button'
 import { Calendar, type CalendarProps } from '@/shared/components/ui/calendar'
 import { Popover, PopoverContent, PopoverTrigger } from '@/shared/components/ui/popover'
+import { useIsMobile } from '@/shared/hooks/use-media-query'
 
 export interface DateRange {
   from: Date | undefined
@@ -29,6 +30,7 @@ export function DateRangePicker({
   ...calendarProps
 }: DateRangePickerProps) {
   const [open, setOpen] = useState(false)
+  const isMobile = useIsMobile()
 
   const displayText = value?.from
     ? value.to
@@ -53,7 +55,7 @@ export function DateRangePicker({
             mode="range"
             selected={value as { from: Date; to: Date } | undefined}
             onSelect={(range) => onChange(range as DateRange | undefined)}
-            numberOfMonths={2}
+            numberOfMonths={isMobile ? 1 : 2}
             locale={ptBR}
             autoFocus
             {...calendarProps}

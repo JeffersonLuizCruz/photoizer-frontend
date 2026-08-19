@@ -204,7 +204,7 @@ export function GraficoMensal() {
 
   return (
     <div className="rounded-xl border bg-card">
-      <div className="border-b px-6 py-4 flex items-center justify-between">
+      <div className="border-b px-4 py-4 flex flex-wrap items-center justify-between gap-2 sm:px-6">
         <div>
           <h2 className="text-base font-semibold">Acompanhamento Mensal</h2>
           <p className="text-xs text-muted-foreground mt-0.5">

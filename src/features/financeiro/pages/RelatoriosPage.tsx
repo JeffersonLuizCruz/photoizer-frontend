@@ -200,7 +200,7 @@ export function RelatoriosPage() {
 
       <div className="mb-4 flex flex-wrap items-center gap-2">
         <Select value={tipo} onValueChange={(v) => setTipo(v as TipoRelatorio)}>
-          <SelectTrigger className="w-[220px]">
+          <SelectTrigger className="w-full sm:w-[220px]">
             <SelectValue placeholder="Selecione o relatório" />
           </SelectTrigger>
           <SelectContent>

@@ -100,14 +100,14 @@ function EdicaoCard({ edicao }: { edicao: EdicaoProcesso }) {
   }
 
   return (
-    <div className="flex items-center justify-between rounded-lg border bg-card p-4 transition-shadow hover:shadow-sm">
-      <div className="flex items-center gap-4">
-        <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10">
+    <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border bg-card p-4 transition-shadow hover:shadow-sm">
+      <div className="flex min-w-0 flex-1 items-center gap-4">
+        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-primary/10">
           <Image className="h-6 w-6 text-primary" />
         </div>
-        <div>
+        <div className="min-w-0">
           <p className="font-medium">Ensaio #{edicao.agendamentoId.substring(0, 8)}</p>
-          <div className="mt-1 flex items-center gap-3 text-sm text-muted-foreground">
+          <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted-foreground">
             <EdicaoStatusBadge status={edicao.status} />
             <span>{edicao.totalFotosRaw} RAW</span>
             {edicao.totalFotosEditadas > 0 && (

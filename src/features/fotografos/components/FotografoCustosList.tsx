@@ -40,8 +40,8 @@ export function FotografoCustosList({ fotografoId }: FotografoCustosListProps) {
           Nenhum custo vinculado a este fotógrafo.
         </div>
       ) : (
-        <div className="rounded-md border">
-          <Table>
+        <div className="rounded-md border overflow-x-auto">
+          <Table className="min-w-[560px]">
             <TableHeader>
               <TableRow>
                 <TableHead>Descrição</TableHead>

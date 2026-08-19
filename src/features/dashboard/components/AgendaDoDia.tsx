@@ -44,10 +44,12 @@ export function AgendaDoDia({ agendamentos, isLoading }: AgendaDoDiaProps) {
         const hora = format(new Date(agendamento.dataHoraEnsaio), "HH:mm", { locale: ptBR })
 
         return (
-          <div
+          <button
             key={agendamento.id}
-            className="flex items-start gap-3 rounded-lg border p-3 transition-colors hover:bg-accent/50 cursor-pointer"
+            type="button"
+            className="flex w-full items-start gap-3 rounded-lg border p-3 text-left transition-colors hover:bg-accent/50 cursor-pointer"
             onClick={() => navigate(ROUTES.AGENDA_DETALHES.replace(':id', agendamento.id))}
+            aria-label={`Abrir detalhes do agendamento em ${agendamento.localEnsaio}`}
           >
             <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary text-xs font-bold">
               {hora}
@@ -69,7 +71,7 @@ export function AgendaDoDia({ agendamentos, isLoading }: AgendaDoDiaProps) {
                 )}
               </div>
             </div>
-          </div>
+          </button>
         )
       })}
 

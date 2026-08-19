@@ -219,7 +219,9 @@ export function AdminEcommercePage() {
           pageSize={perPage}
           onPageChange={setPage}
           onPageSizeChange={setPerPage}
-          emptyMessage="Nenhuma compra encontrada" />
+          emptyMessage="Nenhuma compra encontrada"
+          mobileHiddenIds={['id', 'quantidadeFotos', 'metodoPagamento']}
+          minWidthClassName="min-w-[640px]" />
       </div>
 
       <AdminCompraDetalheDialog

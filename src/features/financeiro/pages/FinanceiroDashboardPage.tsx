@@ -28,7 +28,7 @@ function ChartCard({
 }) {
   return (
     <div className="rounded-xl border bg-card p-4 shadow-sm">
-      <div className="mb-3 flex items-start justify-between gap-2">
+      <div className="mb-3 flex flex-wrap items-start justify-between gap-2">
         <div>
           <h3 className="font-medium">{title}</h3>
           {subtitle && <p className="text-xs text-muted-foreground">{subtitle}</p>}

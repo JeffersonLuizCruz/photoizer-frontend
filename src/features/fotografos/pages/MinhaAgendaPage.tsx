@@ -67,7 +67,7 @@ export function MinhaAgendaPage() {
 
   if (isLoading) {
     return (
-      <div className="p-6 space-y-4">
+      <div className="space-y-4">
         <div className="animate-pulse h-8 w-48 bg-muted rounded" />
         <div className="animate-pulse h-96 w-full bg-muted rounded" />
       </div>
@@ -75,7 +75,7 @@ export function MinhaAgendaPage() {
   }
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold tracking-tight">Minha Agenda</h1>
         <p className="text-sm text-muted-foreground">
@@ -95,11 +95,11 @@ export function MinhaAgendaPage() {
       <div className="grid gap-6 lg:grid-cols-[1fr_400px]">
         <div className="rounded-lg border bg-card">
           <div className="flex items-center justify-between p-4 border-b">
-            <Button variant="ghost" size="icon" onClick={mesAnterior}>
+            <Button variant="ghost" size="icon" onClick={mesAnterior} aria-label="Mês anterior">
               <ChevronLeft className="h-5 w-5" />
             </Button>
             <h2 className="text-base font-semibold">{mesCapitalizado} {anoAtual}</h2>
-            <Button variant="ghost" size="icon" onClick={proximoMes}>
+            <Button variant="ghost" size="icon" onClick={proximoMes} aria-label="Próximo mês">
               <ChevronRight className="h-5 w-5" />
             </Button>
           </div>
@@ -167,10 +167,12 @@ export function MinhaAgendaPage() {
                 .map((e) => {
                   const data = new Date(e.dataHoraEnsaio)
                   return (
-                    <div
+                    <button
                       key={e.agendamentoId}
-                      className="p-4 hover:bg-accent/50 cursor-pointer transition-colors"
+                      type="button"
+                      className="block w-full p-4 text-left hover:bg-accent/50 cursor-pointer transition-colors"
                       onClick={() => navigate(`/agenda/${e.agendamentoId}`)}
+                      aria-label={`Abrir detalhes do ensaio de ${e.clienteNome} às ${format(data, 'HH:mm', { locale: ptBR })}`}
                     >
                       <div className="flex items-start justify-between gap-2">
                         <div className="flex-1 min-w-0">
@@ -198,8 +200,8 @@ export function MinhaAgendaPage() {
                           {statusLabel[e.status] ?? e.status}
                         </Badge>
                       </div>
-                    </div>
-                  )
+                  </button>
+                )
                 })}
             </div>
           )}

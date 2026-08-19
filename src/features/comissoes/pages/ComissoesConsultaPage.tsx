@@ -81,10 +81,10 @@ function IndicadorRow({
           </div>
         </div>
         <div className="flex items-center gap-1">
-          <Button variant="ghost" size="icon" onClick={() => onEdit(indicador)}>
+          <Button variant="ghost" size="icon" onClick={() => onEdit(indicador)} aria-label={`Editar indicador ${indicador.indicadorNome}`}>
             <Pencil className="h-4 w-4" />
           </Button>
-          <Button variant="ghost" size="icon" onClick={() => onDelete(indicador)}>
+          <Button variant="ghost" size="icon" onClick={() => onDelete(indicador)} aria-label={`Excluir indicador ${indicador.indicadorNome}`}>
             <Trash2 className="h-4 w-4 text-destructive" />
           </Button>
         </div>
@@ -101,10 +101,10 @@ function IndicadorRow({
             const Icon = ORIGEM_ICON[ind.origem] || Package
             return (
               <div key={ind.id} className="p-4 pl-12 space-y-1.5">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <div className="flex min-w-0 flex-wrap items-center gap-2">
                     <Icon className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
-                    <p className="text-sm font-medium">{ind.clienteNome}</p>
+                    <p className="text-sm font-medium truncate">{ind.clienteNome}</p>
                     <span className="text-[11px] text-muted-foreground bg-muted px-1.5 py-0.5 rounded">
                       {ORIGEM_LABEL[ind.origem] || ind.origem}
                     </span>
@@ -125,7 +125,7 @@ function IndicadorRow({
                     </span>
                   </div>
                 </div>
-                <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs text-muted-foreground">
                   <span>{ind.pacoteNome}</span>
                   <span>Ref.: {currency(ind.valorReferencia)}</span>
                   <span>{ind.percentual}%</span>

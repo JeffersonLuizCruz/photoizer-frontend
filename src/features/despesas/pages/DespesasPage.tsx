@@ -73,7 +73,7 @@ export function DespesasPage() {
       <div className="mb-4 flex flex-wrap items-center gap-2">
         <DateRangePicker value={dateRange} onChange={setDateRange} />
         <Select value={categoriaId} onValueChange={setCategoriaId}>
-          <SelectTrigger className="w-[200px]">
+          <SelectTrigger className="w-full sm:w-[200px]">
             <SelectValue placeholder="Todas as categorias" />
           </SelectTrigger>
           <SelectContent>
@@ -84,7 +84,7 @@ export function DespesasPage() {
           </SelectContent>
         </Select>
         <Select value={status} onValueChange={(v: StatusDespesa | 'all') => setStatus(v)}>
-          <SelectTrigger className="w-[150px]">
+          <SelectTrigger className="w-full sm:w-[150px]">
             <SelectValue placeholder="Status" />
           </SelectTrigger>
           <SelectContent>
@@ -99,7 +99,7 @@ export function DespesasPage() {
           setSortBy(sb)
           setSortDir(sd as 'asc' | 'desc')
         }}>
-          <SelectTrigger className="w-[180px]">
+          <SelectTrigger className="w-full sm:w-[180px]">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>

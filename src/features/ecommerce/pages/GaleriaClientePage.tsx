@@ -304,7 +304,7 @@ export function GaleriaClientePage() {
               {galeria?.localEnsaio && ` · ${galeria.localEnsaio}`}
             </p>
           </div>
-          <div className="flex items-center gap-2 overflow-x-auto flex-nowrap -mx-1 px-1 pb-0.5 md:overflow-visible md:mx-0 md:px-0 md:pb-0">
+          <div className="flex flex-wrap items-center gap-2 md:flex-nowrap md:overflow-x-auto md:overflow-y-visible">
             <span className="shrink-0">{favoritoIds.size > 0 && (
               <span className="flex items-center gap-1 text-xs text-muted-foreground" title="Fotos favoritas">
                 <Heart className="h-3.5 w-3.5 text-rose-400" fill="currentColor" />
@@ -312,7 +312,7 @@ export function GaleriaClientePage() {
               </span>
             )}</span>
             <button onClick={() => setCompareMode((prev) => !prev)}
-              className={`shrink-0 flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-medium transition-colors ${
+              className={`shrink-0 flex items-center gap-1.5 rounded-lg border px-3 py-2.5 text-xs font-medium transition-colors ${
                 compareMode ? 'bg-blue-600 text-white border-blue-600 hover:bg-blue-700' : 'hover:bg-accent'
               }`}>
               <Columns2 className="h-3.5 w-3.5" />
@@ -320,12 +320,12 @@ export function GaleriaClientePage() {
             </button>
             {compareMode && compareIds.size >= 2 && (
               <button onClick={() => setShowComparador(true)}
-                className="shrink-0 rounded-lg bg-blue-600 text-white px-3 py-1.5 text-xs font-medium hover:bg-blue-700 transition-colors">
+                className="shrink-0 rounded-lg bg-blue-600 text-white px-3 py-2.5 text-xs font-medium hover:bg-blue-700 transition-colors">
                 Ver comparação ({compareIds.size})
               </button>
             )}
             <button onClick={() => setShowCart(true)}
-              className="shrink-0 relative rounded-lg border p-1.5 hover:bg-accent transition-colors" title="Meu carrinho">
+              className="shrink-0 relative rounded-lg border p-2.5 hover:bg-accent transition-colors" title="Meu carrinho">
               <ShoppingCart className="h-4 w-4" />
               {carrinhoCount > 0 && (
                 <span className="absolute -top-1.5 -right-1.5 h-4 min-w-4 px-0.5 rounded-full bg-blue-600 text-white text-[10px] font-medium flex items-center justify-center">
@@ -335,20 +335,20 @@ export function GaleriaClientePage() {
             </button>
             {hasSelectionChanges && (
               <button onClick={handleSaveSelection} disabled={isSaving}
-                className="shrink-0 rounded-lg bg-primary text-primary-foreground px-3 py-1.5 text-xs font-medium hover:bg-primary/90 transition-colors disabled:opacity-50">
+                className="shrink-0 rounded-lg bg-primary text-primary-foreground px-3 py-2.5 text-xs font-medium hover:bg-primary/90 transition-colors disabled:opacity-50">
                 {isSaving ? 'Salvando...' : 'Salvar Seleção'}
               </button>
             )}
             {downloadableFotos.length > 0 && (
               <a href={ecommerceService.downloadZipUrl(token ?? '')}
-                className="shrink-0 flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-medium hover:bg-accent transition-colors">
+                className="shrink-0 flex items-center gap-1.5 rounded-lg border px-3 py-2.5 text-xs font-medium hover:bg-accent transition-colors">
                 <Download className="h-3.5 w-3.5" />
                 ZIP ({downloadableFotos.length})
               </a>
             )}
             {carrinhoCount > 0 && (
               <button onClick={() => setShowCheckout(true)}
-                className="shrink-0 flex items-center gap-1.5 rounded-lg bg-blue-600 text-white px-3 py-1.5 text-xs font-medium hover:bg-blue-700 transition-colors">
+                className="shrink-0 flex items-center gap-1.5 rounded-lg bg-blue-600 text-white px-3 py-2.5 text-xs font-medium hover:bg-blue-700 transition-colors">
                 <ShoppingCart className="h-3.5 w-3.5" />
                 Finalizar ({carrinhoCount})
               </button>
@@ -361,7 +361,7 @@ export function GaleriaClientePage() {
             <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
             <input value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="Buscar por tags ou nome..."
-              className="w-full rounded-lg border bg-background pl-8 pr-3 py-1.5 text-xs" />
+              className="w-full rounded-lg border bg-background pl-8 pr-3 py-2.5 text-xs" />
             {searchTerm && (
               <button onClick={() => setSearchTerm('')}
                 className="absolute right-2 top-1/2 -translate-y-1/2">
@@ -371,7 +371,7 @@ export function GaleriaClientePage() {
           </div>
           {categorias.length > 0 && (
             <select value={categoriaFilter} onChange={(e) => setCategoriaFilter(e.target.value)}
-              className="rounded-lg border bg-background px-3 py-1.5 text-xs font-medium">
+              className="rounded-lg border bg-background px-3 py-2.5 text-xs font-medium">
               <option value="">Todas as categorias</option>
               {categorias.map((cat) => (
                 <option key={cat} value={cat}>{cat}</option>

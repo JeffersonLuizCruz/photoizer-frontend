@@ -36,18 +36,18 @@ export function CustomerDashboardPage() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-muted/30">
       <header className="border-b bg-background/95 backdrop-blur">
-        <div className="max-w-5xl mx-auto px-4 h-14 flex items-center justify-between">
+        <div className="max-w-5xl mx-auto px-4 h-14 pt-[env(safe-area-inset-top)] flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Camera className="h-5 w-5 text-primary" />
             <span className="font-semibold text-sm">Photoizer</span>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1 sm:gap-2">
             <button onClick={() => navigate('/minha-conta/editar')}
-              className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors">
+              className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors py-2 px-1">
               <User className="h-3.5 w-3.5" /> Editar Dados
             </button>
             <button onClick={handleLogout}
-              className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors">
+              className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors py-2 px-1">
               <LogOut className="h-3.5 w-3.5" /> Sair
             </button>
           </div>

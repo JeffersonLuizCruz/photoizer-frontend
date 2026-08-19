@@ -18,15 +18,15 @@ function Calendar({ className, classNames, showOutsideDays = true, ...props }: C
         [UI.Nav]: 'space-x-1 flex items-center',
         [UI.PreviousMonthButton]: cn(
           buttonVariants({ variant: 'outline' }),
-          'h-7 w-7 bg-transparent p-0 opacity-50 hover:opacity-100 absolute left-1',
+          'h-11 w-11 bg-transparent p-0 opacity-50 hover:opacity-100 absolute left-1 sm:h-8 sm:w-8',
         ),
         [UI.NextMonthButton]: cn(
           buttonVariants({ variant: 'outline' }),
-          'h-7 w-7 bg-transparent p-0 opacity-50 hover:opacity-100 absolute right-1',
+          'h-11 w-11 bg-transparent p-0 opacity-50 hover:opacity-100 absolute right-1 sm:h-8 sm:w-8',
         ),
         [UI.MonthGrid]: 'w-full border-collapse space-y-1',
         [UI.Weekdays]: 'grid grid-cols-7',
-        [UI.Weekday]: 'flex items-center justify-center text-muted-foreground font-normal text-[0.8rem] h-8',
+        [UI.Weekday]: 'flex items-center justify-center text-muted-foreground font-normal text-[0.8rem] h-11 sm:h-9',
         [UI.Weeks]: 'w-full',
         [UI.Week]: 'grid grid-cols-7',
         [UI.Day]: cn(
@@ -38,7 +38,7 @@ function Calendar({ className, classNames, showOutsideDays = true, ...props }: C
         ),
         [UI.DayButton]: cn(
           buttonVariants({ variant: 'ghost' }),
-          'h-8 w-8 p-0 font-normal aria-selected:opacity-100',
+          'h-11 w-11 p-0 font-normal aria-selected:opacity-100 sm:h-9 sm:w-9',
         ),
         [SelectionState.selected]: 'bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground focus:bg-primary focus:text-primary-foreground',
         [DayFlag.today]: 'bg-accent text-accent-foreground',

@@ -31,12 +31,12 @@ export function CartSummaryPanel({
       <div className="fixed inset-0 z-50 bg-black/50" onClick={onClose} />
       <div className="fixed right-0 top-0 h-full w-full max-w-md bg-background border-l z-50 flex flex-col">
         {/* Header */}
-        <div className="flex items-center justify-between px-4 h-14 border-b shrink-0">
+        <div className="flex items-center justify-between px-4 pt-[env(safe-area-inset-top)] pb-2 h-14 border-b shrink-0">
           <h2 className="text-sm font-semibold flex items-center gap-2">
             <ShoppingCart className="h-4 w-4" />
             Meu Carrinho
           </h2>
-          <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-accent transition-colors" title="Fechar">
+          <button onClick={onClose} className="p-2 rounded-lg hover:bg-accent transition-colors" title="Fechar">
             <X className="h-4 w-4" />
           </button>
         </div>
@@ -51,7 +51,7 @@ export function CartSummaryPanel({
             {pacoteFotos.length === 0 ? (
               <p className="text-xs text-muted-foreground">Nenhuma foto selecionada para o pacote.</p>
             ) : (
-              <div className="grid grid-cols-4 gap-2">
+              <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
                 {pacoteFotos.map((foto) => (
                   <div key={foto.id} className="relative aspect-[3/2] rounded-md overflow-hidden border bg-muted">
                     <img
@@ -92,8 +92,8 @@ export function CartSummaryPanel({
                     </div>
                     <button
                       onClick={() => onRemoveFromCart(foto.id)}
-                      className="p-1.5 rounded-lg text-muted-foreground hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition-colors"
-                      title="Remover do carrinho">
+                      className="p-2 rounded-lg text-muted-foreground hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition-colors"
+                      aria-label={`Remover ${foto.fileName} do carrinho`}>
                       <Trash2 className="h-3.5 w-3.5" />
                     </button>
                   </li>
@@ -123,7 +123,7 @@ export function CartSummaryPanel({
         </div>
 
         {/* Footer */}
-        <div className="border-t p-4 shrink-0">
+        <div className="border-t p-4 pb-[calc(1rem+env(safe-area-inset-bottom))] shrink-0">
           <button
             onClick={onCheckout}
             disabled={cartFotos.length === 0}

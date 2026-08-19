@@ -10,7 +10,7 @@ export function RelatorioGlobalPage() {
 
   if (isLoading) {
     return (
-      <div className="p-6 space-y-4">
+      <div className="space-y-4">
         <div className="animate-pulse h-8 w-48 bg-muted rounded" />
         <div className="animate-pulse h-24 w-full bg-muted rounded" />
         <div className="animate-pulse h-64 w-full bg-muted rounded" />
@@ -19,7 +19,7 @@ export function RelatorioGlobalPage() {
   }
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold tracking-tight">Relatório Global de Fotógrafos</h1>
         <p className="text-sm text-muted-foreground">
@@ -69,8 +69,8 @@ export function RelatorioGlobalPage() {
             </div>
           </div>
 
-          <div className="rounded-md border">
-            <Table>
+          <div className="rounded-md border overflow-x-auto">
+            <Table className="min-w-[720px]">
               <TableHeader>
                 <TableRow>
                   <TableHead>Fotógrafo</TableHead>

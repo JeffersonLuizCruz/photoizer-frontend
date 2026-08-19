@@ -14,6 +14,7 @@ import {
 } from '@/shared/components/ui/dropdown-menu'
 import { useAuth } from '@/features/auth/AuthProvider'
 import { NotificationBell } from '@/features/notificacoes/components/NotificationBell'
+import { useIsTablet } from '@/shared/hooks/use-media-query'
 
 const papelConfig = {
   ADMIN: { label: 'Admin', variant: 'default' as const },
@@ -24,8 +25,12 @@ const papelConfig = {
 
 export function Header() {
   const toggle = useSidebarStore((state) => state.toggle)
+  const isOpen = useSidebarStore((state) => state.isOpen)
+  const toggleMobile = useSidebarStore((state) => state.setMobileOpen)
+  const mobileOpen = useSidebarStore((state) => state.mobileOpen)
   const { theme, toggleTheme } = useThemeStore()
   const { user, logout } = useAuth()
+  const isTablet = useIsTablet()
 
   const initials = user?.nome
     ?.split(' ')
@@ -37,13 +42,20 @@ export function Header() {
   const papel = user?.papel ? papelConfig[user.papel] : null
 
   return (
-    <header className="border-b bg-card h-14 flex items-center justify-between px-6">
-      <Button variant="ghost" size="icon" onClick={toggle} aria-label="Toggle sidebar">
+    <header className="border-b bg-card min-h-14 flex items-center justify-between px-4 sm:px-6 pt-[env(safe-area-inset-top)]">
+      <Button
+        variant="ghost"
+        size="icon"
+        onClick={isTablet ? () => toggleMobile(!mobileOpen) : toggle}
+        aria-label="Alternar menu lateral"
+        aria-expanded={isTablet ? mobileOpen : isOpen}
+        aria-controls="app-sidebar"
+      >
         <PanelLeft className="h-5 w-5" />
       </Button>
 
       <div className="flex items-center gap-3">
-        <Button variant="ghost" size="icon" onClick={toggleTheme} aria-label="Toggle theme">
+        <Button variant="ghost" size="icon" onClick={toggleTheme} aria-label="Alternar tema" className="hidden sm:inline-flex">
           {theme === 'light' ? <Moon className="h-5 w-5" /> : <Sun className="h-5 w-5" />}
         </Button>
 
@@ -52,7 +64,12 @@ export function Header() {
         {user && (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="flex items-center gap-2 px-2">
+              <Button
+                variant="ghost"
+                className="flex items-center gap-2 px-2"
+                aria-label={`Menu de ${user.nome}`}
+                aria-haspopup="menu"
+              >
                 <Avatar className="h-8 w-8">
                   <AvatarFallback className="text-xs bg-primary text-primary-foreground">
                     {initials}

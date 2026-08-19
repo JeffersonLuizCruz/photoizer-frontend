@@ -142,6 +142,8 @@ export function AgendamentoList({ agendamentos, isLoading, pacotes, usuarios }: 
       enablePagination={false}
       enableFiltering={false}
       emptyMessage="Nenhum agendamento encontrado"
+      mobileHiddenIds={['localEnsaio', 'pago', 'editor', 'pacote']}
+      minWidthClassName="min-w-[640px]"
       renderActions={(row) => (
         <Button
           variant="ghost"

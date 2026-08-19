@@ -88,7 +88,7 @@ export function ReceitasPage() {
       <div className="mb-4 flex flex-wrap items-center gap-2">
         <FiltroFinanceiro value={filtros} onChange={setFiltros} />
         <Select value={sort} onValueChange={setSort}>
-          <SelectTrigger className="w-[180px]">
+          <SelectTrigger className="w-full sm:w-[180px]">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>

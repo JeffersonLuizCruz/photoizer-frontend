@@ -32,7 +32,7 @@ export function ContratosPage() {
   })
 
   return (
-    <div className="p-6">
+    <div className="p-0">
       <PageTitle
         title="Contratos"
         description="Envie contratos por link, acompanhe a assinatura e a aprovação"
@@ -87,7 +87,7 @@ export function ContratosPage() {
         />
       ) : (
         <div className="rounded-lg border bg-card">
-          <div className="grid grid-cols-12 gap-3 border-b px-4 py-2 text-xs font-semibold text-muted-foreground">
+          <div className="hidden grid-cols-12 gap-3 border-b px-4 py-2 text-xs font-semibold text-muted-foreground sm:grid">
             <div className="col-span-4">Cliente</div>
             <div className="col-span-3">Pacote / Ensaio</div>
             <div className="col-span-2">Valores</div>
@@ -98,7 +98,7 @@ export function ContratosPage() {
               key={contrato.id}
               type="button"
               onClick={() => navigate(ROUTES.CONTRATOS_NOVO.replace('/novo', `/${contrato.id}`))}
-              className="grid w-full grid-cols-12 items-center gap-3 border-b px-4 py-3 text-left text-sm transition-colors last:border-0 hover:bg-accent/50"
+              className="flex w-full flex-col gap-1 border-b px-4 py-3 text-left text-sm transition-colors last:border-0 hover:bg-accent/50 sm:grid sm:grid-cols-12 sm:items-center sm:gap-3"
             >
               <div className="col-span-4 min-w-0">
                 <p className="truncate font-medium">
@@ -114,7 +114,7 @@ export function ContratosPage() {
                   {formatDateBR(contrato.dataHoraEnsaio)}
                 </p>
               </div>
-              <div className="col-span-2">
+              <div className="col-span-2 flex flex-wrap items-center gap-x-3 sm:block">
                 <p>{formatCurrency(contrato.valorTotal)}</p>
                 <p className="text-xs text-muted-foreground">Entrada {formatCurrency(contrato.valorEntradaExigido)}</p>
               </div>

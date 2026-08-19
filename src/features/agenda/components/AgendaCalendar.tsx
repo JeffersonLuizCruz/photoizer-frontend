@@ -142,7 +142,7 @@ function MonthView({
                         +{dayEvents.length - 4} mais
                       </button>
                     </PopoverTrigger>
-                    <PopoverContent side="right" className="w-56 p-2 space-y-1" align="start">
+                    <PopoverContent side="right" className="w-56 max-w-[calc(100vw-2rem)] p-2 space-y-1" align="start">
                       {dayEvents.slice(4).map((event) => (
                         <AgendaCalendarEvent
                           key={event.id}
@@ -215,13 +215,13 @@ export function AgendaCalendar({ agendamentos, view, onViewChange, onEventClick,
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" onClick={navigatePrev}>
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          <Button variant="outline" size="sm" onClick={navigatePrev} aria-label="Período anterior">
             <ChevronLeft className="h-4 w-4" />
           </Button>
-          <h2 className="text-lg font-semibold capitalize">{titleText}</h2>
-          <Button variant="outline" size="sm" onClick={navigateNext}>
+          <h2 className="text-base font-semibold capitalize sm:text-lg">{titleText}</h2>
+          <Button variant="outline" size="sm" onClick={navigateNext} aria-label="Próximo período">
             <ChevronRight className="h-4 w-4" />
           </Button>
           <Button variant="ghost" size="sm" onClick={navigateToday}>
@@ -303,7 +303,7 @@ export function AgendaCalendar({ agendamentos, view, onViewChange, onEventClick,
                             +{dayEvents.length - 4} mais
                           </button>
                         </PopoverTrigger>
-                        <PopoverContent side="right" className="w-56 p-2 space-y-1" align="start">
+                        <PopoverContent side="right" className="w-56 max-w-[calc(100vw-2rem)] p-2 space-y-1" align="start">
                           {dayEvents.slice(4).map((event) => (
                             <AgendaCalendarEvent
                               key={event.id}

@@ -11,7 +11,7 @@ export function FiltroPeriodo({ value, onChange }: FiltroPeriodoProps) {
       value={value}
       onChange={onChange}
       placeholder="Filtrar por período"
-      className="w-56"
+      className="w-full sm:w-56"
     />
   )
 }

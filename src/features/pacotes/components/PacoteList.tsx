@@ -71,6 +71,8 @@ export function PacoteList({ data, isLoading, search, onSearchChange, onDelete }
       globalFilter={search}
       onGlobalFilterChange={onSearchChange}
       emptyMessage="Nenhum pacote encontrado"
+      mobileHiddenIds={['quantidadeVideos', 'diasParaEntrega', 'duracaoEstimada']}
+      minWidthClassName="min-w-[560px]"
       renderActions={(row) => (
         <div className="flex items-center gap-1">
           <Button

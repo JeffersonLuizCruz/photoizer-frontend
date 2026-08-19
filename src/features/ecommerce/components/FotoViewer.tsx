@@ -121,6 +121,7 @@ export function FotoViewer({
   return (
     <div className="fixed inset-0 z-50 bg-black/95 flex items-center justify-center" onClick={onClose}>
       <button onClick={(e) => { e.stopPropagation(); onClose() }}
+        aria-label="Fechar visualização"
         className="absolute top-4 right-4 z-30 h-11 w-11 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-all hover:scale-105 active:scale-95">
         <X className="h-6 w-6 text-white" />
       </button>
@@ -129,6 +130,7 @@ export function FotoViewer({
       </span>
       {currentIndex > 0 && (
         <button onClick={(e) => { e.stopPropagation(); onNavigate(currentIndex - 1) }}
+          aria-label="Foto anterior"
           className="absolute left-3 sm:left-4 z-30 h-12 w-12 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-all hover:scale-105 active:scale-95">
           <ChevronLeft className="h-8 w-8 text-white" />
         </button>
@@ -143,6 +145,7 @@ export function FotoViewer({
       </div>
       {currentIndex < fotos.length - 1 && !commentsOpen && (
         <button onClick={(e) => { e.stopPropagation(); onNavigate(currentIndex + 1) }}
+          aria-label="Próxima foto"
           className="absolute right-3 sm:right-4 z-30 h-12 w-12 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-all hover:scale-105 active:scale-95">
           <ChevronRight className="h-8 w-8 text-white" />
         </button>

@@ -161,7 +161,7 @@ export function AgendamentoFinanceiro({ agendamento }: AgendamentoFinanceiroProp
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-2">
         <h3 className="text-sm font-semibold text-muted-foreground">Detalhamento Financeiro</h3>
         <div className="flex flex-wrap gap-2">
           <Button variant="outline" size="sm" onClick={() => handleExport('csv')} disabled={isLoading}>
@@ -197,8 +197,8 @@ export function AgendamentoFinanceiro({ agendamento }: AgendamentoFinanceiroProp
         </div>
       </div>
 
-      <div className="rounded-md border">
-        <Table>
+      <div className="rounded-md border overflow-x-auto">
+        <Table className="min-w-[560px]">
           <TableHeader>
             <TableRow>
               <TableHead>Descrição</TableHead>
@@ -311,8 +311,8 @@ export function AgendamentoFinanceiro({ agendamento }: AgendamentoFinanceiroProp
             )}
           </div>
 
-          <div className="rounded-md border">
-            <Table>
+          <div className="rounded-md border overflow-x-auto">
+            <Table className="min-w-[720px]">
               <TableHeader>
                 <TableRow>
                   <TableHead>Parceiro</TableHead>
@@ -448,7 +448,7 @@ export function AgendamentoFinanceiro({ agendamento }: AgendamentoFinanceiroProp
       )}
 
       <div className="space-y-2">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-wrap items-center justify-between gap-2">
           <h4 className="flex items-center gap-2 text-sm font-semibold text-muted-foreground">
             <Link2 className="h-4 w-4" />
             Despesas Vinculadas

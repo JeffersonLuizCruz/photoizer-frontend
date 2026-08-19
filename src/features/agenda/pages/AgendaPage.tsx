@@ -167,7 +167,7 @@ function AgendaPageContent() {
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <div className="flex flex-wrap items-center gap-2">
           <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger className="w-44">
+            <SelectTrigger className="w-full sm:w-44">
               <SelectValue placeholder="Filtrar por status" />
             </SelectTrigger>
             <SelectContent>
@@ -180,7 +180,7 @@ function AgendaPageContent() {
           </Select>
 
           <Select value={editorFilter} onValueChange={setEditorFilter}>
-            <SelectTrigger className="w-44">
+            <SelectTrigger className="w-full sm:w-44">
               <SelectValue placeholder="Filtrar por editor" />
             </SelectTrigger>
             <SelectContent>
@@ -194,7 +194,7 @@ function AgendaPageContent() {
           </Select>
 
           <Select value={pacoteFilter} onValueChange={setPacoteFilter}>
-            <SelectTrigger className="w-44">
+            <SelectTrigger className="w-full sm:w-44">
               <SelectValue placeholder="Filtrar por pacote" />
             </SelectTrigger>
             <SelectContent>
@@ -211,7 +211,7 @@ function AgendaPageContent() {
             value={dateRange}
             onChange={setDateRange}
             placeholder="Filtrar por período"
-            className="w-56"
+            className="w-full sm:w-56"
           />
 
           <div className="relative">
@@ -220,7 +220,7 @@ function AgendaPageContent() {
               placeholder="Buscar cliente..."
               value={clientSearch}
               onChange={(e) => setClientSearch(e.target.value)}
-              className="w-44 pl-8"
+              className="w-full pl-8 sm:w-44"
             />
           </div>
 
@@ -253,15 +253,15 @@ function AgendaPageContent() {
       </div>
 
       {draft && draft.data && (
-        <div className="mb-4 flex items-center justify-between rounded-lg border border-dashed border-slate-300 bg-slate-50 px-4 py-3 dark:border-slate-700 dark:bg-slate-900">
-          <div className="flex items-center gap-3">
-            <FileEdit className="h-5 w-5 text-slate-400" />
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-2 rounded-lg border border-dashed border-slate-300 bg-slate-50 px-4 py-3 dark:border-slate-700 dark:bg-slate-900">
+          <div className="flex flex-wrap items-center gap-3">
+            <FileEdit className="h-5 w-5 shrink-0 text-slate-400" />
             <span className="text-sm">
               <strong>Rascunho:</strong> {draft.nome || 'Novo agendamento'} — {draft.data}{draft.hora ? ` às ${draft.hora}` : ''}
             </span>
             <Badge variant="secondary">Rascunho</Badge>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <Button
               type="button"
               variant="outline"

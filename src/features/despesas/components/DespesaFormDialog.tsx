@@ -166,7 +166,7 @@ export function DespesaFormDialog({ open, onOpenChange, despesa, onOpenCategoria
             {errors.descricao && <p className="mt-1 text-sm text-destructive">{errors.descricao.message}</p>}
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div>
               <Label htmlFor="valor">Valor (R$) *</Label>
               <CurrencyInput value={watch('valor')} onChange={(v) => setValue('valor', v)} />
@@ -179,7 +179,7 @@ export function DespesaFormDialog({ open, onOpenChange, despesa, onOpenCategoria
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div>
               <div className="flex items-center justify-between">
                 <Label htmlFor="categoriaId">Categoria *</Label>
@@ -218,7 +218,7 @@ export function DespesaFormDialog({ open, onOpenChange, despesa, onOpenCategoria
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div>
               <Label htmlFor="status">Status *</Label>
               <Select value={watch('status')} onValueChange={(v: DespesaFormValues['status']) => setValue('status', v)}>

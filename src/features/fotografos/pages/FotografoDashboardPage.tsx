@@ -17,7 +17,7 @@ export function FotografoDashboardPage() {
 
   if (isLoading) {
     return (
-      <div className="p-6 space-y-4">
+      <div className="space-y-4">
         <div className="animate-pulse h-8 w-48 bg-muted rounded" />
         <div className="animate-pulse h-24 w-full bg-muted rounded" />
         <div className="animate-pulse h-64 w-full bg-muted rounded" />
@@ -27,7 +27,7 @@ export function FotografoDashboardPage() {
 
   if (!dashboard) {
     return (
-      <div className="p-6">
+      <div>
         <p className="text-muted-foreground">Fotógrafo não encontrado</p>
         <Button variant="outline" onClick={() => navigate('/fotografos')}>
           <ArrowLeft className="mr-2 h-4 w-4" />
@@ -38,10 +38,10 @@ export function FotografoDashboardPage() {
   }
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" onClick={() => navigate('/fotografos')}>
+          <Button variant="ghost" size="icon" onClick={() => navigate('/fotografos')} aria-label="Voltar para a lista de fotografos">
             <ArrowLeft className="h-5 w-5" />
           </Button>
           <div>

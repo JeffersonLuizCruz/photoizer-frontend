@@ -15,7 +15,7 @@ export function FotografosNovoPage() {
   }
 
   return (
-    <div className="p-6">
+    <div>
       <PageTitle
         title="Novo Fotógrafo"
         description="Cadastre um novo fotógrafo no sistema"

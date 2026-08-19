@@ -31,32 +31,34 @@ export function RentabilidadePorTrabalho({ trabalhos, isLoading }: Rentabilidade
   }
 
   return (
-    <Table>
-      <TableHeader>
-        <TableRow>
-          <TableHead>Cliente</TableHead>
-          <TableHead>Serviço</TableHead>
-          <TableHead className="text-right">Valor do trabalho</TableHead>
-          <TableHead className="text-right">Custo</TableHead>
-          <TableHead className="text-right">ROI</TableHead>
-        </TableRow>
-      </TableHeader>
-      <TableBody>
-        {trabalhos.map((t) => {
-          const badge = roiBadge(t.roi)
-          return (
-            <TableRow key={t.agendamentoId ?? t.clienteNome}>
-              <TableCell className="font-medium">{t.clienteNome}</TableCell>
-              <TableCell className="text-muted-foreground">{t.tipoServico}</TableCell>
-              <TableCell className="text-right tabular-nums">{formatCurrency(t.valorTrabalho)}</TableCell>
-              <TableCell className="text-right tabular-nums text-muted-foreground">{formatCurrency(t.custoTrabalho)}</TableCell>
-              <TableCell className="text-right">
-                <Badge variant={badge.variant}>{badge.label}</Badge>
-              </TableCell>
-            </TableRow>
-          )
-        })}
-      </TableBody>
-    </Table>
+    <div className="overflow-x-auto">
+      <Table className="min-w-[560px]">
+        <TableHeader>
+          <TableRow>
+            <TableHead>Cliente</TableHead>
+            <TableHead>Serviço</TableHead>
+            <TableHead className="text-right">Valor do trabalho</TableHead>
+            <TableHead className="text-right">Custo</TableHead>
+            <TableHead className="text-right">ROI</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {trabalhos.map((t) => {
+            const badge = roiBadge(t.roi)
+            return (
+              <TableRow key={t.agendamentoId ?? t.clienteNome}>
+                <TableCell className="font-medium">{t.clienteNome}</TableCell>
+                <TableCell className="text-muted-foreground">{t.tipoServico}</TableCell>
+                <TableCell className="text-right tabular-nums">{formatCurrency(t.valorTrabalho)}</TableCell>
+                <TableCell className="text-right tabular-nums text-muted-foreground">{formatCurrency(t.custoTrabalho)}</TableCell>
+                <TableCell className="text-right">
+                  <Badge variant={badge.variant}>{badge.label}</Badge>
+                </TableCell>
+              </TableRow>
+            )
+          })}
+        </TableBody>
+      </Table>
+    </div>
   )
 }

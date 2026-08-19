@@ -418,8 +418,8 @@ export function NovoAgendamentoWizard({ dataInicial }: NovoAgendamentoWizardProp
             )}
           </div>
 
-          <div className="flex items-center justify-between border-t pt-6">
-            <div className="flex items-center gap-2">
+          <div className="flex flex-col gap-3 border-t pt-6 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex flex-wrap items-center gap-2">
               <Button
                 type="button"
                 variant="outline"

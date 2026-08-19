@@ -52,14 +52,14 @@ export function NotificationBell() {
           )}
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-80">
+      <DropdownMenuContent align="end" className="w-80 max-w-[calc(100vw-2rem)] max-h-[75vh] overflow-y-auto">
         <DropdownMenuLabel className="flex items-center justify-between">
           <span>Notificações</span>
           {naoLidas > 0 && (
             <Button
               variant="ghost"
               size="sm"
-              className="text-xs h-7"
+              className="text-xs h-10 sm:h-9"
               onClick={() => userId && marcarTodas.mutate(userId)}
             >
               <CheckCheck className="mr-1 h-3 w-3" />

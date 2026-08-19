@@ -14,7 +14,7 @@ export function MinhasFinancasPage() {
 
   if (isLoading) {
     return (
-      <div className="p-6 space-y-4">
+      <div className="space-y-4">
         <div className="animate-pulse h-8 w-48 bg-muted rounded" />
         <div className="animate-pulse h-24 w-full bg-muted rounded" />
         <div className="animate-pulse h-64 w-full bg-muted rounded" />
@@ -23,7 +23,7 @@ export function MinhasFinancasPage() {
   }
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Minhas Finanças</h1>

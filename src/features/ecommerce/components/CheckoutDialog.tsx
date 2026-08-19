@@ -222,8 +222,8 @@ export function CheckoutDialog({
 
               <div className="space-y-2">
                 <p className="text-xs text-muted-foreground font-medium">PIX (Chave aleatória)</p>
-                <div className="flex items-center justify-between gap-2 bg-background rounded-lg px-3 py-2 border">
-                  <code className="text-xs font-mono">{CHAVE_PIX}</code>
+                <div className="flex items-center justify-between gap-2 bg-background rounded-lg px-3 py-2 border min-w-0">
+                  <code className="text-xs font-mono truncate">{CHAVE_PIX}</code>
                   <button onClick={copiarChavePix}
                     className="flex items-center gap-1 text-primary hover:text-primary/80 font-medium whitespace-nowrap text-xs">
                     {pixCopiado ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}

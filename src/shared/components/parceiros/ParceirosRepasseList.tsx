@@ -47,7 +47,7 @@ export function ParceirosRepasseList({ base }: ParceirosRepasseListProps) {
 
   return (
     <div className="space-y-3">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-2">
         <Label>Equipe de Parceiros (Repasse)</Label>
         <Button
           type="button"
@@ -73,10 +73,10 @@ export function ParceirosRepasseList({ base }: ParceirosRepasseListProps) {
           const isPercentual = tipo === 'PERCENTUAL'
           return (
             <div key={field.id} className="grid grid-cols-12 items-end gap-2 rounded-lg border p-2">
-              <div className="col-span-4">
+              <div className="col-span-12 sm:col-span-4">
                 <Label className="text-xs">Parceiro</Label>
                 <Select value={row.fotografoId ?? ''} onValueChange={(value) => setRow(idx, { fotografoId: value })}>
-                  <SelectTrigger className="h-8">
+                  <SelectTrigger className="h-10 sm:h-9">
                     <SelectValue placeholder="Selecionar" />
                   </SelectTrigger>
                   <SelectContent>
@@ -91,10 +91,10 @@ export function ParceirosRepasseList({ base }: ParceirosRepasseListProps) {
                 </Select>
               </div>
 
-              <div className="col-span-3">
+              <div className="col-span-6 sm:col-span-3">
                 <Label className="text-xs">Tipo</Label>
                 <Select value={tipo} onValueChange={(value) => setRow(idx, { tipoValor: value as Row['tipoValor'] })}>
-                  <SelectTrigger className="h-8">
+                  <SelectTrigger className="h-10 sm:h-9">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -104,11 +104,11 @@ export function ParceirosRepasseList({ base }: ParceirosRepasseListProps) {
                 </Select>
               </div>
 
-              <div className="col-span-4">
+              <div className="col-span-6 sm:col-span-4">
                 <Label className="text-xs">{isPercentual ? 'Percentual (%)' : 'Valor a repassar (R$)'}</Label>
                 {isPercentual ? (
                   <Input
-                    className="h-8"
+                    className="h-10 sm:h-9"
                     type="number"
                     step="0.01"
                     min="0"
@@ -128,8 +128,15 @@ export function ParceirosRepasseList({ base }: ParceirosRepasseListProps) {
                 )}
               </div>
 
-              <div className="col-span-1 flex items-center justify-end">
-                <Button type="button" variant="ghost" size="icon" className="h-8 w-8" onClick={() => remove(idx)}>
+              <div className="col-span-12 flex items-center justify-end sm:col-span-1">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="h-10 w-10 sm:h-9 sm:w-9"
+                  onClick={() => remove(idx)}
+                  aria-label={`Remover parceiro da linha ${idx + 1}`}
+                >
                   <Trash2 className="h-4 w-4 text-destructive" />
                 </Button>
               </div>

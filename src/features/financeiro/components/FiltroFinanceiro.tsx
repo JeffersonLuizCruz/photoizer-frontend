@@ -125,14 +125,14 @@ export function FiltroFinanceiro({ value, onChange, showTrabalhoSelects = true }
 
   return (
     <div className="flex flex-wrap items-center gap-2">
-      <div className="flex items-center gap-1 rounded-lg border p-1">
+      <div className="flex flex-wrap items-center gap-1 rounded-lg border p-1">
         {PRESETS.map((p) => (
           <Button
             key={p.id}
             type="button"
             size="sm"
             variant={preset === p.id ? 'default' : 'ghost'}
-            className="h-7 px-2.5"
+            className="h-10 px-2.5 sm:h-8"
             onClick={() => applyPreset(p.id)}
           >
             {p.label}
@@ -144,7 +144,7 @@ export function FiltroFinanceiro({ value, onChange, showTrabalhoSelects = true }
             setPreset('personalizado')
             applyRange(range)
           }}
-          className="[&>button]:h-7"
+          className="[&>button]:h-10 sm:[&>button]:h-8"
           placeholder="Período"
         />
       </div>
@@ -156,7 +156,7 @@ export function FiltroFinanceiro({ value, onChange, showTrabalhoSelects = true }
       {showTrabalhoSelects && (
         <>
           <Select value={value.tipoServico ?? 'all'} onValueChange={(v) => onChange({ ...value, tipoServico: v === 'all' ? undefined : v as DashboardQueryParams['tipoServico'] })}>
-            <SelectTrigger className="w-[150px]">
+            <SelectTrigger className="w-full sm:w-[150px]">
               <SelectValue placeholder="Tipo" />
             </SelectTrigger>
             <SelectContent>
@@ -168,7 +168,7 @@ export function FiltroFinanceiro({ value, onChange, showTrabalhoSelects = true }
           </Select>
 
           <Select value={value.status ?? 'all'} onValueChange={(v) => onChange({ ...value, status: v === 'all' ? undefined : v as DashboardQueryParams['status'] })}>
-            <SelectTrigger className="w-[140px]">
+            <SelectTrigger className="w-full sm:w-[140px]">
               <SelectValue placeholder="Status" />
             </SelectTrigger>
             <SelectContent>
@@ -180,7 +180,7 @@ export function FiltroFinanceiro({ value, onChange, showTrabalhoSelects = true }
           </Select>
 
           <Select value={value.formaPagamento ?? 'all'} onValueChange={(v) => onChange({ ...value, formaPagamento: v === 'all' ? undefined : v as DashboardQueryParams['formaPagamento'] })}>
-            <SelectTrigger className="w-[150px]">
+            <SelectTrigger className="w-full sm:w-[150px]">
               <SelectValue placeholder="Pagamento" />
             </SelectTrigger>
             <SelectContent>
@@ -191,7 +191,7 @@ export function FiltroFinanceiro({ value, onChange, showTrabalhoSelects = true }
             </SelectContent>
           </Select>
 
-          <div className="w-[220px]">
+          <div className="w-full sm:w-[220px]">
             <SearchableSelect
               options={(clientes ?? []).map((c) => ({ value: c.id, label: c.nome, sublabel: c.telefone }))}
               value={value.clienteId}

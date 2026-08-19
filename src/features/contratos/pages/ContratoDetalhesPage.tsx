@@ -332,7 +332,7 @@ export function ContratoDetalhesPage() {
               <h2 className="font-semibold">Link público</h2>
               <div className="flex items-center gap-2">
                 <Input value={linkPublico} readOnly className="text-xs" />
-                <Button size="icon" variant="outline" onClick={handleCopiarLink}>
+                <Button size="icon" variant="outline" onClick={handleCopiarLink} aria-label="Copiar link público do contrato">
                   <ClipboardCopy className="h-4 w-4" />
                 </Button>
               </div>

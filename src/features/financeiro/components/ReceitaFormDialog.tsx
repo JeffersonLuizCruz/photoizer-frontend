@@ -159,7 +159,7 @@ export function ReceitaFormDialog({ open, onOpenChange, receita }: ReceitaFormDi
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div>
               <Label htmlFor="tipoServico">Tipo de serviço *</Label>
               <Select value={watch('tipoServico')} onValueChange={(v: ReceitaFormValues['tipoServico']) => setValue('tipoServico', v)}>
@@ -193,7 +193,7 @@ export function ReceitaFormDialog({ open, onOpenChange, receita }: ReceitaFormDi
             <Input id="descricao" {...register('descricao')} placeholder="Ex: Ensaio Família - Pacote Herança" />
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div>
               <Label htmlFor="valorBruto">Valor bruto (R$) *</Label>
               <CurrencyInput value={valorBruto} onChange={(v) => setValue('valorBruto', v)} />
@@ -216,7 +216,7 @@ export function ReceitaFormDialog({ open, onOpenChange, receita }: ReceitaFormDi
             </div>
           )}
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div>
               <Label htmlFor="dataPrevisaoRecebimento">Previsão de recebimento</Label>
               <Input id="dataPrevisaoRecebimento" type="date" value={watch('dataPrevisaoRecebimento') ?? ''} onChange={(e) => setValue('dataPrevisaoRecebimento', e.target.value || null)} />
@@ -227,7 +227,7 @@ export function ReceitaFormDialog({ open, onOpenChange, receita }: ReceitaFormDi
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div>
               <Label htmlFor="formaPagamento">Forma de pagamento</Label>
               <Select value={watch('formaPagamento') ?? undefined} onValueChange={(v) => setValue('formaPagamento', v)}>

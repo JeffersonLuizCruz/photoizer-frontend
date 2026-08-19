@@ -22,8 +22,8 @@ export function TabelaEnsaiosFotografo({ ensaios, showStudioProfit }: TabelaEnsa
   const numColunas = showStudioProfit ? 9 : 8
 
   return (
-    <div className="rounded-md border">
-      <Table>
+    <div className="rounded-md border overflow-x-auto">
+      <Table className="min-w-[760px]">
         <TableHeader>
           <TableRow>
             <TableHead>Cliente</TableHead>

@@ -81,13 +81,13 @@ export function CustomerProfilePage() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-muted/30">
       <header className="border-b bg-background/95 backdrop-blur">
-        <div className="max-w-2xl mx-auto px-4 h-14 flex items-center justify-between">
+        <div className="max-w-2xl mx-auto px-4 h-14 pt-[env(safe-area-inset-top)] flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Camera className="h-5 w-5 text-primary" />
             <span className="font-semibold text-sm">Photoizer</span>
           </div>
           <button onClick={handleLogout}
-            className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors">
+            className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors py-2">
             Sair
           </button>
         </div>
@@ -104,7 +104,7 @@ export function CustomerProfilePage() {
 
         <h1 className="text-2xl font-bold mb-6">Meus Dados</h1>
 
-        <div className="space-y-5 rounded-xl border bg-card p-6">
+        <div className="space-y-5 rounded-xl border bg-card p-4 sm:p-6">
           <div>
             <Label htmlFor="nome">Nome</Label>
             <Input id="nome" value={nome} onChange={(e) => setNome(e.target.value)} />
@@ -133,7 +133,7 @@ export function CustomerProfilePage() {
           </div>
 
           <div className="flex justify-end pt-2">
-            <Button onClick={handleSave} disabled={isSaving}>
+            <Button onClick={handleSave} disabled={isSaving} className="w-full sm:w-auto">
               {isSaving ? <Loader2 className="mr-1 h-4 w-4 animate-spin" /> : <Save className="mr-1 h-4 w-4" />}
               Salvar Alterações
             </Button>

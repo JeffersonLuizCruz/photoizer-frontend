@@ -57,48 +57,50 @@ export function UltimosLancamentos({ lancamentos, isLoading }: UltimosLancamento
   }
 
   return (
-    <Table>
-      <TableHeader>
-        <TableRow>
-          <TableHead>Tipo</TableHead>
-          <TableHead>Data</TableHead>
-          <TableHead>Descrição</TableHead>
-          <TableHead>Valor</TableHead>
-          <TableHead>Status</TableHead>
-        </TableRow>
-      </TableHeader>
-      <TableBody>
-        {lancamentos.map((l) => {
-          const isReceita = l.tipo === 'RECEITA'
-          const badge = statusBadge(l.status)
-          return (
-            <TableRow key={l.id}>
-              <TableCell>
-                <Badge variant={isReceita ? 'success' : 'secondary'} className="gap-1">
-                  {isReceita ? <ArrowUpRight className="h-3 w-3" /> : <ArrowDownLeft className="h-3 w-3" />}
-                  {isReceita ? 'Receita' : 'Despesa'}
-                </Badge>
-              </TableCell>
-              <TableCell className="text-muted-foreground">{formatDateBR(l.data)}</TableCell>
-              <TableCell>
-                <div className="font-medium">{l.descricao}</div>
-                <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                  <Badge variant="outline" className="px-1.5 py-0 text-[10px] font-medium">
-                    {origemLabel(l.origem)}
+    <div className="overflow-x-auto">
+      <Table className="min-w-[640px]">
+        <TableHeader>
+          <TableRow>
+            <TableHead>Tipo</TableHead>
+            <TableHead>Data</TableHead>
+            <TableHead>Descrição</TableHead>
+            <TableHead>Valor</TableHead>
+            <TableHead>Status</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {lancamentos.map((l) => {
+            const isReceita = l.tipo === 'RECEITA'
+            const badge = statusBadge(l.status)
+            return (
+              <TableRow key={l.id}>
+                <TableCell>
+                  <Badge variant={isReceita ? 'success' : 'secondary'} className="gap-1">
+                    {isReceita ? <ArrowUpRight className="h-3 w-3" /> : <ArrowDownLeft className="h-3 w-3" />}
+                    {isReceita ? 'Receita' : 'Despesa'}
                   </Badge>
-                  <span>{l.categoria}</span>
-                </div>
-              </TableCell>
-              <TableCell className={isReceita ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-500 dark:text-rose-300'}>
-                {isReceita ? '+' : '−'}{formatCurrency(l.valor)}
-              </TableCell>
-              <TableCell>
-                <Badge variant={badge.variant}>{badge.label}</Badge>
-              </TableCell>
-            </TableRow>
-          )
-        })}
-      </TableBody>
-    </Table>
+                </TableCell>
+                <TableCell className="text-muted-foreground">{formatDateBR(l.data)}</TableCell>
+                <TableCell>
+                  <div className="font-medium">{l.descricao}</div>
+                  <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                    <Badge variant="outline" className="px-1.5 py-0 text-[10px] font-medium">
+                      {origemLabel(l.origem)}
+                    </Badge>
+                    <span>{l.categoria}</span>
+                  </div>
+                </TableCell>
+                <TableCell className={isReceita ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-500 dark:text-rose-300'}>
+                  {isReceita ? '+' : '−'}{formatCurrency(l.valor)}
+                </TableCell>
+                <TableCell>
+                  <Badge variant={badge.variant}>{badge.label}</Badge>
+                </TableCell>
+              </TableRow>
+            )
+          })}
+        </TableBody>
+      </Table>
+    </div>
   )
 }

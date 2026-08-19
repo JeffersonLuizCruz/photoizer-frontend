@@ -36,13 +36,13 @@ export function CustomerAgendamentoCard({ agendamento }: Props) {
   return (
     <div className="rounded-xl border bg-card overflow-hidden hover:shadow-md transition-shadow">
       <div className="p-4 space-y-3">
-        <div className="flex items-start justify-between">
-          <div className="space-y-1">
+        <div className="flex items-start justify-between gap-2">
+          <div className="space-y-1 min-w-0">
             <div className="flex items-center gap-2">
-              <Camera className="h-4 w-4 text-primary" />
-              <h3 className="font-semibold text-sm">{agendamento.pacoteNome}</h3>
+              <Camera className="h-4 w-4 text-primary shrink-0" />
+              <h3 className="font-semibold text-sm truncate">{agendamento.pacoteNome}</h3>
             </div>
-            <div className="flex items-center gap-3 text-xs text-muted-foreground">
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
               <span className="flex items-center gap-1">
                 <Calendar className="h-3 w-3" />
                 {formatDate(agendamento.dataHoraEnsaio)}

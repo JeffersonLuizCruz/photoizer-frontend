@@ -12,7 +12,7 @@ export function FotografosEditarPage() {
 
   if (isLoading) {
     return (
-      <div className="p-6 space-y-4">
+      <div className="space-y-4">
         <div className="animate-pulse h-8 w-48 bg-muted rounded" />
         <div className="animate-pulse h-32 w-full max-w-lg bg-muted rounded" />
       </div>
@@ -21,7 +21,7 @@ export function FotografosEditarPage() {
 
   if (!fotografo) {
     return (
-      <div className="p-6">
+      <div>
         <p className="text-muted-foreground">Fotógrafo não encontrado</p>
       </div>
     )
@@ -33,7 +33,7 @@ export function FotografosEditarPage() {
   }
 
   return (
-    <div className="p-6">
+    <div>
       <PageTitle
         title="Editar Fotógrafo"
         description={`Editando dados de ${fotografo.nome}`}

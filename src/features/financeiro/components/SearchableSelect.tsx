@@ -82,7 +82,7 @@ export function SearchableSelect({
           )}
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-full min-w-[280px] p-2" align="start">
+      <PopoverContent className="w-full min-w-[280px] max-w-[calc(100vw-2rem)] p-2" align="start">
         <div className="relative mb-2">
           <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input

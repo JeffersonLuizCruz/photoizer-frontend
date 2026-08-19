@@ -89,30 +89,32 @@ export function DespesaTable({ despesas, isLoading, onPagar, onEditar, onExcluir
         <Badge variant="warning">Pendente: {formatCurrency(totalPendente)}</Badge>
       </div>
 
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Categoria</TableHead>
-            <TableHead>Descrição</TableHead>
-            <TableHead>Data</TableHead>
-            <TableHead>Status</TableHead>
-            <TableHead>Recorrência</TableHead>
-            <TableHead className="text-right">Valor</TableHead>
-            <TableHead className="w-[70px]" />
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {grupos.map((grupo) => (
-            <DespesaGrupoRows
-              key={grupo.categoria}
-              grupo={grupo}
-              onPagar={onPagar}
-              onEditar={onEditar}
-              onExcluir={onExcluir}
-            />
-          ))}
-        </TableBody>
-      </Table>
+      <div className="overflow-x-auto">
+        <Table className="min-w-[640px]">
+          <TableHeader>
+            <TableRow>
+              <TableHead>Categoria</TableHead>
+              <TableHead>Descrição</TableHead>
+              <TableHead>Data</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead>Recorrência</TableHead>
+              <TableHead className="text-right">Valor</TableHead>
+              <TableHead className="w-[70px]" />
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {grupos.map((grupo) => (
+              <DespesaGrupoRows
+                key={grupo.categoria}
+                grupo={grupo}
+                onPagar={onPagar}
+                onEditar={onEditar}
+                onExcluir={onExcluir}
+              />
+            ))}
+          </TableBody>
+        </Table>
+      </div>
     </div>
   )
 }

@@ -40,7 +40,7 @@ export function EdicaoRevisaoPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-4">
-        <Button variant="ghost" size="icon" onClick={() => navigate('/edicao')}>
+        <Button variant="ghost" size="icon" onClick={() => navigate('/edicao')} aria-label="Voltar para a lista de edição">
           <ArrowLeft className="h-5 w-5" />
         </Button>
         <div className="flex-1">

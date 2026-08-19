@@ -43,7 +43,7 @@ export function RepassesPendentesPage() {
   }
 
   return (
-    <div className="space-y-6 p-6">
+    <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Repasses Pendentes</h1>
@@ -121,8 +121,8 @@ export function RepassesPendentesPage() {
           </p>
         </div>
       ) : (
-        <div className="rounded-md border">
-          <Table>
+        <div className="rounded-md border overflow-x-auto">
+          <Table className="min-w-[720px]">
             <TableHeader>
               <TableRow>
                 <TableHead className="w-12">
@@ -130,6 +130,7 @@ export function RepassesPendentesPage() {
                     type="checkbox"
                     className="h-4 w-4"
                     checked={selecionados.size === pendentes.length && pendentes.length > 0}
+                    aria-label="Selecionar todos os repasses pendentes"
                     onChange={() => {
                       if (selecionados.size === pendentes.length) {
                         setSelecionados(new Set())
@@ -158,6 +159,7 @@ export function RepassesPendentesPage() {
                         type="checkbox"
                         className="h-4 w-4"
                         checked={selecionados.has(r.id)}
+                        aria-label={`Selecionar repasse de ${r.fotografo?.nome ?? 'fotógrafo'}`}
                         onChange={() => toggleSelecao(r.id)}
                       />
                     )}

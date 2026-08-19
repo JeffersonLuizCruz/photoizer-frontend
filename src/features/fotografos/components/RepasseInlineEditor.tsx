@@ -36,11 +36,11 @@ export function RepasseInlineEditor({ initial, isSaving, onSave, onCancel }: Rep
   }
 
   return (
-    <div className="flex items-end gap-2">
+    <div className="flex flex-wrap items-end gap-2">
       <div>
         <Label className="text-xs">Tipo</Label>
         <Select value={tipoValor} onValueChange={(v) => setTipoValor(v as 'FIXO' | 'PERCENTUAL')}>
-          <SelectTrigger className="h-8 w-28">
+          <SelectTrigger className="h-10 w-28 sm:h-9">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -54,7 +54,7 @@ export function RepasseInlineEditor({ initial, isSaving, onSave, onCancel }: Rep
         <Label className="text-xs">{isPercentual ? 'Percentual (%)' : 'Valor (R$)'}</Label>
         {isPercentual ? (
           <Input
-            className="h-8 w-24"
+            className="h-10 w-24 sm:h-9"
             type="number"
             step="0.01"
             min="0"
@@ -72,10 +72,10 @@ export function RepasseInlineEditor({ initial, isSaving, onSave, onCancel }: Rep
         )}
       </div>
 
-      <Button type="button" size="sm" variant="ghost" className="h-8" onClick={handleSave} disabled={isSaving}>
+      <Button type="button" size="sm" variant="ghost" className="h-10 sm:h-9" onClick={handleSave} disabled={isSaving} aria-label="Salvar repasse">
         {isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4 text-emerald-500" />}
       </Button>
-      <Button type="button" size="sm" variant="ghost" className="h-8" onClick={onCancel} disabled={isSaving}>
+      <Button type="button" size="sm" variant="ghost" className="h-10 sm:h-9" onClick={onCancel} disabled={isSaving} aria-label="Cancelar edição de repasse">
         <X className="h-4 w-4" />
       </Button>
     </div>

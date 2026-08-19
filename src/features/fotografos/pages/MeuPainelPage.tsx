@@ -47,7 +47,7 @@ export function MeuPainelPage() {
 
   if (isLoading) {
     return (
-      <div className="p-6 space-y-4">
+      <div className="space-y-4">
         <div className="animate-pulse h-8 w-48 bg-muted rounded" />
         <div className="animate-pulse h-24 w-full bg-muted rounded" />
         <div className="animate-pulse h-64 w-full bg-muted rounded" />
@@ -56,7 +56,7 @@ export function MeuPainelPage() {
   }
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Meu Painel</h1>
@@ -112,10 +112,12 @@ export function MeuPainelPage() {
               else if (ehAmanha) diaLabel = 'Amanhã'
 
               return (
-                <div
+                <button
                   key={e.agendamentoId}
-                  className="flex items-center gap-4 p-4 hover:bg-accent/50 cursor-pointer transition-colors"
+                  type="button"
+                  className="flex w-full items-center gap-4 p-4 text-left hover:bg-accent/50 cursor-pointer transition-colors"
                   onClick={() => navigate(`/agenda/${e.agendamentoId}`)}
+                  aria-label={`Abrir detalhes do ensaio de ${e.clienteNome}`}
                 >
                   <div className="min-w-[60px] text-center">
                     <p className={`text-sm font-bold ${ehHoje ? 'text-primary' : ''}`}>{diaLabel}</p>
@@ -138,7 +140,7 @@ export function MeuPainelPage() {
                   <Badge variant={ehHoje ? 'default' : 'outline'}>
                     {statusLabel[e.status] ?? e.status}
                   </Badge>
-                </div>
+                </button>
               )
             })}
           </div>
