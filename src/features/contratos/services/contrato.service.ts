@@ -40,8 +40,8 @@ export const contratoService = {
   },
 
   listar: async (params?: { status?: ContratoStatus; search?: string }): Promise<Contrato[]> => {
-    const { data } = await apiClient.get<Contrato[]>('/contratos', { params })
-    return data
+    const { data: response } = await apiClient.get<{ data: Contrato[]; total: number; page: number; size: number; totalPages: number }>('/contratos', { params })
+    return response.data
   },
 
   buscar: async (id: string): Promise<Contrato> => {
