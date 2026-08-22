@@ -59,8 +59,8 @@ export const edicaoService = {
     return data
   },
 
-  publicarNoEcommerce: async (agendamentoId: string): Promise<FotoEdicao[]> => {
-    const { data } = await apiClient.patch<FotoEdicao[]>(`/edicao/${agendamentoId}/publicar`)
+  publicarNoEcommerce: async (agendamentoId: string): Promise<EdicaoProcesso> => {
+    const { data } = await apiClient.patch<EdicaoProcesso>(`/edicao/${agendamentoId}/publicar`)
     return data
   },
 

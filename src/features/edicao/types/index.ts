@@ -1,9 +1,12 @@
+import type { AuditInfo } from '@/shared/types'
+
 export type StatusEdicao = 'AGUARDANDO_RAW' | 'RAW_ENVIADOS' | 'EM_EDICAO' | 'EDICAO_CONCLUIDA'
 
-export type StatusFotoEdicao = 'RAW' | 'EM_EDICAO' | 'EDITADO'
+export type StatusFotoEdicao = 'RAW' | 'EDITADO'
 
 export interface EdicaoProcesso {
   id: string
+  auditInfo: AuditInfo
   agendamentoId: string
   status: StatusEdicao
   fotografoId: string | null
@@ -15,12 +18,11 @@ export interface EdicaoProcesso {
   observacoes: string | null
   totalFotosRaw: number
   totalFotosEditadas: number
-  createdAt: string
-  updatedAt: string
 }
 
 export interface FotoEdicao {
   id: string
+  auditInfo: AuditInfo
   edicaoId: string
   rawFileName: string
   rawDownloadUrl: string
@@ -30,13 +32,6 @@ export interface FotoEdicao {
   editedPreviewUrl: string | null
   status: StatusFotoEdicao
   ordem: number
-  createdAt: string
   aprovado: boolean | null
   comentario: string | null
-}
-
-export interface ZipJob {
-  jobId: string
-  status: string
-  downloadUrl: string
 }

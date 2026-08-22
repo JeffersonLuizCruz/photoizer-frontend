@@ -3,7 +3,6 @@ import type { StatusFotoEdicao } from '../types'
 
 const config: Record<StatusFotoEdicao, { label: string; variant: 'warning' | 'success' | 'default' | 'secondary' }> = {
   RAW: { label: 'RAW', variant: 'warning' },
-  EM_EDICAO: { label: 'Editando', variant: 'secondary' },
   EDITADO: { label: 'Editado', variant: 'success' },
 }
 

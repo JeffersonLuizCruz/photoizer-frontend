@@ -20,7 +20,7 @@ function buildTimelineEvents(agendamento: Agendamento): TimelineEvent[] {
   const events: TimelineEvent[] = []
 
   events.push({
-    data: agendamento.createdAt,
+    data: agendamento.auditInfo.createdAt,
     label: 'Agendamento Criado',
     icon: CalendarCheck,
     status: 'completed',
@@ -39,7 +39,7 @@ function buildTimelineEvents(agendamento: Agendamento): TimelineEvent[] {
 
   if (statusStr === 'CANCELADO' || statusStr === 'NO_SHOW') {
     events.push({
-      data: agendamento.updatedAt,
+      data: agendamento.auditInfo.updatedAt,
       label: statusStr === 'NO_SHOW' ? 'Cliente Não Compareceu' : 'Agendamento Cancelado',
       icon: XCircle,
       status: 'cancelled',
@@ -153,9 +153,9 @@ export function AgendamentoTimeline({ agendamento }: AgendamentoTimelineProps) {
                 {event.data && (
                   <p className="text-xs text-muted-foreground">
                     {format(new Date(event.data), "dd 'de' MMM 'de' yyyy 'às' HH:mm", { locale: ptBR })}
-                    {event.status === 'completed' && event.data && agendamento.createdAt && index > 0 && (
+                    {event.status === 'completed' && event.data && agendamento.auditInfo.createdAt && index > 0 && (
                       <span className="ml-2">
-                        ({differenceInDays(new Date(event.data), new Date(agendamento.createdAt))} dias após criação)
+                        ({differenceInDays(new Date(event.data), new Date(agendamento.auditInfo.createdAt))} dias após criação)
                       </span>
                     )}
                   </p>

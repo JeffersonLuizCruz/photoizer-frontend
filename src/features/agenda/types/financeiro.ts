@@ -37,6 +37,10 @@ export interface FinanceiroTrabalho {
 
 export interface FinanceiroTrabalhoReceita {
   id: string
+  auditInfo: {
+    createdAt: string
+    updatedAt: string
+  }
   agendamentoId: string | null
   clienteId: string
   clienteNome: string
@@ -51,7 +55,6 @@ export interface FinanceiroTrabalhoReceita {
   dataRecebimentoReal: string | null
   formaPagamento: string | null
   observacoes: string | null
-  createdAt: string
 }
 
 export interface FinanceiroTrabalhoDespesa {

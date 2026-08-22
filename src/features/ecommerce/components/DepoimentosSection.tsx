@@ -133,7 +133,7 @@ export function DepoimentosSection() {
                 <p className="text-sm text-muted-foreground">{d.comentario}</p>
               )}
               <p className="text-[10px] text-muted-foreground">
-                {new Date(d.createdAt).toLocaleDateString('pt-BR')}
+                {new Date(d.auditInfo.createdAt).toLocaleDateString('pt-BR')}
               </p>
             </div>
           ))}

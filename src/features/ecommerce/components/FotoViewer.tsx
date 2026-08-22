@@ -37,7 +37,7 @@ function ComentarioBubble({ comentario }: { comentario: FotoComentario }) {
   return (
     <div className={cn('flex flex-col max-w-[85%]', isStaff ? 'items-end ml-auto' : 'items-start mr-auto')}>
       <span className={cn('text-[10px] font-medium mb-0.5 px-1', isStaff ? 'text-blue-300' : 'text-zinc-400')}>
-        {autor} <span className="text-zinc-500">· {formatComentarioData(comentario.createdAt)}</span>
+        {autor} <span className="text-zinc-500">· {formatComentarioData(comentario.auditInfo.createdAt)}</span>
       </span>
       <div className={cn(
         'rounded-2xl px-3.5 py-2.5 text-[13px] leading-relaxed break-words shadow-md',

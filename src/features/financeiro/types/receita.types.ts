@@ -27,6 +27,10 @@ export type FormaPagamento = (typeof FORMA_PAGAMENTO)[keyof typeof FORMA_PAGAMEN
 
 export interface Receita {
   id: string
+  auditInfo: {
+    createdAt: string
+    updatedAt: string
+  }
   agendamentoId: string | null
   clienteId: string | null
   clienteNome: string
@@ -41,7 +45,6 @@ export interface Receita {
   dataRecebimentoReal: string | null
   formaPagamento: FormaPagamento | null
   observacoes: string | null
-  createdAt: string
 }
 
 export interface ReceitaRequest {

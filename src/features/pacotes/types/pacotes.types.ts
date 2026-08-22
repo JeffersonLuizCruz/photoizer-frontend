@@ -1,5 +1,8 @@
+import type { AuditInfo } from '@/shared/types'
+
 export interface PacoteResponse {
   id: string
+  auditInfo: AuditInfo
   nome: string
   descricao: string | null
   quantidadeFotos: number
@@ -13,6 +16,4 @@ export interface PacoteResponse {
   bloqueiaDiaInteiro: boolean
   ativo: boolean
   diasParaEntrega: number | null
-  createdAt: string
-  updatedAt: string
 }

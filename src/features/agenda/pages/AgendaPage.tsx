@@ -140,6 +140,11 @@ function AgendaPageContent() {
         observacoes: draft.observacoes || null,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
+        fotografos: null,
+        valorPartilhaGlobal: null,
+        valorLucroCrm: null,
+        valorPacote: 0,
+        auditInfo: { createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(), createdBy: null },
       } as Agendamento)
     }
 

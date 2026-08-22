@@ -1,14 +1,15 @@
 import { apiClient } from '@/shared/api'
+import type { AuditInfo } from '@/shared/types'
 
 export interface Notificacao {
   id: string
+  auditInfo: AuditInfo
   userId: string
   titulo: string
   mensagem: string
   link: string | null
   tipo: string
   lida: boolean
-  createdAt: string
 }
 
 export const notificacaoService = {

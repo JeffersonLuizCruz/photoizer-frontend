@@ -23,7 +23,7 @@ function ComentarioAdminBubble({ comentario }: { comentario: FotoComentario }) {
   return (
     <div className={cn('flex flex-col max-w-[85%]', isStaff ? 'items-end ml-auto' : 'items-start mr-auto')}>
       <span className="text-[10px] font-medium text-muted-foreground mb-0.5 px-1">
-        {autor} · {formatDateBR(comentario.createdAt)}
+        {autor} · {formatDateBR(comentario.auditInfo.createdAt)}
       </span>
       <div className={cn(
         'rounded-2xl px-3.5 py-2.5 text-[13px] leading-relaxed break-words',

@@ -1,3 +1,5 @@
+import type { AuditInfo } from '@/shared/types'
+
 export interface UsuarioRef {
   id: string
   nome: string
@@ -7,6 +9,7 @@ export interface UsuarioRef {
 
 export interface Pacote {
   id: string
+  auditInfo: AuditInfo
   nome: string
   descricao: string
   quantidadeFotos: number
@@ -16,6 +19,4 @@ export interface Pacote {
   duracaoEstimada: string
   ativo: boolean
   diasParaEntrega: number | null
-  createdAt: string
-  updatedAt: string
 }

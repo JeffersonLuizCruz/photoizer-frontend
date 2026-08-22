@@ -1,4 +1,5 @@
 import type { AgendamentoStatus } from '@/shared/constants'
+import type { AuditInfo } from '@/shared/types'
 
 export type TipoRepasse = 'FIXO' | 'PERCENTUAL'
 export type RepasseStatus = 'PENDENTE' | 'PAGO' | 'CANCELADO'
@@ -84,8 +85,7 @@ export interface Agendamento {
 
   observacoes: string | null
 
-  createdAt: string
-  updatedAt: string
+  auditInfo: AuditInfo
 }
 
 export interface Pagamento {

@@ -270,7 +270,7 @@ export const ecommerceService = {
   },
 
   // Avaliações
-  criarAvaliacao: async (avaliacao: Omit<Avaliacao, 'id' | 'aprovado' | 'createdAt'>): Promise<Avaliacao> => {
+  criarAvaliacao: async (avaliacao: Omit<Avaliacao, 'id' | 'aprovado' | 'auditInfo'>): Promise<Avaliacao> => {
     const { data } = await apiClient.post<Avaliacao>('/avaliacoes', avaliacao)
     return data
   },
@@ -291,7 +291,7 @@ export const ecommerceService = {
   },
 
   // Sessões
-  criarSessao: async (sessao: Omit<Sessao, 'id' | 'createdAt'>): Promise<Sessao> => {
+  criarSessao: async (sessao: Omit<Sessao, 'id' | 'auditInfo'>): Promise<Sessao> => {
     const { data } = await apiClient.post<Sessao>('/sessoes', sessao)
     return data
   },

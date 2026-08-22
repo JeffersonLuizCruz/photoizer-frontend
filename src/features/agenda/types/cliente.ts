@@ -1,7 +1,10 @@
+import type { AuditInfo } from '@/shared/types'
+
 export type Origem = 'INDICACAO' | 'ANUNCIO' | 'OUTROS'
 
 export interface Cliente {
   id: string
+  auditInfo: AuditInfo
   nome: string
   telefone: string
   email: string | null
@@ -10,6 +13,4 @@ export interface Cliente {
   estado: string | null
   origem: Origem
   observacoes: string | null
-  createdAt: string
-  updatedAt: string
 }

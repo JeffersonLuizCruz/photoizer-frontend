@@ -1,5 +1,8 @@
+import type { AuditInfo } from '@/shared/types'
+
 export interface FotoEnsaio {
   id: string
+  auditInfo: AuditInfo
   agendamentoId: string
   fileName: string
   originalUrl: string | null
@@ -14,7 +17,6 @@ export interface FotoEnsaio {
   tags: string[]
   categoria: string | null
   titulo: string | null
-  createdAt: string
   fotoEdicaoId: string | null
   visivel: boolean
 }
@@ -77,8 +79,7 @@ export type MetodoPagamento = 'PIX' | 'TRANSFERENCIA' | 'DINHEIRO'
 
 export interface AdminCompraDetalheResponse extends CompraExtraResponse {
   fotos: FotoEnsaio[]
-  createdAt: string
-  updatedAt: string
+  auditInfo: AuditInfo
 }
 
 export interface AdminComprasRelatorioResponse {
@@ -95,17 +96,18 @@ export interface AdminComprasRelatorioResponse {
 
 export interface Sessao {
   id: string
+  auditInfo: AuditInfo
   clienteId: string | null
   nomeSessao: string
   dataRealizacao: string | null
   local: string | null
   descricao: string | null
   status: string
-  createdAt: string
 }
 
 export interface Avaliacao {
   id: string
+  auditInfo: AuditInfo
   clienteId: string
   agendamentoId: string | null
   pacoteId: string | null
@@ -113,7 +115,6 @@ export interface Avaliacao {
   comentario: string | null
   depoimento: boolean
   aprovado: boolean
-  createdAt: string
 }
 
 export type OpcaoEntrega = 'DIGITAL' | 'FISICA' | 'AMBAS'
@@ -165,12 +166,12 @@ export type OrigemComentario = 'CLIENTE' | 'STAFF'
 
 export interface FotoComentario {
   id: string
+  auditInfo: AuditInfo
   fotoId: string
   autorNome: string | null
   mensagem: string
   origem: OrigemComentario
   lida: boolean
-  createdAt: string
 }
 
 export interface ComentariosPorFotoResponse {

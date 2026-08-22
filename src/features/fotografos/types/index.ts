@@ -81,6 +81,10 @@ export interface FotografoRelatorioItem {
 
 export interface AgendamentoFotografo {
   id: string
+  auditInfo: {
+    createdAt: string
+    updatedAt: string
+  }
   agendamento: {
     id: string
     cliente: { id: string; nome: string }
@@ -94,6 +98,4 @@ export interface AgendamentoFotografo {
   tipoValor: 'FIXO' | 'PERCENTUAL'
   percentual: number | null
   dataPagamento: string | null
-  createdAt: string
-  updatedAt: string
 }
