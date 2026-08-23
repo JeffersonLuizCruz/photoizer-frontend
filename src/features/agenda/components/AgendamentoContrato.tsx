@@ -2,10 +2,11 @@ import { useState } from 'react'
 import { Copy, Check, FileText, ExternalLink, FileDown } from 'lucide-react'
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
+import { toast } from 'sonner'
 import { Button } from '@/shared/components/ui/button'
 import { Textarea } from '@/shared/components/ui/textarea'
 import { Badge } from '@/shared/components/ui/badge'
-import { env } from '@/shared/config/env'
+import { openProtected } from '@/shared/api/protectedResource'
 import type { Agendamento } from '../types'
 
 interface AgendamentoContratoProps {
@@ -73,6 +74,14 @@ export function AgendamentoContrato({ agendamento, onUpdateClausulas }: Agendame
     onUpdateClausulas?.(value)
   }
 
+  const handleAbrirContrato = async () => {
+    try {
+      await openProtected(`/documentos/contratos/${agendamento.id}`)
+    } catch {
+      toast.error('Erro ao abrir contrato')
+    }
+  }
+
   return (
     <div className="space-y-6">
       <div className="rounded-lg border bg-card p-4">
@@ -120,16 +129,10 @@ export function AgendamentoContrato({ agendamento, onUpdateClausulas }: Agendame
         )}
 
         <div className="mb-4">
-          <a
-            href={`${env.VITE_API_URL}/documentos/contratos/${agendamento.id}`}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Button variant="outline" size="sm" type="button">
-              <FileDown className="mr-1 h-4 w-4" />
-              Abrir PDF
-            </Button>
-          </a>
+          <Button variant="outline" size="sm" type="button" onClick={handleAbrirContrato}>
+            <FileDown className="mr-1 h-4 w-4" />
+            Abrir PDF
+          </Button>
         </div>
 
         <div className="space-y-2">

@@ -31,7 +31,9 @@ export async function downloadProtected(src: string, filename?: string): Promise
  */
 export async function openProtected(src: string): Promise<void> {
   const win = window.open('', '_blank')
-  if (!win) return
+  if (!win) {
+    throw new Error('Popup bloqueado pelo navegador')
+  }
   try {
     const blob = await fetchProtectedBlob(src)
     const url = URL.createObjectURL(blob)
