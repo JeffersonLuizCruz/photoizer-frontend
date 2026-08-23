@@ -1,8 +1,9 @@
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
-import { CalendarDays, Clock, MapPin, Star } from 'lucide-react'
+import { CalendarDays, Clock, MapPin, Star, User, Users } from 'lucide-react'
 import { cn } from '@/shared/lib/cn'
 import { Badge } from '@/shared/components/ui/badge'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/shared/components/ui/tooltip'
 import type { Agendamento } from '../types'
 
 interface AgendaCalendarEventProps {
@@ -54,6 +55,7 @@ export const statusLabels: Record<string, { label: string; variant: 'success' | 
 
 export function AgendaCalendarEvent({ agendamento, onClick, compact = false }: AgendaCalendarEventProps) {
   const data = format(new Date(agendamento.dataHoraEnsaio), "HH:mm", { locale: ptBR })
+  const isParceiro = agendamento.fotografoId != null
 
   if (compact) {
     return (
@@ -67,6 +69,18 @@ export function AgendaCalendarEvent({ agendamento, onClick, compact = false }: A
       >
         <span className={cn('h-2 w-2 shrink-0 rounded-full', statusColors[agendamento.status] ?? 'bg-gray-400')} />
         <span className="truncate font-medium">{data}</span>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            {isParceiro ? (
+              <Users className="h-2.5 w-2.5 shrink-0 text-violet-500" />
+            ) : (
+              <User className="h-2.5 w-2.5 shrink-0 text-slate-400" />
+            )}
+          </TooltipTrigger>
+          <TooltipContent side="top">
+            {isParceiro ? 'Ensaio com parceiro' : 'Ensaio próprio'}
+          </TooltipContent>
+        </Tooltip>
         {agendamento.ensaioDestaque && <Star className="h-2.5 w-2.5 shrink-0 fill-amber-400 text-amber-400" />}
       </button>
     )
@@ -96,6 +110,18 @@ export function AgendaCalendarEvent({ agendamento, onClick, compact = false }: A
             <span className="flex items-center gap-1">
               <Clock className="h-3 w-3" />
               {data}
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  {isParceiro ? (
+                    <Users className="h-3 w-3 text-violet-500" />
+                  ) : (
+                    <User className="h-3 w-3 text-slate-400" />
+                  )}
+                </TooltipTrigger>
+                <TooltipContent>
+                  {isParceiro ? 'Ensaio com parceiro' : 'Ensaio próprio'}
+                </TooltipContent>
+              </Tooltip>
             </span>
             <span className="flex items-center gap-1">
               <MapPin className="h-3 w-3" />

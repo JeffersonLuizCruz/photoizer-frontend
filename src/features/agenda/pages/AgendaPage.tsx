@@ -108,6 +108,8 @@ function AgendaPageContent() {
         pacoteNome: '',
         editorId: draft.editorId || null,
         editorNome: null,
+        fotografoId: null,
+        fotografoNome: null,
         dataHoraEnsaio,
         duracaoMinutos: 60,
         localEnsaio: draft.localEnsaio || '',
@@ -144,7 +146,7 @@ function AgendaPageContent() {
         valorPartilhaGlobal: null,
         valorLucroCrm: null,
         valorPacote: 0,
-        auditInfo: { createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(), createdBy: null },
+
       } as Agendamento)
     }
 

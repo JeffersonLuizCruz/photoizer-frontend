@@ -7,8 +7,8 @@ export function montarReciboPagamento(agendamento: Agendamento): string {
     ? format(new Date(agendamento.dataHoraEnsaio), "dd/MM/yyyy", { locale: ptBR })
     : '---'
 
-  const dataPagamento = agendamento.dataFinalizacao ?? agendamento.auditInfo.updatedAt
-    ? format(new Date(agendamento.dataFinalizacao ?? agendamento.auditInfo.updatedAt), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })
+  const dataPagamento = agendamento.dataFinalizacao ?? agendamento.updatedAt
+    ? format(new Date(agendamento.dataFinalizacao ?? agendamento.updatedAt), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })
     : '---'
 
   return [

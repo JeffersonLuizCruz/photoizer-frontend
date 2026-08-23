@@ -88,7 +88,7 @@ export function NotificationBell() {
               </div>
               <p className="text-xs text-muted-foreground ml-7 line-clamp-2">{n.mensagem}</p>
               <span className="text-[10px] text-muted-foreground ml-7 mt-0.5">
-                {formatDistanceToNow(new Date(n.auditInfo.createdAt), { addSuffix: true, locale: ptBR })}
+                {formatDistanceToNow(new Date(n.createdAt), { addSuffix: true, locale: ptBR })}
               </span>
             </DropdownMenuItem>
           ))

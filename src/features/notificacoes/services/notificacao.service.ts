@@ -1,9 +1,8 @@
 import { apiClient } from '@/shared/api'
-import type { AuditInfo } from '@/shared/types'
 
 export interface Notificacao {
   id: string
-  auditInfo: AuditInfo
+  createdAt: string
   userId: string
   titulo: string
   mensagem: string
