@@ -12,7 +12,7 @@ import {
   TableRow,
 } from '@/shared/components/ui/table'
 import { ROUTES, AGENDAMENTO_STATUS } from '@/shared/constants'
-import type { Agendamento } from '@/features/agenda/types'
+import type { RelatorioAgendamentoItem } from '../services/financeiro.service'
 import type { DateRange } from '@/shared/components/layout/DateRangePicker'
 
 const statusLabels: Record<string, { label: string; variant: 'warning' | 'info' | 'success' | 'destructive' | 'default' | 'secondary' }> = {
@@ -28,7 +28,7 @@ const statusLabels: Record<string, { label: string; variant: 'warning' | 'info' 
 }
 
 interface FinanceiroTabelaProps {
-  agendamentos: Agendamento[]
+  agendamentos: RelatorioAgendamentoItem[]
   dateRange?: DateRange
   isLoading?: boolean
 }
@@ -40,13 +40,17 @@ export function FinanceiroTabela({ agendamentos, dateRange, isLoading }: Finance
     let list = agendamentos
 
     if (dateRange?.from) {
-      list = list.filter((a) => new Date(a.dataHoraEnsaio) >= dateRange.from!)
+      list = list.filter((a) => a.dataHoraEnsaio && new Date(a.dataHoraEnsaio) >= dateRange.from!)
     }
     if (dateRange?.to) {
-      list = list.filter((a) => new Date(a.dataHoraEnsaio) <= dateRange.to!)
+      list = list.filter((a) => a.dataHoraEnsaio && new Date(a.dataHoraEnsaio) <= dateRange.to!)
     }
 
-    return list.sort((a, b) => new Date(b.dataHoraEnsaio).getTime() - new Date(a.dataHoraEnsaio).getTime())
+    return list.sort((a, b) => {
+      const dateA = a.dataHoraEnsaio ? new Date(a.dataHoraEnsaio).getTime() : 0
+      const dateB = b.dataHoraEnsaio ? new Date(b.dataHoraEnsaio).getTime() : 0
+      return dateB - dateA
+    })
   }, [agendamentos, dateRange])
 
   if (isLoading) {
@@ -75,7 +79,7 @@ export function FinanceiroTabela({ agendamentos, dateRange, isLoading }: Finance
           <TableRow>
             <TableHead>Data</TableHead>
             <TableHead>Cliente</TableHead>
-            <TableHead>Local</TableHead>
+            <TableHead>Pacote</TableHead>
             <TableHead>Status</TableHead>
             <TableHead className="text-right">Valor Total</TableHead>
             <TableHead className="text-right">Entrada</TableHead>
@@ -94,10 +98,12 @@ export function FinanceiroTabela({ agendamentos, dateRange, isLoading }: Finance
                 onClick={() => navigate(ROUTES.AGENDA_DETALHES.replace(':id', agendamento.id))}
               >
                 <TableCell>
-                  {format(new Date(agendamento.dataHoraEnsaio), "dd/MM/yyyy", { locale: ptBR })}
+                  {agendamento.dataHoraEnsaio
+                    ? format(new Date(agendamento.dataHoraEnsaio), 'dd/MM/yyyy', { locale: ptBR })
+                    : '—'}
                 </TableCell>
-                <TableCell className="font-medium">{agendamento.clienteId.slice(0, 8)}...</TableCell>
-                <TableCell>{agendamento.localEnsaio}</TableCell>
+                <TableCell className="font-medium">{agendamento.clienteNome}</TableCell>
+                <TableCell>{agendamento.pacoteNome ?? '—'}</TableCell>
                 <TableCell>
                   <Badge variant={config.variant}>{config.label}</Badge>
                 </TableCell>

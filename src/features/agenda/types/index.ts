@@ -97,24 +97,17 @@ export interface Pagamento {
   dataPagamento: string
   urlComprovante: string | null
   observacao: string | null
+  compraExtraId: string | null
 }
 
-export interface FotoExtra {
+export interface ExtraServicoResponse {
   id: string
   agendamentoId: string
+  tipo: 'FOTO' | 'VIDEO'
   quantidade: number
   valorUnitario: number
   valorTotal: number
-  dataRegistro: string
-}
-
-export interface VideoExtra {
-  id: string
-  agendamentoId: string
-  quantidade: number
-  valorUnitario: number
-  valorTotal: number
-  dataRegistro: string
+  createdAt: string
 }
 
 export interface Usuario {
@@ -126,7 +119,6 @@ export interface Usuario {
 
 export type {
   FinanceiroTrabalho,
-  FinanceiroTrabalhoReceita,
   FinanceiroTrabalhoDespesa,
   FinanceiroTrabalhoPagamento,
 } from './financeiro'

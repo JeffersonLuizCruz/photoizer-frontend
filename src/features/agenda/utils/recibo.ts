@@ -14,7 +14,7 @@ export function montarReciboPagamento(agendamento: Agendamento): string {
   return [
     '🧾 *RECIBO DE PAGAMENTO*',
     '',
-    `Cliente: ${agendamento.clienteId}`,
+    `Cliente: ${agendamento.clienteNome}`,
     `Data do Ensaio: ${data}`,
     '',
     '💰 *Detalhes do Pagamento*',

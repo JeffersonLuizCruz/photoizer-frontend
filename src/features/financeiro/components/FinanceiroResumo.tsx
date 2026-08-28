@@ -1,4 +1,5 @@
-import { PiggyBank, CreditCard, ImagePlus, TrendingUp, Loader2, ArrowDownFromLine, Handshake, Receipt } from 'lucide-react'
+import { PiggyBank, CreditCard, ImagePlus, TrendingUp, Loader2, ArrowDownFromLine, Handshake, Receipt, Users } from 'lucide-react'
+import { formatCurrency } from '@/shared/lib/format'
 import type { FinanceiroResumo as FinanceiroResumoData } from '../services/financeiro.service'
 
 interface FinanceiroResumoProps {
@@ -7,7 +8,7 @@ interface FinanceiroResumoProps {
 }
 
 export function FinanceiroResumo({ data, isLoading }: FinanceiroResumoProps) {
-  const totalDespesas = (data?.despesasDeslocamento ?? 0) + (data?.despesasComissao ?? 0) + (data?.despesasManuais ?? 0)
+  const totalDespesas = (data?.despesasDeslocamento ?? 0) + (data?.despesasComissao ?? 0) + (data?.despesasRepasse ?? 0) + (data?.despesasManuais ?? 0)
 
   const cards = [
     {
@@ -48,9 +49,15 @@ export function FinanceiroResumo({ data, isLoading }: FinanceiroResumoProps) {
     },
     {
       icon: Receipt,
-      label: 'Despesas (Outras)',
+      label: 'Despesas (Manuais)',
       value: data?.despesasManuais ?? 0,
       variant: 'text-rose-400 dark:text-rose-200' as const,
+    },
+    {
+      icon: Users,
+      label: 'Despesas (Repasse)',
+      value: data?.despesasRepasse ?? 0,
+      variant: 'text-rose-400 dark:text-rose-300' as const,
     },
     {
       icon: TrendingUp,
@@ -74,7 +81,7 @@ export function FinanceiroResumo({ data, isLoading }: FinanceiroResumoProps) {
               {isLoading && !data ? (
                 <Loader2 className="h-5 w-5 animate-spin" />
               ) : (
-                `R$ ${card.value.toFixed(2)}`
+                formatCurrency(card.value)
               )}
             </p>
           </div>

@@ -2,7 +2,7 @@ import { ArrowDownRight, ArrowUpRight, Minus, TrendingDown, TrendingUp } from 'l
 import { cn } from '@/shared/lib/cn'
 import { Badge } from '@/shared/components/ui/badge'
 import { Skeleton } from '@/shared/components/ui/skeleton'
-import { formatCurrency } from '@/shared/lib/format'
+import { formatCurrency, formatPercent } from '@/shared/lib/format'
 import type { CardsResumo, Detalhamento, VariacaoCards } from '../types/dashboard.types'
 
 interface FinanceiroCardsProps {
@@ -11,8 +11,8 @@ interface FinanceiroCardsProps {
 }
 
 function margemBadge(margem: number): { label: string; variant: 'success' | 'warning' | 'destructive' } {
-  if (margem > 0.6) return { label: 'Saudável', variant: 'success' }
-  if (margem >= 0.3) return { label: 'Moderado', variant: 'warning' }
+  if (margem > 60) return { label: 'Saudável', variant: 'success' }
+  if (margem >= 30) return { label: 'Moderado', variant: 'warning' }
   return { label: 'Atenção', variant: 'destructive' }
 }
 
@@ -85,6 +85,7 @@ function Card({
   variacao,
   invertSignal,
   hint,
+  valueFormatter,
   children,
 }: {
   label: string
@@ -93,6 +94,7 @@ function Card({
   variacao?: number | null
   invertSignal?: boolean
   hint?: string
+  valueFormatter?: (v: number) => string
   children?: React.ReactNode
 }) {
   return (
@@ -102,7 +104,7 @@ function Card({
         <Icon className="h-4 w-4 text-muted-foreground" />
       </div>
       <p className="mt-1 text-2xl font-semibold tracking-tight">
-        {value !== undefined ? formatCurrency(value) : '—'}
+        {value !== undefined ? (valueFormatter ? valueFormatter(value) : formatCurrency(value)) : '—'}
       </p>
       <div className="mt-1">
         {variacao !== undefined && <Variacao value={variacao} invertSignal={invertSignal} />}
@@ -161,7 +163,13 @@ export function FinanceiroCards({ cards, isLoading }: FinanceiroCardsProps) {
       />
       <Card label="A Receber" value={cards.aReceber} icon={TrendingUp} hint="Receitas pendentes" />
       <Card label="Ticket Médio" value={cards.ticketMedio} icon={TrendingUp} hint="Receita por trabalho" />
-      <Card label="Margem de Lucro" value={cards.margemLucro} icon={TrendingUp} hint="Líquido / Valor bruto">
+      <Card
+        label="Margem de Lucro"
+        value={cards.margemLucro}
+        icon={TrendingUp}
+        valueFormatter={formatPercent}
+        hint="Líquido / Valor bruto"
+      >
         <Badge variant={margemBadge(cards.margemLucro).variant} className="mt-1">
           {margemBadge(cards.margemLucro).label}
         </Badge>

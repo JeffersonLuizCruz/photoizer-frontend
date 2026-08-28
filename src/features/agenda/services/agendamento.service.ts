@@ -1,7 +1,7 @@
 import { format } from 'date-fns'
 import { apiClient } from '@/shared/api'
 import { parseDuracao } from '@/shared/lib/duracao'
-import type { Agendamento, FotoExtra, VideoExtra, Pacote, Pagamento, Usuario, FinanceiroTrabalho } from '../types'
+import type { Agendamento, ExtraServicoResponse, Pacote, Pagamento, Usuario, FinanceiroTrabalho } from '../types'
 import type { WizardFormValues } from '../schemas/agendamento.schema'
 import type { AgendamentoStatus } from '@/shared/constants'
 import type { Cliente } from '../types/cliente'
@@ -221,16 +221,16 @@ export const agendamentoService = {
   addFotoExtra: async (
     agendamentoId: string,
     payload: { quantidade: number; valorUnitario: number; indicadorId?: string; indicadorNome?: string; indicadorTelefone?: string },
-  ): Promise<FotoExtra> => {
-    const { data } = await apiClient.post<FotoExtra>(`/financeiro/agendamentos/${agendamentoId}/fotos-extras`, null, { params: payload })
+  ): Promise<ExtraServicoResponse> => {
+    const { data } = await apiClient.post<ExtraServicoResponse>(`/financeiro/agendamentos/${agendamentoId}/fotos-extras`, null, { params: payload })
     return data
   },
 
   addVideoExtra: async (
     agendamentoId: string,
     payload: { quantidade: number; valorUnitario: number; indicadorId?: string; indicadorNome?: string; indicadorTelefone?: string },
-  ): Promise<VideoExtra> => {
-    const { data } = await apiClient.post<VideoExtra>(`/financeiro/agendamentos/${agendamentoId}/videos-extras`, null, { params: payload })
+  ): Promise<ExtraServicoResponse> => {
+    const { data } = await apiClient.post<ExtraServicoResponse>(`/financeiro/agendamentos/${agendamentoId}/videos-extras`, null, { params: payload })
     return data
   },
 

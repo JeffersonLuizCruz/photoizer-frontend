@@ -12,7 +12,7 @@ export function formatCurrency(value: number | null | undefined): string {
 
 export function formatPercent(value: number | null | undefined): string {
   if (value === null || value === undefined || Number.isNaN(value)) return '—'
-  return `${(value * 100).toFixed(0)}%`
+  return `${value.toFixed(0)}%`
 }
 
 export function formatDateBR(date: string | null | undefined): string {

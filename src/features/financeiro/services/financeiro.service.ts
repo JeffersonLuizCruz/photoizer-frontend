@@ -1,5 +1,4 @@
 import { apiClient } from '@/shared/api'
-import type { Agendamento } from '@/features/agenda/types'
 import type { FinanceiroDashboardData, DashboardQueryParams } from '../types/dashboard.types'
 import type { Receita, ReceitaQueryParams, ReceitaRequest } from '../types/receita.types'
 import type { FluxoCaixaData, FluxoCaixaQueryParams } from '../types/fluxo-caixa.types'
@@ -31,11 +30,25 @@ export interface RelatoriosTotais {
   extras: number
   totalFinal: number
   repasses: number
+  comissao: number
+}
+
+export interface RelatorioAgendamentoItem {
+  id: string
+  clienteNome: string
+  pacoteNome: string | null
+  valorTotal: number
+  valorEntradaPago: number
+  valorRestante: number
+  valorExtras: number
+  valorTotalFinal: number
+  dataHoraEnsaio: string | null
+  status: string
 }
 
 export interface FinanceiroRelatorios {
   totais: RelatoriosTotais
-  agendamentos: Agendamento[]
+  agendamentos: RelatorioAgendamentoItem[]
   quantidade: number
 }
 

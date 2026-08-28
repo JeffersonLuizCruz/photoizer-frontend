@@ -17,7 +17,6 @@ export interface Detalhamento {
   recebido: number
   entradaEnsaios: number
   restanteEnsaios: number
-  receitasEcommerce: number
   receitasAvulsas: number
   comissao: number
   deslocamento: number

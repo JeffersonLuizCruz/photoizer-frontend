@@ -29,32 +29,9 @@ export interface FinanceiroTrabalho {
   valorPartilhaGlobal: number | null
   valorLucroCrm: number | null
   totalCustosFotografo: number | null
-  receitas: FinanceiroTrabalhoReceita[]
   despesas: FinanceiroTrabalhoDespesa[]
   custosFotografo: FinanceiroTrabalhoDespesa[]
   pagamentos: FinanceiroTrabalhoPagamento[]
-}
-
-export interface FinanceiroTrabalhoReceita {
-  id: string
-  auditInfo: {
-    createdAt: string
-    updatedAt: string
-  }
-  agendamentoId: string | null
-  clienteId: string
-  clienteNome: string
-  tipoServico: string
-  descricao: string | null
-  valorBruto: number
-  valorComissao: number
-  valorFinal: number
-  status: 'PAGO_TOTAL' | 'PAGO_PARCIAL' | 'PENDENTE' | 'CANCELADO'
-  valorRecebido: number
-  dataPrevisaoRecebimento: string | null
-  dataRecebimentoReal: string | null
-  formaPagamento: string | null
-  observacoes: string | null
 }
 
 export interface FinanceiroTrabalhoDespesa {
@@ -80,4 +57,5 @@ export interface FinanceiroTrabalhoPagamento {
   dataPagamento: string
   urlComprovante: string | null
   observacao: string | null
+  compraExtraId: string | null
 }
