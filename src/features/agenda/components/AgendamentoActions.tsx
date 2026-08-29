@@ -26,7 +26,7 @@ interface AgendamentoActionsProps {
 type ActionType = 'realizar' | 'reagendar' | 'cancelar' | 'noShow' | 'pagarFinal' | 'enviarSelecao' | 'confirmarEntrega' | 'finalizar'
 
 const statusActions: Record<string, ActionType[]> = {
-  [AGENDAMENTO_STATUS.CONFIRMADO]: ['realizar', 'reagendar', 'cancelar'],
+  [AGENDAMENTO_STATUS.CONFIRMADO]: ['realizar', 'reagendar', 'cancelar', 'noShow'],
   [AGENDAMENTO_STATUS.REALIZADO]: ['pagarFinal', 'cancelar'],
   [AGENDAMENTO_STATUS.AGUARDANDO_PAGAMENTO_FINAL]: ['pagarFinal'],
   [AGENDAMENTO_STATUS.EM_EDICAO]: ['enviarSelecao'],
@@ -184,7 +184,7 @@ export function AgendamentoActions({ agendamento }: AgendamentoActionsProps) {
         onConfirm={handleConfirm}
         title={confirmAction ? actionConfig[confirmAction].confirmTitle ?? 'Confirmar' : ''}
         description={confirmAction ? actionConfig[confirmAction].confirmDescription : ''}
-        variant={confirmAction === 'cancelar' ? 'destructive' : 'default'}
+        variant={confirmAction === 'cancelar' || confirmAction === 'noShow' ? 'destructive' : 'default'}
         isLoading={isPending}
       />
 
