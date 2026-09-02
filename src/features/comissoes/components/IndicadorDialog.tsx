@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
+import { isAxiosError } from 'axios'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/shared/components/ui/dialog'
 import { Button } from '@/shared/components/ui/button'
 import { Input } from '@/shared/components/ui/input'
@@ -56,6 +57,8 @@ export function IndicadorDialog({ open, onOpenChange, indicador }: IndicadorDial
       onOpenChange(false)
     },
     onError: (error: Error) => {
+      // 409 já tratado pelo interceptor global (toast duplicado)
+      if (isAxiosError(error) && error.response?.status === 409) return
       toast.error(error.message || 'Erro ao salvar indicador')
     },
   })

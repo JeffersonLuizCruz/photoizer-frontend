@@ -1,11 +1,12 @@
 import { apiClient } from '@/shared/api'
+import type { PaginatedResponse } from '@/shared/types'
 import type { IndicadorRequest, IndicadorResponse } from '../types'
 
 export const indicadorService = {
   listar: async (search?: string): Promise<IndicadorResponse[]> => {
     const params = search ? { search } : undefined
-    const { data } = await apiClient.get<IndicadorResponse[]>('/indicadores', { params })
-    return data
+    const { data: response } = await apiClient.get<PaginatedResponse<IndicadorResponse>>('/indicadores', { params })
+    return response.data
   },
 
   criar: async (payload: IndicadorRequest): Promise<IndicadorResponse> => {

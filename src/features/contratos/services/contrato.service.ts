@@ -1,4 +1,5 @@
 import { apiClient } from '@/shared/api'
+import type { PaginatedResponse } from '@/shared/types'
 import type { ContratoStatus } from '@/shared/constants'
 import type {
   Contrato,
@@ -23,8 +24,8 @@ export const contratoService = {
 
   listIndicadores: async (search?: string): Promise<IndicadorOption[]> => {
     const params = search ? { search } : undefined
-    const { data } = await apiClient.get<IndicadorOption[]>('/indicadores', { params })
-    return data
+    const { data: response } = await apiClient.get<PaginatedResponse<IndicadorOption>>('/indicadores', { params })
+    return response.data
   },
 
   verificarDisponibilidade: async (
