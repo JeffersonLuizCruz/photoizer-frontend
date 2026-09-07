@@ -17,9 +17,6 @@ const tipoIcon: Record<string, string> = {
   NOVO_ENSAIO: '📷',
   ENSAIO_REALIZADO: '✅',
   PAGAMENTO_FINAL: '💰',
-  LEMBRETE_ENSAIO: '⏰',
-  REPASSE_FOTOGRAFO: '💵',
-  SISTEMA: '🔔',
 }
 
 export function NotificationBell() {
