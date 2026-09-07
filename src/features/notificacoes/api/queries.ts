@@ -1,20 +1,18 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { notificacaoService } from '../services/notificacao.service'
 
-export function useNotificacoes(userId: string | undefined) {
+export function useNotificacoes() {
   return useQuery({
-    queryKey: ['notificacoes', userId],
-    queryFn: () => notificacaoService.listar(userId!),
-    enabled: !!userId,
+    queryKey: ['notificacoes'],
+    queryFn: () => notificacaoService.listar(),
     refetchInterval: 30_000,
   })
 }
 
-export function useNotificacoesNaoLidas(userId: string | undefined) {
+export function useNotificacoesNaoLidas() {
   return useQuery({
-    queryKey: ['notificacoes', userId, 'nao-lidas'],
-    queryFn: () => notificacaoService.contarNaoLidas(userId!),
-    enabled: !!userId,
+    queryKey: ['notificacoes', 'nao-lidas'],
+    queryFn: () => notificacaoService.contarNaoLidas(),
     refetchInterval: 30_000,
   })
 }
@@ -32,7 +30,7 @@ export function useMarcarComoLida() {
 export function useMarcarTodasComoLidas() {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: (userId: string) => notificacaoService.marcarTodasComoLidas(userId),
+    mutationFn: () => notificacaoService.marcarTodasComoLidas(),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['notificacoes'] })
     },

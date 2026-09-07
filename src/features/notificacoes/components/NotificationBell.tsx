@@ -11,7 +11,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/shared/components/ui/dropdown-menu'
-import { useAuth } from '@/features/auth/AuthProvider'
 import { useNotificacoes, useNotificacoesNaoLidas, useMarcarComoLida, useMarcarTodasComoLidas } from '../api/queries'
 
 const tipoIcon: Record<string, string> = {
@@ -24,12 +23,11 @@ const tipoIcon: Record<string, string> = {
 }
 
 export function NotificationBell() {
-  const { user } = useAuth()
   const navigate = useNavigate()
-  const userId = user?.userId
 
-  const { data: notificacoes = [] } = useNotificacoes(userId)
-  const { data: naoLidas = 0 } = useNotificacoesNaoLidas(userId)
+  const { data: notificacoesData } = useNotificacoes()
+  const notificacoes = notificacoesData?.content ?? []
+  const { data: naoLidas = 0 } = useNotificacoesNaoLidas()
   const marcarLida = useMarcarComoLida()
   const marcarTodas = useMarcarTodasComoLidas()
 
@@ -60,7 +58,7 @@ export function NotificationBell() {
               variant="ghost"
               size="sm"
               className="text-xs h-10 sm:h-9"
-              onClick={() => userId && marcarTodas.mutate(userId)}
+              onClick={() => marcarTodas.mutate()}
             >
               <CheckCheck className="mr-1 h-3 w-3" />
               Marcar todas como lidas
@@ -99,7 +97,7 @@ export function NotificationBell() {
             <DropdownMenuSeparator />
             <DropdownMenuItem
               className="justify-center text-xs text-muted-foreground cursor-pointer"
-              onClick={() => userId && marcarTodas.mutate(userId)}
+              onClick={() => marcarTodas.mutate()}
             >
               <ExternalLink className="mr-1 h-3 w-3" />
               Ver todas as {notificacoes.length} notificações

@@ -3,7 +3,6 @@ import { apiClient } from '@/shared/api'
 export interface Notificacao {
   id: string
   createdAt: string
-  userId: string
   titulo: string
   mensagem: string
   link: string | null
@@ -12,13 +11,13 @@ export interface Notificacao {
 }
 
 export const notificacaoService = {
-  listar: async (userId: string): Promise<Notificacao[]> => {
-    const { data } = await apiClient.get<Notificacao[]>('/notificacoes', { params: { userId } })
+  listar: async (page = 0, size = 50): Promise<{ content: Notificacao[]; totalElements: number; totalPages: number }> => {
+    const { data } = await apiClient.get('/notificacoes', { params: { page, size } })
     return data
   },
 
-  contarNaoLidas: async (userId: string): Promise<number> => {
-    const { data } = await apiClient.get<number>('/notificacoes/nao-lidas', { params: { userId } })
+  contarNaoLidas: async (): Promise<number> => {
+    const { data } = await apiClient.get<number>('/notificacoes/nao-lidas')
     return data
   },
 
@@ -26,11 +25,11 @@ export const notificacaoService = {
     await apiClient.patch(`/notificacoes/${id}/ler`)
   },
 
-  marcarTodasComoLidas: async (userId: string): Promise<void> => {
-    await apiClient.patch('/notificacoes/ler-todas', null, { params: { userId } })
+  marcarTodasComoLidas: async (): Promise<void> => {
+    await apiClient.patch('/notificacoes/ler-todas')
   },
 
-  limpar: async (userId: string): Promise<void> => {
-    await apiClient.patch('/notificacoes/limpar', null, { params: { userId } })
+  limpar: async (): Promise<void> => {
+    await apiClient.patch('/notificacoes/limpar')
   },
 }
