@@ -7,7 +7,7 @@ import { Button } from '@/shared/components/ui/button'
 import { StatusBadge } from '@/shared/components/layout/StatusBadge'
 import { ConfirmDialog } from '@/shared/components/layout/ConfirmDialog'
 import { AuthImage } from '@/shared/components/ui/AuthImage'
-import { openProtected } from '@/shared/api'
+import { openProtected, extractErrorMessage } from '@/shared/api'
 import { useState } from 'react'
 
 function formatCurrency(value: number): string {
@@ -35,7 +35,7 @@ export function EcommerceAdminResumo({ agendamentoId }: EcommerceAdminResumoProp
       queryClient.invalidateQueries({ queryKey: ['admin-ecommerce', agendamentoId] })
       toast.success('Seleção atualizada')
     },
-    onError: (error: Error) => toast.error(error.message || 'Erro ao atualizar seleção'),
+    onError: (error: Error) => toast.error(extractErrorMessage(error, 'Erro ao atualizar seleção')),
   })
 
   const { mutate: regenToken, isPending: isRegenning } = useMutation({
@@ -45,7 +45,7 @@ export function EcommerceAdminResumo({ agendamentoId }: EcommerceAdminResumoProp
       setShowRegenConfirm(false)
       toast.success('Token regenerado! O link anterior não funciona mais.')
     },
-    onError: (error: Error) => toast.error(error.message || 'Erro ao regenerar token'),
+    onError: (error: Error) => toast.error(extractErrorMessage(error, 'Erro ao regenerar token')),
   })
 
   const { mutate: confirmarCompra, isPending: isConfirming } = useMutation({
@@ -54,7 +54,7 @@ export function EcommerceAdminResumo({ agendamentoId }: EcommerceAdminResumoProp
       queryClient.invalidateQueries({ queryKey: ['admin-ecommerce', agendamentoId] })
       toast.success('Pagamento confirmado! Fotos liberadas para download.')
     },
-    onError: (error: Error) => toast.error(error.message || 'Erro ao confirmar pagamento'),
+    onError: (error: Error) => toast.error(extractErrorMessage(error, 'Erro ao confirmar pagamento')),
   })
 
   const [confirmRecusarId, setConfirmRecusarId] = useState<string | null>(null)
@@ -69,7 +69,7 @@ export function EcommerceAdminResumo({ agendamentoId }: EcommerceAdminResumoProp
       setMotivoRecusa('')
       toast.success('Compra recusada!')
     },
-    onError: (error: Error) => toast.error(error.message || 'Erro ao recusar compra'),
+    onError: (error: Error) => toast.error(extractErrorMessage(error, 'Erro ao recusar compra')),
   })
 
   if (isLoading) {

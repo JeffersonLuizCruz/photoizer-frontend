@@ -11,6 +11,7 @@ import { ConfirmDialog } from '@/shared/components/layout/ConfirmDialog'
 import { AdminCompraDetalheDialog } from '../components/AdminCompraDetalheDialog'
 import type { ColumnDef } from '@tanstack/react-table'
 import { QUERY_KEYS, ROUTES } from '@/shared/constants'
+import { extractErrorMessage } from '@/shared/api'
 
 function formatCurrency(value: number): string {
   return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value)
@@ -64,7 +65,7 @@ export function AdminEcommercePage() {
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.FINANCEIRO })
       toast.success('Pagamento confirmado!')
     },
-    onError: (err: Error) => toast.error(err.message || 'Erro ao confirmar'),
+    onError: (err: Error) => toast.error(extractErrorMessage(err, 'Erro ao confirmar')),
   })
 
   const { mutate: cancelar, isPending: isCancelling } = useMutation({
@@ -77,7 +78,7 @@ export function AdminEcommercePage() {
       setMotivoRecusa('')
       toast.success('Compra cancelada!')
     },
-    onError: (err: Error) => toast.error(err.message || 'Erro ao cancelar'),
+    onError: (err: Error) => toast.error(extractErrorMessage(err, 'Erro ao cancelar')),
   })
 
   const columns: ColumnDef<CompraExtraResponse>[] = [

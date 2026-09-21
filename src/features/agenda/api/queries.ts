@@ -5,6 +5,7 @@ import { agendamentoService, type RascunhoAgendamentoData } from '../services/ag
 import type { WizardFormValues, EditarAgendamentoFormData } from '../schemas/agendamento.schema'
 import { QUERY_KEYS } from '@/shared/constants'
 import type { AgendamentoStatus } from '@/shared/constants'
+import { extractErrorMessage } from '@/shared/api'
 
 export function useSalvarRascunho() {
   return useMutation({
@@ -66,23 +67,16 @@ export function useUsuariosList() {
   })
 }
 
-export function useBuscarClientePorTelefone(telefone: string) {
+export function useDisponibilidade(data: Date | undefined, hora: string | undefined, duracao: number, bloqueiaDiaInteiro: boolean, fotografoId?: string, excluirAgendamentoId?: string) {
   return useQuery({
-    queryKey: ['clientes', 'search', telefone],
-    queryFn: () => agendamentoService.buscarClientePorTelefone(telefone),
-    enabled: telefone.length >= 14,
-    staleTime: 1000 * 60,
-  })
-}
-
-export function useDisponibilidade(data: Date | undefined, hora: string | undefined, duracao: number, bloqueiaDiaInteiro: boolean) {
-  return useQuery({
-    queryKey: [...QUERY_KEYS.AGENDA, 'disponibilidade', data?.toISOString(), hora, duracao, bloqueiaDiaInteiro],
+    queryKey: [...QUERY_KEYS.AGENDA, 'disponibilidade', data?.toISOString(), hora, duracao, bloqueiaDiaInteiro, fotografoId, excluirAgendamentoId],
     queryFn: () => agendamentoService.verificarDisponibilidade(
       data ? format(data, 'yyyy-MM-dd') : '',
       hora!,
       duracao,
       bloqueiaDiaInteiro,
+      fotografoId,
+      excluirAgendamentoId,
     ),
     enabled: !!data && !!hora,
     retry: false,
@@ -124,8 +118,34 @@ export function useUpdateAgendamento(id: string) {
       toast.success('Agendamento atualizado com sucesso')
     },
     onError: (error: Error) => {
-      toast.error(error.message || 'Erro ao atualizar agendamento')
+      toast.error(extractErrorMessage(error, 'Erro ao atualizar agendamento'))
     },
+  })
+}
+
+export function useReatribuirFotografo(id: string) {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (payload: { fotografoId: string; motivo?: string }) =>
+      agendamentoService.reatribuirFotografo(id, payload),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.AGENDA })
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.FINANCEIRO })
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.DASHBOARD })
+      toast.success('Ensaio transferido com sucesso')
+    },
+    onError: (error: Error) => {
+      toast.error(extractErrorMessage(error, 'Erro ao transferir ensaio'))
+    },
+  })
+}
+
+export function useReatribuicoes(id: string) {
+  return useQuery({
+    queryKey: [...QUERY_KEYS.AGENDA, id, 'reatribuicoes'],
+    queryFn: () => agendamentoService.listarReatribuicoes(id),
+    enabled: !!id,
   })
 }
 
@@ -170,9 +190,8 @@ export function useCreateAgendamento() {
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.DASHBOARD })
       toast.success('Agendamento criado com sucesso')
     },
-    onError: (error: any) => {
-      const msg = error?.response?.data?.message || error.message || 'Erro ao criar agendamento'
-      toast.error(msg)
+    onError: (error: Error) => {
+      toast.error(extractErrorMessage(error, 'Erro ao criar agendamento'))
     },
   })
 }
@@ -190,7 +209,7 @@ export function useUpdateAgendamentoStatus() {
       toast.success('Status atualizado com sucesso')
     },
     onError: (error: Error) => {
-      toast.error(error.message || 'Erro ao atualizar status')
+      toast.error(extractErrorMessage(error, 'Erro ao atualizar status'))
     },
   })
 }
@@ -208,7 +227,7 @@ export function useReagendarAgendamento() {
       toast.success('Ensaio reagendado com sucesso')
     },
     onError: (error: Error) => {
-      toast.error(error.message || 'Erro ao reagendar ensaio')
+      toast.error(extractErrorMessage(error, 'Erro ao reagendar ensaio'))
     },
   })
 }
@@ -222,7 +241,7 @@ export function useToggleDestaque() {
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.AGENDA })
     },
     onError: (error: Error) => {
-      toast.error(error.message || 'Erro ao alternar destaque')
+      toast.error(extractErrorMessage(error, 'Erro ao alternar destaque'))
     },
   })
 }
@@ -246,7 +265,7 @@ export function useAddFotoExtra() {
       toast.success('Fotos extras adicionadas')
     },
     onError: (error: Error) => {
-      toast.error(error.message || 'Erro ao adicionar fotos extras')
+      toast.error(extractErrorMessage(error, 'Erro ao adicionar fotos extras'))
     },
   })
 }
@@ -270,7 +289,7 @@ export function useAddVideoExtra() {
       toast.success('Vídeos extras adicionados')
     },
     onError: (error: Error) => {
-      toast.error(error.message || 'Erro ao adicionar vídeos extras')
+      toast.error(extractErrorMessage(error, 'Erro ao adicionar vídeos extras'))
     },
   })
 }
@@ -288,7 +307,7 @@ export function useRegistrarPagamentoFinal() {
       toast.success('Pagamento final registrado')
     },
     onError: (error: Error) => {
-      toast.error(error.message || 'Erro ao registrar pagamento final')
+      toast.error(extractErrorMessage(error, 'Erro ao registrar pagamento final'))
     },
   })
 }

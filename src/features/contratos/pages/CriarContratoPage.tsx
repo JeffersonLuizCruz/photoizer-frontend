@@ -42,7 +42,6 @@ const defaultValues: CriarContratoFormValues = {
   hora: '',
   localEnsaio: '',
   enderecoCompleto: '',
-  editorId: '',
   fotografos: [],
   custoDeslocamento: 0,
   repassarDeslocamento: true,
@@ -54,7 +53,7 @@ export function CriarContratoPage() {
   const navigate = useNavigate()
   const criar = useCriarContrato()
   const { data: pacotes = [] } = usePacotesOptions()
-  const { data: usuarios = [] } = useUsuariosOptions()
+  useUsuariosOptions()
   const [searchIndicador, setSearchIndicador] = useState('')
   const [isOpen, setIsOpen] = useState(false)
   const [selectedIndicadorId, setSelectedIndicadorId] = useState<string | null>(null)
@@ -165,9 +164,10 @@ export function CriarContratoPage() {
                 <SelectValue placeholder="Selecione o pacote" />
               </SelectTrigger>
               <SelectContent>
-                {pacotes.map((p) => (
+                {pacotes.filter((p) => p.ativo).map((p) => (
                   <SelectItem key={p.id} value={p.id}>
                     {p.nome} — {formatCurrency(p.valorBase)}
+                    {p.bloqueiaDiaInteiro ? ' (dia inteiro)' : p.duracaoEstimada ? ` (${p.duracaoEstimada})` : ''}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -255,22 +255,6 @@ export function CriarContratoPage() {
             <Input id="enderecoCompleto" {...register('enderecoCompleto')} placeholder="Rua, número, bairro" />
           </div>
 
-          <div>
-            <Label htmlFor="editorId">Editor responsável</Label>
-            <Select onValueChange={(value) => setValue('editorId', value || '')}>
-              <SelectTrigger>
-                <SelectValue placeholder="Nenhum" />
-              </SelectTrigger>
-              <SelectContent>
-                {usuarios.map((u) => (
-                  <SelectItem key={u.id} value={u.id}>
-                    {u.nome}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
           <div className="sm:col-span-2 space-y-3 rounded-lg border bg-muted/30 p-4">
             <ParceirosRepasseList base={baseCaculoRepasse} />
           </div>
@@ -297,6 +281,7 @@ export function CriarContratoPage() {
               <Switch
                 checked={repassar}
                 onCheckedChange={(checked) => setValue('repassarDeslocamento', checked)}
+                activeClassName="!bg-emerald-500"
               />
             </div>
           </div>

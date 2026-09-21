@@ -1,10 +1,9 @@
 import { format } from 'date-fns'
 import { apiClient } from '@/shared/api'
 import { parseDuracao } from '@/shared/lib/duracao'
-import type { Agendamento, ExtraServicoResponse, Pacote, Pagamento, Usuario, FinanceiroTrabalho } from '../types'
+import type { Agendamento, ExtraServicoResponse, Pacote, Pagamento, Usuario, FinanceiroTrabalho, Reatribuicao } from '../types'
 import type { WizardFormValues } from '../schemas/agendamento.schema'
 import type { AgendamentoStatus } from '@/shared/constants'
-import type { Cliente } from '../types/cliente'
 import type { EditarAgendamentoFormData } from '../schemas/agendamento.schema'
 
 export { parseDuracao }
@@ -23,10 +22,8 @@ export interface RascunhoAgendamentoData {
   hora?: string
   localEnsaio?: string
   enderecoCompleto?: string
-  editorId?: string
   custoDeslocamento?: number
   repassarDeslocamento?: boolean
-  autorizaUsoImagem?: boolean
   indicadorId?: string
   indicadorNome?: string
   indicadorTelefone?: string
@@ -90,13 +87,6 @@ export const agendamentoService = {
     return data
   },
 
-  buscarClientePorTelefone: async (telefone: string): Promise<Cliente | null> => {
-    const { data } = await apiClient.get<{ data: Cliente[] }>('/clientes', {
-      params: { search: telefone, perPage: 1 },
-    })
-    return data.data.length > 0 ? data.data[0] : null
-  },
-
   list: async (params?: {
     status?: AgendamentoStatus
     editorId?: string
@@ -150,16 +140,14 @@ export const agendamentoService = {
     if (payload.origem) formData.append('origem', payload.origem)
 
     formData.append('pacoteId', payload.pacoteId)
-    formData.append('data', format(payload.data, 'yyyy-MM-dd'))
+    formData.append('data', payload.data instanceof Date ? format(payload.data, 'yyyy-MM-dd') : payload.data)
     formData.append('hora', payload.hora)
     formData.append('localEnsaio', payload.localEnsaio)
     if (payload.enderecoCompleto) formData.append('enderecoCompleto', payload.enderecoCompleto)
-    if (payload.editorId) formData.append('editorId', payload.editorId)
     const taxaDeslocamento = payload.repassarDeslocamento ? payload.custoDeslocamento : 0
     formData.append('taxaDeslocamento', String(taxaDeslocamento))
     formData.append('custoDeslocamento', String(payload.custoDeslocamento))
     formData.append('repassarDeslocamento', String(payload.repassarDeslocamento))
-    formData.append('autorizaUsoImagem', String(payload.autorizaUsoImagem))
 
     if (payload.indicadorId) formData.append('indicadorId', payload.indicadorId)
     if (payload.indicadorNome) formData.append('indicadorNome', payload.indicadorNome)
@@ -239,11 +227,29 @@ export const agendamentoService = {
     hora: string,
     duracaoMinutos: number,
     bloqueiaDiaInteiro: boolean,
+    fotografoId?: string,
+    excluirAgendamentoId?: string,
   ): Promise<DisponibilidadeResponse> => {
+    const params: Record<string, string | number | boolean> = { data, hora, duracaoMinutos, bloqueiaDiaInteiro }
+    if (fotografoId) params.fotografoId = fotografoId
+    if (excluirAgendamentoId) params.excluirAgendamentoId = excluirAgendamentoId
     const { data: result } = await apiClient.get<DisponibilidadeResponse>('/agendamentos/verificar-disponibilidade', {
-      params: { data, hora, duracaoMinutos, bloqueiaDiaInteiro },
+      params,
     })
     return result
+  },
+
+  reatribuirFotografo: async (
+    id: string,
+    payload: { fotografoId: string; motivo?: string },
+  ): Promise<Agendamento> => {
+    const { data } = await apiClient.patch<Agendamento>(`/agendamentos/${id}/fotografo`, payload)
+    return data
+  },
+
+  listarReatribuicoes: async (id: string): Promise<Reatribuicao[]> => {
+    const { data } = await apiClient.get<Reatribuicao[]>(`/agendamentos/${id}/reatribuicoes`)
+    return data
   },
 
   registrarPagamentoFinal: async (

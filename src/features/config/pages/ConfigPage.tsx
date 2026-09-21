@@ -9,6 +9,7 @@ import { Textarea } from '@/shared/components/ui/textarea'
 import { Label } from '@/shared/components/ui/label'
 import { Skeleton } from '@/shared/components/ui/skeleton'
 import { configService } from '../services/config.service'
+import { extractErrorMessage } from '@/shared/api'
 
 const FIELDS = [
   { key: 'valorUnitarioFotoExtra', label: 'Valor Unitário da Foto Extra (R$)', placeholder: '15.00', type: 'number' as const },
@@ -59,7 +60,7 @@ export function ConfigPage() {
       toast.success('Configurações salvas com sucesso')
     },
     onError: (error: Error) => {
-      toast.error(error.message || 'Erro ao salvar configurações')
+      toast.error(extractErrorMessage(error, 'Erro ao salvar configurações'))
     },
   })
 
@@ -70,7 +71,7 @@ export function ConfigPage() {
       toast.success('Template do contrato salvo com sucesso')
     },
     onError: (error: Error) => {
-      toast.error(error.message || 'Erro ao salvar template')
+      toast.error(extractErrorMessage(error, 'Erro ao salvar template'))
     },
   })
 
@@ -82,7 +83,7 @@ export function ConfigPage() {
       toast.success('Template restaurado para o padrão')
     },
     onError: (error: Error) => {
-      toast.error(error.message || 'Erro ao restaurar template')
+      toast.error(extractErrorMessage(error, 'Erro ao restaurar template'))
     },
   })
 

@@ -8,6 +8,7 @@ import { toast } from 'sonner'
 import { cn } from '@/shared/lib/cn'
 import { Button } from '@/shared/components/ui/button'
 import { ROUTES } from '@/shared/constants'
+import { useAuth } from '@/features/auth'
 import { wizardFormSchema, type WizardFormValues } from '../schemas/agendamento.schema'
 import { useCreateAgendamento, useSalvarRascunho, useBuscarRascunho, useDeletarRascunho, usePacotesList } from '../api/queries'
 import { useWizardStore, type WizardPersistedData } from '../stores/wizard.store'
@@ -28,7 +29,7 @@ const STEPS = [
 
 const STEP_FIELDS: Record<number, (keyof WizardFormValues)[]> = {
   0: ['nome', 'telefone'],
-  1: ['pacoteId', 'data', 'hora', 'localEnsaio'],
+  1: ['pacoteId', 'data', 'hora', 'localEnsaio', 'fotografos'],
   2: [],
   3: [],
   4: [],
@@ -85,6 +86,7 @@ interface NovoAgendamentoWizardProps {
 
 export function NovoAgendamentoWizard({ dataInicial }: NovoAgendamentoWizardProps) {
   const store = useWizardStore()
+  const { user } = useAuth()
   const [currentStep, setCurrentStepState] = useState(store.currentStep)
   const [comprovante, setComprovanteState] = useState<File | undefined>()
   const [confirmado, setConfirmadoState] = useState(store.confirmado)
@@ -129,10 +131,8 @@ export function NovoAgendamentoWizard({ dataInicial }: NovoAgendamentoWizardProp
     hora: draftData.hora ?? '',
     localEnsaio: draftData.localEnsaio ?? '',
     enderecoCompleto: draftData.enderecoCompleto ?? '',
-    editorId: draftData.editorId ?? '',
     custoDeslocamento: draftData.custoDeslocamento ?? 0,
     repassarDeslocamento: draftData.repassarDeslocamento ?? true,
-    autorizaUsoImagem: draftData.autorizaUsoImagem ?? false,
     indicadorId: draftData.indicadorId ?? '',
     observacoes: draftData.observacoes ?? '',
     data: restoredDate,
@@ -172,10 +172,8 @@ export function NovoAgendamentoWizard({ dataInicial }: NovoAgendamentoWizardProp
         hora: values.hora,
         localEnsaio: values.localEnsaio,
         enderecoCompleto: values.enderecoCompleto || '',
-        editorId: values.editorId,
         custoDeslocamento: values.custoDeslocamento,
         repassarDeslocamento: values.repassarDeslocamento,
-        autorizaUsoImagem: values.autorizaUsoImagem,
         indicadorId: values.indicadorId,
         indicadorNome: values.indicadorNome,
         indicadorTelefone: values.indicadorTelefone,
@@ -252,7 +250,8 @@ export function NovoAgendamentoWizard({ dataInicial }: NovoAgendamentoWizardProp
         const duracao = parseDuracao(pacote?.duracaoEstimada)
         const bloqueiaDiaInteiro = pacote?.bloqueiaDiaInteiro ?? false
         const dataStr = values.data instanceof Date ? format(values.data, 'yyyy-MM-dd') : values.data
-        const disponibilidade = await agendamentoService.verificarDisponibilidade(dataStr, values.hora, duracao, bloqueiaDiaInteiro)
+        const fotografoId = user?.userId
+        const disponibilidade = await agendamentoService.verificarDisponibilidade(dataStr, values.hora, duracao, bloqueiaDiaInteiro, fotografoId)
         if (!disponibilidade.disponivel) {
           toast.error(`Horário indisponível: ${disponibilidade.conflitos.map((c) => `${c.clienteNome} (${c.horario})`).join(', ')}`)
           return
@@ -290,6 +289,7 @@ export function NovoAgendamentoWizard({ dataInicial }: NovoAgendamentoWizardProp
 
   const gerarResumoWhatsApp = useCallback(() => {
     const values = form.getValues()
+    const pacote = pacotes?.find((p) => p.id === values.pacoteId)
     const texto = [
       '*RESUMO DO AGENDAMENTO*',
       '',
@@ -299,7 +299,7 @@ export function NovoAgendamentoWizard({ dataInicial }: NovoAgendamentoWizardProp
       '',
       `Data: ${values.data ? format(values.data, 'dd/MM/yyyy') : ''} às ${values.hora}`,
       `Local: ${values.localEnsaio}`,
-      `Pacote: ${values.pacoteId}`,
+      `Pacote: ${pacote?.nome ?? values.pacoteId}`,
       values.custoDeslocamento > 0
         ? `Deslocamento: R$ ${values.custoDeslocamento.toFixed(2)}${values.repassarDeslocamento ? ' (repassado)' : ' (absorvido)'}`
         : '',
@@ -311,7 +311,7 @@ export function NovoAgendamentoWizard({ dataInicial }: NovoAgendamentoWizardProp
 
     navigator.clipboard.writeText(texto)
     toast.success('Resumo copiado para a área de transferência!')
-  }, [form])
+  }, [form, pacotes])
 
   useEffect(() => {
     let isFirstCall = true
@@ -341,29 +341,34 @@ export function NovoAgendamentoWizard({ dataInicial }: NovoAgendamentoWizardProp
     return () => subscription.unsubscribe()
   }, [form, store])
 
-  const onSubmit = form.handleSubmit((data) => {
-    if (!comprovante) {
-      toast.error('Anexe o comprovante de entrada')
-      return
-    }
-    if (!confirmado) {
-      toast.error('Confirme que as informações estão corretas')
-      return
-    }
+  const onSubmit = form.handleSubmit(
+    (data) => {
+      if (!comprovante) {
+        toast.error('Anexe o comprovante de entrada')
+        return
+      }
+      if (!confirmado) {
+        toast.error('Confirme que as informações estão corretas')
+        return
+      }
 
-    createAgendamento(
-      { data, comprovante },
-      {
-        onSuccess: (result) => {
-          agendamentoCriadoRef.current = true
-          setAgendamentoCriado(result.id)
-          deletarRascunho(undefined)
-          store.reset()
-          toast.success('Agendamento criado com sucesso!')
+      createAgendamento(
+        { data, comprovante },
+        {
+          onSuccess: (result) => {
+            agendamentoCriadoRef.current = true
+            setAgendamentoCriado(result.id)
+            deletarRascunho(undefined)
+            store.reset()
+            toast.success('Agendamento criado com sucesso!')
+          },
         },
-      },
-    )
-  })
+      )
+    },
+    () => {
+      toast.error('Há campos inválidos. Revise as etapas do formulário.')
+    },
+  )
 
   if (agendamentoCriado) {
     return (

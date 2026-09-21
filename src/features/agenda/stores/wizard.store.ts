@@ -16,10 +16,8 @@ export interface WizardPersistedData {
   hora?: string
   localEnsaio?: string
   enderecoCompleto?: string
-  editorId?: string
   custoDeslocamento?: number
   repassarDeslocamento?: boolean
-  autorizaUsoImagem?: boolean
   indicadorId?: string
   indicadorNome?: string
   indicadorTelefone?: string

@@ -119,6 +119,7 @@ export interface PacoteOption {
   id: string
   nome: string
   valorBase: number
+  ativo: boolean
   bloqueiaDiaInteiro: boolean
   duracaoEstimada?: string
 }

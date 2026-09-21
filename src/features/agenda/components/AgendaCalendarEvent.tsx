@@ -55,7 +55,7 @@ export const statusLabels: Record<string, { label: string; variant: 'success' | 
 
 export function AgendaCalendarEvent({ agendamento, onClick, compact = false }: AgendaCalendarEventProps) {
   const data = format(new Date(agendamento.dataHoraEnsaio), "HH:mm", { locale: ptBR })
-  const isParceiro = agendamento.fotografoId != null
+  const isParceiro = agendamento.fotografos?.some((f) => f.status !== 'CANCELADO') ?? false
 
   if (compact) {
     return (

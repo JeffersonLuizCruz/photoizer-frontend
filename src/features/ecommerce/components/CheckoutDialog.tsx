@@ -4,6 +4,7 @@ import { toast } from 'sonner'
 import type { CalculoCarrinhoResponse, CompraExtraResponse, MetodoPagamento } from '../types/ecommerce.types'
 import { ecommerceService } from '../services/ecommerce.service'
 import { cn } from '@/shared/lib/cn'
+import { extractErrorMessage } from '@/shared/api'
 
 type PaymentMode = 'online' | 'manual'
 
@@ -67,8 +68,8 @@ export function CheckoutDialog({
       } else {
         setSuccessMessage('Compra criada! Envie o comprovante para liberar as fotos.')
       }
-    } catch (err: any) {
-      const msg = err?.response?.data?.message || 'Erro ao processar pagamento'
+    } catch (err: unknown) {
+      const msg = extractErrorMessage(err, 'Erro ao processar pagamento')
       setErrorMessage(msg)
       toast.error(msg)
     } finally {
@@ -83,8 +84,8 @@ export function CheckoutDialog({
       await onEnviarComprovante(compra, comprovante)
       toast.success('Comprovante enviado! O estúdio irá liberar as fotos em breve.')
       onClose()
-    } catch (err: any) {
-      toast.error(err?.response?.data?.message || 'Erro ao enviar comprovante')
+    } catch (err: unknown) {
+      toast.error(extractErrorMessage(err, 'Erro ao enviar comprovante'))
     } finally {
       setIsEnviando(false)
     }

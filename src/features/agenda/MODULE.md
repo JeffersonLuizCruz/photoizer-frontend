@@ -9,8 +9,8 @@ features/agenda/
 ├── index.ts                          # Barrel: exporta as 5 páginas
 ├── types/index.ts                    # Interfaces: Agendamento, Pacote, Pagamento, FotoExtra, VideoExtra, Tarefa, Usuario
 ├── schemas/agendamento.schema.ts     # Zod schemas: wizardFormSchema (5 steps), editarAgendamentoSchema
-├── services/agendamento.service.ts   # Camada HTTP: 18 métodos (CRUD + status + extras + tarefas)
-├── api/queries.ts                    # React Query hooks: 18 hooks
+├── services/agendamento.service.ts   # Camada HTTP: 23 métodos (CRUD + status + extras + tarefas)
+├── api/queries.ts                    # React Query hooks: 23 hooks
 ├── utils/recibo.ts                   # Helper para gerar texto de recibo de pagamento
 ├── pages/
 │   ├── AgendaPage.tsx                # Tela principal: calendário/lista + filtros
@@ -20,7 +20,7 @@ features/agenda/
 │   └── MinhasTarefasPage.tsx         # Lista de tarefas com filtro e ações
 ├── components/
 │   ├── NovoAgendamentoWizard.tsx     # Wizard 5-passos (Cliente > Ensaio > Indicação > Financeiro > Confirmação)
-│   ├── StepCliente.tsx               # Step 1: dados do cliente (telefone busca cliente existente)
+│   ├── StepCliente.tsx               # Step 1: dados do cliente (nome, telefone, email, CPF, cidade, estado)
 │   ├── StepEnsaio.tsx                # Step 2: pacote, data/hora, local, editor, taxa
 │   ├── StepIndicacao.tsx             # Step 3: dados do indicador (opcional)
 │   ├── StepFinanceiro.tsx            # Step 4: comprovante de entrada
@@ -61,13 +61,12 @@ features/agenda/
 - `@/shared/hooks/useDebounce` — debounce para busca
 
 ### Outras features (⚠️ violação da regra de isolamento)
-- `@/features/clientes/types` — `Cliente` (em `agendamento.service.ts:6`)
 - `@/features/ecommerce/components/EcommerceAdminResumo` (em `AgendamentoDetalhesPage.tsx:16`)
 
 ## 4. Fluxos Principais
 
 ### Fluxo 1: Criação de Agendamento (Wizard 5 passos)
-1. **Step 1 - Cliente**: Usuário digita telefone → `useBuscarClientePorTelefone()` busca cliente existente (trigger em 14+ dígitos). Se encontrado, preenche dados automaticamente.
+1. **Step 1 - Cliente**: Usuário informa dados do cliente (nome, telefone, email, CPF, cidade, estado). Deduplicação de cliente existente é feita no backend por telefone/CPF.
 2. **Step 2 - Ensaio**: Seleciona pacote → `useFinanceiroPreview()` calcula valores (entrada, restante, total). Define data, hora, local, editor opcional.
 3. **Step 3 - Indicação**: Dados do indicador (opcional, para comissão).
 4. **Step 4 - Financeiro**: Anexa comprovante de entrada (File, obrigatório).

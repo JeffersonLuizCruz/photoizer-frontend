@@ -18,14 +18,21 @@ interface Row {
   percentual?: number
 }
 
+interface RowErrors {
+  fotografoId?: { message?: string }
+  valorRepassar?: { message?: string }
+  percentual?: { message?: string }
+}
+
 function formatCurrency(value: number): string {
   return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value)
 }
 
 export function ParceirosRepasseList({ base }: ParceirosRepasseListProps) {
-  const { control, setValue } = useFormContext()
+  const { control, setValue, formState: { errors } } = useFormContext()
   const { fields, append, remove } = useFieldArray({ control, name: 'fotografos' })
   const rows = useWatch({ control, name: 'fotografos' }) as Row[] | undefined
+  const rowErrors = (errors.fotografos as unknown as RowErrors[] | undefined) ?? []
   const { data: parceiros = [] } = useParceirosList()
 
   const selectedIds = new Set((rows ?? []).map((r) => r?.fotografoId).filter(Boolean))
@@ -53,7 +60,7 @@ export function ParceirosRepasseList({ base }: ParceirosRepasseListProps) {
           type="button"
           variant="outline"
           size="sm"
-          onClick={() => append({ fotografoId: '', tipoValor: 'FIXO', valorRepassar: 0, percentual: undefined } satisfies Row)}
+          onClick={() => append({ fotografoId: '', tipoValor: 'FIXO', valorRepassar: undefined, percentual: undefined } satisfies Row)}
         >
           <Plus className="mr-1 h-4 w-4" />
           Adicionar parceiro
@@ -71,6 +78,8 @@ export function ParceirosRepasseList({ base }: ParceirosRepasseListProps) {
           const row = ((rows ?? [])[idx] ?? {}) as Partial<Row>
           const tipo = row.tipoValor ?? 'FIXO'
           const isPercentual = tipo === 'PERCENTUAL'
+          const err = rowErrors[idx]
+          const valorError = isPercentual ? err?.percentual?.message : err?.valorRepassar?.message
           return (
             <div key={field.id} className="grid grid-cols-12 items-end gap-2 rounded-lg border p-2">
               <div className="col-span-12 sm:col-span-4">
@@ -89,6 +98,9 @@ export function ParceirosRepasseList({ base }: ParceirosRepasseListProps) {
                       ))}
                   </SelectContent>
                 </Select>
+                {err?.fotografoId?.message && (
+                  <p className="mt-1 text-xs text-destructive">{err.fotografoId.message}</p>
+                )}
               </div>
 
               <div className="col-span-6 sm:col-span-3">
@@ -126,6 +138,7 @@ export function ParceirosRepasseList({ base }: ParceirosRepasseListProps) {
                     onChange={(value) => setRow(idx, { valorRepassar: value })}
                   />
                 )}
+                {valorError && <p className="mt-1 text-xs text-destructive">{valorError}</p>}
               </div>
 
               <div className="col-span-12 flex items-center justify-end sm:col-span-1">

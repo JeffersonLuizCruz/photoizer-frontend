@@ -3,6 +3,7 @@ import { ChevronDown, ChevronRight, Check, Clock, Upload, Download, Loader2, X, 
 import { toast } from 'sonner'
 import { ecommerceService } from '../services/ecommerce.service'
 import type { CompraExtraResponse, AdminCompraDetalheResponse } from '../types/ecommerce.types'
+import { extractErrorMessage } from '@/shared/api'
 
 function formatCurrency(value: number): string {
   return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value)
@@ -51,8 +52,8 @@ export function MinhasComprasSection({ token }: MinhasComprasSectionProps) {
       setCompras((prev) => prev.map((c) => c.id === compraId ? { ...c, status: 'AGUARDANDO_CONFIRMACAO' } : c))
       setComprovanteFiles((prev) => { const next = { ...prev }; delete next[compraId]; return next })
       toast.success('Comprovante enviado!')
-    } catch (err: any) {
-      toast.error(err?.response?.data?.message || 'Erro ao enviar comprovante')
+    } catch (err: unknown) {
+      toast.error(extractErrorMessage(err, 'Erro ao enviar comprovante'))
     } finally {
       setSendingIds((prev) => { const next = new Set(prev); next.delete(compraId); return next })
     }

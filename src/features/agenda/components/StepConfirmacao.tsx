@@ -1,7 +1,8 @@
 import { useFormContext } from 'react-hook-form'
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
-import { usePacotesList, useUsuariosList, useFinanceiroPreview } from '../api/queries'
+import { usePacotesList, useFinanceiroPreview } from '../api/queries'
+import { useAuth } from '@/features/auth'
 import type { WizardFormValues } from '../schemas/agendamento.schema'
 
 function formatCurrency(value: number): string {
@@ -19,11 +20,10 @@ interface StepConfirmacaoProps {
 export function StepConfirmacao({ confirmado, onConfirmadoChange }: StepConfirmacaoProps) {
   const { watch } = useFormContext<WizardFormValues>()
   const { data: pacotes } = usePacotesList()
-  const { data: usuarios } = useUsuariosList()
+  const { user } = useAuth()
 
   const values = watch()
   const pacote = pacotes?.find((p) => p.id === values.pacoteId)
-  const editor = usuarios?.find((u) => u.id === values.editorId)
 
   const taxaDeslocamento = values.repassarDeslocamento ? (values.custoDeslocamento ?? 0) : 0
   const { data: valores } = useFinanceiroPreview(values.pacoteId, taxaDeslocamento)
@@ -91,10 +91,10 @@ export function StepConfirmacao({ confirmado, onConfirmadoChange }: StepConfirma
               <dd className="font-medium text-right max-w-[60%]">{values.enderecoCompleto}</dd>
             </div>
           )}
-          {editor && (
+          {user && (
             <div className="flex justify-between">
-              <dt className="text-muted-foreground">Editor</dt>
-              <dd className="font-medium">{editor.nome}</dd>
+              <dt className="text-muted-foreground">Fotógrafo Principal</dt>
+              <dd className="font-medium">{user.nome}</dd>
             </div>
           )}
           <div className="flex justify-between">
@@ -106,10 +106,6 @@ export function StepConfirmacao({ confirmado, onConfirmadoChange }: StepConfirma
             <dd className={values.repassarDeslocamento ? 'font-medium' : 'font-medium text-destructive'}>
               {values.repassarDeslocamento ? 'Sim' : 'Não'}
             </dd>
-          </div>
-          <div className="flex justify-between">
-            <dt className="text-muted-foreground">Uso de Imagem</dt>
-            <dd className="font-medium">{values.autorizaUsoImagem ? 'Autorizado' : 'Não autorizado'}</dd>
           </div>
         </dl>
       </div>

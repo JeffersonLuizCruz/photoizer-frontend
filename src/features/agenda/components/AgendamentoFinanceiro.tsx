@@ -19,6 +19,7 @@ import { useAuth } from '@/features/auth/AuthProvider'
 import { montarReciboPagamento } from '../utils/recibo'
 import type { Agendamento } from '../types'
 import { AGENDAMENTO_STATUS } from '@/shared/constants'
+import { extractErrorMessage } from '@/shared/api'
 
 interface AgendamentoFinanceiroProps {
   agendamento: Agendamento
@@ -90,7 +91,7 @@ export function AgendamentoFinanceiro({ agendamento }: AgendamentoFinanceiroProp
       { despesaId, agendamentoId: null },
       {
         onSuccess: () => toast.success('Despesa desvinculada do trabalho'),
-        onError: (error: Error) => toast.error(error.message || 'Erro ao desvincular despesa'),
+        onError: (error: Error) => toast.error(extractErrorMessage(error, 'Erro ao desvincular despesa')),
       },
     )
   }

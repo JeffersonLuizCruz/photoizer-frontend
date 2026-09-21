@@ -7,6 +7,7 @@ import type { ContratoStatus } from '@/shared/constants'
 import { contratoService } from '../services/contrato.service'
 import { contratoPublicoService } from '../services/contratoPublico.service'
 import type { CriarContratoFormValues, AssinarContratoFormValues } from '../schemas/contrato.schema'
+import { extractErrorMessage } from '@/shared/api'
 
 export function useContratosList(params?: { status?: ContratoStatus; search?: string }) {
   return useQuery({
@@ -104,8 +105,8 @@ export function useCriarContrato() {
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.CONTRATOS })
       toast.success('Contrato criado em rascunho')
     },
-    onError: (error: any) => {
-      toast.error(error?.response?.data?.message || error.message || 'Erro ao criar contrato')
+    onError: (error: Error) => {
+      toast.error(extractErrorMessage(error, 'Erro ao criar contrato'))
     },
   })
 }
@@ -120,8 +121,8 @@ export function usePublicarContrato() {
       toast.success('Contrato publicado. Copie o link e envie ao cliente.')
       return resposta
     },
-    onError: (error: any) => {
-      toast.error(error?.response?.data?.message || error.message || 'Erro ao publicar contrato')
+    onError: (error: Error) => {
+      toast.error(extractErrorMessage(error, 'Erro ao publicar contrato'))
     },
   })
 }
@@ -135,8 +136,8 @@ export function useConfirmarPagamento() {
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.CONTRATOS })
       toast.success('Pagamento da reserva confirmado')
     },
-    onError: (error: any) => {
-      toast.error(error?.response?.data?.message || error.message || 'Erro ao confirmar pagamento')
+    onError: (error: Error) => {
+      toast.error(extractErrorMessage(error, 'Erro ao confirmar pagamento'))
     },
   })
 }
@@ -151,8 +152,8 @@ export function useAprovarContrato() {
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.AGENDA })
       toast.success('Contrato aprovado. Agendamento criado na agenda.')
     },
-    onError: (error: any) => {
-      toast.error(error?.response?.data?.message || error.message || 'Erro ao aprovar contrato')
+    onError: (error: Error) => {
+      toast.error(extractErrorMessage(error, 'Erro ao aprovar contrato'))
     },
   })
 }
@@ -167,8 +168,8 @@ export function useDevolverContrato() {
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.CONTRATOS })
       toast.success('Contrato devolvido ao cliente')
     },
-    onError: (error: any) => {
-      toast.error(error?.response?.data?.message || error.message || 'Erro ao devolver contrato')
+    onError: (error: Error) => {
+      toast.error(extractErrorMessage(error, 'Erro ao devolver contrato'))
     },
   })
 }
@@ -182,8 +183,8 @@ export function useCancelarContrato() {
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.CONTRATOS })
       toast.success('Contrato cancelado')
     },
-    onError: (error: any) => {
-      toast.error(error?.response?.data?.message || error.message || 'Erro ao cancelar contrato')
+    onError: (error: Error) => {
+      toast.error(extractErrorMessage(error, 'Erro ao cancelar contrato'))
     },
   })
 }
@@ -209,8 +210,8 @@ export function useAssinarContrato(token: string) {
       )
       toast.success('Contrato assinado com sucesso!')
     },
-    onError: (error: any) => {
-      toast.error(error?.response?.data?.message || error.message || 'Erro ao assinar contrato')
+    onError: (error: Error) => {
+      toast.error(extractErrorMessage(error, 'Erro ao assinar contrato'))
     },
   })
 }

@@ -9,11 +9,13 @@ import {
   CheckCheck,
   CheckCircle2,
   Star,
+  ArrowLeftRight,
 } from 'lucide-react'
 import { Button } from '@/shared/components/ui/button'
 import { ConfirmDialog } from '@/shared/components/layout/ConfirmDialog'
 import { RegistrarPagamentoDialog } from './RegistrarPagamentoDialog'
 import { ReagendarDialog } from './ReagendarDialog'
+import { TransferirEnsaioDialog } from './TransferirEnsaioDialog'
 import { useUpdateAgendamentoStatus, useToggleDestaque } from '../api/queries'
 import { useAuth } from '@/features/auth/AuthProvider'
 import { AGENDAMENTO_STATUS } from '@/shared/constants'
@@ -101,6 +103,7 @@ export function AgendamentoActions({ agendamento }: AgendamentoActionsProps) {
   const [confirmAction, setConfirmAction] = useState<ActionType | null>(null)
   const [showPagamento, setShowPagamento] = useState(false)
   const [showReagendar, setShowReagendar] = useState(false)
+  const [showTransferir, setShowTransferir] = useState(false)
   const { papel } = useAuth()
   const isAdmin = papel === 'ADMIN'
   const { mutate: updateStatus, isPending } = useUpdateAgendamentoStatus()
@@ -165,6 +168,13 @@ export function AgendamentoActions({ agendamento }: AgendamentoActionsProps) {
           )
         })}
 
+        {isAdmin && agendamento.status === AGENDAMENTO_STATUS.CONFIRMADO && (
+          <Button variant="outline" size="sm" onClick={() => setShowTransferir(true)}>
+            <ArrowLeftRight className="mr-1 h-4 w-4" />
+            Transferir
+          </Button>
+        )}
+
         {podeDestacar && (
           <Button
             variant="ghost"
@@ -197,6 +207,12 @@ export function AgendamentoActions({ agendamento }: AgendamentoActionsProps) {
       <ReagendarDialog
         open={showReagendar}
         onOpenChange={setShowReagendar}
+        agendamento={agendamento}
+      />
+
+      <TransferirEnsaioDialog
+        open={showTransferir}
+        onOpenChange={setShowTransferir}
         agendamento={agendamento}
       />
     </>

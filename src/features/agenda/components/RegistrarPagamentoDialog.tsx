@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { toast } from 'sonner'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/shared/components/ui/dialog'
 import { Button } from '@/shared/components/ui/button'
 import { FileUpload } from '@/shared/components/layout/FileUpload'
@@ -16,8 +17,13 @@ export function RegistrarPagamentoDialog({ open, onOpenChange, agendamento }: Re
   const { mutate, isPending } = useRegistrarPagamentoFinal()
 
   const handleSubmit = () => {
+    if (!comprovante) {
+      toast.error('Anexe o comprovante de pagamento')
+      return
+    }
+
     mutate(
-      { id: agendamento.id, comprovante: comprovante ?? undefined },
+      { id: agendamento.id, comprovante },
       {
         onSuccess: () => {
           onOpenChange(false)
@@ -48,7 +54,7 @@ export function RegistrarPagamentoDialog({ open, onOpenChange, agendamento }: Re
 
           <FileUpload
             accept="image/*,.pdf"
-            label="Comprovante de pagamento (opcional)"
+            label="Comprovante de pagamento (obrigatório)"
             onFilesChange={(files) => setComprovante(files[0] ?? null)}
             maxFiles={1}
           />
@@ -58,7 +64,7 @@ export function RegistrarPagamentoDialog({ open, onOpenChange, agendamento }: Re
           <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isPending}>
             Cancelar
           </Button>
-          <Button onClick={handleSubmit} disabled={isPending}>
+          <Button onClick={handleSubmit} disabled={isPending || !comprovante}>
             {isPending ? 'Registrando...' : 'Confirmar Pagamento'}
           </Button>
         </DialogFooter>

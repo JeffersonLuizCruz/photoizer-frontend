@@ -7,7 +7,7 @@ import { StatusBadge } from '@/shared/components/layout/StatusBadge'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/shared/components/ui/tabs'
 import { ROUTES, AGENDAMENTO_STATUS } from '@/shared/constants'
 import { useAuth } from '@/features/auth/AuthProvider'
-import { useAgendamento } from '../api/queries'
+import { useAgendamento, useReatribuicoes } from '../api/queries'
 import { AgendamentoActions } from '../components/AgendamentoActions'
 import { AgendamentoResumo } from '../components/AgendamentoResumo'
 import { AgendamentoTimeline } from '../components/AgendamentoTimeline'
@@ -32,6 +32,7 @@ export function AgendamentoDetalhesPage() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const { data: agendamento, isLoading, error } = useAgendamento(id ?? '')
+  const { data: reatribuicoes = [] } = useReatribuicoes(id ?? '')
   const { user } = useAuth()
   const podeEditar = user?.papel === 'ADMIN' || user?.papel === 'EDITOR'
   const isAdmin = user?.papel === 'ADMIN'
@@ -109,7 +110,7 @@ export function AgendamentoDetalhesPage() {
         </TabsContent>
 
         <TabsContent value="timeline">
-          <AgendamentoTimeline agendamento={agendamento} />
+          <AgendamentoTimeline agendamento={agendamento} reatribuicoes={reatribuicoes} />
         </TabsContent>
 
         {isAdmin && (

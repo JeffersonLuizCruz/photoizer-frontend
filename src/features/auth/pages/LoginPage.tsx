@@ -3,6 +3,7 @@ import { useNavigate, useLocation, Navigate } from 'react-router-dom'
 import { useAuth } from '../AuthProvider'
 import { Loader2, LogIn } from 'lucide-react'
 import { ROUTES } from '@/shared/constants'
+import { extractErrorMessage } from '@/shared/api'
 
 export function LoginPage() {
   const { login, isAuthenticated } = useAuth()
@@ -27,8 +28,8 @@ export function LoginPage() {
       const user = await login(email, password)
       const destino = user.papel === 'FOTOGRAFO' ? ROUTES.MINHA_AGENDA : from
       navigate(destino, { replace: true })
-    } catch (err: any) {
-      setError(err?.response?.data?.message || 'Email ou senha inválidos')
+    } catch (err: unknown) {
+      setError(extractErrorMessage(err, 'Email ou senha inválidos'))
     } finally {
       setIsSubmitting(false)
     }

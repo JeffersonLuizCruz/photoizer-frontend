@@ -3,6 +3,7 @@ import { toast } from 'sonner'
 import { fotografoService } from '../services/fotografo.service'
 import { QUERY_KEYS } from '@/shared/constants'
 import type { CriarFotografoData, AtualizarFotografoData, FotografoRepasseInput } from '../services/fotografo.service'
+import { extractErrorMessage } from '@/shared/api'
 
 export function useFotografosList() {
   return useQuery({
@@ -51,8 +52,8 @@ export function useCriarFotografo() {
       queryClient.invalidateQueries({ queryKey: [...QUERY_KEYS.AGENDA, 'fotografos'] })
       toast.success('Fotógrafo criado com sucesso')
     },
-    onError: (error: any) => {
-      toast.error(error?.response?.data?.message || error.message || 'Erro ao criar fotógrafo')
+    onError: (error: Error) => {
+      toast.error(extractErrorMessage(error, 'Erro ao criar fotógrafo'))
     },
   })
 }
@@ -66,8 +67,8 @@ export function useAtualizarFotografo(id: string) {
       queryClient.invalidateQueries({ queryKey: [...QUERY_KEYS.AGENDA, 'fotografo', id] })
       toast.success('Fotógrafo atualizado com sucesso')
     },
-    onError: (error: any) => {
-      toast.error(error?.response?.data?.message || error.message || 'Erro ao atualizar fotógrafo')
+    onError: (error: Error) => {
+      toast.error(extractErrorMessage(error, 'Erro ao atualizar fotógrafo'))
     },
   })
 }
@@ -80,8 +81,8 @@ export function useToggleStatusFotografo() {
       queryClient.invalidateQueries({ queryKey: [...QUERY_KEYS.AGENDA, 'fotografos'] })
       toast.success('Status do fotógrafo alterado')
     },
-    onError: (error: any) => {
-      toast.error(error?.response?.data?.message || error.message || 'Erro ao alterar status')
+    onError: (error: Error) => {
+      toast.error(extractErrorMessage(error, 'Erro ao alterar status'))
     },
   })
 }
@@ -117,8 +118,8 @@ export function useRemoverFotografo() {
       queryClient.invalidateQueries({ queryKey: [...QUERY_KEYS.AGENDA, 'fotografos'] })
       toast.success('Fotógrafo removido')
     },
-    onError: (error: any) => {
-      toast.error(error?.response?.data?.message || error.message || 'Erro ao remover fotógrafo')
+    onError: (error: Error) => {
+      toast.error(extractErrorMessage(error, 'Erro ao remover fotógrafo'))
     },
   })
 }
@@ -141,8 +142,8 @@ export function useAtualizarRepasse() {
       queryClient.invalidateQueries({ queryKey: [...QUERY_KEYS.FINANCEIRO, 'repasses-pendentes'] })
       toast.success('Repasse atualizado com sucesso')
     },
-    onError: (error: any) => {
-      toast.error(error?.response?.data?.message || error.message || 'Erro ao atualizar repasse')
+    onError: (error: Error) => {
+      toast.error(extractErrorMessage(error, 'Erro ao atualizar repasse'))
     },
   })
 }
@@ -157,8 +158,8 @@ export function usePagarRepasse() {
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.FINANCEIRO })
       toast.success('Repasse marcado como pago')
     },
-    onError: (error: any) => {
-      toast.error(error?.response?.data?.message || error.message || 'Erro ao pagar repasse')
+    onError: (error: Error) => {
+      toast.error(extractErrorMessage(error, 'Erro ao pagar repasse'))
     },
   })
 }
@@ -180,8 +181,8 @@ export function usePagarRepasseLote() {
       queryClient.invalidateQueries({ queryKey: [...QUERY_KEYS.FINANCEIRO, 'repasses-pendentes'] })
       toast.success('Repasses pagos com sucesso')
     },
-    onError: (error: any) => {
-      toast.error(error?.response?.data?.message || error.message || 'Erro ao pagar repasses')
+    onError: (error: Error) => {
+      toast.error(extractErrorMessage(error, 'Erro ao pagar repasses'))
     },
   })
 }

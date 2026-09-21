@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { CurrencyInput } from '@/shared/components/layout/CurrencyInput'
 import { formatCurrency } from '@/shared/lib/format'
 import { receitaSchema, type ReceitaFormValues } from '../schemas/receita.schema'
+import { extractErrorMessage } from '@/shared/api'
 import {
   useCriarReceita,
   useAtualizarReceita,
@@ -123,7 +124,7 @@ export function ReceitaFormDialog({ open, onOpenChange, receita }: ReceitaFormDi
         toast.success(receita ? 'Receita atualizada' : 'Receita registrada')
         onOpenChange(false)
       },
-      onError: (error: Error) => toast.error(error.message || 'Erro ao salvar receita'),
+      onError: (error: Error) => toast.error(extractErrorMessage(error, 'Erro ao salvar receita')),
     }
 
     if (receita) {

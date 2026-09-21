@@ -5,6 +5,7 @@ import { toast } from 'sonner'
 import type { FotoEnsaio, FotoComentario } from '../types/ecommerce.types'
 import { ecommerceService } from '../services/ecommerce.service'
 import { cn } from '@/shared/lib/cn'
+import { extractErrorMessage } from '@/shared/api'
 
 interface FotoViewerProps {
   fotos: FotoEnsaio[]
@@ -111,8 +112,7 @@ export function FotoViewer({
       setComentarioTexto('')
       toast.success('Comentário enviado!')
     } catch (err: unknown) {
-      const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message
-      toast.error(msg || 'Erro ao enviar comentário')
+      toast.error(extractErrorMessage(err, 'Erro ao enviar comentário'))
     } finally {
       setEnviandoComentario(false)
     }

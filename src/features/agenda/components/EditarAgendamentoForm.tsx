@@ -6,14 +6,13 @@ import { Button } from '@/shared/components/ui/button'
 import { Input } from '@/shared/components/ui/input'
 import { Label } from '@/shared/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/components/ui/select'
-import { Checkbox } from '@/shared/components/ui/checkbox'
 import { Switch } from '@/shared/components/ui/switch'
 import { Calendar } from '@/shared/components/ui/calendar'
 import { Popover, PopoverContent, PopoverTrigger } from '@/shared/components/ui/popover'
 import { CurrencyInput } from '@/shared/components/layout/CurrencyInput'
 import { cn } from '@/shared/lib/cn'
 import { CalendarIcon } from 'lucide-react'
-import { usePacotesList, useUsuariosList } from '../api/queries'
+import { usePacotesList } from '../api/queries'
 import { editarAgendamentoSchema, type EditarAgendamentoFormData } from '../schemas/agendamento.schema'
 import type { Agendamento } from '../types'
 import { ROUTES } from '@/shared/constants'
@@ -35,7 +34,6 @@ interface EditarAgendamentoFormProps {
 export function EditarAgendamentoForm({ agendamento, onSubmit, isPending }: EditarAgendamentoFormProps) {
   const navigate = useNavigate()
   const { data: pacotes } = usePacotesList()
-  const { data: usuarios } = useUsuariosList()
 
   const methods = useForm<EditarAgendamentoFormData>({
     resolver: zodResolver(editarAgendamentoSchema) as any,
@@ -45,6 +43,7 @@ export function EditarAgendamentoForm({ agendamento, onSubmit, isPending }: Edit
       localEnsaio: agendamento.localEnsaio,
       enderecoCompleto: agendamento.enderecoCompleto ?? '',
       editorId: agendamento.editorId ?? '',
+      fotografoId: agendamento.fotografoId ?? undefined,
       fotografos: (agendamento.fotografos ?? []).map((f) => ({
         fotografoId: f.fotografoId,
         valorRepassar: f.tipoValor === 'PERCENTUAL' ? undefined : f.valorRepassar,
@@ -122,7 +121,7 @@ export function EditarAgendamentoForm({ agendamento, onSubmit, isPending }: Edit
               <SelectValue placeholder="Selecione o pacote" />
             </SelectTrigger>
             <SelectContent>
-              {pacotes?.map((p) => (
+              {pacotes?.filter((p) => p.ativo).map((p) => (
                 <SelectItem key={p.id} value={p.id}>
                   {p.nome}
                 </SelectItem>
@@ -130,25 +129,6 @@ export function EditarAgendamentoForm({ agendamento, onSubmit, isPending }: Edit
             </SelectContent>
           </Select>
           {errors.pacoteId && <p className="mt-1 text-sm text-destructive">{errors.pacoteId.message}</p>}
-        </div>
-
-        <div>
-          <Label htmlFor="editorId">Editor Responsável</Label>
-          <Select
-            value={watch('editorId')}
-            onValueChange={(value) => setValue('editorId', value, { shouldValidate: true })}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Selecione o editor" />
-            </SelectTrigger>
-            <SelectContent>
-              {usuarios?.map((u) => (
-                <SelectItem key={u.id} value={u.id}>
-                  {u.nome}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
         </div>
 
         <div className="sm:col-span-2">
@@ -228,18 +208,8 @@ export function EditarAgendamentoForm({ agendamento, onSubmit, isPending }: Edit
             <Switch
               checked={watch('repassarDeslocamento')}
               onCheckedChange={(checked) => setValue('repassarDeslocamento', checked, { shouldValidate: true })}
+              activeClassName="!bg-emerald-500"
             />
-          </div>
-        </div>
-
-        <div className="flex items-end pb-2">
-          <div className="flex items-center gap-2">
-            <Checkbox
-              id="autorizaUsoImagem"
-              checked={watch('autorizaUsoImagem')}
-              onCheckedChange={(checked) => setValue('autorizaUsoImagem', checked === true)}
-            />
-            <Label htmlFor="autorizaUsoImagem" className="cursor-pointer">Autoriza Uso de Imagem</Label>
           </div>
         </div>
 

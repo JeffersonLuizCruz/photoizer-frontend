@@ -23,12 +23,22 @@ export const fotografoRepasseSchema = z
     percentual: z.number().min(0, 'Percentual não pode ser negativo').max(100, 'Percentual máximo é 100').optional(),
   })
   .superRefine((val, ctx) => {
+    if (!val.fotografoId) return
     if (val.tipoValor === 'PERCENTUAL') {
       if (val.percentual === undefined || val.percentual <= 0) {
         ctx.addIssue({
           code: 'custom',
           path: ['percentual'],
           message: 'Informe um percentual entre 1 e 100',
+        })
+      }
+    }
+    if (val.tipoValor === 'FIXO') {
+      if (val.valorRepassar === undefined || val.valorRepassar <= 0) {
+        ctx.addIssue({
+          code: 'custom',
+          path: ['valorRepassar'],
+          message: 'Informe um valor maior que zero',
         })
       }
     }
@@ -40,11 +50,9 @@ export const stepEnsaioSchema = z.object({
   hora: z.string().min(1, 'Selecione um horário'),
   localEnsaio: z.string().min(3, 'Informe o local do ensaio'),
   enderecoCompleto: z.string().optional().or(z.literal('')),
-  editorId: z.string().optional().or(z.literal('')),
   fotografos: z.array(fotografoRepasseSchema).optional().default([]),
   custoDeslocamento: z.number().min(0, 'Valor não pode ser negativo').default(0),
   repassarDeslocamento: z.boolean().default(true),
-  autorizaUsoImagem: z.boolean().default(false),
 })
 
 export const stepIndicacaoSchema = z.object({
@@ -107,6 +115,7 @@ export const editarAgendamentoSchema = z.object({
   localEnsaio: z.string().min(3, 'Informe o local do ensaio'),
   enderecoCompleto: z.string().optional().or(z.literal('')),
   editorId: z.string().optional().or(z.literal('')),
+  fotografoId: z.string().optional(),
   fotografos: z.array(fotografoRepasseSchema).optional().default([]),
   custoDeslocamento: z.number().min(0, 'Valor não pode ser negativo'),
   repassarDeslocamento: z.boolean(),

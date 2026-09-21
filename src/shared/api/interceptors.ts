@@ -41,38 +41,12 @@ apiClient.interceptors.response.use(
       return Promise.reject(error)
     }
 
-    if (error.response?.status === 403) {
-      toast.error(error.response.data?.message || 'Acesso negado')
-      return Promise.reject(error)
-    }
-
     if (!error.response) {
       if (error.code === 'ERR_CANCELED') {
         return Promise.reject(error)
       }
-      toast.error('Erro de conexão com o servidor')
+      toast.error('Não foi possível conectar ao servidor. Verifique sua conexão.')
       return Promise.reject(error)
-    }
-
-    const { status, data } = error.response
-
-    switch (status) {
-      case 400: {
-        toast.error(data?.message || 'Requisição inválida')
-        break
-      }
-      case 422: {
-        toast.error(data?.message || 'Erro de validação')
-        break
-      }
-      case 409: {
-        toast.error(data?.message || 'Conflito de agenda')
-        break
-      }
-      case 500: {
-        toast.error(data?.message || 'Erro interno do servidor')
-        break
-      }
     }
 
     return Promise.reject(error)

@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom'
-import { Pencil, Trash2 } from 'lucide-react'
+import { Pencil, Power, PowerOff } from 'lucide-react'
 import { DataTable } from '@/shared/components/layout/DataTable'
 import { Button } from '@/shared/components/ui/button'
 import { StatusBadge } from '@/shared/components/layout/StatusBadge'
@@ -57,10 +57,10 @@ interface PacoteListProps {
   isLoading: boolean
   search: string
   onSearchChange: (search: string) => void
-  onDelete: (pacote: Pacote) => void
+  onToggleAtivo: (pacote: Pacote) => void
 }
 
-export function PacoteList({ data, isLoading, search, onSearchChange, onDelete }: PacoteListProps) {
+export function PacoteList({ data, isLoading, search, onSearchChange, onToggleAtivo }: PacoteListProps) {
   const navigate = useNavigate()
 
   return (
@@ -86,10 +86,15 @@ export function PacoteList({ data, isLoading, search, onSearchChange, onDelete }
           <Button
             variant="ghost"
             size="icon"
-            onClick={() => onDelete(row)}
-            aria-label={`Excluir ${row.nome}`}
+            onClick={() => onToggleAtivo(row)}
+            aria-label={row.ativo ? `Inativar ${row.nome}` : `Ativar ${row.nome}`}
+            title={row.ativo ? 'Inativar' : 'Ativar'}
           >
-            <Trash2 className="h-4 w-4 text-destructive" />
+            {row.ativo ? (
+              <PowerOff className="h-4 w-4 text-destructive" />
+            ) : (
+              <Power className="h-4 w-4 text-green-600" />
+            )}
           </Button>
         </div>
       )}

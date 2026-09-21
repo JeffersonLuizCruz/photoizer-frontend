@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { fotoService } from '../services/foto.service'
+import { extractErrorMessage } from '@/shared/api'
 
 export function useAgendamento(agendamentoId: string | undefined) {
   return useQuery({
@@ -26,7 +27,7 @@ export function useUploadFotos(agendamentoId: string) {
       queryClient.invalidateQueries({ queryKey: ['fotos', agendamentoId] })
       toast.success('Fotos enviadas com sucesso')
     },
-    onError: (error: Error) => toast.error(error.message || 'Erro ao enviar fotos'),
+    onError: (error: Error) => toast.error(extractErrorMessage(error, 'Erro ao enviar fotos')),
   })
 }
 
@@ -38,7 +39,7 @@ export function usePublicarFotos(agendamentoId: string) {
       queryClient.invalidateQueries({ queryKey: ['fotos', agendamentoId] })
       toast.success('Galeria publicada com sucesso')
     },
-    onError: (error: Error) => toast.error(error.message || 'Erro ao publicar galeria'),
+    onError: (error: Error) => toast.error(extractErrorMessage(error, 'Erro ao publicar galeria')),
   })
 }
 
@@ -51,7 +52,7 @@ export function useUpdateFotoMetadata(agendamentoId: string) {
       queryClient.invalidateQueries({ queryKey: ['fotos', agendamentoId] })
       toast.success('Metadados atualizados')
     },
-    onError: (error: Error) => toast.error(error.message || 'Erro ao atualizar metadados'),
+    onError: (error: Error) => toast.error(extractErrorMessage(error, 'Erro ao atualizar metadados')),
   })
 }
 
@@ -63,7 +64,7 @@ export function useDeletarFoto(agendamentoId: string) {
       queryClient.invalidateQueries({ queryKey: ['fotos', agendamentoId] })
       toast.success('Foto removida')
     },
-    onError: (error: Error) => toast.error(error.message || 'Erro ao remover foto'),
+    onError: (error: Error) => toast.error(extractErrorMessage(error, 'Erro ao remover foto')),
   })
 }
 
@@ -76,7 +77,7 @@ export function useAlterarVisibilidade(agendamentoId: string) {
       queryClient.invalidateQueries({ queryKey: ['fotos', agendamentoId] })
       toast.success('Visibilidade da foto atualizada')
     },
-    onError: (error: Error) => toast.error(error.message || 'Erro ao alterar visibilidade'),
+    onError: (error: Error) => toast.error(extractErrorMessage(error, 'Erro ao alterar visibilidade')),
   })
 }
 
@@ -90,7 +91,7 @@ export function useAlterarStatus(agendamentoId: string) {
       const label = variables.status === 'PUBLICADA' ? 'publicada' : 'despublicada'
       toast.success(`Foto ${label} com sucesso`)
     },
-    onError: (error: Error) => toast.error(error.message || 'Erro ao alterar status da foto'),
+    onError: (error: Error) => toast.error(extractErrorMessage(error, 'Erro ao alterar status da foto')),
   })
 }
 
@@ -103,7 +104,7 @@ export function useSubstituirImagem(agendamentoId: string) {
       queryClient.invalidateQueries({ queryKey: ['fotos', agendamentoId] })
       toast.success('Imagem substituída com sucesso')
     },
-    onError: (error: Error) => toast.error(error.message || 'Erro ao substituir imagem'),
+    onError: (error: Error) => toast.error(extractErrorMessage(error, 'Erro ao substituir imagem')),
   })
 }
 
@@ -124,7 +125,7 @@ export function useResponderComentario(agendamentoId: string) {
       queryClient.invalidateQueries({ queryKey: ['comentarios-fotos', agendamentoId] })
       toast.success('Resposta enviada!')
     },
-    onError: (error: Error) => toast.error(error.message || 'Erro ao responder comentário'),
+    onError: (error: Error) => toast.error(extractErrorMessage(error, 'Erro ao responder comentário')),
   })
 }
 

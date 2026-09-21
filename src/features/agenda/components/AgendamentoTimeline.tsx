@@ -1,8 +1,8 @@
 import { format, differenceInDays } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
-import { CheckCircle2, Circle, XCircle, Clock, CalendarCheck, Send, FileCheck, Star } from 'lucide-react'
+import { CheckCircle2, Circle, XCircle, Clock, CalendarCheck, Send, FileCheck, Star, ArrowLeftRight } from 'lucide-react'
 import { cn } from '@/shared/lib/cn'
-import type { Agendamento } from '../types'
+import type { Agendamento, Reatribuicao } from '../types'
 import { AGENDAMENTO_STATUS } from '@/shared/constants'
 
 interface TimelineEvent {
@@ -10,13 +10,15 @@ interface TimelineEvent {
   label: string
   icon: React.ComponentType<{ className?: string }>
   status: 'completed' | 'pending' | 'current' | 'cancelled'
+  description?: string | null
 }
 
 interface AgendamentoTimelineProps {
   agendamento: Agendamento
+  reatribuicoes?: Reatribuicao[]
 }
 
-function buildTimelineEvents(agendamento: Agendamento): TimelineEvent[] {
+function buildTimelineEvents(agendamento: Agendamento, reatribuicoes: Reatribuicao[]): TimelineEvent[] {
   const events: TimelineEvent[] = []
 
   events.push({
@@ -32,6 +34,17 @@ function buildTimelineEvents(agendamento: Agendamento): TimelineEvent[] {
       label: 'Agendamento Confirmado',
       icon: CheckCircle2,
       status: agendamento.status === AGENDAMENTO_STATUS.CANCELADO ? 'cancelled' : 'completed',
+    })
+  }
+
+  for (const r of reatribuicoes) {
+    events.push({
+      data: r.createdAt,
+      label: `Ensaio transferido para ${r.novoFotografoNome}`,
+      icon: ArrowLeftRight,
+      status: 'completed',
+      description: r.motivo
+        ?? (r.fotografoAnteriorNome ? `Responsável anterior: ${r.fotografoAnteriorNome}` : null),
     })
   }
 
@@ -125,8 +138,8 @@ function TimelineDot({ status }: { status: TimelineEvent['status'] }) {
   )
 }
 
-export function AgendamentoTimeline({ agendamento }: AgendamentoTimelineProps) {
-  const events = buildTimelineEvents(agendamento)
+export function AgendamentoTimeline({ agendamento, reatribuicoes = [] }: AgendamentoTimelineProps) {
+  const events = buildTimelineEvents(agendamento, reatribuicoes)
 
   return (
     <div className="space-y-0">
@@ -159,6 +172,9 @@ export function AgendamentoTimeline({ agendamento }: AgendamentoTimelineProps) {
                       </span>
                     )}
                   </p>
+                )}
+                {event.description && (
+                  <p className="mt-0.5 text-xs text-muted-foreground">{event.description}</p>
                 )}
               </div>
             </div>

@@ -11,6 +11,7 @@ import { indicadorService } from '../services/indicador.service'
 import { IndicadorDialog } from '../components/IndicadorDialog'
 import type { IndicadorListagem } from '../types'
 import type { IndicadorResponse } from '../types'
+import { extractErrorMessage } from '@/shared/api'
 
 const currency = (v: number) =>
   v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
@@ -178,7 +179,7 @@ export function ComissoesConsultaPage() {
       setDeleteTarget(null)
     },
     onError: (error: Error) => {
-      toast.error(error.message || 'Erro ao remover indicador')
+      toast.error(extractErrorMessage(error, 'Erro ao remover indicador'))
     },
   })
 

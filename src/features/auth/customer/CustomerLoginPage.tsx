@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { Camera, Mail, Lock, User, Phone, ArrowRight, Loader2 } from 'lucide-react'
 import { useCustomerAuth } from './store'
 import { toast } from 'sonner'
-import { apiClient } from '@/shared/api'
+import { apiClient, extractErrorMessage } from '@/shared/api'
 
 export function CustomerLoginPage() {
   const [isRegister, setIsRegister] = useState(false)
@@ -27,8 +27,8 @@ export function CustomerLoginPage() {
       login({ id: data.id, nome: data.nome, email: data.email, telefone: data.telefone, token: data.token, isLoggedIn: true })
       toast.success(isRegister ? 'Cadastro realizado!' : 'Login realizado!')
       navigate('/minha-conta')
-    } catch (err: any) {
-      toast.error(err?.response?.data?.message || (isRegister ? 'Erro ao cadastrar' : 'Email ou senha inválidos'))
+    } catch (err: unknown) {
+      toast.error(extractErrorMessage(err, isRegister ? 'Erro ao cadastrar' : 'Email ou senha inválidos'))
     } finally {
       setIsLoading(false)
     }

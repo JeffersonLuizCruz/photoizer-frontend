@@ -9,6 +9,7 @@ import { Checkbox } from '@/shared/components/ui/checkbox'
 import { useDespesasList } from '@/features/despesas'
 import { formatCurrency } from '@/shared/lib/format'
 import { useVincularDespesaTrabalho } from '../api/queries'
+import { extractErrorMessage } from '@/shared/api'
 
 interface VincularDespesaDialogProps {
   open: boolean
@@ -42,7 +43,7 @@ export function VincularDespesaDialog({ open, onOpenChange, agendamentoId }: Vin
               onOpenChange(false)
             }
           },
-          onError: (error: Error) => toast.error(error.message || 'Erro ao vincular despesa'),
+          onError: (error: Error) => toast.error(extractErrorMessage(error, 'Erro ao vincular despesa')),
         },
       )
     })

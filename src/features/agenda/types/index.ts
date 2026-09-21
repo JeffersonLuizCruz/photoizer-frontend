@@ -115,6 +115,18 @@ export interface Usuario {
   nome: string
   email: string
   papel: string
+  ativo?: boolean
+}
+
+export interface Reatribuicao {
+  id: string
+  fotografoAnteriorId: string | null
+  fotografoAnteriorNome: string | null
+  novoFotografoId: string
+  novoFotografoNome: string
+  solicitanteNome: string | null
+  motivo: string | null
+  createdAt: string
 }
 
 export type {

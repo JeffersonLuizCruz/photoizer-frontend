@@ -2,7 +2,7 @@ import { useFormContext } from 'react-hook-form'
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import { CalendarIcon, AlertTriangle } from 'lucide-react'
-import { usePacotesList, useUsuariosList, useDisponibilidade } from '../api/queries'
+import { usePacotesList, useDisponibilidade } from '../api/queries'
 import { parseDuracao } from '../services/agendamento.service'
 import { Label } from '@/shared/components/ui/label'
 import { Button } from '@/shared/components/ui/button'
@@ -20,6 +20,8 @@ import { Switch } from '@/shared/components/ui/switch'
 import { cn } from '@/shared/lib/cn'
 import type { WizardFormValues } from '../schemas/agendamento.schema'
 import { ParceirosRepasseList } from '@/shared/components/parceiros/ParceirosRepasseList'
+import { CurrencyInput } from '@/shared/components/layout/CurrencyInput'
+import { useAuth } from '@/features/auth'
 
 const HORARIOS = [
   '05:00', '05:30', '06:00', '06:30', '07:00', '07:30',
@@ -38,12 +40,13 @@ function formatCurrency(value: number): string {
 
 export function StepEnsaio() {
   const { data: pacotes, isLoading: isLoadingPacotes } = usePacotesList()
-  const { data: usuarios } = useUsuariosList()
+  const { user } = useAuth()
   const { register, setValue, watch, formState: { errors } } = useFormContext<WizardFormValues>()
 
   const dataValue = watch('data')
   const horaValue = watch('hora')
   const pacoteId = watch('pacoteId')
+  const fotografoId = user?.userId
   const pacoteSelecionado = pacotes?.find((p) => p.id === pacoteId)
   const duracao = parseDuracao(pacoteSelecionado?.duracaoEstimada)
   const { data: disponibilidade } = useDisponibilidade(
@@ -51,6 +54,7 @@ export function StepEnsaio() {
     horaValue,
     duracao,
     pacoteSelecionado?.bloqueiaDiaInteiro ?? false,
+    fotografoId,
   )
 
   const conflito = disponibilidade && !disponibilidade.disponivel
@@ -66,7 +70,7 @@ export function StepEnsaio() {
             />
           </SelectTrigger>
           <SelectContent>
-            {pacotes?.map((pacote) => (
+            {pacotes?.filter((p) => p.ativo).map((pacote) => (
               <SelectItem key={pacote.id} value={pacote.id}>
                 {pacote.nome} - {formatCurrency(pacote.valorBase)}
                 {pacote.bloqueiaDiaInteiro ? ' (dia inteiro)' : pacote.duracaoEstimada ? ` (${pacote.duracaoEstimada})` : ''}
@@ -172,55 +176,44 @@ export function StepEnsaio() {
         />
       </div>
 
+      <div className="grid gap-4 sm:grid-cols-2">
+        <div>
+          <Label htmlFor="custoDeslocamento">Custo de Deslocamento (R$)</Label>
+          <CurrencyInput
+            value={watch('custoDeslocamento') ?? 0}
+            onChange={(value) => setValue('custoDeslocamento', value, { shouldValidate: true })}
+          />
+        </div>
+
+        <div className="flex items-end pb-0.5">
+          <div className="flex items-center justify-between rounded-lg border p-3 w-full">
+            <div>
+              <span className="text-sm font-medium">Repassar ao cliente</span>
+              <p className="text-xs text-muted-foreground">
+                {watch('repassarDeslocamento')
+                  ? `R$ ${(watch('custoDeslocamento') ?? 0).toFixed(2)} será cobrado`
+                  : 'Custo será absorvido'}
+              </p>
+            </div>
+            <Switch
+              checked={watch('repassarDeslocamento') ?? true}
+              onCheckedChange={(checked) => setValue('repassarDeslocamento', checked)}
+              activeClassName="!bg-emerald-500"
+            />
+          </div>
+        </div>
+      </div>
+
       <div>
-        <Label>Editor Responsável</Label>
-        <Select value={watch('editorId') ?? ''} onValueChange={(value) => setValue('editorId', value)}>
-          <SelectTrigger>
-            <SelectValue placeholder="Selecione um editor" />
-          </SelectTrigger>
-          <SelectContent>
-            {usuarios?.map((user) => (
-              <SelectItem key={user.id} value={user.id}>
-                {user.nome}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        <Label>Fotógrafo Principal</Label>
+        <p className="mt-1 text-sm text-muted-foreground">
+          {user?.nome ?? 'Usuário logado'} — o ensaio é atribuído a você.
+        </p>
       </div>
 
       <ParceirosRepasseList
         base={(pacoteSelecionado?.valorBase ?? 0) + (watch('repassarDeslocamento') ? (watch('custoDeslocamento') ?? 0) : 0)}
       />
-
-      <div className="flex items-center justify-between rounded-lg border p-3">
-        <div>
-          <span className="text-sm font-medium">Repassar ao cliente</span>
-          <p className="text-xs text-muted-foreground">
-            {watch('repassarDeslocamento')
-              ? `R$ ${(watch('custoDeslocamento') ?? 0).toFixed(2)} será cobrado do cliente`
-              : 'Custo será absorvido (não cobrado do cliente)'}
-          </p>
-        </div>
-        <Switch
-          checked={watch('repassarDeslocamento') ?? true}
-          onCheckedChange={(checked) => setValue('repassarDeslocamento', checked)}
-        />
-      </div>
-
-      <label className="flex items-center gap-3 rounded-lg border p-3 cursor-pointer hover:bg-accent transition-colors">
-        <input
-          type="checkbox"
-          checked={watch('autorizaUsoImagem') ?? false}
-          onChange={(e) => setValue('autorizaUsoImagem', e.target.checked)}
-          className="h-4 w-4 rounded border-gray-300"
-        />
-        <div>
-          <span className="text-sm font-medium">Autorização de uso de imagem</span>
-          <p className="text-xs text-muted-foreground">
-            Cliente autoriza o uso das imagens para divulgação
-          </p>
-        </div>
-      </label>
     </div>
   )
 }

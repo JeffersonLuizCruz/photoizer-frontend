@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { edicaoService } from '../services/edicao.service'
+import { extractErrorMessage } from '@/shared/api'
 
 const EDICAO_KEYS = {
   all: ['edicao'] as const,
@@ -42,7 +43,7 @@ export function useUploadRaw(agendamentoId: string) {
       toast.success('Fotos RAW enviadas com sucesso')
     },
     onError: (error: Error) => {
-      toast.error(error.message || 'Erro ao enviar fotos RAW')
+      toast.error(extractErrorMessage(error, 'Erro ao enviar fotos RAW'))
     },
   })
 }
@@ -58,7 +59,7 @@ export function useUploadEditadas(agendamentoId: string) {
       toast.success('Fotos editadas enviadas com sucesso')
     },
     onError: (error: Error) => {
-      toast.error(error.message || 'Erro ao enviar fotos editadas')
+      toast.error(extractErrorMessage(error, 'Erro ao enviar fotos editadas'))
     },
   })
 }
@@ -74,7 +75,7 @@ export function useConcluirEdicao(agendamentoId: string) {
       toast.success('Edição concluída com sucesso')
     },
     onError: (error: Error) => {
-      toast.error(error.message || 'Erro ao concluir edição')
+      toast.error(extractErrorMessage(error, 'Erro ao concluir edição'))
     },
   })
 }
@@ -91,7 +92,7 @@ export function useDeleteFoto(agendamentoId: string) {
       toast.success('Foto removida com sucesso')
     },
     onError: (error: Error) => {
-      toast.error(error.message || 'Erro ao remover foto')
+      toast.error(extractErrorMessage(error, 'Erro ao remover foto'))
     },
   })
 }
@@ -107,7 +108,7 @@ export function useAtualizarObservacoes(agendamentoId: string) {
       toast.success('Observações salvas')
     },
     onError: (error: Error) => {
-      toast.error(error.message || 'Erro ao salvar observações')
+      toast.error(extractErrorMessage(error, 'Erro ao salvar observações'))
     },
   })
 }
@@ -122,7 +123,7 @@ export function useReordenarFotos(agendamentoId: string) {
       toast.success('Ordem atualizada')
     },
     onError: (error: Error) => {
-      toast.error(error.message || 'Erro ao reordenar fotos')
+      toast.error(extractErrorMessage(error, 'Erro ao reordenar fotos'))
     },
   })
 }
@@ -138,7 +139,7 @@ export function usePublicarLoja(agendamentoId: string) {
       toast.success('Fotos publicadas na loja virtual com sucesso!')
     },
     onError: (error: Error) => {
-      toast.error(error.message || 'Erro ao publicar na loja')
+      toast.error(extractErrorMessage(error, 'Erro ao publicar na loja'))
     },
   })
 }
@@ -166,7 +167,7 @@ export function usePublicarNoEcommerce(agendamentoId: string) {
       toast.success('Fotos publicadas no ecommerce com sucesso')
     },
     onError: (error: Error) => {
-      toast.error(error.message || 'Erro ao publicar no ecommerce')
+      toast.error(extractErrorMessage(error, 'Erro ao publicar no ecommerce'))
     },
   })
 }

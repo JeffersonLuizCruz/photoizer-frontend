@@ -3,6 +3,7 @@ import { toast } from 'sonner'
 import { pacoteService } from '../services/pacote.service'
 import type { PacoteFormData } from '../schemas/pacote.schema'
 import { QUERY_KEYS } from '@/shared/constants'
+import { extractErrorMessage } from '@/shared/api'
 
 export function usePacotesList() {
   return useQuery({
@@ -30,7 +31,7 @@ export function useCreatePacote() {
       toast.success('Pacote criado com sucesso')
     },
     onError: (error: Error) => {
-      toast.error(error.message || 'Erro ao criar pacote')
+      toast.error(extractErrorMessage(error, 'Erro ao criar pacote'))
     },
   })
 }
@@ -45,22 +46,38 @@ export function useUpdatePacote(id: string) {
       toast.success('Pacote atualizado com sucesso')
     },
     onError: (error: Error) => {
-      toast.error(error.message || 'Erro ao atualizar pacote')
+      toast.error(extractErrorMessage(error, 'Erro ao atualizar pacote'))
     },
   })
 }
 
-export function useDeletePacote() {
+export function useInativarPacote() {
   const queryClient = useQueryClient()
 
   return useMutation({
     mutationFn: (id: string) => pacoteService.delete(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.PACOTES })
-      toast.success('Pacote excluído com sucesso')
+      toast.success('Pacote inativado com sucesso')
     },
     onError: (error: Error) => {
-      toast.error(error.message || 'Erro ao excluir pacote')
+      toast.error(extractErrorMessage(error, 'Erro ao inativar pacote'))
+    },
+  })
+}
+
+export function useAtivarPacote() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async ({ id, payload }: { id: string; payload: PacoteFormData }) =>
+      pacoteService.update(id, payload),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.PACOTES })
+      toast.success('Pacote ativado com sucesso')
+    },
+    onError: (error: Error) => {
+      toast.error(extractErrorMessage(error, 'Erro ao ativar pacote'))
     },
   })
 }

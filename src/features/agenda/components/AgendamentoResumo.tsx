@@ -85,6 +85,7 @@ export function AgendamentoResumo({ agendamento }: AgendamentoResumoProps) {
           <p className="text-xs text-muted-foreground ml-5">{agendamento.enderecoCompleto}</p>
         )}
         <InfoRow label="Pacote" value={agendamento.pacoteNome} />
+        <InfoRow label="Fotógrafo responsável" value={agendamento.fotografoNome} />
         <InfoRow label="Editor" value={agendamento.editorNome} />
         {agendamento.fotografos && agendamento.fotografos.length > 0 && (
           <div>

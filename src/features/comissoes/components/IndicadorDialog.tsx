@@ -8,6 +8,7 @@ import { Input } from '@/shared/components/ui/input'
 import { Label } from '@/shared/components/ui/label'
 import { indicadorService } from '../services/indicador.service'
 import type { IndicadorResponse } from '../types'
+import { extractErrorMessage } from '@/shared/api'
 
 interface IndicadorDialogProps {
   open: boolean
@@ -57,9 +58,8 @@ export function IndicadorDialog({ open, onOpenChange, indicador }: IndicadorDial
       onOpenChange(false)
     },
     onError: (error: Error) => {
-      // 409 já tratado pelo interceptor global (toast duplicado)
       if (isAxiosError(error) && error.response?.status === 409) return
-      toast.error(error.message || 'Erro ao salvar indicador')
+      toast.error(extractErrorMessage(error, 'Erro ao salvar indicador'))
     },
   })
 
