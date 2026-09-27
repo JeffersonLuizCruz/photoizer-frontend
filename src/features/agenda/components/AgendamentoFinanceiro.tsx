@@ -65,6 +65,8 @@ export function AgendamentoFinanceiro({ agendamento }: AgendamentoFinanceiroProp
     agendamento.status !== AGENDAMENTO_STATUS.CANCELADO &&
     agendamento.status !== AGENDAMENTO_STATUS.NO_SHOW
 
+  const ensaioFinalizado = agendamento.status === AGENDAMENTO_STATUS.FINALIZADO
+
   const pagamentoFinalRealizado = ([
     AGENDAMENTO_STATUS.EM_EDICAO,
     AGENDAMENTO_STATUS.FOTOS_ENVIADAS_PARA_SELECAO,
@@ -108,7 +110,7 @@ export function AgendamentoFinanceiro({ agendamento }: AgendamentoFinanceiroProp
     ;(resumo?.despesas ?? []).forEach((d) => {
       rows.push(['Despesa', d.descricao, d.categoria, d.data, d.valor, d.status])
     })
-    const filename = `resumo-financeiro-${agendamento.clienteNome.replace(/\s+/g, '-').toLowerCase()}-${format(new Date(), 'yyyyMMdd')}`
+    const filename = `resumo-financeiro-${(agendamento.clienteNome ?? 'proposta').replace(/\s+/g, '-').toLowerCase()}-${format(new Date(), 'yyyyMMdd')}`
     if (formato === 'csv') {
       exportarCSV(`${filename}.csv`, header, rows)
     } else {
@@ -375,7 +377,8 @@ export function AgendamentoFinanceiro({ agendamento }: AgendamentoFinanceiroProp
                             variant="outline"
                             size="sm"
                             onClick={() => pagarRepasse.mutate({ agendamentoId: agendamento.id, fotografoId: f.fotografoId })}
-                            disabled={pagarRepasse.isPending}
+                            disabled={pagarRepasse.isPending || !ensaioFinalizado}
+                            title={!ensaioFinalizado ? 'O repasse só pode ser realizado após a finalização do ensaio' : undefined}
                           >
                             <HandCoins className="mr-1 h-4 w-4" />
                             Pagar

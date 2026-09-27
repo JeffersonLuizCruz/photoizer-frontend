@@ -155,15 +155,15 @@ export function AdminGaleriaPage() {
     }
   }, [agendamento])
 
-  const uploadLiberado = agendamento
-    ? ([
-        AGENDAMENTO_STATUS.EM_EDICAO,
-        AGENDAMENTO_STATUS.SELECAO_DAS_FOTOS,
-        AGENDAMENTO_STATUS.FOTOS_ENVIADAS_PARA_SELECAO,
-        AGENDAMENTO_STATUS.FOTOS_ENTREGUES,
-        AGENDAMENTO_STATUS.FINALIZADO,
-      ] as AgendamentoStatus[]).includes(agendamento.status)
-    : false
+  const STATUS_LIBERADOS = [
+    AGENDAMENTO_STATUS.EM_EDICAO,
+    AGENDAMENTO_STATUS.FOTOS_ENVIADAS_PARA_SELECAO,
+    AGENDAMENTO_STATUS.FOTOS_ENTREGUES,
+    AGENDAMENTO_STATUS.FINALIZADO,
+  ] as AgendamentoStatus[]
+
+  const uploadLiberado = agendamento ? STATUS_LIBERADOS.includes(agendamento.status) : false
+  const publicacaoLiberada = uploadLiberado
 
   if (!id) return <PageLoading />
 
@@ -227,7 +227,7 @@ export function AdminGaleriaPage() {
                 Copiar Link
               </Button>
             )}
-            {fotos.length > 0 && !allPublished && (
+            {publicacaoLiberada && fotos.length > 0 && !allPublished && (
               <Button onClick={() => publicar()} disabled={isPublishing} variant="default" size="sm">
                 {isPublishing ? <Loader2 className="mr-1 h-4 w-4 animate-spin" /> : <Send className="mr-1 h-4 w-4" />}
                 Publicar Galeria

@@ -15,7 +15,6 @@ const CheckoutPage = lazy(() => import('@/features/ecommerce/pages/CheckoutPage'
 const CustomerLoginPage = lazy(() => import('@/features/auth/customer').then(m => ({ default: m.CustomerLoginPage })))
 const CustomerDashboardPage = lazy(() => import('@/features/auth/customer').then(m => ({ default: m.CustomerDashboardPage })))
 const CustomerProfilePage = lazy(() => import('@/features/auth/customer/CustomerProfilePage').then(m => ({ default: m.CustomerProfilePage })))
-const NovoAgendamentoPage = lazy(() => import('@/features/agenda').then(m => ({ default: m.NovoAgendamentoPage })))
 const AgendamentoDetalhesPage = lazy(() => import('@/features/agenda').then(m => ({ default: m.AgendamentoDetalhesPage })))
 const EditarAgendamentoPage = lazy(() => import('@/features/agenda').then(m => ({ default: m.EditarAgendamentoPage })))
 const AgendaPage = lazy(() => import('@/features/agenda').then(m => ({ default: m.AgendaPage })))
@@ -25,19 +24,14 @@ const PacoteFormPage = lazy(() => import('@/features/pacotes').then(m => ({ defa
 const DashboardPage = lazy(() => import('@/features/dashboard').then(m => ({ default: m.DashboardPage })))
 const ConfigPage = lazy(() => import('@/features/config').then(m => ({ default: m.ConfigPage })))
 const ComissoesConsultaPage = lazy(() => import('@/features/comissoes').then(m => ({ default: m.ComissoesConsultaPage })))
-const EdicaoListPage = lazy(() => import('@/features/edicao').then(m => ({ default: m.EdicaoListPage })))
-const EdicaoGaleriaPage = lazy(() => import('@/features/edicao').then(m => ({ default: m.EdicaoGaleriaPage })))
-const UploadRawPage = lazy(() => import('@/features/edicao').then(m => ({ default: m.UploadRawPage })))
-const EdicaoRevisaoPage = lazy(() => import('@/features/edicao').then(m => ({ default: m.EdicaoRevisaoPage })))
 const FinanceiroDashboardPage = lazy(() => import('@/features/financeiro').then(m => ({ default: m.FinanceiroDashboardPage })))
 const RelatoriosPage = lazy(() => import('@/features/financeiro').then(m => ({ default: m.RelatoriosPage })))
 const ReceitasPage = lazy(() => import('@/features/financeiro').then(m => ({ default: m.ReceitasPage })))
 const FluxoCaixaPage = lazy(() => import('@/features/financeiro').then(m => ({ default: m.FluxoCaixaPage })))
 const DespesasPage = lazy(() => import('@/features/despesas').then(m => ({ default: m.DespesasPage })))
-const ContratosPage = lazy(() => import('@/features/contratos').then(m => ({ default: m.ContratosPage })))
-const CriarContratoPage = lazy(() => import('@/features/contratos').then(m => ({ default: m.CriarContratoPage })))
-const ContratoDetalhesPage = lazy(() => import('@/features/contratos').then(m => ({ default: m.ContratoDetalhesPage })))
-const ContratoPublicoPage = lazy(() => import('@/features/contratos').then(m => ({ default: m.ContratoPublicoPage })))
+const PropostasPage = lazy(() => import('@/features/propostas').then(m => ({ default: m.PropostasPage })))
+const NovaPropostaPage = lazy(() => import('@/features/propostas').then(m => ({ default: m.NovaPropostaPage })))
+const PropostaPublicaPage = lazy(() => import('@/features/propostas').then(m => ({ default: m.PropostaPublicaPage })))
 const FotografosListPage = lazy(() => import('@/features/fotografos/pages/FotografosListPage').then(m => ({ default: m.FotografosListPage })))
 const FotografoDashboardPage = lazy(() => import('@/features/fotografos/pages/FotografoDashboardPage').then(m => ({ default: m.FotografoDashboardPage })))
 const FotografosNovoPage = lazy(() => import('@/features/fotografos/pages/FotografosNovoPage').then(m => ({ default: m.FotografosNovoPage })))
@@ -77,7 +71,7 @@ export function AppRoutes() {
       <Suspense fallback={<PageLoader />}>
         <Routes>
           <Route path="/g/:token" element={<GaleriaClientePage />} />
-          <Route path={ROUTES.CONTRATO_PUBLICO} element={<ContratoPublicoPage />} />
+          <Route path={ROUTES.PROPOSTA_PUBLICA} element={<PropostaPublicaPage />} />
 
           <Route path={ROUTES.LOGIN} element={<LoginPage />} />
           <Route path={ROUTES.ACESSO_CLIENTE} element={<CustomerLoginPage />} />
@@ -90,12 +84,10 @@ export function AppRoutes() {
             <Route path="/" element={<HomeRedirect />} />
             <Route path={ROUTES.DASHBOARD} element={<DashboardPage />} />
             <Route path={ROUTES.AGENDA} element={<AgendaPage />} />
-            <Route path={ROUTES.AGENDA_NOVO} element={<NovoAgendamentoPage />} />
             <Route path={ROUTES.AGENDA_DETALHES} element={<AgendamentoDetalhesPage />} />
             <Route path={ROUTES.AGENDA_EDITAR} element={<EditarAgendamentoPage />} />
-            <Route path={ROUTES.CONTRATOS} element={<ContratosPage />} />
-            <Route path={ROUTES.CONTRATOS_NOVO} element={<CriarContratoPage />} />
-            <Route path={ROUTES.CONTRATO_DETALHES} element={<ContratoDetalhesPage />} />
+            <Route path={ROUTES.PROPOSTAS} element={<PropostasPage />} />
+            <Route path={ROUTES.PROPOSTAS_NOVO} element={<NovaPropostaPage />} />
             <Route path={ROUTES.PACOTES} element={<PacotesListPage />} />
             <Route path={ROUTES.PACOTES_NOVO} element={<PacoteFormPage />} />
             <Route path={ROUTES.PACOTES_EDITAR} element={<PacoteFormPage />} />
@@ -107,10 +99,6 @@ export function AppRoutes() {
             <Route path={ROUTES.CONFIG} element={<ConfigPage />} />
             <Route path={ROUTES.COMISSOES} element={<ComissoesConsultaPage />} />
             <Route path={ROUTES.AGENDA_GALERIA} element={<AdminGaleriaPage />} />
-            <Route path={ROUTES.EDICAO} element={<EdicaoListPage />} />
-            <Route path={ROUTES.EDICAO_AGENDAMENTO} element={<EdicaoGaleriaPage />} />
-            <Route path={ROUTES.EDICAO_UPLOAD_RAW} element={<UploadRawPage />} />
-            <Route path={ROUTES.EDICAO_REVISAO} element={<EdicaoRevisaoPage />} />
             <Route path={ROUTES.ADMIN_ECOMMERCE} element={<AdminEcommercePage />} />
             <Route path={ROUTES.ADMIN_ANALYTICS} element={<AdminAnalyticsPage />} />
             <Route path={ROUTES.FOTOGRAFOS} element={<FotografosListPage />} />

@@ -1,7 +1,7 @@
 import { useForm, FormProvider } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { format } from 'date-fns'
-import { Loader2 } from 'lucide-react'
+import { AlertTriangle, Loader2 } from 'lucide-react'
 import { Button } from '@/shared/components/ui/button'
 import { Input } from '@/shared/components/ui/input'
 import { Label } from '@/shared/components/ui/label'
@@ -11,8 +11,9 @@ import { Calendar } from '@/shared/components/ui/calendar'
 import { Popover, PopoverContent, PopoverTrigger } from '@/shared/components/ui/popover'
 import { CurrencyInput } from '@/shared/components/layout/CurrencyInput'
 import { cn } from '@/shared/lib/cn'
+import { parseDuracao } from '@/shared/lib/duracao'
 import { CalendarIcon } from 'lucide-react'
-import { usePacotesList } from '../api/queries'
+import { usePacotesList, useUsuariosList, useDisponibilidade } from '../api/queries'
 import { editarAgendamentoSchema, type EditarAgendamentoFormData } from '../schemas/agendamento.schema'
 import type { Agendamento } from '../types'
 import { ROUTES } from '@/shared/constants'
@@ -34,6 +35,7 @@ interface EditarAgendamentoFormProps {
 export function EditarAgendamentoForm({ agendamento, onSubmit, isPending }: EditarAgendamentoFormProps) {
   const navigate = useNavigate()
   const { data: pacotes } = usePacotesList()
+  const { data: usuarios = [] } = useUsuariosList()
 
   const methods = useForm<EditarAgendamentoFormData>({
     resolver: zodResolver(editarAgendamentoSchema) as any,
@@ -66,6 +68,22 @@ export function EditarAgendamentoForm({ agendamento, onSubmit, isPending }: Edit
   } = methods
 
   const selectedDate = watch('dataHoraEnsaio') ? new Date(watch('dataHoraEnsaio')) : undefined
+  const fotografoId = watch('fotografoId')
+  const pacoteSelecionado = pacotes?.find((p) => p.id === watch('pacoteId'))
+
+  const responsaveis = usuarios.filter(
+    (u) => (u.papel === 'FOTOGRAFO' || u.papel === 'ADMIN') && u.ativo !== false,
+  )
+
+  const { data: disponibilidade } = useDisponibilidade(
+    selectedDate,
+    selectedDate ? format(selectedDate, 'HH:mm') : undefined,
+    parseDuracao(pacoteSelecionado?.duracaoEstimada),
+    pacoteSelecionado?.bloqueiaDiaInteiro ?? false,
+    fotografoId || undefined,
+    agendamento.id,
+  )
+  const conflito = disponibilidade && !disponibilidade.disponivel
 
   const handleDateSelect = (date: Date | undefined) => {
     if (!date) return
@@ -131,6 +149,24 @@ export function EditarAgendamentoForm({ agendamento, onSubmit, isPending }: Edit
           {errors.pacoteId && <p className="mt-1 text-sm text-destructive">{errors.pacoteId.message}</p>}
         </div>
 
+        <div>
+          <Label>Fotógrafo responsável</Label>
+          <Select
+            value={fotografoId ?? ''}
+            onValueChange={(value) => setValue('fotografoId', value === '__none__' ? undefined : value, { shouldValidate: true })}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Selecione o responsável" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="__none__">Sem responsável definido</SelectItem>
+              {responsaveis.map((u) => (
+                <SelectItem key={u.id} value={u.id}>{u.nome}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
         <div className="sm:col-span-2">
           <ParceirosRepasseList base={agendamento.valorTotal} />
         </div>
@@ -173,6 +209,21 @@ export function EditarAgendamentoForm({ agendamento, onSubmit, isPending }: Edit
               ))}
             </SelectContent>
           </Select>
+          {conflito && disponibilidade && (
+            <div className="mt-2 rounded-lg border border-destructive/50 bg-destructive/5 p-3">
+              <div className="flex items-center gap-2">
+                <AlertTriangle className="h-4 w-4 shrink-0 text-destructive" />
+                <p className="text-sm font-medium text-destructive">Horário indisponível</p>
+              </div>
+              <ul className="mt-2 list-inside list-disc space-y-1 text-xs text-muted-foreground">
+                {disponibilidade.conflitos.map((c) => (
+                  <li key={c.agendamentoId}>
+                    {c.clienteNome || 'Agendamento'} — {c.horario}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
         </div>
 
         <div>
@@ -229,7 +280,7 @@ export function EditarAgendamentoForm({ agendamento, onSubmit, isPending }: Edit
         <Button type="button" variant="outline" onClick={() => navigate(`/agenda/${agendamento.id}`)}>
           Cancelar
         </Button>
-        <Button type="submit" disabled={isPending}>
+        <Button type="submit" disabled={isPending || !!conflito}>
           {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
           Salvar alterações
         </Button>

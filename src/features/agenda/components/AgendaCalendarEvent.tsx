@@ -13,11 +13,13 @@ interface AgendaCalendarEventProps {
 }
 
 export const statusColors: Record<string, string> = {
+  PRE_RESERVA: 'bg-slate-400',
+  AGUARDANDO_APROVACAO: 'bg-indigo-400',
+  PAGAMENTO_CONFIRMADO: 'bg-cyan-400',
   CONFIRMADO: 'bg-emerald-500',
   REALIZADO: 'bg-blue-500',
   AGUARDANDO_PAGAMENTO_FINAL: 'bg-amber-500',
   EM_EDICAO: 'bg-orange-500',
-  SELECAO_DAS_FOTOS: 'bg-pink-500',
   FOTOS_ENVIADAS_PARA_SELECAO: 'bg-purple-500',
   FOTOS_ENTREGUES: 'bg-teal-500',
   FINALIZADO: 'bg-gray-400',
@@ -27,11 +29,13 @@ export const statusColors: Record<string, string> = {
 }
 
 export const statusBgColors: Record<string, string> = {
+  PRE_RESERVA: 'bg-slate-50 border-dashed border-slate-300 hover:bg-slate-100 dark:bg-slate-900 dark:border-slate-700',
+  AGUARDANDO_APROVACAO: 'bg-indigo-50 border-indigo-200 hover:bg-indigo-100 dark:bg-indigo-950 dark:border-indigo-800',
+  PAGAMENTO_CONFIRMADO: 'bg-cyan-50 border-cyan-200 hover:bg-cyan-100 dark:bg-cyan-950 dark:border-cyan-800',
   CONFIRMADO: 'bg-emerald-50 border-emerald-200 hover:bg-emerald-100 dark:bg-emerald-950 dark:border-emerald-800',
   REALIZADO: 'bg-blue-50 border-blue-200 hover:bg-blue-100 dark:bg-blue-950 dark:border-blue-800',
   AGUARDANDO_PAGAMENTO_FINAL: 'bg-amber-50 border-amber-200 hover:bg-amber-100 dark:bg-amber-950 dark:border-amber-800',
   EM_EDICAO: 'bg-orange-50 border-orange-200 hover:bg-orange-100 dark:bg-orange-950 dark:border-orange-800',
-  SELECAO_DAS_FOTOS: 'bg-pink-50 border-pink-200 hover:bg-pink-100 dark:bg-pink-950 dark:border-pink-800',
   FOTOS_ENVIADAS_PARA_SELECAO: 'bg-purple-50 border-purple-200 hover:bg-purple-100 dark:bg-purple-950 dark:border-purple-800',
   FOTOS_ENTREGUES: 'bg-teal-50 border-teal-200 hover:bg-teal-100 dark:bg-teal-950 dark:border-teal-800',
   FINALIZADO: 'bg-gray-50 border-gray-200 hover:bg-gray-100 dark:bg-gray-900 dark:border-gray-700',
@@ -40,11 +44,13 @@ export const statusBgColors: Record<string, string> = {
 }
 
 export const statusLabels: Record<string, { label: string; variant: 'success' | 'info' | 'warning' | 'destructive' | 'default' | 'secondary' }> = {
+  PRE_RESERVA: { label: 'Pré-reserva', variant: 'secondary' },
+  AGUARDANDO_APROVACAO: { label: 'Aguardando Aprovação', variant: 'warning' },
+  PAGAMENTO_CONFIRMADO: { label: 'Pagamento Confirmado', variant: 'info' },
   CONFIRMADO: { label: 'Confirmado', variant: 'info' },
   REALIZADO: { label: 'Realizado', variant: 'success' },
   AGUARDANDO_PAGAMENTO_FINAL: { label: 'Aguardando Pagto', variant: 'warning' },
   EM_EDICAO: { label: 'Em Edição', variant: 'warning' },
-  SELECAO_DAS_FOTOS: { label: 'Seleção de Fotos', variant: 'info' },
   FOTOS_ENVIADAS_PARA_SELECAO: { label: 'Fotos p/ Seleção', variant: 'info' },
   FOTOS_ENTREGUES: { label: 'Fotos Entregues', variant: 'success' },
   FINALIZADO: { label: 'Finalizado', variant: 'success' },

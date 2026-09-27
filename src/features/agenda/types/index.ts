@@ -29,9 +29,9 @@ export interface Pacote {
 
 export interface Agendamento {
   id: string
-  clienteId: string
-  clienteNome: string
-  clienteTelefone: string
+  clienteId: string | null
+  clienteNome: string | null
+  clienteTelefone: string | null
   clienteEmail: string | null
   clienteCpf: string | null
   clienteCidade: string | null
@@ -76,7 +76,10 @@ export interface Agendamento {
 
   autorizaUsoImagem: boolean
   clausulasPersonalizadas: string | null
-  contratoGerado: boolean
+  tokenProposta: string | null
+  dataAssinatura: string | null
+  urlPdfAssinatura: string | null
+  urlAssinaturaImagem: string | null
 
   ensaioDestaque: boolean
 

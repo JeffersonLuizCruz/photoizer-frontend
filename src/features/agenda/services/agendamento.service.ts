@@ -1,37 +1,10 @@
-import { format } from 'date-fns'
 import { apiClient } from '@/shared/api'
 import { parseDuracao } from '@/shared/lib/duracao'
 import type { Agendamento, ExtraServicoResponse, Pacote, Pagamento, Usuario, FinanceiroTrabalho, Reatribuicao } from '../types'
-import type { WizardFormValues } from '../schemas/agendamento.schema'
 import type { AgendamentoStatus } from '@/shared/constants'
 import type { EditarAgendamentoFormData } from '../schemas/agendamento.schema'
 
 export { parseDuracao }
-
-export interface RascunhoAgendamentoData {
-  clienteId?: string
-  nome?: string
-  telefone?: string
-  email?: string
-  cpf?: string
-  cidade?: string
-  estado?: string
-  origem?: string
-  pacoteId?: string
-  data?: string
-  hora?: string
-  localEnsaio?: string
-  enderecoCompleto?: string
-  custoDeslocamento?: number
-  repassarDeslocamento?: boolean
-  indicadorId?: string
-  indicadorNome?: string
-  indicadorTelefone?: string
-  observacoes?: string
-  currentStep?: number
-  comprovanteName?: string | null
-  confirmado?: boolean
-}
 
 export interface Config {
   valorUnitarioFotoExtra: number
@@ -122,70 +95,14 @@ export const agendamentoService = {
     await apiClient.patch(`/despesas/${despesaId}/agendamento`, { agendamentoId })
   },
 
-  createFromWizard: async (
-    payload: WizardFormValues,
-    comprovante?: File,
-  ): Promise<Agendamento> => {
-    const formData = new FormData()
-
-    if (payload.clienteId) {
-      formData.append('clienteId', payload.clienteId)
-    }
-    formData.append('nome', payload.nome)
-    formData.append('telefone', payload.telefone)
-    if (payload.email) formData.append('email', payload.email)
-    if (payload.cpf) formData.append('cpf', payload.cpf)
-    if (payload.cidade) formData.append('cidade', payload.cidade)
-    if (payload.estado) formData.append('estado', payload.estado)
-    if (payload.origem) formData.append('origem', payload.origem)
-
-    formData.append('pacoteId', payload.pacoteId)
-    formData.append('data', payload.data instanceof Date ? format(payload.data, 'yyyy-MM-dd') : payload.data)
-    formData.append('hora', payload.hora)
-    formData.append('localEnsaio', payload.localEnsaio)
-    if (payload.enderecoCompleto) formData.append('enderecoCompleto', payload.enderecoCompleto)
-    const taxaDeslocamento = payload.repassarDeslocamento ? payload.custoDeslocamento : 0
-    formData.append('taxaDeslocamento', String(taxaDeslocamento))
-    formData.append('custoDeslocamento', String(payload.custoDeslocamento))
-    formData.append('repassarDeslocamento', String(payload.repassarDeslocamento))
-
-    if (payload.indicadorId) formData.append('indicadorId', payload.indicadorId)
-    if (payload.indicadorNome) formData.append('indicadorNome', payload.indicadorNome)
-    if (payload.indicadorTelefone) formData.append('indicadorTelefone', payload.indicadorTelefone)
-
-    if (payload.fotografos && payload.fotografos.length > 0) {
-      formData.append('fotografos', JSON.stringify(payload.fotografos))
-    }
-
-    if (payload.observacoes) formData.append('observacoes', payload.observacoes)
-    if (comprovante) formData.append('comprovanteEntrada', comprovante)
-
-    const { data } = await apiClient.post<Agendamento>('/agendamentos', formData)
+  confirmarPagamento: async (id: string): Promise<Agendamento> => {
+    const { data } = await apiClient.patch<Agendamento>(`/agendamentos/${id}/confirmar-pagamento`)
     return data
   },
 
-  salvarRascunho: async (data: RascunhoAgendamentoData): Promise<RascunhoAgendamentoData> => {
-    const params = new URLSearchParams()
-    Object.entries(data).forEach(([key, value]) => {
-      if (value !== undefined && value !== null) {
-        params.append(key, String(value))
-      }
-    })
-    const { data: result } = await apiClient.post<RascunhoAgendamentoData>('/rascunhos', null, { params })
-    return result
-  },
-
-  buscarRascunho: async (): Promise<RascunhoAgendamentoData | null> => {
-    try {
-      const { data } = await apiClient.get<RascunhoAgendamentoData>('/rascunhos/meu')
-      return data
-    } catch {
-      return null
-    }
-  },
-
-  deletarRascunho: async (): Promise<void> => {
-    await apiClient.delete('/rascunhos/meu')
+  aprovar: async (id: string): Promise<Agendamento> => {
+    const { data } = await apiClient.patch<Agendamento>(`/agendamentos/${id}/aprovar`)
+    return data
   },
 
   updateStatus: async (id: string, status: AgendamentoStatus): Promise<Agendamento> => {

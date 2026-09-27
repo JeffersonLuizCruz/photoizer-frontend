@@ -9,118 +9,98 @@ import { Input } from '@/shared/components/ui/input'
 import { Label } from '@/shared/components/ui/label'
 import { FileUpload } from '@/shared/components/layout/FileUpload'
 import { formatCurrency } from '@/shared/lib/format'
-import { CONTRATO_STATUS } from '@/shared/constants'
-import { assinarContratoSchema, type AssinarContratoFormValues, formatCpf } from '../schemas/contrato.schema'
-import { useContratoPublico, useAssinarContrato } from '../api/queries'
-import { STATUS_LABEL } from './status'
+import { AGENDAMENTO_STATUS } from '@/shared/constants'
+import { assinarPropostaSchema, type AssinarPropostaFormValues, formatCpf } from '../schemas/proposta.schema'
+import { usePropostaPublica, useAssinarProposta } from '../api/queries'
+import { SignaturePad } from '../components/SignaturePad'
 
-export function ContratoPublicoPage() {
+export function PropostaPublicaPage() {
   const { token } = useParams<{ token: string }>()
-  const { data: contrato, isLoading, error } = useContratoPublico(token!)
-  const assinar = useAssinarContrato(token!)
+  const { data: proposta, isLoading, error } = usePropostaPublica(token!)
+  const assinar = useAssinarProposta(token!)
   const [comprovante, setComprovante] = useState<File | null>(null)
+  const [assinaturaImagem, setAssinaturaImagem] = useState<Blob | null>(null)
   const [assinado, setAssinado] = useState(false)
   const [erroEnvio, setErroEnvio] = useState<string | null>(null)
 
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-  } = useForm<AssinarContratoFormValues>({
-    resolver: zodResolver(assinarContratoSchema),
+  const { register, handleSubmit, formState: { errors } } = useForm<AssinarPropostaFormValues>({
+    resolver: zodResolver(assinarPropostaSchema),
     mode: 'onSubmit',
     defaultValues: {
-      nome: '',
-      telefone: '',
-      email: '',
-      cpf: '',
-      cidade: '',
-      estado: '',
-      autorizaUsoImagem: undefined,
-      assinatura: '',
+      nome: '', telefone: '', email: '', cpf: '', cidade: '', estado: '',
+      autorizaUsoImagem: undefined, assinatura: '',
     },
   })
-
 
   if (isLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-gray-50 p-4">
-        <PageLoading label="Carregando contrato..." />
+        <PageLoading label="Carregando proposta..." />
       </div>
     )
   }
 
   if (error) {
-    const msg = (error as any)?.response?.data?.message || error?.message || 'Erro ao carregar o contrato'
+    const msg = (error as { response?: { data?: { message?: string } } })?.response?.data?.message || error?.message || 'Erro ao carregar a proposta'
     return (
       <div className="flex min-h-screen items-center justify-center bg-gray-50 p-4">
         <div className="max-w-md text-center">
           <FileSignature className="mx-auto h-16 w-16 text-muted-foreground" />
-          <h1 className="mt-4 text-xl font-bold">Contrato não encontrado</h1>
+          <h1 className="mt-4 text-xl font-bold">Proposta não encontrada</h1>
           <p className="mt-2 text-sm text-muted-foreground">{msg}</p>
-          <p className="mt-4 text-xs text-muted-foreground">
-            Entre em contato com o fotógrafo para solicitar um novo link.
-          </p>
+          <p className="mt-4 text-xs text-muted-foreground">Entre em contato com o fotógrafo para solicitar um novo link.</p>
         </div>
       </div>
     )
   }
 
-  if (!contrato) return null
+  if (!proposta) return null
 
-  const jahAssinado =
-    contrato.status === CONTRATO_STATUS.ASSINADO_PELO_CLIENTE ||
-    contrato.status === CONTRATO_STATUS.PAGAMENTO_CONFIRMADO ||
-    contrato.status === CONTRATO_STATUS.APROVADO
+  const jahAssinado = proposta.status !== AGENDAMENTO_STATUS.PRE_RESERVA
 
   if (jahAssinado) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-gray-50 p-4">
         <div className="max-w-md text-center">
           <CheckCircle2 className="mx-auto h-16 w-16 text-green-500" />
-          <h1 className="mt-4 text-xl font-bold">Contrato já assinado</h1>
-          <p className="mt-2 text-sm text-muted-foreground">
-            Status: {STATUS_LABEL[contrato.status]}
-          </p>
-          <p className="mt-4 text-xs text-muted-foreground">
-            Seu contrato já foi recebido e está sendo processado.
-          </p>
-        </div>
-      </div>
-    )
-  }
-
-  const podeAssinar = contrato.podeAssinar
-
-  if (assinado) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-gray-50 p-4">
-        <div className="max-w-md text-center">
-          <CheckCircle2 className="mx-auto h-16 w-16 text-green-500" />
-          <h1 className="mt-4 text-xl font-bold">Contrato assinado com sucesso!</h1>
-          <p className="mt-2 text-sm text-muted-foreground">
-            Seu contrato foi enviado para {contrato.contratadaNome}.
-          </p>
-          <p className="mt-2 text-sm text-muted-foreground">
-            Aguarde a confirmação do pagamento e a aprovação do agendamento.
-          </p>
+          <h1 className="mt-4 text-xl font-bold">Proposta já assinada</h1>
           <p className="mt-4 text-xs text-muted-foreground">Você pode fechar esta página.</p>
         </div>
       </div>
     )
   }
 
-  const onSubmit = async (valores: AssinarContratoFormValues) => {
+  if (assinado) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-gray-50 p-4">
+        <div className="max-w-md text-center">
+          <CheckCircle2 className="mx-auto h-16 w-16 text-green-500" />
+          <h1 className="mt-4 text-xl font-bold">Proposta assinada com sucesso!</h1>
+          <p className="mt-2 text-sm text-muted-foreground">Seu contrato foi enviado para {proposta.contratadaNome}.</p>
+          <p className="mt-2 text-sm text-muted-foreground">Aguarde a confirmação do pagamento e a aprovação do agendamento.</p>
+          <p className="mt-4 text-xs text-muted-foreground">Você pode fechar esta página.</p>
+        </div>
+      </div>
+    )
+  }
+
+  const podeAssinar = proposta.podeAssinar
+
+  const onSubmit = async (valores: AssinarPropostaFormValues) => {
     setErroEnvio(null)
     if (!comprovante) {
       setErroEnvio('Anexe o comprovante de pagamento da reserva antes de assinar.')
       return
     }
+    if (!assinaturaImagem) {
+      setErroEnvio('Desenhe sua assinatura antes de enviar.')
+      return
+    }
     try {
-      await assinar.mutateAsync({ valores, comprovante })
+      await assinar.mutateAsync({ valores, comprovante, assinaturaImagem })
       setAssinado(true)
-    } catch (e: any) {
-      const msg = e?.response?.data?.message || e?.message || 'Erro ao assinar contrato. Tente novamente.'
+    } catch (e) {
+      const msg = (e as { response?: { data?: { message?: string } }; message?: string })?.response?.data?.message || (e as Error)?.message || 'Erro ao assinar proposta. Tente novamente.'
       setErroEnvio(msg)
     }
   }
@@ -129,29 +109,15 @@ export function ContratoPublicoPage() {
     <div className="min-h-screen bg-gray-50 py-4 sm:py-8">
       <div className="mx-auto max-w-3xl px-3 sm:px-4">
         <div className="rounded-xl border bg-white p-4 shadow-sm sm:p-10">
-          <h1 className="mb-6 text-center text-lg font-bold sm:text-xl">
-            PRESTAÇÃO DE SERVIÇOS FOTOGRÁFICOS
-          </h1>
+          <h1 className="mb-6 text-center text-lg font-bold sm:text-xl">PRESTAÇÃO DE SERVIÇOS FOTOGRÁFICOS</h1>
 
           {erroEnvio && (
-            <div className="mb-6 rounded-md bg-rose-50 p-3 text-sm text-rose-600 border border-rose-200">
-              {erroEnvio}
-            </div>
-          )}
-
-          {contrato.motivoDevolucao && (
-            <div className="mb-6 rounded-md bg-orange-50 p-3 text-sm text-orange-800 border border-orange-200">
-              <p className="font-medium">Motivo da devolução:</p>
-              <p className="mt-1">{contrato.motivoDevolucao}</p>
-            </div>
+            <div className="mb-6 rounded-md bg-rose-50 p-3 text-sm text-rose-600 border border-rose-200">{erroEnvio}</div>
           )}
 
           <form onSubmit={handleSubmit(onSubmit)}>
-            {contrato.clausulasHtml && (
-              <div
-                className="prose prose-sm max-w-none mb-8"
-                dangerouslySetInnerHTML={{ __html: contrato.clausulasHtml }}
-              />
+            {proposta.clausulasHtml && (
+              <div className="prose prose-sm max-w-none mb-8" dangerouslySetInnerHTML={{ __html: proposta.clausulasHtml }} />
             )}
 
             {podeAssinar && (
@@ -189,8 +155,7 @@ export function ContratoPublicoPage() {
                         {...register('cpf')}
                         placeholder="000.000.000-00"
                         onChange={(e) => {
-                          const formatted = formatCpf(e.target.value)
-                          e.target.value = formatted
+                          e.target.value = formatCpf(e.target.value)
                           register('cpf').onChange(e)
                         }}
                         autoComplete="off"
@@ -227,12 +192,9 @@ export function ContratoPublicoPage() {
                     <input type="radio" value="false" {...register('autorizaUsoImagem')} className="h-5 w-5 shrink-0 accent-primary" />
                     <span className="font-medium">NÃO AUTORIZO</span>
                   </label>
-                  {errors.autorizaUsoImagem && (
-                    <p className="text-xs text-destructive">{errors.autorizaUsoImagem.message}</p>
-                  )}
+                  {errors.autorizaUsoImagem && <p className="text-xs text-destructive">{errors.autorizaUsoImagem.message}</p>}
                   <p className="text-sm text-muted-foreground">
-                    Ao autorizar, as imagens poderão ser utilizadas para fins profissionais e promocionais da
-                    Contratada (redes sociais, portfólio, website, materiais publicitários).
+                    Ao autorizar, as imagens poderão ser utilizadas para fins profissionais e promocionais da Contratada (redes sociais, portfólio, website, materiais publicitários).
                   </p>
                 </div>
               </div>
@@ -242,35 +204,28 @@ export function ContratoPublicoPage() {
               <div className="space-y-4">
                 <h2 className="text-base font-semibold">9. Assinatura Digital</h2>
                 <p className="text-sm text-muted-foreground">
-                  Preencha seus dados acima e assine digitalmente para confirmar a leitura e concordância com
-                  todos os termos do contrato.
+                  Preencha seus dados, assine com o dedo/mouse e digite seu nome para confirmar a leitura e concordância com todos os termos.
                 </p>
 
                 <div className="mt-4 space-y-4">
                   <div>
-                    <Label htmlFor="assinatura">Assinatura (digite seu nome completo) *</Label>
-                    <Input
-                      id="assinatura"
-                      {...register('assinatura')}
-                      placeholder="Digite seu nome completo para assinar"
-                      autoComplete="off"
-                    />
-                    <p className="mt-1 text-xs text-muted-foreground">
-                      Ao digitar seu nome, você declara que leu e concorda com todos os termos do contrato.
-                    </p>
+                    <Label>Assinatura (desenho) *</Label>
+                    <div className="mt-2">
+                      <SignaturePad onChange={setAssinaturaImagem} />
+                    </div>
+                  </div>
+
+                  <div>
+                    <Label htmlFor="assinatura">Confirmação (digite seu nome completo) *</Label>
+                    <Input id="assinatura" {...register('assinatura')} placeholder="Digite seu nome completo para confirmar" autoComplete="off" />
                     {errors.assinatura && <p className="mt-1 text-xs text-destructive">{errors.assinatura.message}</p>}
                   </div>
 
                   <div>
                     <Label>Comprovante de pagamento da reserva *</Label>
                     <p className="mt-1 mb-3 text-sm">
-                      Transfira o valor de{' '}
-                      <strong className="text-blue-700">{formatCurrency(contrato.valorEntradaExigido)}</strong>{' '}
-                      via PIX para{' '}
-                      <strong className="text-blue-700">
-                        {contrato.pixChave || '(chave não informada)'}
-                      </strong>{' '}
-                      e anexe o comprovante abaixo.
+                      Transfira o valor de <strong className="text-blue-700">{formatCurrency(proposta.valorEntradaExigido)}</strong>{' '}
+                      via PIX para <strong className="text-blue-700">{proposta.pixChave || '(chave não informada)'}</strong> e anexe o comprovante abaixo.
                     </p>
                     <FileUpload
                       accept="image/jpeg,image/png,application/pdf"
@@ -278,27 +233,15 @@ export function ContratoPublicoPage() {
                       onFilesChange={(files) => setComprovante(files[0] || null)}
                       label="Toque para anexar o comprovante (JPG, PNG ou PDF)"
                     />
-                    {!comprovante && erroEnvio && (
-                      <p className="mt-1 text-xs text-destructive">Anexe o comprovante de pagamento.</p>
-                    )}
+                    {!comprovante && erroEnvio && <p className="mt-1 text-xs text-destructive">Anexe o comprovante de pagamento.</p>}
                   </div>
                 </div>
 
-                <Button
-                  type="submit"
-                  className="mt-6 w-full sm:w-auto min-h-[48px] sm:min-h-[40px]"
-                  disabled={assinar.isPending}
-                >
+                <Button type="submit" className="mt-6 w-full sm:w-auto min-h-[48px] sm:min-h-[40px]" disabled={assinar.isPending}>
                   {assinar.isPending ? (
-                    <>
-                      <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                      Enviando...
-                    </>
+                    <><Loader2 className="mr-2 h-5 w-5 animate-spin" />Enviando...</>
                   ) : (
-                    <>
-                      <FileSignature className="mr-2 h-5 w-5 sm:h-4 sm:w-4" />
-                      Assinar e enviar contrato
-                    </>
+                    <><FileSignature className="mr-2 h-5 w-5 sm:h-4 sm:w-4" />Assinar e enviar</>
                   )}
                 </Button>
               </div>
@@ -309,4 +252,3 @@ export function ContratoPublicoPage() {
     </div>
   )
 }
-

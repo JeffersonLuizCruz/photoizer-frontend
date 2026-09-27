@@ -1,13 +1,14 @@
 import { useState, Fragment } from 'react'
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
-import { HandCoins, Loader2, Check, Pencil } from 'lucide-react'
+import { HandCoins, Loader2, Check, Pencil, Lock } from 'lucide-react'
 import { Button } from '@/shared/components/ui/button'
 import { Badge } from '@/shared/components/ui/badge'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/shared/components/ui/table'
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/components/ui/card'
 import { useRepassesPendentes, usePagarRepasseLote, useParceirosList, useAtualizarRepasse } from '../api/queries'
 import { formatCurrency } from '@/shared/lib/format'
+import { AGENDAMENTO_STATUS } from '@/shared/constants'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/components/ui/select'
 import { RepasseInlineEditor } from '../components/RepasseInlineEditor'
 
@@ -23,6 +24,11 @@ export function RepassesPendentesPage() {
 
   const pendentes = repasses.filter(r => r.status === 'PENDENTE')
   const totalPendente = pendentes.reduce((acc, r) => acc + r.valorRepassar, 0)
+
+  const isEnsaioFinalizado = (r: (typeof repasses)[number]) =>
+    r.agendamento?.status === AGENDAMENTO_STATUS.FINALIZADO
+
+  const pendentesElegiveis = pendentes.filter(isEnsaioFinalizado)
 
   const toggleSelecao = (id: string) => {
     setSelecionados((prev) => {
@@ -129,13 +135,14 @@ export function RepassesPendentesPage() {
                   <input
                     type="checkbox"
                     className="h-4 w-4"
-                    checked={selecionados.size === pendentes.length && pendentes.length > 0}
-                    aria-label="Selecionar todos os repasses pendentes"
+                    checked={selecionados.size === pendentesElegiveis.length && pendentesElegiveis.length > 0}
+                    disabled={pendentesElegiveis.length === 0}
+                    aria-label="Selecionar todos os repasses pendentes elegíveis"
                     onChange={() => {
-                      if (selecionados.size === pendentes.length) {
+                      if (selecionados.size === pendentesElegiveis.length) {
                         setSelecionados(new Set())
                       } else {
-                        setSelecionados(new Set(pendentes.map(r => r.id)))
+                        setSelecionados(new Set(pendentesElegiveis.map(r => r.id)))
                       }
                     }}
                   />
@@ -154,7 +161,7 @@ export function RepassesPendentesPage() {
                 <Fragment key={r.id}>
                 <TableRow className={r.status === 'PAGO' ? 'opacity-60' : ''}>
                   <TableCell>
-                    {r.status === 'PENDENTE' && (
+                    {r.status === 'PENDENTE' && isEnsaioFinalizado(r) && (
                       <input
                         type="checkbox"
                         className="h-4 w-4"
@@ -162,6 +169,11 @@ export function RepassesPendentesPage() {
                         aria-label={`Selecionar repasse de ${r.fotografo?.nome ?? 'fotógrafo'}`}
                         onChange={() => toggleSelecao(r.id)}
                       />
+                    )}
+                    {r.status === 'PENDENTE' && !isEnsaioFinalizado(r) && (
+                      <span title="Aguardando finalização do ensaio">
+                        <Lock className="h-4 w-4 text-muted-foreground" />
+                      </span>
                     )}
                     {r.status === 'PAGO' && <Check className="h-4 w-4 text-emerald-500" />}
                   </TableCell>
@@ -175,6 +187,9 @@ export function RepassesPendentesPage() {
                     <Badge variant={r.status === 'PAGO' ? 'success' : 'warning'}>
                       {r.status === 'PAGO' ? 'Pago' : 'Pendente'}
                     </Badge>
+                    {r.status === 'PENDENTE' && !isEnsaioFinalizado(r) && (
+                      <p className="mt-1 text-xs text-muted-foreground">Aguardando finalização</p>
+                    )}
                   </TableCell>
                   <TableCell className="text-right tabular-nums text-sm text-muted-foreground">
                     {r.agendamento?.dataHoraEnsaio

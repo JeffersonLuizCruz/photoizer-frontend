@@ -109,6 +109,14 @@ export function AgendamentoResumo({ agendamento }: AgendamentoResumoProps) {
           </div>
         )}
         <InfoRow label="Uso de Imagem" value={agendamento.autorizaUsoImagem ? 'Autorizado' : 'Não autorizado'} />
+        <InfoRow
+          label="Contrato"
+          value={
+            agendamento.dataAssinatura
+              ? `Assinado em ${format(new Date(agendamento.dataAssinatura), 'dd/MM/yyyy', { locale: ptBR })}`
+              : 'Não assinado'
+          }
+        />
       </InfoCard>
 
       <InfoCard icon={DollarSign} title="Resumo Financeiro">

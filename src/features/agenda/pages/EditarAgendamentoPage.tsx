@@ -38,10 +38,10 @@ export function EditarAgendamentoPage() {
     <div>
       <PageTitle
         title="Editar Agendamento"
-        description={agendamento.clienteNome}
+        description={agendamento.clienteNome ?? 'Pré-reserva'}
         breadcrumbs={[
           { label: 'Agenda', href: ROUTES.AGENDA },
-          { label: agendamento.clienteNome, href: `/agenda/${id}` },
+          { label: agendamento.clienteNome ?? 'Pré-reserva', href: `/agenda/${id}` },
           { label: 'Editar' },
         ]}
       />

@@ -1,38 +1,11 @@
 import { format } from 'date-fns'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
-import { agendamentoService, type RascunhoAgendamentoData } from '../services/agendamento.service'
-import type { WizardFormValues, EditarAgendamentoFormData } from '../schemas/agendamento.schema'
+import { agendamentoService } from '../services/agendamento.service'
+import type { EditarAgendamentoFormData } from '../schemas/agendamento.schema'
 import { QUERY_KEYS } from '@/shared/constants'
 import type { AgendamentoStatus } from '@/shared/constants'
 import { extractErrorMessage } from '@/shared/api'
-
-export function useSalvarRascunho() {
-  return useMutation({
-    mutationFn: (data: RascunhoAgendamentoData) =>
-      agendamentoService.salvarRascunho(data),
-  })
-}
-
-export function useBuscarRascunho() {
-  return useQuery({
-    queryKey: [...QUERY_KEYS.AGENDA, 'rascunho'],
-    queryFn: () => agendamentoService.buscarRascunho(),
-    staleTime: 1000 * 30,
-    retry: false,
-  })
-}
-
-export function useDeletarRascunho() {
-  const queryClient = useQueryClient()
-
-  return useMutation({
-    mutationFn: () => agendamentoService.deletarRascunho(),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [...QUERY_KEYS.AGENDA, 'rascunho'] })
-    },
-  })
-}
 
 export function useConfig() {
   return useQuery({
@@ -178,21 +151,29 @@ export function useVincularDespesaTrabalho() {
   })
 }
 
-export function useCreateAgendamento() {
+export function useConfirmarPagamentoAgendamento() {
   const queryClient = useQueryClient()
-
   return useMutation({
-    mutationFn: ({ data, comprovante }: { data: WizardFormValues; comprovante?: File }) =>
-      agendamentoService.createFromWizard(data, comprovante),
+    mutationFn: (id: string) => agendamentoService.confirmarPagamento(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.AGENDA })
-      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.FINANCEIRO })
-      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.DASHBOARD })
-      toast.success('Agendamento criado com sucesso')
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.PROPOSTAS })
+      toast.success('Pagamento da reserva confirmado')
     },
-    onError: (error: Error) => {
-      toast.error(extractErrorMessage(error, 'Erro ao criar agendamento'))
+    onError: (error: Error) => toast.error(extractErrorMessage(error, 'Erro ao confirmar pagamento')),
+  })
+}
+
+export function useAprovarAgendamento() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (id: string) => agendamentoService.aprovar(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.AGENDA })
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.PROPOSTAS })
+      toast.success('Proposta aprovada. O agendamento foi confirmado.')
     },
+    onError: (error: Error) => toast.error(extractErrorMessage(error, 'Erro ao aprovar proposta')),
   })
 }
 

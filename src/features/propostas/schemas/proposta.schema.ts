@@ -1,6 +1,6 @@
 import { z } from 'zod'
 
-export const criarContratoSchema = z.object({
+export const novaPropostaSchema = z.object({
   pacoteId: z.string().min(1, 'Selecione o pacote'),
   data: z.date({ message: 'Informe a data do ensaio' }),
   hora: z.string().regex(/^\d{2}:\d{2}$/, 'Horário inválido (HH:mm)'),
@@ -8,7 +8,6 @@ export const criarContratoSchema = z.object({
   enderecoCompleto: z.string().optional(),
   editorId: z.string().optional(),
   fotografoId: z.string().optional(),
-  valorRepassarFotografo: z.number().min(0).optional(),
   fotografos: z.array(
     z.object({
       fotografoId: z.string().min(1, 'Selecione o parceiro'),
@@ -19,16 +18,15 @@ export const criarContratoSchema = z.object({
   ),
   custoDeslocamento: z.number().min(0).optional(),
   repassarDeslocamento: z.boolean().optional(),
-  clienteId: z.string().optional(),
   observacoes: z.string().optional(),
   indicadorId: z.string().optional(),
   indicadorNome: z.string().optional(),
   indicadorTelefone: z.string().optional(),
 })
 
-export type CriarContratoFormValues = z.input<typeof criarContratoSchema>
+export type NovaPropostaFormValues = z.input<typeof novaPropostaSchema>
 
-export const assinarContratoSchema = z.object({
+export const assinarPropostaSchema = z.object({
   nome: z.string().min(3, 'Informe o nome completo'),
   telefone: z.string().min(10, 'Telefone inválido'),
   email: z.union([z.literal(''), z.string().email('E-mail inválido')]).optional(),
@@ -39,7 +37,7 @@ export const assinarContratoSchema = z.object({
   assinatura: z.string().min(3, 'Digite seu nome para assinar'),
 })
 
-export type AssinarContratoFormValues = z.input<typeof assinarContratoSchema>
+export type AssinarPropostaFormValues = z.input<typeof assinarPropostaSchema>
 
 export function formatCpf(value: string): string {
   const digits = value.replace(/\D/g, '').slice(0, 11)

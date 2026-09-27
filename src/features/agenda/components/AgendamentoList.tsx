@@ -18,6 +18,9 @@ interface AgendamentoListProps {
 }
 
 const statusLabels: Record<string, { label: string; variant: 'success' | 'info' | 'warning' | 'destructive' | 'default' | 'secondary' }> = {
+  [AGENDAMENTO_STATUS.PRE_RESERVA]: { label: 'Pré-reserva', variant: 'secondary' },
+  [AGENDAMENTO_STATUS.AGUARDANDO_APROVACAO]: { label: 'Aguardando Aprovação', variant: 'warning' },
+  [AGENDAMENTO_STATUS.PAGAMENTO_CONFIRMADO]: { label: 'Pagamento Confirmado', variant: 'info' },
   [AGENDAMENTO_STATUS.CONFIRMADO]: { label: 'Confirmado', variant: 'info' },
   [AGENDAMENTO_STATUS.REALIZADO]: { label: 'Realizado', variant: 'success' },
   [AGENDAMENTO_STATUS.AGUARDANDO_PAGAMENTO_FINAL]: { label: 'Aguardando Pagto', variant: 'warning' },

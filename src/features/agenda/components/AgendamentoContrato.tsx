@@ -1,12 +1,13 @@
 import { useState } from 'react'
-import { Copy, Check, FileText, ExternalLink, FileDown } from 'lucide-react'
+import { Copy, Check, FileText, ExternalLink, FileDown, Link2, CheckCircle2 } from 'lucide-react'
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import { toast } from 'sonner'
 import { Button } from '@/shared/components/ui/button'
-import { Textarea } from '@/shared/components/ui/textarea'
+import { Input } from '@/shared/components/ui/input'
 import { Badge } from '@/shared/components/ui/badge'
 import { openProtected } from '@/shared/api/protectedResource'
+import { ROUTES } from '@/shared/constants'
 import type { Agendamento } from '../types'
 
 interface AgendamentoContratoProps {
@@ -24,6 +25,9 @@ function montarResumoWhatsApp(agendamento: Agendamento): string {
     : 'Não definida'
 
   const statusLabels: Record<string, string> = {
+    PRE_RESERVA: '📝 Pré-reserva',
+    AGUARDANDO_APROVACAO: '✍️ Aguardando aprovação',
+    PAGAMENTO_CONFIRMADO: '💰 Pagamento confirmado',
     CONFIRMADO: '📌 Confirmado',
     REALIZADO: '✅ Realizado',
     AGUARDANDO_PAGAMENTO_FINAL: '💰 Aguardando Pagamento Final',
@@ -38,7 +42,7 @@ function montarResumoWhatsApp(agendamento: Agendamento): string {
   return [
     '📸 *RESUMO DO AGENDAMENTO*',
     '',
-    `Cliente: ${agendamento.clienteNome}`,
+    `Cliente: ${agendamento.clienteNome ?? 'Pré-reserva'}`,
     `Data: ${data}`,
     `Local: ${agendamento.localEnsaio}`,
     `Pacote: ${agendamento.pacoteNome} - ${formatCurrency(agendamento.valorPacote)}`,
@@ -62,6 +66,10 @@ export function AgendamentoContrato({ agendamento, onUpdateClausulas }: Agendame
   const [copied, setCopied] = useState(false)
   const [clausulas, setClausulas] = useState(agendamento.clausulasPersonalizadas ?? '')
 
+  const linkProposta = agendamento.tokenProposta
+    ? `${window.location.origin}${ROUTES.PROPOSTA_PUBLICA.replace(':token', agendamento.tokenProposta)}`
+    : null
+
   const handleCopy = async () => {
     const texto = montarResumoWhatsApp(agendamento)
     await navigator.clipboard.writeText(texto)
@@ -69,16 +77,22 @@ export function AgendamentoContrato({ agendamento, onUpdateClausulas }: Agendame
     setTimeout(() => setCopied(false), 2000)
   }
 
+  const handleCopiarLink = () => {
+    if (!linkProposta) return
+    navigator.clipboard.writeText(linkProposta)
+    toast.success('Link da proposta copiado')
+  }
+
   const handleClausulasChange = (value: string) => {
     setClausulas(value)
     onUpdateClausulas?.(value)
   }
 
-  const handleAbrirContrato = async () => {
+  const handleAbrirTermo = async () => {
     try {
-      await openProtected(`/documentos/contratos/${agendamento.id}`)
+      await openProtected(`/agendamentos/${agendamento.id}/termo`)
     } catch {
-      toast.error('Erro ao abrir contrato')
+      toast.error('Erro ao abrir o termo assinado')
     }
   }
 
@@ -92,15 +106,9 @@ export function AgendamentoContrato({ agendamento, onUpdateClausulas }: Agendame
           </div>
           <Button variant="outline" size="sm" onClick={handleCopy}>
             {copied ? (
-              <>
-                <Check className="mr-1 h-4 w-4 text-emerald-500" />
-                Copiado!
-              </>
+              <><Check className="mr-1 h-4 w-4 text-emerald-500" />Copiado!</>
             ) : (
-              <>
-                <Copy className="mr-1 h-4 w-4" />
-                Copiar
-              </>
+              <><Copy className="mr-1 h-4 w-4" />Copiar</>
             )}
           </Button>
         </div>
@@ -112,15 +120,58 @@ export function AgendamentoContrato({ agendamento, onUpdateClausulas }: Agendame
 
       <div className="rounded-lg border bg-card p-4">
         <div className="mb-4 flex items-center gap-2">
-          <FileText className="h-5 w-5 text-muted-foreground" />
-          <h3 className="text-sm font-semibold">Contrato</h3>
-          {agendamento.contratoGerado && (
-            <Badge variant="success">Gerado</Badge>
-          )}
+          <Link2 className="h-5 w-5 text-muted-foreground" />
+          <h3 className="text-sm font-semibold">Link da Proposta</h3>
         </div>
 
+        {linkProposta ? (
+          <div className="flex items-center gap-2">
+            <Input value={linkProposta} readOnly className="text-xs" />
+            <Button variant="outline" size="sm" onClick={handleCopiarLink}>
+              <Copy className="mr-1 h-4 w-4" />
+              Copiar
+            </Button>
+            <Button variant="outline" size="sm" onClick={() => window.open(linkProposta, '_blank', 'noopener')}>
+              <ExternalLink className="mr-1 h-4 w-4" />
+              Abrir
+            </Button>
+          </div>
+        ) : (
+          <p className="text-sm text-muted-foreground">
+            Nenhum link de proposta ativo. Crie uma proposta para gerar o link de assinatura.
+          </p>
+        )}
+      </div>
+
+      <div className="rounded-lg border bg-card p-4">
+        <div className="mb-4 flex items-center gap-2">
+          <FileText className="h-5 w-5 text-muted-foreground" />
+          <h3 className="text-sm font-semibold">Termo assinado</h3>
+          {agendamento.dataAssinatura && <Badge variant="success">Assinado</Badge>}
+        </div>
+
+        {agendamento.dataAssinatura ? (
+          <div className="space-y-3">
+            <p className="text-sm">
+              Contrato assinado em{' '}
+              <strong>{format(new Date(agendamento.dataAssinatura), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}</strong>.
+            </p>
+            <div className="flex flex-wrap gap-2">
+              <Button variant="outline" size="sm" onClick={handleAbrirTermo}>
+                <FileDown className="mr-1 h-4 w-4" />
+                Abrir PDF do termo
+              </Button>
+            </div>
+          </div>
+        ) : (
+          <p className="flex items-center gap-2 text-sm text-muted-foreground">
+            <CheckCircle2 className="h-4 w-4" />
+            O cliente ainda não assinou esta proposta.
+          </p>
+        )}
+
         {agendamento.autorizaUsoImagem && (
-          <div className="mb-4 rounded-md bg-muted p-3">
+          <div className="mt-4 rounded-md bg-muted p-3">
             <p className="text-sm">
               <span className="font-medium">Autorização de Uso de Imagem:</span>{' '}
               O cliente autoriza o uso de imagens para fins comerciais e divulgação.
@@ -128,19 +179,11 @@ export function AgendamentoContrato({ agendamento, onUpdateClausulas }: Agendame
           </div>
         )}
 
-        <div className="mb-4">
-          <Button variant="outline" size="sm" type="button" onClick={handleAbrirContrato}>
-            <FileDown className="mr-1 h-4 w-4" />
-            Abrir PDF
-          </Button>
-        </div>
-
-        <div className="space-y-2">
-          <label className="text-sm font-medium text-muted-foreground">
-            Cláusulas Personalizadas
-          </label>
-          <Textarea
-            placeholder="Adicione cláusulas personalizadas ao contrato..."
+        <div className="mt-4 space-y-2">
+          <label className="text-sm font-medium text-muted-foreground">Cláusulas Personalizadas</label>
+          <textarea
+            className="flex min-h-[80px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm"
+            placeholder="Adicione cláusulas personalizadas à proposta..."
             value={clausulas}
             onChange={(e) => handleClausulasChange(e.target.value)}
             rows={4}
@@ -150,28 +193,26 @@ export function AgendamentoContrato({ agendamento, onUpdateClausulas }: Agendame
         {(agendamento.urlComprovanteEntrada || agendamento.urlComprovanteFinal) && (
           <div className="mt-4 flex flex-wrap gap-2">
             {agendamento.urlComprovanteEntrada && (
-              <a
-                href={agendamento.urlComprovanteEntrada}
-                target="_blank"
-                rel="noopener noreferrer"
+              <Button
+                variant="outline"
+                size="sm"
+                type="button"
+                onClick={() => openProtected(`/documentos/comprovantes/${agendamento.id}/entrada`).catch(() => toast.error('Erro ao abrir comprovante'))}
               >
-                <Button variant="outline" size="sm" type="button">
-                  <ExternalLink className="mr-1 h-4 w-4" />
-                  Comprovante de Entrada
-                </Button>
-              </a>
+                <ExternalLink className="mr-1 h-4 w-4" />
+                Comprovante de Entrada
+              </Button>
             )}
             {agendamento.urlComprovanteFinal && (
-              <a
-                href={agendamento.urlComprovanteFinal}
-                target="_blank"
-                rel="noopener noreferrer"
+              <Button
+                variant="outline"
+                size="sm"
+                type="button"
+                onClick={() => openProtected(`/documentos/comprovantes/${agendamento.id}/final`).catch(() => toast.error('Erro ao abrir comprovante'))}
               >
-                <Button variant="outline" size="sm" type="button">
-                  <ExternalLink className="mr-1 h-4 w-4" />
-                  Comprovante Final
-                </Button>
-              </a>
+                <ExternalLink className="mr-1 h-4 w-4" />
+                Comprovante Final
+              </Button>
             )}
           </div>
         )}

@@ -38,7 +38,7 @@ features/fotos/
 ### Fluxo 1: Admin — Gerenciamento de Fotos
 1. Admin acessa `/agenda/:agendamentoId/fotos` → `AdminGaleriaPage`.
 2. Carrega agendamento (`useAgendamento`) e lista de fotos (`useFotosList`).
-3. Upload permite adicionar fotos se status do agendamento for compatível (`EM_EDICAO`, `SELECAO_DAS_FOTOS`, etc.).
+3. Upload e publicação liberados após o pagamento final, quando o status do agendamento for `EM_EDICAO`, `FOTOS_ENVIADAS_PARA_SELECAO`, `FOTOS_ENTREGUES` ou `FINALIZADO`.
 4. Grid de fotos com thumbnail, status badge, visibilidade, categoria, destaque.
 5. Ações por foto: editar metadados (diálogo inline), publicar/despublicar, toggle visibilidade, substituir imagem, deletar.
 

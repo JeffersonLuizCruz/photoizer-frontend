@@ -1,7 +1,6 @@
 export const ROUTES = {
   DASHBOARD: '/dashboard',
   AGENDA: '/agenda',
-  AGENDA_NOVO: '/agenda/novo',
   AGENDA_DETALHES: '/agenda/:id',
   AGENDA_EDITAR: '/agenda/:id/editar',
   PACOTES: '/pacotes',
@@ -23,8 +22,6 @@ export const ROUTES = {
   MINHA_CONTA: '/minha-conta',
   PACOTES_DISPONIVEIS: '/pacotes-disponiveis',
   CHECKOUT: '/checkout/pacote/:pacoteId',
-  EDICAO: '/edicao',
-  EDICAO_AGENDAMENTO: '/edicao/:agendamentoId',
   FOTOGRAFOS: '/fotografos',
   FOTOGRAFOS_NOVO: '/fotografos/novo',
   FOTOGRAFOS_RELATORIO: '/fotografos/relatorio-global',
@@ -33,12 +30,9 @@ export const ROUTES = {
   FOTOGRAFOS_DETALHES: '/fotografos/:id',
   FOTOGRAFOS_EDITAR: '/fotografos/:id/editar',
   MEU_PAINEL: '/meu-painel',
-  EDICAO_UPLOAD_RAW: '/edicao/:agendamentoId/upload-raw',
-  EDICAO_REVISAO: '/edicao/:agendamentoId/revisao',
-  CONTRATOS: '/contratos',
-  CONTRATOS_NOVO: '/contratos/novo',
-  CONTRATO_DETALHES: '/contratos/:id',
-  CONTRATO_PUBLICO: '/contrato/:token',
+  PROPOSTAS: '/propostas',
+  PROPOSTAS_NOVO: '/propostas/nova',
+  PROPOSTA_PUBLICA: '/proposta/:token',
   REPASSES_PENDENTES: '/repasses-pendentes',
 } as const
 
@@ -48,16 +42,17 @@ export const QUERY_KEYS = {
   PACOTES: ['pacotes'],
   FINANCEIRO: ['financeiro'],
   DASHBOARD: ['dashboard'],
-  EDICAO: ['edicao'],
-  CONTRATOS: ['contratos'],
+  PROPOSTAS: ['propostas'],
 } as const
 
 export const AGENDAMENTO_STATUS = {
+  PRE_RESERVA: 'PRE_RESERVA',
+  AGUARDANDO_APROVACAO: 'AGUARDANDO_APROVACAO',
+  PAGAMENTO_CONFIRMADO: 'PAGAMENTO_CONFIRMADO',
   CONFIRMADO: 'CONFIRMADO',
   REALIZADO: 'REALIZADO',
   AGUARDANDO_PAGAMENTO_FINAL: 'AGUARDANDO_PAGAMENTO_FINAL',
   EM_EDICAO: 'EM_EDICAO',
-  SELECAO_DAS_FOTOS: 'SELECAO_DAS_FOTOS',
   FOTOS_ENVIADAS_PARA_SELECAO: 'FOTOS_ENVIADAS_PARA_SELECAO',
   FOTOS_ENTREGUES: 'FOTOS_ENTREGUES',
   FINALIZADO: 'FINALIZADO',

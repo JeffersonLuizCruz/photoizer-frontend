@@ -5,11 +5,11 @@ import { Label } from '@/shared/components/ui/label'
 import { Calendar } from '@/shared/components/ui/calendar'
 import { Popover, PopoverContent, PopoverTrigger } from '@/shared/components/ui/popover'
 import { Input } from '@/shared/components/ui/input'
-import { CalendarDays } from 'lucide-react'
+import { AlertTriangle, CalendarDays } from 'lucide-react'
 import { format as formatDate } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import { cn } from '@/shared/lib/cn'
-import { useReagendarAgendamento } from '../api/queries'
+import { usePacotesList, useDisponibilidade, useReagendarAgendamento } from '../api/queries'
 import type { Agendamento } from '../types'
 
 interface ReagendarDialogProps {
@@ -22,6 +22,19 @@ export function ReagendarDialog({ open, onOpenChange, agendamento }: ReagendarDi
   const [data, setData] = useState<Date | undefined>(new Date(agendamento.dataHoraEnsaio))
   const [hora, setHora] = useState(formatDate(new Date(agendamento.dataHoraEnsaio), 'HH:mm'))
   const { mutate, isPending } = useReagendarAgendamento()
+  const { data: pacotes = [] } = usePacotesList()
+
+  const pacote = pacotes.find((p) => p.id === agendamento.pacoteId)
+
+  const { data: disponibilidade } = useDisponibilidade(
+    data,
+    hora || undefined,
+    agendamento.duracaoMinutos,
+    pacote?.bloqueiaDiaInteiro ?? false,
+    agendamento.fotografoId ?? undefined,
+    agendamento.id,
+  )
+  const conflito = disponibilidade && !disponibilidade.disponivel
 
   const handleSubmit = () => {
     if (!data || !hora) return
@@ -77,6 +90,21 @@ export function ReagendarDialog({ open, onOpenChange, agendamento }: ReagendarDi
               value={hora}
               onChange={(e) => setHora(e.target.value)}
             />
+            {conflito && disponibilidade && (
+              <div className="rounded-lg border border-destructive/50 bg-destructive/5 p-3">
+                <div className="flex items-center gap-2">
+                  <AlertTriangle className="h-4 w-4 shrink-0 text-destructive" />
+                  <p className="text-sm font-medium text-destructive">Horário indisponível</p>
+                </div>
+                <ul className="mt-2 list-inside list-disc space-y-1 text-xs text-muted-foreground">
+                  {disponibilidade.conflitos.map((c) => (
+                    <li key={c.agendamentoId}>
+                      {c.clienteNome || 'Agendamento'} — {c.horario}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
           </div>
         </div>
 
@@ -84,7 +112,7 @@ export function ReagendarDialog({ open, onOpenChange, agendamento }: ReagendarDi
           <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isPending}>
             Cancelar
           </Button>
-          <Button onClick={handleSubmit} disabled={isPending || !data || !hora}>
+          <Button onClick={handleSubmit} disabled={isPending || !data || !hora || !!conflito}>
             {isPending ? 'Reagendando...' : 'Confirmar Reagendamento'}
           </Button>
         </DialogFooter>

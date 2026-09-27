@@ -11,12 +11,14 @@ import {
   Star,
   ArrowLeftRight,
 } from 'lucide-react'
+import { isAxiosError } from 'axios'
 import { Button } from '@/shared/components/ui/button'
 import { ConfirmDialog } from '@/shared/components/layout/ConfirmDialog'
 import { RegistrarPagamentoDialog } from './RegistrarPagamentoDialog'
 import { ReagendarDialog } from './ReagendarDialog'
 import { TransferirEnsaioDialog } from './TransferirEnsaioDialog'
-import { useUpdateAgendamentoStatus, useToggleDestaque } from '../api/queries'
+import { ConflitoAgendaDialog } from './ConflitoAgendaDialog'
+import { useUpdateAgendamentoStatus, useToggleDestaque, useConfirmarPagamentoAgendamento, useAprovarAgendamento } from '../api/queries'
 import { useAuth } from '@/features/auth/AuthProvider'
 import { AGENDAMENTO_STATUS } from '@/shared/constants'
 import type { Agendamento } from '../types'
@@ -25,9 +27,11 @@ interface AgendamentoActionsProps {
   agendamento: Agendamento
 }
 
-type ActionType = 'realizar' | 'reagendar' | 'cancelar' | 'noShow' | 'pagarFinal' | 'enviarSelecao' | 'confirmarEntrega' | 'finalizar'
+type ActionType = 'realizar' | 'reagendar' | 'cancelar' | 'noShow' | 'pagarFinal' | 'enviarSelecao' | 'confirmarEntrega' | 'finalizar' | 'confirmarPagamento' | 'aprovar'
 
 const statusActions: Record<string, ActionType[]> = {
+  [AGENDAMENTO_STATUS.AGUARDANDO_APROVACAO]: ['confirmarPagamento', 'cancelar'],
+  [AGENDAMENTO_STATUS.PAGAMENTO_CONFIRMADO]: ['aprovar', 'cancelar'],
   [AGENDAMENTO_STATUS.CONFIRMADO]: ['realizar', 'reagendar', 'cancelar', 'noShow'],
   [AGENDAMENTO_STATUS.REALIZADO]: ['pagarFinal', 'cancelar'],
   [AGENDAMENTO_STATUS.AGUARDANDO_PAGAMENTO_FINAL]: ['pagarFinal'],
@@ -97,6 +101,18 @@ const actionConfig: Record<ActionType, { label: string; icon: React.ComponentTyp
     confirmDescription: 'Confirmar a finalização do agendamento?',
     status: AGENDAMENTO_STATUS.FINALIZADO,
   },
+  confirmarPagamento: {
+    label: 'Confirmar Pagamento',
+    icon: CreditCard,
+    variant: 'default',
+    status: AGENDAMENTO_STATUS.PAGAMENTO_CONFIRMADO,
+  },
+  aprovar: {
+    label: 'Aprovar',
+    icon: CheckCircle2,
+    variant: 'default',
+    status: AGENDAMENTO_STATUS.CONFIRMADO,
+  },
 }
 
 export function AgendamentoActions({ agendamento }: AgendamentoActionsProps) {
@@ -104,10 +120,13 @@ export function AgendamentoActions({ agendamento }: AgendamentoActionsProps) {
   const [showPagamento, setShowPagamento] = useState(false)
   const [showReagendar, setShowReagendar] = useState(false)
   const [showTransferir, setShowTransferir] = useState(false)
+  const [showConflito, setShowConflito] = useState(false)
   const { papel } = useAuth()
   const isAdmin = papel === 'ADMIN'
   const { mutate: updateStatus, isPending } = useUpdateAgendamentoStatus()
   const { mutate: toggleDestaque, isPending: isDestaquePending } = useToggleDestaque()
+  const { mutate: confirmarPagamento, isPending: confirmarPending } = useConfirmarPagamentoAgendamento()
+  const { mutate: aprovar, isPending: aprovarPending } = useAprovarAgendamento()
 
   const actions = (statusActions[agendamento.status] ?? []).filter(
     (actionType) => isAdmin || (actionType !== 'reagendar' && actionType !== 'cancelar'),
@@ -123,6 +142,22 @@ export function AgendamentoActions({ agendamento }: AgendamentoActionsProps) {
 
     if (actionType === 'pagarFinal') {
       setShowPagamento(true)
+      return
+    }
+
+    if (actionType === 'confirmarPagamento') {
+      confirmarPagamento(agendamento.id)
+      return
+    }
+
+    if (actionType === 'aprovar') {
+      aprovar(agendamento.id, {
+        onError: (error) => {
+          if (isAxiosError(error) && error.response?.status === 409) {
+            setShowConflito(true)
+          }
+        },
+      })
       return
     }
 
@@ -160,7 +195,7 @@ export function AgendamentoActions({ agendamento }: AgendamentoActionsProps) {
               variant={config.variant}
               size="sm"
               onClick={() => handleAction(actionType)}
-              disabled={isPending}
+              disabled={isPending || confirmarPending || aprovarPending}
             >
               <Icon className="mr-1 h-4 w-4" />
               {config.label}
@@ -213,6 +248,12 @@ export function AgendamentoActions({ agendamento }: AgendamentoActionsProps) {
       <TransferirEnsaioDialog
         open={showTransferir}
         onOpenChange={setShowTransferir}
+        agendamento={agendamento}
+      />
+
+      <ConflitoAgendaDialog
+        open={showConflito}
+        onOpenChange={setShowConflito}
         agendamento={agendamento}
       />
     </>

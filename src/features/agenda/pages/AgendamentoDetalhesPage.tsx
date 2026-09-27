@@ -16,11 +16,13 @@ import { AgendamentoContrato } from '../components/AgendamentoContrato'
 import { EcommerceAdminResumo } from '@/features/ecommerce/components/EcommerceAdminResumo'
 
 const statusCustomLabels: Record<string, { label: string; variant: 'warning' | 'info' | 'success' | 'destructive' | 'default' | 'secondary' }> = {
+  [AGENDAMENTO_STATUS.PRE_RESERVA]: { label: 'Pré-reserva', variant: 'secondary' },
+  [AGENDAMENTO_STATUS.AGUARDANDO_APROVACAO]: { label: 'Aguardando Aprovação', variant: 'warning' },
+  [AGENDAMENTO_STATUS.PAGAMENTO_CONFIRMADO]: { label: 'Pagamento Confirmado', variant: 'info' },
   [AGENDAMENTO_STATUS.CONFIRMADO]: { label: 'Confirmado', variant: 'info' },
   [AGENDAMENTO_STATUS.REALIZADO]: { label: 'Realizado', variant: 'success' },
   [AGENDAMENTO_STATUS.AGUARDANDO_PAGAMENTO_FINAL]: { label: 'Aguardando Pagamento', variant: 'warning' },
   [AGENDAMENTO_STATUS.EM_EDICAO]: { label: 'Em Edição', variant: 'warning' },
-  [AGENDAMENTO_STATUS.SELECAO_DAS_FOTOS]: { label: 'Seleção de Fotos', variant: 'info' },
   [AGENDAMENTO_STATUS.FOTOS_ENVIADAS_PARA_SELECAO]: { label: 'Fotos p/ Seleção', variant: 'info' },
   [AGENDAMENTO_STATUS.FOTOS_ENTREGUES]: { label: 'Fotos Entregues', variant: 'success' },
   [AGENDAMENTO_STATUS.FINALIZADO]: { label: 'Finalizado', variant: 'success' },

@@ -7,7 +7,6 @@ import {
   FileBarChart2,
   FileSignature,
   HandCoins,
-  Image,
   LayoutDashboard,
   Package,
   Percent,
@@ -60,9 +59,8 @@ const navEntries: NavEntry[] = [
   { to: ROUTES.DASHBOARD, label: 'Dashboard', icon: LayoutDashboard, end: true },
   { to: ROUTES.AGENDA, label: 'Agenda', icon: Calendar },
   { to: ROUTES.PACOTES, label: 'Pacotes', icon: Package },
-  { to: ROUTES.EDICAO, label: 'Edição', icon: Image },
   { to: ROUTES.ADMIN_ECOMMERCE, label: 'Ecommerce', icon: ShoppingCart },
-  { to: ROUTES.CONTRATOS, label: 'Contratos', icon: FileSignature },
+  { to: ROUTES.PROPOSTAS, label: 'Propostas', icon: FileSignature },
   { to: ROUTES.COMISSOES, label: 'Comissões', icon: Percent },
   financeiroGroup,
   fotografosGroup,
@@ -79,9 +77,8 @@ const allowedRoutesByPapel: Record<string, Set<string>> = {
   AGENDADOR: new Set([
     ROUTES.AGENDA,
     ROUTES.PACOTES,
-    ROUTES.EDICAO,
     ROUTES.COMISSOES,
-    ROUTES.CONTRATOS,
+    ROUTES.PROPOSTAS,
     ROUTES.CONFIG,
   ]),
 }
@@ -124,10 +121,9 @@ export interface MobileTab {
 const mobilePriority: MobileTab[] = [
   { to: ROUTES.DASHBOARD, label: 'Dashboard', icon: LayoutDashboard, end: true },
   { to: ROUTES.AGENDA, label: 'Agenda', icon: Calendar },
-  { to: ROUTES.CONTRATOS, label: 'Contratos', icon: FileSignature },
+  { to: ROUTES.PROPOSTAS, label: 'Propostas', icon: FileSignature },
   { to: ROUTES.ADMIN_ECOMMERCE, label: 'Ecommerce', icon: ShoppingCart },
   { to: ROUTES.PACOTES, label: 'Pacotes', icon: Package },
-  { to: ROUTES.EDICAO, label: 'Edição', icon: Image },
   { to: ROUTES.COMISSOES, label: 'Comissões', icon: Percent },
   { to: ROUTES.CONFIG, label: 'Configurações', icon: Settings },
 ]

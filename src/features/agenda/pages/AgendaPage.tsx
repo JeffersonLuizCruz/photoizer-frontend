@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react'
 import { useNavigate, Navigate } from 'react-router-dom'
-import { CalendarDays, Table2, FilterX, Search, FileEdit, Clock, MapPin } from 'lucide-react'
+import { CalendarDays, Table2, FilterX, Search, Clock, MapPin } from 'lucide-react'
 import { format } from 'date-fns'
 import { Button } from '@/shared/components/ui/button'
 import { Input } from '@/shared/components/ui/input'
@@ -10,17 +10,18 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { DateRangePicker, type DateRange } from '@/shared/components/layout/DateRangePicker'
 import { ROUTES } from '@/shared/constants'
 import { useDebounce } from '@/shared/hooks/useDebounce'
-import { useAgendamentosList, usePacotesList, useUsuariosList, useBuscarRascunho, useDeletarRascunho } from '../api/queries'
+import { useAgendamentosList, usePacotesList, useUsuariosList } from '../api/queries'
 import { AgendaCalendar, type CalendarView } from '../components/AgendaCalendar'
 import { AgendamentoList } from '../components/AgendamentoList'
 import { statusLabels } from '../components/AgendaCalendarEvent'
 import type { AgendamentoStatus } from '@/shared/constants'
 import { useAuth } from '@/features/auth/AuthProvider'
-import type { Agendamento } from '../types'
-import { useWizardStore } from '../stores/wizard.store'
 
 const statusOptions: { value: string; label: string }[] = [
   { value: '', label: 'Todos os status' },
+  { value: 'PRE_RESERVA', label: 'Pré-reserva' },
+  { value: 'AGUARDANDO_APROVACAO', label: 'Aguardando Aprovação' },
+  { value: 'PAGAMENTO_CONFIRMADO', label: 'Pagamento Confirmado' },
   { value: 'CONFIRMADO', label: 'Confirmado' },
   { value: 'REALIZADO', label: 'Realizado' },
   { value: 'AGUARDANDO_PAGAMENTO_FINAL', label: 'Aguardando Pagamento' },
@@ -78,79 +79,14 @@ function AgendaPageContent() {
   )
   const { data: pacotes } = usePacotesList()
   const { data: usuarios } = useUsuariosList()
-  const { data: draft, isLoading: isLoadingDraft } = useBuscarRascunho()
-  const { mutate: deletarRascunho } = useDeletarRascunho()
 
   const filteredAgendamentos = useMemo(() => {
     const base = agendamentos ?? []
-
-    const filtered = base.filter((a) => {
+    return base.filter((a) => {
       if (pacoteFilter && a.pacoteId !== pacoteFilter) return false
       return true
     })
-
-    // Inject draft as a synthetic event in the calendar if it has a date
-    if (draft && draft.data && viewMode === 'calendar') {
-      const hora = draft.hora || '12:00'
-      const dataHoraEnsaio = `${draft.data}T${hora}:00`
-
-      filtered.push({
-        id: (draft as any).id || 'rascunho',
-        status: 'RASCUNHO',
-        clienteId: draft.clienteId || '',
-        clienteNome: draft.nome || 'Rascunho',
-        clienteTelefone: draft.telefone || '',
-        clienteEmail: draft.email || null,
-        clienteCpf: draft.cpf || null,
-        clienteCidade: draft.cidade || null,
-        clienteEstado: draft.estado || null,
-        pacoteId: draft.pacoteId || '',
-        pacoteNome: '',
-        editorId: null,
-        editorNome: null,
-        fotografoId: null,
-        fotografoNome: null,
-        dataHoraEnsaio,
-        duracaoMinutos: 60,
-        localEnsaio: draft.localEnsaio || '',
-        enderecoCompleto: draft.enderecoCompleto || null,
-        valorTotal: 0,
-        valorEntradaExigido: 0,
-        valorEntradaPago: 0,
-        valorRestante: 0,
-        valorExtras: 0,
-        taxaDeslocamento: 0,
-        custoDeslocamento: draft.custoDeslocamento || 0,
-        repassarDeslocamento: draft.repassarDeslocamento || false,
-        valorTotalFinal: 0,
-        percentualEntrada: 0,
-        saldoDevedor: 0,
-        dataConfirmacao: null,
-        dataRealizacao: null,
-        dataEnvioSelecao: null,
-        dataEntregaFinal: null,
-        dataFinalizacao: null,
-        urlComprovanteEntrada: null,
-        urlComprovanteFinal: null,
-        clausulasPersonalizadas: null,
-        contratoGerado: false,
-        ensaioDestaque: false,
-        valorComissao: null,
-        indicadorNome: draft.indicadorNome || null,
-        statusComissao: null,
-        observacoes: draft.observacoes || null,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-        fotografos: null,
-        valorPartilhaGlobal: null,
-        valorLucroCrm: null,
-        valorPacote: 0,
-
-      } as Agendamento)
-    }
-
-    return filtered
-  }, [agendamentos, pacoteFilter, draft, viewMode])
+  }, [agendamentos, pacoteFilter])
 
   const hasActiveFilters = statusFilter || editorFilter || pacoteFilter || dateRange?.from || clientSearch
 
@@ -258,55 +194,18 @@ function AgendaPageContent() {
         </div>
       </div>
 
-      {draft && draft.data && (
-        <div className="mb-4 flex flex-wrap items-center justify-between gap-2 rounded-lg border border-dashed border-slate-300 bg-slate-50 px-4 py-3 dark:border-slate-700 dark:bg-slate-900">
-          <div className="flex flex-wrap items-center gap-3">
-            <FileEdit className="h-5 w-5 shrink-0 text-slate-400" />
-            <span className="text-sm">
-              <strong>Rascunho:</strong> {draft.nome || 'Novo agendamento'} — {draft.data}{draft.hora ? ` às ${draft.hora}` : ''}
-            </span>
-            <Badge variant="secondary">Rascunho</Badge>
-          </div>
-          <div className="flex flex-wrap items-center gap-2">
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={() => navigate(ROUTES.AGENDA_NOVO)}
-            >
-              Continuar
-            </Button>
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              className="text-muted-foreground hover:text-destructive"
-              onClick={() => deletarRascunho(undefined, { onSuccess: () => useWizardStore.getState().reset() })}
-            >
-              Descartar
-            </Button>
-          </div>
-        </div>
-      )}
-
       {viewMode === 'calendar' ? (
         <AgendaCalendar
           agendamentos={filteredAgendamentos}
           view={calendarView}
           onViewChange={setCalendarView}
-          onEventClick={(id) => {
-            if ((draft as any)?.id === id) {
-              navigate(ROUTES.AGENDA_NOVO)
-            } else {
-              navigate(ROUTES.AGENDA_DETALHES.replace(':id', id))
-            }
-          }}
+          onEventClick={(id) => navigate(ROUTES.AGENDA_DETALHES.replace(':id', id))}
           onDateSelect={(date) => {
             const params = new URLSearchParams()
             params.set('data', format(date, 'yyyy-MM-dd'))
-            navigate(`${ROUTES.AGENDA_NOVO}?${params.toString()}`)
+            navigate(`${ROUTES.PROPOSTAS_NOVO}?${params.toString()}`)
           }}
-          isLoading={isLoading || isLoadingDraft}
+          isLoading={isLoading}
         />
       ) : (
         <AgendamentoList
@@ -342,7 +241,7 @@ function AgendaPageContent() {
                   <div
                     key={a.id}
                     className="flex items-center justify-between px-4 py-3 transition-colors hover:bg-muted/50 cursor-pointer"
-                    onClick={() => navigate(ROUTES.AGENDA_DETALHES.replace(':id', a.id === 'rascunho' ? '' : a.id))}
+                    onClick={() => navigate(ROUTES.AGENDA_DETALHES.replace(':id', a.id))}
                   >
                     <div className="min-w-0 flex-1">
                       <p className="text-sm font-medium truncate">{a.clienteNome}</p>
