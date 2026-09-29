@@ -71,7 +71,7 @@ export function MinhasComprasSection({ token }: MinhasComprasSectionProps) {
 
   function statusIcon(status: string) {
     switch (status) {
-      case 'PAGA': return <Check className="h-4 w-4 text-emerald-500" />
+      case 'PAGA': return <Check className="h-4 w-4 text-teal-500" />
       case 'AGUARDANDO_CONFIRMACAO': return <Clock className="h-4 w-4 text-orange-500" />
       case 'AGUARDANDO_COMPROVANTE': return <Upload className="h-4 w-4 text-amber-500" />
       case 'CANCELADA': return <X className="h-4 w-4 text-rose-400" />
@@ -90,8 +90,8 @@ export function MinhasComprasSection({ token }: MinhasComprasSectionProps) {
   }
 
   return (
-    <div className="border-t pt-6 mt-6">
-      <h2 className="text-sm font-semibold mb-4">Minhas Compras ({compras.length})</h2>
+    <div className="mt-6 border-t border-cyan-100 pt-6">
+      <h2 className="mb-4 font-display text-lg font-semibold text-cyan-950">Minhas Compras ({compras.length})</h2>
       <div className="space-y-2">
         {compras.map((compra) => {
           const isExpanded = expandedId === compra.id
@@ -99,32 +99,32 @@ export function MinhasComprasSection({ token }: MinhasComprasSectionProps) {
           const isSending = sendingIds.has(compra.id)
 
           return (
-            <div key={compra.id} className="rounded-lg border bg-card overflow-hidden">
+            <div key={compra.id} className="overflow-hidden rounded-2xl bg-white/95 shadow-sm ring-1 ring-cyan-100">
               <button onClick={() => toggleExpand(compra.id)}
-                className="w-full flex items-center justify-between p-3 hover:bg-accent/50 transition-colors text-left">
-                <div className="flex items-center gap-3 flex-1 min-w-0">
+                className="flex w-full items-center justify-between p-3 text-left transition-colors hover:bg-cyan-50/60">
+                <div className="flex min-w-0 flex-1 items-center gap-3">
                   {statusIcon(compra.status)}
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium">{formatCurrency(compra.valorTotal)}</p>
-                    <p className="text-[11px] text-muted-foreground">
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-medium text-slate-800">{formatCurrency(compra.valorTotal)}</p>
+                    <p className="text-[11px] text-slate-500">
                       {statusLabel(compra.status)}
                       {compra.metodoPagamento && ` · ${compra.metodoPagamento}`}
                       {compra.dataPagamento && ` · ${new Date(compra.dataPagamento).toLocaleDateString('pt-BR')}`}
                     </p>
                   </div>
                 </div>
-                {isExpanded ? <ChevronDown className="h-4 w-4 text-muted-foreground shrink-0" /> : <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />}
+                {isExpanded ? <ChevronDown className="h-4 w-4 shrink-0 text-cyan-500" /> : <ChevronRight className="h-4 w-4 shrink-0 text-cyan-500" />}
               </button>
 
               {isExpanded && (
-                <div className="px-3 pb-3 border-t pt-3 space-y-3">
+                <div className="space-y-3 border-t border-cyan-100 px-3 pb-3 pt-3">
                   {compra.status === 'CANCELADA' && compra.motivoRecusa && (
-                    <div className="rounded-lg bg-rose-50 dark:bg-rose-950/20 border border-rose-200 dark:border-rose-800 p-3 text-xs space-y-1">
-                      <div className="flex items-center gap-1.5 font-medium text-rose-600 dark:text-rose-300">
+                    <div className="space-y-1 rounded-2xl border border-rose-200 bg-rose-50 p-3 text-xs">
+                      <div className="flex items-center gap-1.5 font-medium text-rose-600">
                         <AlertTriangle className="h-3.5 w-3.5" />
                         Compra recusada
                       </div>
-                      <p className="text-rose-500 dark:text-rose-200 ml-5">Motivo: {compra.motivoRecusa}</p>
+                      <p className="ml-5 text-rose-500">Motivo: {compra.motivoRecusa}</p>
                     </div>
                   )}
 
@@ -134,7 +134,7 @@ export function MinhasComprasSection({ token }: MinhasComprasSectionProps) {
                         onChange={(e) => setComprovanteFiles((prev) => ({ ...prev, [compra.id]: e.target.files?.[0] ?? null }))} />
                       <button onClick={() => enviarComprovante(compra.id)}
                         disabled={isSending || !comprovanteFiles[compra.id]}
-                        className="rounded-lg bg-blue-600 text-white px-3 py-1.5 text-xs font-medium hover:bg-blue-700 transition-colors disabled:opacity-50 flex items-center gap-1">
+                        className="flex items-center gap-1 rounded-lg bg-gradient-to-r from-orange-400 to-rose-400 px-3 py-1.5 text-xs font-semibold text-white transition-colors hover:from-orange-500 hover:to-rose-500 disabled:opacity-50">
                         {isSending ? <Loader2 className="h-3 w-3 animate-spin" /> : <Upload className="h-3 w-3" />}
                         Enviar
                       </button>
@@ -147,7 +147,7 @@ export function MinhasComprasSection({ token }: MinhasComprasSectionProps) {
                         onChange={(e) => setComprovanteFiles((prev) => ({ ...prev, [compra.id]: e.target.files?.[0] ?? null }))} />
                       <button onClick={() => enviarComprovante(compra.id)}
                         disabled={isSending || !comprovanteFiles[compra.id]}
-                        className="rounded-lg border px-3 py-1.5 text-xs font-medium hover:bg-accent transition-colors disabled:opacity-50 flex items-center gap-1">
+                        className="flex items-center gap-1 rounded-lg border border-cyan-200 px-3 py-1.5 text-xs font-medium text-cyan-700 transition-colors hover:bg-cyan-50 disabled:opacity-50">
                         {isSending ? <Loader2 className="h-3 w-3 animate-spin" /> : <Upload className="h-3 w-3" />}
                         Reenviar
                       </button>
@@ -159,17 +159,17 @@ export function MinhasComprasSection({ token }: MinhasComprasSectionProps) {
                       <p className="text-[11px] text-muted-foreground mb-2">Fotos ({detalhe.fotos.length})</p>
                       <div className="grid grid-cols-4 sm:grid-cols-6 gap-2">
                         {detalhe.fotos.map((foto) => (
-                          <div key={foto.id} className="rounded border bg-muted overflow-hidden">
-                            <div className="aspect-[3/2] bg-cover bg-center" style={{ backgroundImage: `url(${foto.thumbUrl})` }} />
-                            <div className="p-1 flex justify-center">
+                          <div key={foto.id} className="overflow-hidden rounded-lg border border-cyan-100 bg-muted">
+                            <div className="aspect-[3/2] bg-cover bg-center" style={{ backgroundImage: `url("${foto.thumbUrl}")` }} />
+                            <div className="flex justify-center p-1">
                               {compra.status === 'PAGA' ? (
                                 <a href={ecommerceService.downloadUrl(token, foto.id)}
-                                  className="text-primary hover:underline text-[10px] flex items-center gap-0.5">
+                                  className="flex items-center gap-0.5 text-[10px] text-cyan-700 hover:underline">
                                   <Download className="h-3 w-3" />
                                   Download
                                 </a>
                               ) : (
-                                <span className="text-[10px] text-muted-foreground">Aguardando</span>
+                                <span className="text-[10px] text-slate-500">Aguardando</span>
                               )}
                             </div>
                           </div>
@@ -180,7 +180,7 @@ export function MinhasComprasSection({ token }: MinhasComprasSectionProps) {
 
                   {(compra.status === 'AGUARDANDO_CONFIRMACAO' || compra.status === 'PAGA') && (
                     <a href={ecommerceService.comprovanteUrl(token, compra.id)} target="_blank" rel="noopener noreferrer"
-                      className="text-primary underline text-xs flex items-center gap-1">
+                      className="flex items-center gap-1 text-xs text-cyan-700 underline">
                       <Download className="h-3 w-3" />
                       Ver comprovante
                     </a>

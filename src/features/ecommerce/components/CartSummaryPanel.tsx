@@ -28,15 +28,15 @@ export function CartSummaryPanel({
 
   return (
     <>
-      <div className="fixed inset-0 z-50 bg-black/50" onClick={onClose} />
-      <div className="fixed right-0 top-0 h-full w-full max-w-md bg-background border-l z-50 flex flex-col">
+      <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm" onClick={onClose} />
+      <div className="fixed right-0 top-0 z-50 flex h-full w-full max-w-md flex-col border-l border-cyan-100 bg-white">
         {/* Header */}
-        <div className="flex items-center justify-between px-4 pt-[env(safe-area-inset-top)] pb-2 h-14 border-b shrink-0">
-          <h2 className="text-sm font-semibold flex items-center gap-2">
+        <div className="flex h-14 shrink-0 items-center justify-between bg-gradient-to-r from-cyan-500 via-sky-500 to-teal-400 px-4 pb-2 pt-[env(safe-area-inset-top)] text-white">
+          <h2 className="flex items-center gap-2 font-display text-sm font-semibold">
             <ShoppingCart className="h-4 w-4" />
             Meu Carrinho
           </h2>
-          <button onClick={onClose} className="p-2 rounded-lg hover:bg-accent transition-colors" title="Fechar">
+          <button onClick={onClose} className="rounded-lg p-2 transition-colors hover:bg-white/20" title="Fechar">
             <X className="h-4 w-4" />
           </button>
         </div>
@@ -53,14 +53,14 @@ export function CartSummaryPanel({
             ) : (
               <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
                 {pacoteFotos.map((foto) => (
-                  <div key={foto.id} className="relative aspect-[3/2] rounded-md overflow-hidden border bg-muted">
+                  <div key={foto.id} className="relative aspect-[3/2] overflow-hidden rounded-lg border border-cyan-100 bg-muted">
                     <img
                       src={foto.thumbUrl}
                       alt={foto.fileName}
                       loading="lazy"
                       decoding="async"
                       className="h-full w-full object-cover" />
-                    <span className="absolute bottom-0.5 left-0.5 text-[9px] font-medium px-1 py-px rounded-sm bg-emerald-500/90 text-white">
+                    <span className="absolute bottom-0.5 left-0.5 rounded-sm bg-teal-500/90 px-1 py-px text-[9px] font-medium text-white">
                       Incluída
                     </span>
                   </div>
@@ -77,8 +77,8 @@ export function CartSummaryPanel({
             ) : (
               <ul className="space-y-2">
                 {cartFotos.map((foto) => (
-                  <li key={foto.id} className="flex items-center gap-3 rounded-lg border p-2">
-                    <div className="h-12 w-16 rounded-md overflow-hidden bg-muted shrink-0">
+                  <li key={foto.id} className="flex items-center gap-3 rounded-xl border border-cyan-100 p-2">
+                    <div className="h-12 w-16 shrink-0 overflow-hidden rounded-lg bg-muted">
                       <img
                         src={foto.thumbUrl}
                         alt={foto.fileName}
@@ -92,7 +92,7 @@ export function CartSummaryPanel({
                     </div>
                     <button
                       onClick={() => onRemoveFromCart(foto.id)}
-                      className="p-2 rounded-lg text-muted-foreground hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition-colors"
+                      className="rounded-lg p-2 text-slate-400 transition-colors hover:bg-rose-50 hover:text-rose-500"
                       aria-label={`Remover ${foto.fileName} do carrinho`}>
                       <Trash2 className="h-3.5 w-3.5" />
                     </button>
@@ -103,19 +103,19 @@ export function CartSummaryPanel({
           </section>
 
           {/* Resumo */}
-          <section className="rounded-lg border bg-muted/40 p-3 space-y-1.5">
+          <section className="space-y-1.5 rounded-2xl bg-cyan-50/60 p-3 ring-1 ring-cyan-100">
             <div className="flex items-center justify-between text-xs">
-              <span className="text-muted-foreground">
+              <span className="text-slate-500">
                 Subtotal extras: {cartFotos.length} × {formatBRL(valorUnitario)}
               </span>
-              <span className="font-medium">{formatBRL(subtotalExtras)}</span>
+              <span className="font-medium text-slate-800">{formatBRL(subtotalExtras)}</span>
             </div>
-            <div className="flex items-center justify-between text-sm font-semibold border-t pt-1.5">
+            <div className="flex items-center justify-between border-t border-cyan-100 pt-1.5 text-sm font-semibold text-cyan-950">
               <span>Total</span>
               <span>{formatBRL(subtotalExtras)}</span>
             </div>
             {selectedIds.size === pacoteLimit && pacoteLimit > 0 && (
-              <p className="text-[11px] font-medium text-emerald-600 dark:text-emerald-400">
+              <p className="text-[11px] font-medium text-teal-600">
                 Você aproveitou 100% do seu pacote!
               </p>
             )}
@@ -123,11 +123,11 @@ export function CartSummaryPanel({
         </div>
 
         {/* Footer */}
-        <div className="border-t p-4 pb-[calc(1rem+env(safe-area-inset-bottom))] shrink-0">
+        <div className="shrink-0 border-t border-cyan-100 p-4 pb-[calc(1rem+env(safe-area-inset-bottom))]">
           <button
             onClick={onCheckout}
             disabled={cartFotos.length === 0}
-            className="w-full rounded-lg bg-blue-600 text-white py-2.5 text-sm font-medium hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+            className="w-full rounded-2xl border-0 bg-gradient-to-r from-orange-400 to-rose-400 py-2.5 text-sm font-semibold text-white shadow-lg shadow-orange-200/70 transition hover:from-orange-500 hover:to-rose-500 disabled:cursor-not-allowed disabled:opacity-50">
             Finalizar Compra ({formatBRL(subtotalExtras)})
           </button>
         </div>

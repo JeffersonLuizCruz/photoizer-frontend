@@ -42,6 +42,8 @@ export interface AdminEcommerceResumoResponse {
   fotos: FotoEnsaio[]
   comprasExtras: CompraExtraResponse[]
   valorTotalExtras: number
+  favoritosPorFoto: Record<string, number>
+  fotosFavoritas: number
   linkGaleria: string
   tokenGaleria: string
 }

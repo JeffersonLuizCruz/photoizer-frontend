@@ -1,10 +1,13 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { Camera, ChevronRight, Download, CreditCard, Check, Loader2, ShoppingBag, ArrowLeft, User, Mail, Phone, Lock } from 'lucide-react'
+import { Camera, ChevronRight, Download, CreditCard, Check, Loader2, ShoppingBag, ArrowLeft, User, Mail, Phone, Lock, Waves } from 'lucide-react'
 import { toast } from 'sonner'
 import { ecommerceService } from '../services/ecommerce.service'
 import { useCustomerAuth } from '@/features/auth/customer'
 import { apiClient } from '@/shared/api'
+import { BeachBackdrop } from '@/shared/components/beach/BeachBackdrop'
+import { BEACH_CARD, BEACH_CTA } from '@/shared/components/beach/beach'
+import { cn } from '@/shared/lib/cn'
 import type { PacoteResponse } from '@/features/pacotes/types/pacotes.types'
 import type { OpcaoEntrega } from '../types/ecommerce.types'
 
@@ -110,20 +113,22 @@ export function CheckoutPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-background to-muted/30 flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      <div className="relative flex min-h-screen items-center justify-center">
+        <BeachBackdrop />
+        <Loader2 className="h-8 w-8 animate-spin text-cyan-600" />
       </div>
     )
   }
 
   if (!pacote) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-background to-muted/30 flex items-center justify-center">
+      <div className="relative flex min-h-screen items-center justify-center">
+        <BeachBackdrop />
         <div className="text-center">
-          <Camera className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
-          <h1 className="text-lg font-semibold">Pacote não encontrado</h1>
+          <Camera className="mx-auto mb-3 h-12 w-12 text-cyan-400" />
+          <h1 className="font-display text-lg font-semibold text-cyan-950">Pacote não encontrado</h1>
           <button onClick={() => navigate('/pacotes-disponiveis')}
-            className="mt-4 text-sm text-primary hover:underline">
+            className="mt-4 text-sm font-medium text-cyan-700 hover:underline">
             Ver pacotes disponíveis
           </button>
         </div>
@@ -132,87 +137,95 @@ export function CheckoutPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background to-muted/30">
-      <header className="border-b bg-background/95 backdrop-blur">
-        <div className="max-w-3xl mx-auto px-4 h-14 flex items-center gap-3">
+    <div className="relative min-h-screen">
+      <BeachBackdrop />
+
+      <header className="sticky top-0 z-40 border-b border-cyan-100 bg-white/80 backdrop-blur">
+        <div className="mx-auto flex h-14 max-w-3xl items-center gap-3 px-4">
           <button onClick={() => step === 0 ? navigate('/pacotes-disponiveis') : setStep(Math.max(0, step - 1))}
             aria-label="Voltar"
-            className="h-8 w-8 rounded-full hover:bg-accent flex items-center justify-center">
+            className="flex h-8 w-8 items-center justify-center rounded-full text-cyan-800 hover:bg-cyan-100">
             <ArrowLeft className="h-4 w-4" />
           </button>
-          <span className="text-sm font-semibold">Finalizar Pedido</span>
+          <span className="flex items-center gap-2 text-sm font-semibold text-cyan-950">
+            <Waves className="h-4 w-4 text-cyan-500" />
+            Finalizar Pedido
+          </span>
         </div>
       </header>
 
       {/* Progresso das etapas */}
-      <div className="max-w-3xl mx-auto px-4 pt-6 pb-4">
+      <div className="mx-auto max-w-3xl px-4 pb-4 pt-6">
         <div className="flex items-center gap-1">
           {STEPS.map((s, i) => (
-            <div key={s} className="flex-1 flex items-center">
-              <div className={`h-7 w-7 rounded-full flex items-center justify-center text-xs font-medium shrink-0 ${
-                i <= step ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'
-              }`}>
+            <div key={s} className="flex flex-1 items-center">
+              <div className={cn(
+                'flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-medium transition-colors',
+                i < step ? 'bg-teal-500 text-white'
+                  : i === step ? 'bg-cyan-500 text-white shadow-sm shadow-cyan-300'
+                  : 'bg-white text-slate-400 ring-1 ring-cyan-100',
+              )}>
                 {i < step ? <Check className="h-3.5 w-3.5" /> : i + 1}
               </div>
-              <span className={`text-[10px] ml-1.5 hidden sm:inline ${i <= step ? 'text-foreground font-medium' : 'text-muted-foreground'}`}>{s}</span>
+              <span className={cn('ml-1.5 hidden text-[10px] sm:inline', i <= step ? 'font-medium text-cyan-900' : 'text-slate-400')}>{s}</span>
               {i < STEPS.length - 1 && (
-                <div className={`flex-1 h-0.5 mx-2 ${i < step ? 'bg-primary' : 'bg-muted'}`} />
+                <div className={cn('mx-2 h-0.5 flex-1 rounded-full', i < step ? 'bg-teal-400' : 'bg-cyan-100')} />
               )}
             </div>
           ))}
         </div>
       </div>
 
-      <div className="max-w-3xl mx-auto px-4 pb-12">
+      <div className="mx-auto max-w-3xl px-4 pb-12">
         {/* Etapa 0: Revisão */}
         {step === 0 && (
           <div className="space-y-4">
-            <div className="rounded-xl border bg-card p-5">
-              <h2 className="text-sm font-semibold mb-3">Pacote Selecionado</h2>
+            <div className={cn('p-5', BEACH_CARD)}>
+              <h2 className="mb-3 font-display text-base font-semibold text-cyan-950">Pacote Selecionado</h2>
               <div className="flex items-start gap-3">
                 {pacote.imagemCapa && (
-                  <div className="w-16 h-16 rounded-lg bg-muted overflow-hidden shrink-0">
-                    <img src={pacote.imagemCapa} alt={pacote.nome} loading="lazy" className="w-full h-full object-cover" />
+                  <div className="h-16 w-16 shrink-0 overflow-hidden rounded-2xl ring-2 ring-cyan-100">
+                    <img src={pacote.imagemCapa} alt={pacote.nome} loading="lazy" className="h-full w-full object-cover" />
                   </div>
                 )}
-                <div className="flex-1 min-w-0">
-                  <p className="font-medium text-sm">{pacote.nome}</p>
-                  <p className="text-xs text-muted-foreground mt-0.5">{pacote.quantidadeFotos} fotos inclusas</p>
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-medium text-slate-800">{pacote.nome}</p>
+                  <p className="mt-0.5 text-xs text-slate-500">{pacote.quantidadeFotos} fotos inclusas</p>
                 </div>
-                <span className="font-semibold text-sm">{formatCurrency(pacote.valorBase)}</span>
+                <span className="text-sm font-semibold text-cyan-900">{formatCurrency(pacote.valorBase)}</span>
               </div>
             </div>
 
             {/* FA003: Upsell de fotos extras */}
             {pacote.precoFotoExtra != null && (
-              <div className="rounded-xl border bg-card p-5 space-y-3">
+              <div className={cn('space-y-3 p-5', BEACH_CARD)}>
                 <div className="flex items-center justify-between">
-                  <h2 className="text-sm font-semibold">Adicionar Fotos Extras</h2>
+                  <h2 className="font-display text-base font-semibold text-cyan-950">Adicionar Fotos Extras</h2>
                   {quantidadeExtras > 0 && (
                     <button onClick={() => setQuantidadeExtras(0)}
-                      className="text-xs text-muted-foreground hover:text-foreground transition-colors">
+                      className="text-xs text-slate-500 transition-colors hover:text-cyan-700">
                       Remover
                     </button>
                   )}
                 </div>
-                <p className="text-xs text-muted-foreground">
+                <p className="text-xs text-slate-500">
                   {formatCurrency(precoFotoExtra)} por foto extra
                 </p>
                 <div className="flex items-center gap-3">
-                  <div className="flex items-center rounded-lg border overflow-hidden">
+                  <div className="flex items-center overflow-hidden rounded-xl border border-cyan-100 bg-white">
                     <button onClick={() => setQuantidadeExtras(Math.max(0, quantidadeExtras - 5))}
                       disabled={quantidadeExtras === 0}
-                      className="h-9 w-9 flex items-center justify-center text-sm font-medium hover:bg-accent disabled:opacity-30 transition-colors">
+                      className="flex h-9 w-9 items-center justify-center text-sm font-medium text-cyan-700 transition-colors hover:bg-cyan-50 disabled:opacity-30">
                       –
                     </button>
-                    <span className="w-16 text-center text-sm font-medium tabular-nums">{quantidadeExtras}</span>
+                    <span className="w-16 text-center text-sm font-medium tabular-nums text-slate-800">{quantidadeExtras}</span>
                     <button onClick={() => setQuantidadeExtras(quantidadeExtras + 5)}
-                      className="h-9 w-9 flex items-center justify-center text-sm font-medium hover:bg-accent transition-colors">
+                      className="flex h-9 w-9 items-center justify-center text-sm font-medium text-cyan-700 transition-colors hover:bg-cyan-50">
                       +
                     </button>
                   </div>
                   {quantidadeExtras > 0 && (
-                    <span className="text-xs text-muted-foreground">
+                    <span className="text-xs font-medium text-cyan-700">
                       +{formatCurrency(valorExtras)}
                     </span>
                   )}
@@ -220,30 +233,30 @@ export function CheckoutPage() {
               </div>
             )}
 
-            <div className="rounded-xl border bg-card p-5 space-y-2">
-              <h2 className="text-sm font-semibold mb-1">Resumo</h2>
+            <div className={cn('space-y-2 p-5', BEACH_CARD)}>
+              <h2 className="mb-1 font-display text-base font-semibold text-cyan-950">Resumo</h2>
               <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">Pacote ({pacote.nome})</span>
-                <span>{formatCurrency(pacote.valorBase)}</span>
+                <span className="text-slate-500">Pacote ({pacote.nome})</span>
+                <span className="text-slate-800">{formatCurrency(pacote.valorBase)}</span>
               </div>
               {quantidadeExtras > 0 && (
                 <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Fotos extras ({quantidadeExtras} × {formatCurrency(precoFotoExtra)})</span>
-                  <span>{formatCurrency(valorExtras)}</span>
+                  <span className="text-slate-500">Fotos extras ({quantidadeExtras} × {formatCurrency(precoFotoExtra)})</span>
+                  <span className="text-slate-800">{formatCurrency(valorExtras)}</span>
                 </div>
               )}
               <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">Taxa de entrega</span>
-                <span>{taxaEntrega === 0 ? 'Grátis' : formatCurrency(taxaEntrega)}</span>
+                <span className="text-slate-500">Taxa de entrega</span>
+                <span className="text-slate-800">{taxaEntrega === 0 ? 'Grátis' : formatCurrency(taxaEntrega)}</span>
               </div>
-              <div className="flex justify-between text-sm font-semibold border-t pt-2">
+              <div className="flex justify-between border-t border-cyan-100 pt-2 text-sm font-semibold text-cyan-950">
                 <span>Total</span>
                 <span>{formatCurrency(total)}</span>
               </div>
             </div>
 
             <button onClick={() => setStep(1)}
-              className="w-full rounded-xl bg-primary text-primary-foreground py-3 text-sm font-semibold hover:bg-primary/90 transition-colors flex items-center justify-center gap-1">
+              className={cn('flex w-full items-center justify-center gap-1 rounded-2xl py-3 text-sm font-semibold', BEACH_CTA)}>
               Continuar <ChevronRight className="h-4 w-4" />
             </button>
           </div>
@@ -252,48 +265,48 @@ export function CheckoutPage() {
         {/* Etapa 1: Dados do cliente */}
         {step === 1 && (
           <div className="space-y-4">
-            <h2 className="text-sm font-semibold">Seus Dados</h2>
+            <h2 className="font-display text-base font-semibold text-cyan-950">Seus Dados</h2>
 
             {user ? (
-              <div className="rounded-xl border bg-card p-5 space-y-2">
+              <div className={cn('space-y-2 p-5', BEACH_CARD)}>
                 <div className="flex items-center gap-2 text-sm">
-                  <User className="h-4 w-4 text-primary" /><span className="font-medium">{user.nome}</span>
+                  <User className="h-4 w-4 text-cyan-500" /><span className="font-medium text-slate-800">{user.nome}</span>
                 </div>
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <Mail className="h-4 w-4" /><span>{user.email}</span>
+                <div className="flex items-center gap-2 text-sm text-slate-500">
+                  <Mail className="h-4 w-4 text-cyan-400" /><span>{user.email}</span>
                 </div>
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <Phone className="h-4 w-4" /><span>{user.telefone}</span>
+                <div className="flex items-center gap-2 text-sm text-slate-500">
+                  <Phone className="h-4 w-4 text-cyan-400" /><span>{user.telefone}</span>
                 </div>
               </div>
             ) : (
-              <div className="rounded-xl border bg-card p-5 space-y-3">
-                <p className="text-xs text-muted-foreground">Identifique-se para continuar. Se já tem conta, informe email e senha.</p>
+              <div className={cn('space-y-3 p-5', BEACH_CARD)}>
+                <p className="text-xs text-slate-500">Identifique-se para continuar. Se já tem conta, informe email e senha.</p>
                 <div className="relative">
-                  <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <User className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-cyan-400" />
                   <input value={nome} onChange={(e) => setNome(e.target.value)} placeholder="Nome completo"
-                    className="w-full rounded-xl border bg-background pl-9 pr-4 py-2.5 text-sm" />
+                    className="w-full rounded-xl border border-cyan-100 bg-white py-2.5 pl-9 pr-4 text-sm outline-none focus:ring-2 focus:ring-cyan-200" />
                 </div>
                 <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-cyan-400" />
                   <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="seu@email.com"
-                    className="w-full rounded-xl border bg-background pl-9 pr-4 py-2.5 text-sm" />
+                    className="w-full rounded-xl border border-cyan-100 bg-white py-2.5 pl-9 pr-4 text-sm outline-none focus:ring-2 focus:ring-cyan-200" />
                 </div>
                 <div className="relative">
-                  <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Phone className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-cyan-400" />
                   <input value={telefone} onChange={(e) => setTelefone(e.target.value)} placeholder="(11) 99999-8888"
-                    className="w-full rounded-xl border bg-background pl-9 pr-4 py-2.5 text-sm" />
+                    className="w-full rounded-xl border border-cyan-100 bg-white py-2.5 pl-9 pr-4 text-sm outline-none focus:ring-2 focus:ring-cyan-200" />
                 </div>
                 <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-cyan-400" />
                   <input type="password" value={senha} onChange={(e) => setSenha(e.target.value)} placeholder="Senha (mín. 6 caracteres)"
-                    className="w-full rounded-xl border bg-background pl-9 pr-4 py-2.5 text-sm" />
+                    className="w-full rounded-xl border border-cyan-100 bg-white py-2.5 pl-9 pr-4 text-sm outline-none focus:ring-2 focus:ring-cyan-200" />
                 </div>
               </div>
             )}
 
             <button onClick={handleConfirmarDados} disabled={isSubmitting}
-              className="w-full rounded-xl bg-primary text-primary-foreground py-3 text-sm font-semibold hover:bg-primary/90 transition-colors disabled:opacity-50 flex items-center justify-center gap-1">
+              className={cn('flex w-full items-center justify-center gap-1 rounded-2xl py-3 text-sm font-semibold disabled:opacity-50', BEACH_CTA)}>
               {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <>Continuar <ChevronRight className="h-4 w-4" /></>}
             </button>
           </div>
@@ -302,36 +315,38 @@ export function CheckoutPage() {
         {/* Etapa 2: Entrega */}
         {step === 2 && (
           <div className="space-y-4">
-            <h2 className="text-sm font-semibold">Opção de Entrega</h2>
+            <h2 className="font-display text-base font-semibold text-cyan-950">Opção de Entrega</h2>
             <div className="space-y-2">
               {(['DIGITAL', 'FISICA', 'AMBAS'] as OpcaoEntrega[]).map((opcao) => {
                 const preco = entregaPrecos[opcao]
+                const selecionado = opcaoEntrega === opcao
                 return (
                   <div key={opcao}
                     onClick={() => setOpcaoEntrega(opcao)}
                     role="radio"
-                    aria-checked={opcaoEntrega === opcao}
+                    aria-checked={selecionado}
                     tabIndex={0}
                     onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setOpcaoEntrega(opcao) }}
-                    className={`rounded-xl border bg-card p-4 cursor-pointer transition-colors ${
-                      opcaoEntrega === opcao ? 'border-primary ring-2 ring-primary/20' : 'hover:border-primary/50'
-                    }`}>
+                    className={cn(
+                      'cursor-pointer rounded-2xl border bg-white p-4 transition-colors',
+                      selecionado ? 'border-cyan-300 ring-2 ring-cyan-200' : 'border-cyan-100 hover:border-cyan-200',
+                    )}>
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
-                        <Download className={`h-5 w-5 ${opcaoEntrega === opcao ? 'text-primary' : 'text-muted-foreground'}`} />
+                        <Download className={cn('h-5 w-5', selecionado ? 'text-cyan-600' : 'text-slate-400')} />
                         <div>
-                          <p className="text-sm font-medium">
+                          <p className="text-sm font-medium text-slate-800">
                             {opcao === 'DIGITAL' ? 'Download Digital' : opcao === 'FISICA' ? 'Mídia Física' : 'Ambos'}
                           </p>
-                          <p className="text-xs text-muted-foreground mt-0.5">
+                          <p className="mt-0.5 text-xs text-slate-500">
                             {opcao === 'DIGITAL' ? 'Links de download por e-mail' :
                              opcao === 'FISICA' ? 'USB ou DVD entregue em casa' :
                              'Download + mídia física'}
                           </p>
-                          <p className="text-[10px] text-muted-foreground mt-0.5">Prazo: {entregaPrazos[opcao]}</p>
+                          <p className="mt-0.5 text-[10px] text-slate-400">Prazo: {entregaPrazos[opcao]}</p>
                         </div>
                       </div>
-                      <span className="font-semibold text-sm">{preco === 0 ? 'Grátis' : formatCurrency(preco)}</span>
+                      <span className="text-sm font-semibold text-cyan-900">{preco === 0 ? 'Grátis' : formatCurrency(preco)}</span>
                     </div>
                   </div>
                 )
@@ -339,7 +354,7 @@ export function CheckoutPage() {
             </div>
 
             <button onClick={() => setStep(3)}
-              className="w-full rounded-xl bg-primary text-primary-foreground py-3 text-sm font-semibold hover:bg-primary/90 transition-colors flex items-center justify-center gap-1">
+              className={cn('flex w-full items-center justify-center gap-1 rounded-2xl py-3 text-sm font-semibold', BEACH_CTA)}>
               Continuar <ChevronRight className="h-4 w-4" />
             </button>
           </div>
@@ -348,33 +363,34 @@ export function CheckoutPage() {
         {/* Etapa 3: Pagamento */}
         {step === 3 && (
           <div className="space-y-4">
-            <h2 className="text-sm font-semibold">Pagamento</h2>
+            <h2 className="font-display text-base font-semibold text-cyan-950">Pagamento</h2>
 
-            <div className="rounded-xl border bg-card p-4 space-y-2">
-              <p className="text-xs font-medium text-muted-foreground">FORMA DE PAGAMENTO</p>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+            <div className={cn('space-y-2 p-4', BEACH_CARD)}>
+              <p className="text-xs font-medium uppercase tracking-wide text-slate-400">Forma de pagamento</p>
+              <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
                 {['PIX', 'CARTAO_CREDITO', 'TRANSFERENCIA', 'PAYPAL'].map((metodo) => (
                   <button key={metodo} onClick={() => setFormaPagamento(metodo)}
-                    className={`rounded-xl border px-3 py-3 text-xs font-medium transition-colors text-center ${
+                    className={cn(
+                      'rounded-xl border px-3 py-3 text-center text-xs font-medium transition-colors',
                       formaPagamento === metodo
-                        ? 'border-primary bg-primary/10 text-primary'
-                        : 'hover:bg-accent'
-                    }`}>
+                        ? 'border-cyan-300 bg-cyan-50 text-cyan-800'
+                        : 'border-cyan-100 hover:bg-cyan-50/50',
+                    )}>
                     {metodo === 'PIX' ? 'PIX' : metodo === 'CARTAO_CREDITO' ? 'Cartão' : metodo === 'TRANSFERENCIA' ? 'Transferência' : 'PayPal'}
                   </button>
                 ))}
               </div>
             </div>
 
-            <div className="rounded-xl border bg-card p-4 space-y-1.5">
+            <div className={cn('space-y-1.5 p-4', BEACH_CARD)}>
               <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">Subtotal</span>
-                <span>{formatCurrency(total)}</span>
+                <span className="text-slate-500">Subtotal</span>
+                <span className="text-slate-800">{formatCurrency(total)}</span>
               </div>
             </div>
 
             <button onClick={handleFinalizar} disabled={isSubmitting}
-              className="w-full rounded-xl bg-primary text-primary-foreground py-3 text-sm font-semibold hover:bg-primary/90 transition-colors disabled:opacity-50 flex items-center justify-center gap-2">
+              className={cn('flex w-full items-center justify-center gap-2 rounded-2xl py-3 text-sm font-semibold disabled:opacity-50', BEACH_CTA)}>
               {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <CreditCard className="h-4 w-4" />}
               {isSubmitting ? 'Processando...' : `Pagar ${formatCurrency(total)}`}
             </button>
@@ -383,31 +399,31 @@ export function CheckoutPage() {
 
         {/* Etapa 4: Confirmação */}
         {step === 4 && (
-          <div className="text-center py-12">
-            <div className="inline-flex h-16 w-16 rounded-full bg-emerald-100 dark:bg-emerald-900/30 items-center justify-center mb-4">
-              <Check className="h-8 w-8 text-emerald-600" />
+          <div className="py-12 text-center">
+            <div className="mb-4 inline-flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-cyan-400 to-teal-400 shadow-lg shadow-cyan-200">
+              <Check className="h-8 w-8 text-white" />
             </div>
-            <h1 className="text-xl font-bold mb-2">Solicitação Recebida!</h1>
-            <p className="text-sm text-muted-foreground max-w-sm mx-auto mb-6">
+            <h1 className="mb-2 font-display text-2xl font-bold text-cyan-950">Solicitação Recebida!</h1>
+            <p className="mx-auto mb-6 max-w-sm text-sm text-slate-600">
               Sua solicitação foi registrada com sucesso. Entraremos em contato em breve.
             </p>
-            <div className="rounded-xl border bg-card p-4 max-w-xs mx-auto mb-6">
-              <div className="flex justify-between text-sm mb-1">
-                <span className="text-muted-foreground">Pacote</span>
-                <span className="font-medium">{pacote.nome}</span>
+            <div className={cn('mx-auto mb-6 max-w-xs p-4', BEACH_CARD)}>
+              <div className="mb-1 flex justify-between text-sm">
+                <span className="text-slate-500">Pacote</span>
+                <span className="font-medium text-slate-800">{pacote.nome}</span>
               </div>
-              <div className="flex justify-between text-sm mb-1">
-                <span className="text-muted-foreground">Total</span>
-                <span className="font-semibold">{formatCurrency(total)}</span>
+              <div className="mb-1 flex justify-between text-sm">
+                <span className="text-slate-500">Total</span>
+                <span className="font-semibold text-cyan-900">{formatCurrency(total)}</span>
               </div>
               <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">Pagamento</span>
-                <span className="font-medium">{formaPagamento}</span>
+                <span className="text-slate-500">Pagamento</span>
+                <span className="font-medium text-slate-800">{formaPagamento}</span>
               </div>
             </div>
-            <div className="flex gap-3 justify-center">
+            <div className="flex justify-center gap-3">
               <button onClick={() => navigate('/')}
-                className="rounded-xl bg-primary text-primary-foreground px-6 py-2.5 text-sm font-semibold hover:bg-primary/90 transition-colors flex items-center gap-2">
+                className={cn('flex items-center gap-2 rounded-2xl px-6 py-2.5 text-sm font-semibold', BEACH_CTA)}>
                 <ShoppingBag className="h-4 w-4" /> Ir para o Início
               </button>
             </div>

@@ -11,6 +11,8 @@ import { CheckoutDialog } from '../components/CheckoutDialog'
 import { MinhasComprasSection } from '../components/MinhasComprasSection'
 import { ComparadorFotos } from '../components/ComparadorFotos'
 import { CartSummaryPanel } from '../components/CartSummaryPanel'
+import { FavoritosPanel } from '../components/FavoritosPanel'
+import { cn } from '@/shared/lib/cn'
 
 
 export function GaleriaClientePage() {
@@ -33,6 +35,7 @@ export function GaleriaClientePage() {
   const [compareIds, setCompareIds] = useState<Set<string>>(new Set())
   const [showCart, setShowCart] = useState(false)
   const [showComparador, setShowComparador] = useState(false)
+  const [showFavoritos, setShowFavoritos] = useState(false)
 
   // Filtros
   const [searchTerm, setSearchTerm] = useState('')
@@ -250,15 +253,15 @@ export function GaleriaClientePage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-background">
-        <div className="sticky top-0 z-40 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 px-4 md:px-6 py-3">
-          <div className="h-4 w-48 rounded bg-muted animate-pulse" />
-          <div className="h-3 w-72 max-w-full rounded bg-muted/70 animate-pulse mt-2" />
+      <div className="min-h-screen bg-gradient-to-b from-sky-100 via-cyan-50 to-amber-50">
+        <div className="sticky top-0 z-40 border-b border-cyan-100 bg-white/80 px-4 py-3 backdrop-blur md:px-6">
+          <div className="h-4 w-48 animate-pulse rounded bg-cyan-100" />
+          <div className="mt-2 h-3 w-72 max-w-full animate-pulse rounded bg-cyan-50" />
         </div>
-        <div className="px-4 md:px-6 py-6">
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 sm:gap-4">
+        <div className="px-4 py-6 md:px-6">
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
             {Array.from({ length: 12 }).map((_, i) => (
-              <div key={i} className="aspect-[3/2] rounded-xl bg-muted animate-pulse" />
+              <div key={i} className="aspect-[3/2] animate-pulse rounded-xl bg-white/70 ring-1 ring-cyan-100" />
             ))}
           </div>
         </div>
@@ -269,11 +272,11 @@ export function GaleriaClientePage() {
   if (error) {
     const isExpired = error.includes('expirou')
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="flex flex-col items-center gap-3 text-center max-w-sm">
-          <ShieldAlert className={`h-12 w-12 ${isExpired ? 'text-amber-500' : 'text-muted-foreground'}`} />
-          <h1 className="text-lg font-semibold">{isExpired ? 'Link Expirado' : 'Galeria não disponível'}</h1>
-          <p className="text-sm text-muted-foreground">{error}</p>
+      <div className="flex min-h-screen items-center justify-center bg-gradient-to-b from-sky-200 via-cyan-100 to-amber-50">
+        <div className="flex max-w-sm flex-col items-center gap-3 rounded-3xl bg-white/95 p-8 text-center shadow-sm ring-1 ring-cyan-100 backdrop-blur">
+          <ShieldAlert className={`h-12 w-12 ${isExpired ? 'text-amber-500' : 'text-cyan-500'}`} />
+          <h1 className="font-display text-lg font-semibold text-cyan-950">{isExpired ? 'Link Expirado' : 'Galeria não disponível'}</h1>
+          <p className="text-sm text-slate-500">{error}</p>
         </div>
       </div>
     )
@@ -281,23 +284,23 @@ export function GaleriaClientePage() {
 
   if (fotos.length === 0) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="flex flex-col items-center gap-3 text-center max-w-sm">
-          <Camera className="h-12 w-12 text-muted-foreground" />
-          <h1 className="text-lg font-semibold">Nenhuma foto publicada</h1>
-          <p className="text-sm text-muted-foreground">As fotos ainda não foram publicadas. Volte mais tarde.</p>
+      <div className="flex min-h-screen items-center justify-center bg-gradient-to-b from-sky-200 via-cyan-100 to-amber-50">
+        <div className="flex max-w-sm flex-col items-center gap-3 rounded-3xl bg-white/95 p-8 text-center shadow-sm ring-1 ring-cyan-100 backdrop-blur">
+          <Camera className="h-12 w-12 text-cyan-400" />
+          <h1 className="font-display text-lg font-semibold text-cyan-950">Nenhuma foto publicada</h1>
+          <p className="text-sm text-slate-500">As fotos ainda não foram publicadas. Volte mais tarde.</p>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-background" onContextMenu={(e) => e.preventDefault()}>
-      <header className="sticky top-0 z-40 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="flex flex-col gap-2 px-4 md:px-6 py-3 md:h-14 md:flex-row md:items-center md:justify-between">
+    <div className="min-h-screen bg-gradient-to-b from-sky-50 via-amber-50/40 to-amber-50" onContextMenu={(e) => e.preventDefault()}>
+      <header className="sticky top-0 z-40 border-b border-cyan-100 bg-white/85 backdrop-blur">
+        <div className="flex flex-col gap-2 bg-gradient-to-r from-cyan-500 via-sky-500 to-teal-400 px-4 py-3 text-white md:h-14 md:flex-row md:items-center md:justify-between md:px-6">
           <div className="min-w-0">
-            <h1 className="text-sm font-semibold truncate">{galeria?.pacoteNome || 'Sua Galeria de Fotos'}</h1>
-            <p className="text-[11px] text-muted-foreground truncate">
+            <h1 className="truncate font-display text-sm font-semibold">{galeria?.pacoteNome || 'Sua Galeria de Fotos'}</h1>
+            <p className="truncate text-[11px] text-white/85">
               {selectedIds.size} de {pacoteLimit} no pacote
               {carrinhoCount > 0 && ` · ${carrinhoCount} extra(s): R$ ${totalExtras.toFixed(2)}`}
               {filteredFotos.length < fotos.length && ` · ${filteredFotos.length} exibidas`}
@@ -305,50 +308,50 @@ export function GaleriaClientePage() {
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-2 md:flex-nowrap md:overflow-x-auto md:overflow-y-visible">
-            <span className="shrink-0">{favoritoIds.size > 0 && (
-              <span className="flex items-center gap-1 text-xs text-muted-foreground" title="Fotos favoritas">
-                <Heart className="h-3.5 w-3.5 text-rose-400" fill="currentColor" />
-                {favoritoIds.size}
-              </span>
-            )}</span>
+            <button onClick={() => setShowFavoritos(true)}
+              className="flex shrink-0 items-center gap-1.5 rounded-xl border border-white/30 bg-white/10 px-3 py-2.5 text-xs font-medium transition-colors hover:bg-white/20"
+              title="Fotos que você marcou como Gostei">
+              <Heart className={cn('h-3.5 w-3.5', favoritoIds.size > 0 ? 'text-rose-300' : 'text-white/90')} fill={favoritoIds.size > 0 ? 'currentColor' : 'none'} />
+              Gostei{favoritoIds.size > 0 ? ` (${favoritoIds.size})` : ''}
+            </button>
             <button onClick={() => setCompareMode((prev) => !prev)}
-              className={`shrink-0 flex items-center gap-1.5 rounded-lg border px-3 py-2.5 text-xs font-medium transition-colors ${
-                compareMode ? 'bg-blue-600 text-white border-blue-600 hover:bg-blue-700' : 'hover:bg-accent'
+              className={`flex shrink-0 items-center gap-1.5 rounded-xl border px-3 py-2.5 text-xs font-medium transition-colors ${
+                compareMode ? 'border-white bg-white text-cyan-700 hover:bg-white/90' : 'border-white/30 bg-white/10 hover:bg-white/20'
               }`}>
               <Columns2 className="h-3.5 w-3.5" />
               Comparar
             </button>
             {compareMode && compareIds.size >= 2 && (
               <button onClick={() => setShowComparador(true)}
-                className="shrink-0 rounded-lg bg-blue-600 text-white px-3 py-2.5 text-xs font-medium hover:bg-blue-700 transition-colors">
+                className="shrink-0 rounded-xl bg-white px-3 py-2.5 text-xs font-medium text-cyan-700 transition-colors hover:bg-white/90">
                 Ver comparação ({compareIds.size})
               </button>
             )}
             <button onClick={() => setShowCart(true)}
-              className="shrink-0 relative rounded-lg border p-2.5 hover:bg-accent transition-colors" title="Meu carrinho">
+              className="relative shrink-0 rounded-xl border border-white/30 bg-white/10 p-2.5 transition-colors hover:bg-white/20" title="Meu carrinho">
               <ShoppingCart className="h-4 w-4" />
               {carrinhoCount > 0 && (
-                <span className="absolute -top-1.5 -right-1.5 h-4 min-w-4 px-0.5 rounded-full bg-blue-600 text-white text-[10px] font-medium flex items-center justify-center">
+                <span className="absolute -right-1.5 -top-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-orange-400 px-0.5 text-[10px] font-medium text-white">
                   {carrinhoCount}
                 </span>
               )}
             </button>
             {hasSelectionChanges && (
               <button onClick={handleSaveSelection} disabled={isSaving}
-                className="shrink-0 rounded-lg bg-primary text-primary-foreground px-3 py-2.5 text-xs font-medium hover:bg-primary/90 transition-colors disabled:opacity-50">
+                className="shrink-0 rounded-xl bg-white px-3 py-2.5 text-xs font-medium text-cyan-700 transition-colors hover:bg-white/90 disabled:opacity-50">
                 {isSaving ? 'Salvando...' : 'Salvar Seleção'}
               </button>
             )}
             {downloadableFotos.length > 0 && (
               <a href={ecommerceService.downloadZipUrl(token ?? '')}
-                className="shrink-0 flex items-center gap-1.5 rounded-lg border px-3 py-2.5 text-xs font-medium hover:bg-accent transition-colors">
+                className="flex shrink-0 items-center gap-1.5 rounded-xl border border-white/30 bg-white/10 px-3 py-2.5 text-xs font-medium transition-colors hover:bg-white/20">
                 <Download className="h-3.5 w-3.5" />
                 ZIP ({downloadableFotos.length})
               </a>
             )}
             {carrinhoCount > 0 && (
               <button onClick={() => setShowCheckout(true)}
-                className="shrink-0 flex items-center gap-1.5 rounded-lg bg-blue-600 text-white px-3 py-2.5 text-xs font-medium hover:bg-blue-700 transition-colors">
+                className="flex shrink-0 items-center gap-1.5 rounded-xl bg-gradient-to-r from-orange-400 to-rose-400 px-3 py-2.5 text-xs font-semibold text-white shadow transition-colors hover:from-orange-500 hover:to-rose-500">
                 <ShoppingCart className="h-3.5 w-3.5" />
                 Finalizar ({carrinhoCount})
               </button>
@@ -356,22 +359,22 @@ export function GaleriaClientePage() {
           </div>
         </div>
         {/* Barra de filtros */}
-        <div className="px-4 md:px-6 pb-3 flex items-center gap-2 flex-wrap">
-          <div className="relative flex-1 max-w-xs">
-            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+        <div className="flex flex-wrap items-center gap-2 px-4 pb-3 pt-3 md:px-6">
+          <div className="relative max-w-xs flex-1">
+            <Search className="absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-cyan-400" />
             <input value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="Buscar por tags ou nome..."
-              className="w-full rounded-lg border bg-background pl-8 pr-3 py-2.5 text-xs" />
+              className="w-full rounded-xl border border-cyan-100 bg-white py-2.5 pl-8 pr-3 text-xs outline-none focus:ring-2 focus:ring-cyan-200" />
             {searchTerm && (
               <button onClick={() => setSearchTerm('')}
                 className="absolute right-2 top-1/2 -translate-y-1/2">
-                <X className="h-3 w-3 text-muted-foreground" />
+                <X className="h-3 w-3 text-slate-400" />
               </button>
             )}
           </div>
           {categorias.length > 0 && (
             <select value={categoriaFilter} onChange={(e) => setCategoriaFilter(e.target.value)}
-              className="rounded-lg border bg-background px-3 py-2.5 text-xs font-medium">
+              className="rounded-xl border border-cyan-100 bg-white px-3 py-2.5 text-xs font-medium text-slate-700 outline-none focus:ring-2 focus:ring-cyan-200">
               <option value="">Todas as categorias</option>
               {categorias.map((cat) => (
                 <option key={cat} value={cat}>{cat}</option>
@@ -380,7 +383,7 @@ export function GaleriaClientePage() {
           )}
           {(categoriaFilter || searchTerm) && (
             <button onClick={() => { setCategoriaFilter(''); setSearchTerm('') }}
-              className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1">
+              className="flex items-center gap-1 text-xs text-slate-500 hover:text-cyan-700">
               <Filter className="h-3 w-3" /> Limpar
             </button>
           )}
@@ -388,33 +391,32 @@ export function GaleriaClientePage() {
       </header>
 
       {/* Barra de progresso do pacote */}
-      <div className="px-4 md:px-6 pt-4 pb-1">
-        <div className="rounded-xl border bg-card p-4">
-          <div className="flex items-center justify-between mb-2">
+      <div className="px-4 pb-1 pt-4 md:px-6">
+        <div className="rounded-2xl bg-white/95 p-4 shadow-sm ring-1 ring-cyan-100 backdrop-blur">
+          <div className="mb-2 flex items-center justify-between">
             <div>
-              <p className="text-xs font-semibold">
+              <p className="text-xs font-semibold text-cyan-950">
                 Fotos no pacote: {selectedIds.size} de {pacoteLimit}
               </p>
-              <p className="text-[11px] text-muted-foreground mt-0.5">
+              <p className="mt-0.5 text-[11px] text-slate-500">
                 {selectedIds.size >= pacoteLimit
                   ? 'Limite do pacote atingido'
                   : `Você pode selecionar mais ${pacoteLimit - selectedIds.size} foto(s)`}
                 {carrinhoCount > 0 && ` · Carrinho: ${carrinhoCount} extra(s) · R$ ${(carrinhoCount * valorUnitario).toFixed(2)}`}
               </p>
             </div>
-            <span className="text-xs font-medium text-muted-foreground">
+            <span className="text-xs font-medium text-cyan-700">
               {pacoteLimit > 0 ? Math.round((selectedIds.size / pacoteLimit) * 100) : 0}%
             </span>
           </div>
-          <div className="h-2 rounded-full bg-muted overflow-hidden">
+          <div className="h-2 overflow-hidden rounded-full bg-cyan-100">
             <div
-              className="h-full rounded-full transition-all duration-500"
-              style={{
-                width: `${Math.min((selectedIds.size / pacoteLimit) * 100, 100)}%`,
-                background: selectedIds.size >= pacoteLimit
-                  ? 'linear-gradient(to right, #f59e0b, #e1749a)'
-                  : 'linear-gradient(to right, #10b981, #059669)'
-              }}
+              className={`h-full rounded-full transition-all duration-500 ${
+                selectedIds.size >= pacoteLimit
+                  ? 'bg-gradient-to-r from-orange-400 to-rose-400'
+                  : 'bg-gradient-to-r from-cyan-400 to-teal-400'
+              }`}
+              style={{ width: `${Math.min((selectedIds.size / pacoteLimit) * 100, 100)}%` }}
             />
           </div>
         </div>
@@ -462,7 +464,8 @@ export function GaleriaClientePage() {
           carrinhoIds={carrinhoIds} pacoteLimit={pacoteLimit}
           selectedCount={selectedIds.size} onToggleCarrinho={toggleCarrinho}
           valorUnitario={valorUnitario} cartLoadingIds={cartLoadingIds}
-          token={token ?? ''} commentsOpen={commentsOpen} onCommentsOpenChange={setCommentsOpen} />
+          token={token ?? ''} commentsOpen={commentsOpen} onCommentsOpenChange={setCommentsOpen}
+          favoritoIds={favoritoIds} onToggleFavorito={toggleFavorito} />
       )}
 
       {showComparador && (
@@ -484,6 +487,19 @@ export function GaleriaClientePage() {
         valorUnitario={valorUnitario}
         onRemoveFromCart={toggleCarrinho}
         onCheckout={() => { setShowCart(false); setShowCheckout(true) }} />
+
+      <FavoritosPanel
+        open={showFavoritos}
+        onClose={() => setShowFavoritos(false)}
+        fotos={fotos}
+        favoritoIds={favoritoIds}
+        selectedIds={selectedIds}
+        carrinhoIds={carrinhoIds}
+        pacoteLimit={pacoteLimit}
+        valorUnitario={valorUnitario}
+        onToggleSelect={toggleSelect}
+        onToggleCarrinho={toggleCarrinho}
+        onToggleFavorito={toggleFavorito} />
 
       <CheckoutDialog
         token={token ?? ''}

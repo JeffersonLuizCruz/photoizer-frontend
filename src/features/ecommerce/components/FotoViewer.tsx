@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { format } from 'date-fns'
-import { ChevronLeft, ChevronRight, X, Check, Clock, ShoppingCart, Loader2, MessageCircle, Send, User } from 'lucide-react'
+import { ChevronLeft, ChevronRight, X, Check, Clock, ShoppingCart, Loader2, MessageCircle, Send, User, Heart } from 'lucide-react'
 import { toast } from 'sonner'
 import type { FotoEnsaio, FotoComentario } from '../types/ecommerce.types'
 import { ecommerceService } from '../services/ecommerce.service'
@@ -23,6 +23,8 @@ interface FotoViewerProps {
   token: string
   commentsOpen: boolean
   onCommentsOpenChange: (open: boolean) => void
+  favoritoIds: Set<string>
+  onToggleFavorito: (fotoId: string) => void
 }
 
 function formatComentarioData(iso: string): string {
@@ -36,16 +38,16 @@ function ComentarioBubble({ comentario }: { comentario: FotoComentario }) {
   const autor = comentario.autorNome?.trim() || (isStaff ? 'Estúdio Photoizer' : 'Cliente')
 
   return (
-    <div className={cn('flex flex-col max-w-[85%]', isStaff ? 'items-end ml-auto' : 'items-start mr-auto')}>
-      <span className={cn('text-[10px] font-medium mb-0.5 px-1', isStaff ? 'text-blue-300' : 'text-zinc-400')}>
-        {autor} <span className="text-zinc-500">· {formatComentarioData(comentario.auditInfo.createdAt)}</span>
+    <div className={cn('flex max-w-[85%] flex-col', isStaff ? 'ml-auto items-end' : 'mr-auto items-start')}>
+      <span className={cn('mb-0.5 px-1 text-[10px] font-medium', isStaff ? 'text-cyan-600' : 'text-slate-400')}>
+        {autor} <span className="text-slate-400">· {formatComentarioData(comentario.auditInfo.createdAt)}</span>
       </span>
       <div className={cn(
-        'rounded-2xl px-3.5 py-2.5 text-[13px] leading-relaxed break-words shadow-md',
-        isStaff ? 'bg-blue-600 text-white rounded-br-sm' : 'bg-white/10 text-zinc-100 rounded-bl-sm'
+        'break-words rounded-2xl px-3.5 py-2.5 text-[13px] leading-relaxed shadow-sm',
+        isStaff ? 'rounded-br-sm bg-cyan-500 text-white' : 'rounded-bl-sm bg-sky-50 text-slate-700 ring-1 ring-cyan-100',
       )}>
         {isStaff && (
-          <span className="mb-1 flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wide text-blue-100/90">
+          <span className="mb-1 flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wide text-cyan-50">
             <MessageCircle className="h-3 w-3" /> Resposta do estúdio
           </span>
         )}
@@ -58,11 +60,12 @@ function ComentarioBubble({ comentario }: { comentario: FotoComentario }) {
 export function FotoViewer({
   fotos, currentIndex, onClose, onToggleSelect, onNavigate,
   selectedIds, carrinhoIds, pacoteLimit, selectedCount, onToggleCarrinho, valorUnitario, cartLoadingIds,
-  token, commentsOpen, onCommentsOpenChange,
+  token, commentsOpen, onCommentsOpenChange, favoritoIds, onToggleFavorito,
 }: FotoViewerProps) {
   const foto = fotos[currentIndex]
   const isSelected = selectedIds.has(foto.id)
   const isInCart = carrinhoIds.has(foto.id)
+  const isFavorito = favoritoIds.has(foto.id)
   const isLoading = cartLoadingIds.has(foto.id)
   const pendente = !!foto.compraExtraId && foto.status !== 'PAGA'
   const packageFull = selectedCount >= pacoteLimit
@@ -118,60 +121,73 @@ export function FotoViewer({
     }
   }
 
+  const controlBtn = 'flex items-center justify-center rounded-full bg-white/80 text-cyan-700 shadow-md ring-1 ring-cyan-100 backdrop-blur transition-all hover:scale-105 hover:bg-white active:scale-95'
+
   return (
-    <div className="fixed inset-0 z-50 bg-black/95 flex items-center justify-center" onClick={onClose}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-gradient-to-b from-sky-100/95 via-amber-50/95 to-amber-50/95 backdrop-blur" onClick={onClose}>
       <button onClick={(e) => { e.stopPropagation(); onClose() }}
         aria-label="Fechar visualização"
-        className="absolute top-4 right-4 z-30 h-11 w-11 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-all hover:scale-105 active:scale-95">
-        <X className="h-6 w-6 text-white" />
+        className={cn('absolute right-4 top-4 z-30 h-11 w-11', controlBtn)}>
+        <X className="h-6 w-6" />
       </button>
-      <span className="absolute top-5 left-4 z-30 text-white/60 text-sm font-medium tracking-wide">
+      <span className="absolute left-4 top-5 z-30 text-sm font-medium tracking-wide text-cyan-800/70">
         {currentIndex + 1} / {fotos.length}
       </span>
       {currentIndex > 0 && (
         <button onClick={(e) => { e.stopPropagation(); onNavigate(currentIndex - 1) }}
           aria-label="Foto anterior"
-          className="absolute left-3 sm:left-4 z-30 h-12 w-12 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-all hover:scale-105 active:scale-95">
-          <ChevronLeft className="h-8 w-8 text-white" />
+          className={cn('absolute left-3 top-1/2 z-30 h-12 w-12 -translate-y-1/2 sm:left-4', controlBtn)}>
+          <ChevronLeft className="h-8 w-8" />
         </button>
       )}
       <div className={cn(
-        'max-h-[85vh] max-w-[90vw] w-full h-full bg-contain bg-center bg-no-repeat relative transition-opacity duration-300',
-        commentsOpen ? 'opacity-40 sm:opacity-100' : 'opacity-100'
+        'relative h-full max-h-[85vh] w-full max-w-[90vw] bg-contain bg-center bg-no-repeat transition-opacity duration-300',
+        commentsOpen ? 'opacity-40 sm:opacity-100' : 'opacity-100',
       )}
-        style={{ backgroundImage: `url(${foto.watermarkedUrl})` }}
+        style={{ backgroundImage: `url("${foto.watermarkedUrl}")` }}
         onClick={(e) => e.stopPropagation()}>
         <div className="absolute inset-0" style={{ pointerEvents: 'none' }} />
       </div>
       {currentIndex < fotos.length - 1 && !commentsOpen && (
         <button onClick={(e) => { e.stopPropagation(); onNavigate(currentIndex + 1) }}
           aria-label="Próxima foto"
-          className="absolute right-3 sm:right-4 z-30 h-12 w-12 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-all hover:scale-105 active:scale-95">
-          <ChevronRight className="h-8 w-8 text-white" />
+          className={cn('absolute right-3 top-1/2 z-30 h-12 w-12 -translate-y-1/2 sm:right-4', controlBtn)}>
+          <ChevronRight className="h-8 w-8" />
         </button>
       )}
 
       {foto.titulo && (
-        <span className="absolute top-5 left-1/2 -translate-x-1/2 z-30 hidden sm:block max-w-xs truncate rounded-full bg-white/10 px-3 py-1.5 text-[12px] text-white/80 backdrop-blur">
+        <span className="absolute left-1/2 top-5 z-30 hidden max-w-xs -translate-x-1/2 truncate rounded-full bg-white/80 px-3 py-1.5 text-[12px] text-cyan-800 shadow ring-1 ring-cyan-100 backdrop-blur sm:block">
           {foto.titulo}
         </span>
       )}
 
       {/* Ações principais */}
-      <div className="absolute bottom-5 sm:bottom-6 left-1/2 -translate-x-1/2 z-30 flex flex-wrap justify-center items-center gap-2.5 max-w-[94vw]">
+      <div className="absolute bottom-5 left-1/2 z-30 flex max-w-[94vw] -translate-x-1/2 flex-wrap items-center justify-center gap-2.5 sm:bottom-6">
         <button onClick={(e) => { e.stopPropagation(); onCommentsOpenChange(!commentsOpen) }}
           className={cn(
-            'flex items-center gap-2 rounded-full px-4 py-2.5 text-sm font-medium transition-all active:scale-95',
+            'flex items-center gap-2 rounded-full px-4 py-2.5 text-sm font-medium shadow-md transition-all active:scale-95',
             commentsOpen
-              ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/30'
-              : 'bg-white/10 text-white hover:bg-white/20'
+              ? 'bg-cyan-600 text-white shadow-cyan-300/50'
+              : 'bg-white/80 text-cyan-700 ring-1 ring-cyan-100 backdrop-blur hover:bg-white',
           )}>
           <MessageCircle className="h-4 w-4" />
           {comentarios.length > 0 ? `Comentários (${comentarios.length})` : 'Comentar'}
         </button>
+        <button onClick={(e) => { e.stopPropagation(); onToggleFavorito(foto.id) }}
+          aria-pressed={isFavorito}
+          className={cn(
+            'flex items-center gap-2 rounded-full px-4 py-2.5 text-sm font-medium shadow-md transition-all active:scale-95',
+            isFavorito
+              ? 'bg-rose-500 text-white shadow-rose-300/50'
+              : 'bg-white/80 text-rose-500 ring-1 ring-rose-100 backdrop-blur hover:bg-white',
+          )}>
+          <Heart className="h-4 w-4" fill={isFavorito ? 'currentColor' : 'none'} />
+          Gostei
+        </button>
         {pendente ? (
           <button disabled
-            className="flex items-center gap-2 rounded-full px-5 py-2.5 text-sm font-medium transition-colors bg-amber-500/40 text-white/70 cursor-default">
+            className="flex cursor-default items-center gap-2 rounded-full bg-amber-100 px-5 py-2.5 text-sm font-medium text-amber-700 shadow-md">
             <Clock className="h-4 w-4" />
             Aguardando confirmação
           </button>
@@ -179,8 +195,8 @@ export function FotoViewer({
           <button onClick={(e) => { e.stopPropagation(); if (!foto.downloadada) onToggleSelect(foto.id) }}
             disabled={foto.downloadada}
             className={cn(
-              'flex items-center gap-2 rounded-full px-5 py-2.5 text-sm font-medium transition-all active:scale-95',
-              foto.downloadada ? 'bg-emerald-500/40 text-white/70 cursor-default' : 'bg-emerald-500 text-white hover:bg-emerald-600 shadow-lg shadow-emerald-500/30'
+              'flex items-center gap-2 rounded-full px-5 py-2.5 text-sm font-medium shadow-md transition-all active:scale-95',
+              foto.downloadada ? 'cursor-default bg-teal-100 text-teal-700' : 'bg-teal-500 text-white shadow-teal-300/50 hover:bg-teal-600',
             )}>
             <Check className="h-4 w-4" />
             {foto.downloadada ? 'Inclusa no pacote (baixada)' : 'Inclusa no pacote'}
@@ -188,16 +204,17 @@ export function FotoViewer({
         ) : !packageFull ? (
           <button onClick={(e) => { e.stopPropagation(); onToggleSelect(foto.id) }}
             disabled={isLoading}
-            className="flex items-center gap-2 rounded-full px-5 py-2.5 text-sm font-medium transition-all active:scale-95 bg-white/10 text-white hover:bg-white/20 disabled:opacity-40">
+            className="flex items-center gap-2 rounded-full bg-white/80 px-5 py-2.5 text-sm font-medium text-cyan-700 shadow-md ring-1 ring-cyan-100 backdrop-blur transition-all hover:bg-white active:scale-95 disabled:opacity-40">
             <Check className="h-4 w-4 opacity-0" />
             Incluir no pacote
           </button>
         ) : (
           <button onClick={(e) => { e.stopPropagation(); onToggleCarrinho(foto.id) }} disabled={isLoading}
             className={cn(
-              'flex items-center gap-2 rounded-full px-5 py-2.5 text-sm font-medium transition-all active:scale-95',
-              isLoading ? 'bg-white/10 text-white' :
-                isInCart ? 'bg-blue-500 text-white hover:bg-blue-600 shadow-lg shadow-blue-500/30' : 'bg-white/10 text-white hover:bg-white/20'
+              'flex items-center gap-2 rounded-full px-5 py-2.5 text-sm font-medium shadow-md transition-all active:scale-95',
+              isLoading ? 'bg-white/80 text-cyan-700'
+                : isInCart ? 'bg-cyan-500 text-white shadow-cyan-300/50 hover:bg-cyan-600'
+                  : 'bg-gradient-to-r from-orange-400 to-rose-400 text-white hover:from-orange-500 hover:to-rose-500',
             )}>
             {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <ShoppingCart className="h-4 w-4" />}
             {isLoading ? '' : isInCart ? 'Remover' : `Comprar R$ ${valorUnitario.toFixed(2)}`}
@@ -208,28 +225,28 @@ export function FotoViewer({
       {/* Painel de comentários */}
       {commentsOpen && (
         <div onClick={(e) => e.stopPropagation()}
-          className="absolute inset-y-0 right-0 z-40 w-full sm:w-[360px] bg-zinc-950/95 backdrop-blur-xl border-l border-white/10 flex flex-col shadow-2xl animate-in slide-in-from-right duration-300">
-          <div className="flex items-center justify-between px-4 py-3 border-b border-white/10">
-            <span className="text-sm font-semibold text-white flex items-center gap-2">
-              <User className="h-4 w-4 text-blue-400" />
+          className="absolute inset-y-0 right-0 z-40 flex w-full animate-in flex-col border-l border-cyan-100 bg-white/95 shadow-2xl backdrop-blur-xl duration-300 slide-in-from-right sm:w-[360px]">
+          <div className="flex items-center justify-between border-b border-cyan-100 px-4 py-3">
+            <span className="flex items-center gap-2 font-display text-sm font-semibold text-cyan-950">
+              <User className="h-4 w-4 text-cyan-500" />
               Comentários da foto
             </span>
             <button onClick={() => onCommentsOpenChange(false)}
-              className="h-8 w-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors">
-              <X className="h-4 w-4 text-white" />
+              className="flex h-8 w-8 items-center justify-center rounded-full bg-cyan-50 text-cyan-600 transition-colors hover:bg-cyan-100">
+              <X className="h-4 w-4" />
             </button>
           </div>
 
-          <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4">
+          <div className="flex-1 space-y-4 overflow-y-auto px-4 py-4">
             {carregandoComentarios ? (
               <div className="flex items-center justify-center py-10">
-                <Loader2 className="h-5 w-5 animate-spin text-zinc-500" />
+                <Loader2 className="h-5 w-5 animate-spin text-cyan-400" />
               </div>
             ) : comentarios.length === 0 ? (
-              <div className="text-center py-10">
-                <MessageCircle className="h-8 w-8 mx-auto text-zinc-600 mb-2" />
-                <p className="text-sm text-zinc-400">Nenhum comentário ainda.</p>
-                <p className="text-xs text-zinc-500 mt-1">
+              <div className="py-10 text-center">
+                <MessageCircle className="mx-auto mb-2 h-8 w-8 text-cyan-300" />
+                <p className="text-sm text-slate-500">Nenhum comentário ainda.</p>
+                <p className="mt-1 text-xs text-slate-400">
                   Deixe sua sugestão ou pedido sobre esta foto.
                 </p>
               </div>
@@ -238,13 +255,13 @@ export function FotoViewer({
             )}
           </div>
 
-          <div className="border-t border-white/10 p-4 space-y-2.5">
+          <div className="space-y-2.5 border-t border-cyan-100 p-4">
             <input
               value={autorNome}
               onChange={(e) => setAutorNome(e.target.value)}
               maxLength={120}
               placeholder="Seu nome (opcional)"
-              className="w-full rounded-xl bg-white/10 px-3.5 py-2.5 text-[13px] text-white placeholder:text-zinc-500 outline-none ring-0 focus:ring-2 focus:ring-blue-500/60 transition-shadow"
+              className="w-full rounded-xl bg-sky-50 px-3.5 py-2.5 text-[13px] text-slate-700 outline-none ring-1 ring-cyan-100 transition-shadow placeholder:text-slate-400 focus:ring-2 focus:ring-cyan-400"
             />
             <textarea
               value={comentarioTexto}
@@ -252,10 +269,10 @@ export function FotoViewer({
               maxLength={2000}
               rows={3}
               placeholder="Ex.: Poderia melhorar a edição do meu corpo nessa foto?"
-              className="w-full rounded-xl bg-white/10 px-3.5 py-2.5 text-[13px] text-white placeholder:text-zinc-500 outline-none ring-0 focus:ring-2 focus:ring-blue-500/60 transition-shadow resize-none"
+              className="w-full resize-none rounded-xl bg-sky-50 px-3.5 py-2.5 text-[13px] text-slate-700 outline-none ring-1 ring-cyan-100 transition-shadow placeholder:text-slate-400 focus:ring-2 focus:ring-cyan-400"
             />
             <button onClick={enviarComentario} disabled={enviandoComentario || !comentarioTexto.trim()}
-              className="flex w-full items-center justify-center gap-2 rounded-xl bg-blue-600 text-white text-sm font-medium py-2.5 transition-all hover:bg-blue-700 active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed">
+              className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-orange-400 to-rose-400 py-2.5 text-sm font-semibold text-white transition-all hover:from-orange-500 hover:to-rose-500 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-40">
               {enviandoComentario ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
               Enviar comentário
             </button>

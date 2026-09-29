@@ -1,7 +1,10 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Camera, Shield, Zap, ChevronRight } from 'lucide-react'
+import { Camera, Shield, Zap, ChevronRight, Waves, Palmtree, Check } from 'lucide-react'
 import { ecommerceService } from '../services/ecommerce.service'
+import { BeachBackdrop } from '@/shared/components/beach/BeachBackdrop'
+import { BEACH_CARD, BEACH_CTA } from '@/shared/components/beach/beach'
+import { cn } from '@/shared/lib/cn'
 import type { PacoteResponse } from '@/features/pacotes/types/pacotes.types'
 
 function formatCurrency(value: number): string {
@@ -23,17 +26,18 @@ export function PackageCatalogPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-background to-muted/30">
-        <div className="max-w-7xl mx-auto px-4 py-12 md:py-20">
-          <div className="h-8 w-64 mx-auto rounded-xl bg-muted animate-pulse mb-3" />
-          <div className="h-4 w-80 max-w-full mx-auto rounded-xl bg-muted/70 animate-pulse" />
-          <div className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto mt-12">
+      <div className="relative min-h-screen">
+        <BeachBackdrop />
+        <div className="mx-auto max-w-7xl px-4 py-12 md:py-20">
+          <div className="mx-auto mb-3 h-8 w-64 rounded-xl bg-white/70 animate-pulse" />
+          <div className="mx-auto h-4 w-80 max-w-full rounded-xl bg-white/60 animate-pulse" />
+          <div className="mx-auto mt-12 grid max-w-5xl gap-6 md:grid-cols-3">
             {Array.from({ length: 3 }).map((_, i) => (
-              <div key={i} className="rounded-2xl border-2 bg-card p-6">
-                <div className="h-20 w-20 rounded-full bg-muted animate-pulse mx-auto mb-4" />
-                <div className="h-5 w-32 mx-auto rounded-xl bg-muted animate-pulse mb-2" />
-                <div className="h-3 w-44 mx-auto rounded-xl bg-muted/70 animate-pulse" />
-                <div className="h-8 w-40 mx-auto rounded-xl bg-muted animate-pulse mt-6 mb-8" />
+              <div key={i} className={cn('p-6', BEACH_CARD)}>
+                <div className="mx-auto mb-4 h-20 w-20 rounded-full bg-muted animate-pulse" />
+                <div className="mx-auto mb-2 h-5 w-32 rounded-xl bg-muted animate-pulse" />
+                <div className="mx-auto h-3 w-44 rounded-xl bg-muted/70 animate-pulse" />
+                <div className="mx-auto mb-8 mt-6 h-8 w-40 rounded-xl bg-muted animate-pulse" />
                 <div className="space-y-2.5">
                   {Array.from({ length: 3 }).map((_, j) => (
                     <div key={j} className="h-3.5 w-full rounded-xl bg-muted/70 animate-pulse" />
@@ -48,16 +52,24 @@ export function PackageCatalogPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background to-muted/30">
-      <div className="max-w-7xl mx-auto px-4 py-12 md:py-20">
-        <div className="text-center mb-12">
-          <h1 className="text-3xl md:text-4xl font-bold tracking-tight">Escolha seu Pacote</h1>
-          <p className="mt-3 text-muted-foreground max-w-lg mx-auto">
+    <div className="relative min-h-screen">
+      <BeachBackdrop />
+
+      <div className="mx-auto max-w-7xl px-4 py-12 md:py-20">
+        <div className="mb-12 text-center">
+          <div className="flex items-center justify-center gap-2 text-xs font-semibold uppercase tracking-[0.2em] text-cyan-700">
+            <Palmtree className="h-4 w-4" />
+            Photoizer
+          </div>
+          <h1 className="mt-3 font-display text-3xl font-bold tracking-tight text-cyan-950 md:text-5xl">
+            Escolha seu Pacote
+          </h1>
+          <p className="mx-auto mt-3 max-w-lg text-slate-600">
             Selecione o pacote ideal para o seu ensaio. Todos incluem fotos editadas em alta resolução.
           </p>
         </div>
 
-        <div className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto">
+        <div className="mx-auto grid max-w-5xl gap-6 md:grid-cols-3">
           {pacotes.map((pacote) => {
             const isSelected = selectedId === pacote.id
             const beneficios = pacote.beneficios ? pacote.beneficios.split('\n').filter(Boolean) : []
@@ -66,53 +78,61 @@ export function PackageCatalogPage() {
               <div
                 key={pacote.id}
                 onClick={() => setSelectedId(pacote.id)}
-                className={`relative rounded-2xl border-2 bg-card p-6 cursor-pointer transition-all duration-200 hover:shadow-lg ${
-                  isSelected ? 'border-primary ring-2 ring-primary/20 shadow-lg' : 'border-border hover:border-primary/50'
-                }`}>
+                className={cn(
+                  'relative cursor-pointer p-6 transition-all duration-200',
+                  BEACH_CARD,
+                  isSelected
+                    ? 'ring-2 ring-cyan-400 shadow-lg shadow-cyan-200/60'
+                    : 'hover:-translate-y-0.5 hover:shadow-lg hover:ring-cyan-200',
+                )}
+              >
                 {isSelected && (
-                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground text-xs font-semibold px-4 py-1 rounded-full">
+                  <div className="absolute -top-3 left-1/2 flex -translate-x-1/2 items-center gap-1 rounded-full bg-gradient-to-r from-orange-400 to-rose-400 px-4 py-1 text-xs font-semibold text-white shadow">
+                    <Check className="h-3 w-3" />
                     Selecionado
                   </div>
                 )}
 
-                <div className="flex flex-col items-center text-center mb-4">
+                <div className="mb-4 flex flex-col items-center text-center">
                   {pacote.imagemCapa && (
-                    <div className="w-20 h-20 rounded-full bg-muted overflow-hidden mb-3 border-2 border-border">
-                      <img src={pacote.imagemCapa} alt={pacote.nome} className="w-full h-full object-cover" />
+                    <div className="mb-3 h-20 w-20 overflow-hidden rounded-2xl ring-2 ring-cyan-100">
+                      <img src={pacote.imagemCapa} alt={pacote.nome} className="h-full w-full object-cover" />
                     </div>
                   )}
-                  <h3 className="text-xl font-bold">{pacote.nome}</h3>
-                  <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{pacote.descricao}</p>
+                  <h3 className="font-display text-xl font-bold text-cyan-950">{pacote.nome}</h3>
+                  <p className="mt-1 line-clamp-2 text-xs text-slate-500">{pacote.descricao}</p>
                 </div>
 
-                <div className="text-center mb-6">
-                  <span className="text-3xl font-bold">{formatCurrency(pacote.valorBase)}</span>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    {pacote.quantidadeFotos} fotos inclusas · R$ {pacote.precoFotoExtra.toFixed(2)}/foto extra
+                <div className="mb-6 text-center">
+                  <span className="font-display text-3xl font-bold text-cyan-900">
+                    {formatCurrency(pacote.valorBase)}
+                  </span>
+                  <p className="mt-1 text-xs text-slate-500">
+                    {pacote.quantidadeFotos} fotos inclusas · {formatCurrency(pacote.precoFotoExtra)}/foto extra
                   </p>
                 </div>
 
-                <div className="space-y-2 mb-6">
-                  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Incluso</p>
-                  <div className="flex items-center gap-2 text-sm">
-                    <Camera className="h-4 w-4 text-primary" />
+                <div className="mb-6 space-y-2">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-cyan-600">Incluso</p>
+                  <div className="flex items-center gap-2 text-sm text-slate-700">
+                    <Camera className="h-4 w-4 text-cyan-500" />
                     <span>{pacote.quantidadeFotos} fotos editadas</span>
                   </div>
                   {pacote.quantidadeVideos > 0 && (
-                    <div className="flex items-center gap-2 text-sm">
-                      <Zap className="h-4 w-4 text-primary" />
+                    <div className="flex items-center gap-2 text-sm text-slate-700">
+                      <Zap className="h-4 w-4 text-cyan-500" />
                       <span>{pacote.quantidadeVideos} vídeos</span>
                     </div>
                   )}
                   {pacote.duracaoEstimada && (
-                    <div className="flex items-center gap-2 text-sm">
-                      <Zap className="h-4 w-4 text-primary" />
+                    <div className="flex items-center gap-2 text-sm text-slate-700">
+                      <Waves className="h-4 w-4 text-cyan-500" />
                       <span>Duração: {pacote.duracaoEstimada}</span>
                     </div>
                   )}
                   {beneficios.map((beneficio, i) => (
-                    <div key={i} className="flex items-center gap-2 text-sm">
-                      <Shield className="h-4 w-4 text-primary" />
+                    <div key={i} className="flex items-center gap-2 text-sm text-slate-700">
+                      <Shield className="h-4 w-4 text-cyan-500" />
                       <span>{beneficio}</span>
                     </div>
                   ))}
@@ -121,7 +141,11 @@ export function PackageCatalogPage() {
                 {isSelected && (
                   <button
                     onClick={(e) => { e.stopPropagation(); navigate(`/checkout/pacote/${pacote.id}`) }}
-                    className="w-full rounded-xl bg-primary text-primary-foreground py-3 text-sm font-semibold hover:bg-primary/90 transition-colors flex items-center justify-center gap-1">
+                    className={cn(
+                      'flex w-full items-center justify-center gap-1 rounded-2xl py-3 text-sm font-semibold',
+                      BEACH_CTA,
+                    )}
+                  >
                     Continuar <ChevronRight className="h-4 w-4" />
                   </button>
                 )}

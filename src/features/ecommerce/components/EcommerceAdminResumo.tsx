@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { RefreshCw, Link2, Loader2, Check, X, ImagePlus, DollarSign, AlertTriangle } from 'lucide-react'
+import { RefreshCw, Link2, Loader2, Check, X, ImagePlus, DollarSign, AlertTriangle, Heart } from 'lucide-react'
 import { toast } from 'sonner'
 import { useNavigate } from 'react-router-dom'
 import { ecommerceService } from '@/features/ecommerce/services/ecommerce.service'
@@ -101,6 +101,8 @@ export function EcommerceAdminResumo({ agendamentoId }: EcommerceAdminResumoProp
     toast.success('Link da galeria copiado!')
   }
 
+  const totalCurtidas = Object.values(data.favoritosPorFoto ?? {}).reduce((acc, n) => acc + n, 0)
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -124,10 +126,16 @@ export function EcommerceAdminResumo({ agendamentoId }: EcommerceAdminResumoProp
         </div>
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7 gap-3">
         <div className="rounded-lg border bg-card p-3">
           <p className="text-xs text-muted-foreground">Total</p>
           <p className="text-lg font-bold">{data.totalFotos}</p>
+        </div>
+        <div className="rounded-lg border border-rose-200 bg-rose-50 p-3 dark:border-rose-800 dark:bg-rose-950/30">
+          <p className="flex items-center gap-1 text-xs text-rose-600 dark:text-rose-400">
+            <Heart className="h-3 w-3" fill="currentColor" /> Curtidas
+          </p>
+          <p className="text-lg font-bold text-rose-700 dark:text-rose-300">{totalCurtidas}</p>
         </div>
         <div className="rounded-lg border bg-emerald-50 dark:bg-emerald-950/30 border-emerald-200 dark:border-emerald-800 p-3">
           <p className="text-xs text-emerald-600 dark:text-emerald-400">Publicadas</p>
@@ -158,6 +166,12 @@ export function EcommerceAdminResumo({ agendamentoId }: EcommerceAdminResumoProp
             <div key={foto.id} className="group relative rounded-lg border bg-card overflow-hidden">
               <div className="aspect-[3/2] relative">
                 <AuthImage src={foto.thumbUrl} alt={foto.fileName} className="h-full w-full object-cover" />
+                {(data.favoritosPorFoto?.[foto.id] ?? 0) > 0 && (
+                  <span className="absolute left-1 top-1 z-10 flex items-center gap-0.5 rounded-full bg-rose-500/90 px-1.5 py-0.5 text-[9px] font-semibold text-white">
+                    <Heart className="h-2.5 w-2.5" fill="currentColor" />
+                    {data.favoritosPorFoto[foto.id]}
+                  </span>
+                )}
                 <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors flex items-center justify-center gap-1.5 opacity-0 group-hover:opacity-100">
                   {foto.status === 'PUBLICADA' && !foto.compraExtraId && (
                     <button

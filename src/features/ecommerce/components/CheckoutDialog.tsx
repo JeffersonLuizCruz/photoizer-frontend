@@ -4,6 +4,7 @@ import { toast } from 'sonner'
 import type { CalculoCarrinhoResponse, CompraExtraResponse, MetodoPagamento } from '../types/ecommerce.types'
 import { ecommerceService } from '../services/ecommerce.service'
 import { cn } from '@/shared/lib/cn'
+import { BEACH_CTA } from '@/shared/components/beach/beach'
 import { extractErrorMessage } from '@/shared/api'
 
 type PaymentMode = 'online' | 'manual'
@@ -109,25 +110,25 @@ export function CheckoutDialog({
   if (!open) return null
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4" onClick={() => !isProcessing && !isEnviando && onClose()}>
-      <div className="bg-background rounded-xl border shadow-lg max-w-lg w-full p-6 space-y-5 max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
-        <h2 className="text-base font-semibold">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm" onClick={() => !isProcessing && !isEnviando && onClose()}>
+      <div className="max-h-[90vh] w-full max-w-lg space-y-5 overflow-y-auto rounded-3xl bg-white p-6 shadow-xl ring-1 ring-cyan-100" onClick={(e) => e.stopPropagation()}>
+        <h2 className="font-display text-lg font-semibold text-cyan-950">
           {successMessage && compra?.status === 'PAGA' ? 'Pagamento Confirmado' : 'Finalizar Compra'}
         </h2>
 
         {/* Cart summary (before success) */}
         {!successMessage && calculo && (
           <div className="space-y-2">
-            <h3 className="text-xs font-medium text-muted-foreground">ITENS NO CARRINHO ({calculo.quantidade})</h3>
-            <div className="max-h-32 overflow-y-auto space-y-1.5">
+            <h3 className="text-xs font-medium text-cyan-600">ITENS NO CARRINHO ({calculo.quantidade})</h3>
+            <div className="max-h-32 space-y-1.5 overflow-y-auto">
               {calculo.itens.map((item) => (
                 <div key={item.fotoId} className="flex items-center justify-between text-sm">
-                  <span className="truncate flex-1 text-muted-foreground">{item.fileName}</span>
-                  <span className="font-medium ml-2">R$ {item.valorUnitario.toFixed(2)}</span>
+                  <span className="flex-1 truncate text-slate-500">{item.fileName}</span>
+                  <span className="ml-2 font-medium text-slate-800">R$ {item.valorUnitario.toFixed(2)}</span>
                 </div>
               ))}
             </div>
-            <div className="border-t pt-2 flex justify-between text-sm font-medium">
+            <div className="flex justify-between border-t border-cyan-100 pt-2 text-sm font-medium text-cyan-950">
               <span>Total</span>
               <span>R$ {calculo.total.toFixed(2)}</span>
             </div>
@@ -137,26 +138,26 @@ export function CheckoutDialog({
         {/* Payment mode selection (before checkout) */}
         {!compra && !successMessage && (
           <div className="space-y-3">
-            <h3 className="text-xs font-medium text-muted-foreground">COMO DESEJA PAGAR?</h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <h3 className="text-xs font-medium text-cyan-600">COMO DESEJA PAGAR?</h3>
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <button
                 onClick={() => setPaymentMode('online')}
                 role="radio"
                 aria-checked={paymentMode === 'online'}
                 className={cn(
-                  'flex flex-col items-center gap-2 rounded-xl border-2 p-4 text-center transition-all',
+                  'flex flex-col items-center gap-2 rounded-2xl border-2 p-4 text-center transition-all',
                   paymentMode === 'online'
-                    ? 'border-blue-500 bg-blue-50/50 dark:bg-blue-950/20 shadow-sm'
-                    : 'border-border hover:border-blue-300 hover:bg-accent/50'
+                    ? 'border-cyan-400 bg-cyan-50 shadow-sm'
+                    : 'border-cyan-100 hover:border-cyan-200 hover:bg-cyan-50/50',
                 )}>
                 <div className={cn(
-                  'h-10 w-10 rounded-full flex items-center justify-center transition-colors',
-                  paymentMode === 'online' ? 'bg-blue-500 text-white' : 'bg-muted text-muted-foreground'
+                  'flex h-10 w-10 items-center justify-center rounded-full transition-colors',
+                  paymentMode === 'online' ? 'bg-gradient-to-br from-cyan-500 to-teal-400 text-white' : 'bg-cyan-50 text-cyan-500',
                 )}>
                   <Zap className="h-5 w-5" />
                 </div>
-                <span className="text-sm font-semibold">Pagamento Online</span>
-                <span className="text-[11px] text-muted-foreground leading-relaxed">
+                <span className="text-sm font-semibold text-slate-800">Pagamento Online</span>
+                <span className="text-[11px] leading-relaxed text-slate-500">
                   Pagamento processado automaticamente. Suas fotos são liberadas na hora.
                 </span>
               </button>
@@ -165,19 +166,19 @@ export function CheckoutDialog({
                 role="radio"
                 aria-checked={paymentMode === 'manual'}
                 className={cn(
-                  'flex flex-col items-center gap-2 rounded-xl border-2 p-4 text-center transition-all',
+                  'flex flex-col items-center gap-2 rounded-2xl border-2 p-4 text-center transition-all',
                   paymentMode === 'manual'
-                    ? 'border-blue-500 bg-blue-50/50 dark:bg-blue-950/20 shadow-sm'
-                    : 'border-border hover:border-blue-300 hover:bg-accent/50'
+                    ? 'border-cyan-400 bg-cyan-50 shadow-sm'
+                    : 'border-cyan-100 hover:border-cyan-200 hover:bg-cyan-50/50',
                 )}>
                 <div className={cn(
-                  'h-10 w-10 rounded-full flex items-center justify-center transition-colors',
-                  paymentMode === 'manual' ? 'bg-blue-500 text-white' : 'bg-muted text-muted-foreground'
+                  'flex h-10 w-10 items-center justify-center rounded-full transition-colors',
+                  paymentMode === 'manual' ? 'bg-gradient-to-br from-cyan-500 to-teal-400 text-white' : 'bg-cyan-50 text-cyan-500',
                 )}>
                   <Banknote className="h-5 w-5" />
                 </div>
-                <span className="text-sm font-semibold">PIX ou Transferência</span>
-                <span className="text-[11px] text-muted-foreground leading-relaxed">
+                <span className="text-sm font-semibold text-slate-800">PIX ou Transferência</span>
+                <span className="text-[11px] leading-relaxed text-slate-500">
                   Você faz o pagamento e envia o comprovante. O estúdio libera após confirmar.
                 </span>
               </button>
@@ -187,10 +188,8 @@ export function CheckoutDialog({
             {paymentMode && (
               <button onClick={handleConfirmar} disabled={isProcessing}
                 className={cn(
-                  'w-full rounded-xl px-4 py-3 text-sm font-semibold transition-all active:scale-[0.98] flex items-center justify-center gap-2',
-                  isProcessing
-                    ? 'bg-muted text-muted-foreground cursor-not-allowed'
-                    : 'bg-blue-600 text-white hover:bg-blue-700 shadow-sm'
+                  'flex w-full items-center justify-center gap-2 rounded-2xl px-4 py-3 text-sm font-semibold transition-all active:scale-[0.98]',
+                  isProcessing ? 'cursor-not-allowed bg-muted text-muted-foreground' : BEACH_CTA,
                 )}>
                 {isProcessing ? (
                   <Loader2 className="h-4 w-4 animate-spin" />
@@ -208,7 +207,7 @@ export function CheckoutDialog({
             )}
 
             {errorMessage && (
-              <div className="rounded-lg bg-rose-50 dark:bg-rose-950/20 border border-rose-200 dark:border-rose-800 p-3 text-xs text-rose-600 dark:text-rose-300">
+              <div className="rounded-2xl border border-rose-200 bg-rose-50 p-3 text-xs text-rose-600">
                 {errorMessage}
               </div>
             )}
@@ -218,31 +217,31 @@ export function CheckoutDialog({
         {/* Post-checkout: manual payment instructions + comprovante */}
         {compra && paymentMode === 'manual' && !successMessage?.includes('já estão disponíveis') && (
           <>
-            <div className="rounded-xl bg-muted p-4 space-y-3 text-sm">
-              <p className="font-semibold text-foreground">Instruções de pagamento</p>
+            <div className="space-y-3 rounded-2xl bg-cyan-50/60 p-4 text-sm ring-1 ring-cyan-100">
+              <p className="font-semibold text-cyan-950">Instruções de pagamento</p>
 
               <div className="space-y-2">
-                <p className="text-xs text-muted-foreground font-medium">PIX (Chave aleatória)</p>
-                <div className="flex items-center justify-between gap-2 bg-background rounded-lg px-3 py-2 border min-w-0">
-                  <code className="text-xs font-mono truncate">{CHAVE_PIX}</code>
+                <p className="text-xs font-medium text-slate-500">PIX (Chave aleatória)</p>
+                <div className="flex min-w-0 items-center justify-between gap-2 rounded-xl border border-cyan-100 bg-white px-3 py-2">
+                  <code className="truncate text-xs font-mono text-slate-700">{CHAVE_PIX}</code>
                   <button onClick={copiarChavePix}
-                    className="flex items-center gap-1 text-primary hover:text-primary/80 font-medium whitespace-nowrap text-xs">
+                    className="flex items-center gap-1 whitespace-nowrap text-xs font-medium text-cyan-700 hover:text-cyan-800">
                     {pixCopiado ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
                     {pixCopiado ? 'Copiado' : 'Copiar'}
                   </button>
                 </div>
               </div>
 
-              <div className="space-y-1 text-xs text-muted-foreground">
-                <p><span className="font-medium text-foreground">Transferência Bancária:</span></p>
+              <div className="space-y-1 text-xs text-slate-500">
+                <p><span className="font-medium text-slate-700">Transferência Bancária:</span></p>
                 <p>Banco: Photoizer Bank (237)</p>
                 <p>Agência: 0001 | Conta: 12345-6</p>
-                <p className="font-medium text-foreground">Valor: R$ {compra.valorTotal.toFixed(2)}</p>
+                <p className="font-medium text-slate-700">Valor: R$ {compra.valorTotal.toFixed(2)}</p>
               </div>
             </div>
 
             <div className="space-y-2">
-              <p className="text-xs font-medium text-muted-foreground">ANEXAR COMPROVANTE</p>
+              <p className="text-xs font-medium text-cyan-600">ANEXAR COMPROVANTE</p>
 
               <input ref={inputFileRef} type="file" accept="image/*,.pdf" className="hidden"
                 onChange={(e) => selecionarArquivo(e.target.files?.[0] ?? null)} />
@@ -254,49 +253,47 @@ export function CheckoutDialog({
                   onDragLeave={() => setDragOver(false)}
                   onDrop={handleDrop}
                   className={cn(
-                    'flex flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed p-6 cursor-pointer transition-all',
-                    dragOver
-                      ? 'border-blue-500 bg-blue-50/50 dark:bg-blue-950/20'
-                      : 'border-muted-foreground/30 hover:border-blue-400 hover:bg-accent/50'
+                    'flex cursor-pointer flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed p-6 transition-all',
+                    dragOver ? 'border-cyan-400 bg-cyan-50' : 'border-cyan-200 hover:border-cyan-300 hover:bg-cyan-50/50',
                   )}>
-                  <div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center">
-                    <Upload className="h-5 w-5 text-muted-foreground" />
+                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-cyan-100 text-cyan-600">
+                    <Upload className="h-5 w-5" />
                   </div>
-                  <p className="text-sm font-medium">Clique para selecionar o comprovante</p>
-                  <p className="text-xs text-muted-foreground">ou arraste o arquivo até aqui</p>
-                  <p className="text-[10px] text-muted-foreground mt-1">JPEG, PNG ou PDF</p>
+                  <p className="text-sm font-medium text-slate-700">Clique para selecionar o comprovante</p>
+                  <p className="text-xs text-slate-500">ou arraste o arquivo até aqui</p>
+                  <p className="mt-1 text-[10px] text-slate-400">JPEG, PNG ou PDF</p>
                 </div>
               ) : (
-                <div className="flex items-center justify-between rounded-xl border bg-muted/50 px-4 py-3">
-                  <div className="flex items-center gap-3 min-w-0">
-                    <div className="h-8 w-8 rounded-lg bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center shrink-0">
-                      <Upload className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                <div className="flex items-center justify-between rounded-2xl border border-cyan-100 bg-cyan-50/50 px-4 py-3">
+                  <div className="flex min-w-0 items-center gap-3">
+                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-cyan-100">
+                      <Upload className="h-4 w-4 text-cyan-600" />
                     </div>
                     <div className="min-w-0">
-                      <p className="text-sm font-medium truncate">{comprovante.name}</p>
-                      <p className="text-[11px] text-muted-foreground">
+                      <p className="truncate text-sm font-medium text-slate-700">{comprovante.name}</p>
+                      <p className="text-[11px] text-slate-500">
                         {(comprovante.size / 1024 / 1024).toFixed(2)} MB
                       </p>
                     </div>
                   </div>
                   <button onClick={() => inputFileRef.current?.click()}
-                    className="text-xs text-primary hover:text-primary/80 font-medium shrink-0 mr-2">
+                    className="mr-2 shrink-0 text-xs font-medium text-cyan-700 hover:text-cyan-800">
                     Trocar
                   </button>
                   <button onClick={() => selecionarArquivo(null)}
-                    className="h-7 w-7 rounded-full hover:bg-destructive/10 hover:text-destructive flex items-center justify-center shrink-0">
+                    className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full hover:bg-destructive/10 hover:text-destructive">
                     <X className="h-3.5 w-3.5" />
                   </button>
                 </div>
               )}
 
               <button onClick={enviarComprovante} disabled={isEnviando || !comprovante}
-                className="w-full rounded-xl bg-blue-600 text-white px-4 py-2.5 text-sm font-medium hover:bg-blue-700 transition-colors disabled:opacity-50 flex items-center justify-center gap-1.5">
+                className={cn('flex w-full items-center justify-center gap-1.5 rounded-2xl px-4 py-2.5 text-sm font-semibold disabled:opacity-50', BEACH_CTA)}>
                 {isEnviando ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
                 {isEnviando ? 'Enviando...' : 'Enviar comprovante e finalizar'}
               </button>
               <button onClick={onClose} disabled={isEnviando}
-                className="w-full text-center text-xs text-muted-foreground hover:text-foreground transition-colors disabled:opacity-50 py-1">
+                className="w-full py-1 text-center text-xs text-slate-500 transition-colors hover:text-slate-700 disabled:opacity-50">
                 Pagar depois
               </button>
             </div>
@@ -306,12 +303,12 @@ export function CheckoutDialog({
         {/* Success state (apenas pagamento online) */}
         {successMessage && compra?.status === 'PAGA' && (
           <div className="flex flex-col items-center gap-3 py-4 text-center">
-            <div className="h-14 w-14 rounded-full bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center">
-              <Check className="h-7 w-7 text-emerald-600 dark:text-emerald-400" />
+            <div className="flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br from-cyan-400 to-teal-400 shadow-lg shadow-cyan-200">
+              <Check className="h-7 w-7 text-white" />
             </div>
-            <p className="text-sm font-medium">{successMessage}</p>
+            <p className="text-sm font-medium text-slate-700">{successMessage}</p>
             <button onClick={onClose}
-              className="rounded-xl bg-blue-600 text-white px-6 py-2.5 text-sm font-medium hover:bg-blue-700 transition-colors">
+              className={cn('rounded-2xl px-6 py-2.5 text-sm font-semibold', BEACH_CTA)}>
               Voltar para galeria
             </button>
           </div>
