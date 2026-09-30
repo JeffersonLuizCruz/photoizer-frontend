@@ -421,8 +421,8 @@ export function AgendamentoFinanceiro({ agendamento }: AgendamentoFinanceiroProp
               <h5 className="flex items-center gap-2 text-xs font-semibold text-muted-foreground">
                 Custos dos Fotógrafos
               </h5>
-              <div className="rounded-md border">
-                <Table>
+              <div className="rounded-md border overflow-x-auto">
+                <Table className="min-w-[420px]">
                   <TableHeader>
                     <TableRow>
                       <TableHead>Descrição</TableHead>
@@ -468,8 +468,8 @@ export function AgendamentoFinanceiro({ agendamento }: AgendamentoFinanceiroProp
             </Button>
           </div>
         </div>
-        <div className="rounded-md border">
-          <Table>
+        <div className="rounded-md border overflow-x-auto">
+          <Table className="min-w-[560px]">
             <TableHeader>
               <TableRow>
                 <TableHead>Descrição</TableHead>
@@ -520,8 +520,8 @@ export function AgendamentoFinanceiro({ agendamento }: AgendamentoFinanceiroProp
             <History className="h-4 w-4" />
             Histórico de Pagamentos
           </h4>
-          <div className="rounded-md border">
-            <Table>
+          <div className="rounded-md border overflow-x-auto">
+            <Table className="min-w-[420px]">
               <TableHeader>
                 <TableRow>
                   <TableHead>Data</TableHead>

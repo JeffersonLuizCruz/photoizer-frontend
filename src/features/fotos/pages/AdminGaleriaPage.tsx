@@ -279,7 +279,8 @@ export function AdminGaleriaPage() {
                       <button
                         type="button"
                         onClick={() => setSelectedFiles((prev) => prev.filter((_, j) => j !== i))}
-                        className="absolute -top-1.5 -right-1.5 h-5 w-5 rounded-full bg-destructive text-destructive-foreground flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                        aria-label={`Remover ${file.name}`}
+                        className="absolute -top-1.5 -right-1.5 h-6 w-6 rounded-full bg-destructive text-destructive-foreground flex items-center justify-center opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity"
                       >
                         <X className="h-3 w-3" />
                       </button>
@@ -314,7 +315,7 @@ export function AdminGaleriaPage() {
           </div>
         )}
 
-        <div className="flex items-center gap-3 text-sm text-muted-foreground">
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted-foreground">
           <span>Total: <strong>{fotos.length}</strong></span>
           <span className="inline-block h-3 w-px bg-border" />
           <span>Inéditas: <strong className="text-amber-600">{ineditas}</strong></span>
@@ -375,7 +376,7 @@ export function AdminGaleriaPage() {
                     alt={foto.fileName}
                     className="h-full w-full object-cover"
                   />
-                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors flex items-center justify-center gap-1.5 flex-wrap px-1.5 opacity-0 group-hover:opacity-100">
+                  <div className="absolute inset-0 bg-black/20 md:bg-black/0 transition-colors flex items-center justify-center gap-1.5 flex-wrap px-1.5 opacity-100 md:opacity-0 md:group-hover:bg-black/30 md:group-hover:opacity-100">
                     <button
                       type="button"
                       onClick={() => setEditFoto(foto)}

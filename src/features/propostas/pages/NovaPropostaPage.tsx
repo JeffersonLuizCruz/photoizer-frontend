@@ -141,7 +141,7 @@ export function NovaPropostaPage() {
   }
 
   return (
-    <div className="p-6">
+    <div>
       <PageTitle
         title="Nova Proposta"
         description="Crie a pré-reserva e envie o link para o cliente preencher os dados e assinar"

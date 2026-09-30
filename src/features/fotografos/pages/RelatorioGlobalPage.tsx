@@ -69,7 +69,7 @@ export function RelatorioGlobalPage() {
             </div>
           </div>
 
-          <div className="rounded-md border overflow-x-auto">
+          <div className="hidden rounded-md border overflow-x-auto md:block">
             <Table className="min-w-[720px]">
               <TableHeader>
                 <TableRow>
@@ -102,6 +102,44 @@ export function RelatorioGlobalPage() {
                 ))}
               </TableBody>
             </Table>
+          </div>
+
+          <div className="space-y-3 md:hidden">
+            {relatorio.porFotografo.map((f) => (
+              <button
+                key={f.fotografoNome}
+                type="button"
+                onClick={() => navigate('/fotografos')}
+                className="block w-full space-y-2 rounded-lg border bg-card p-4 text-left"
+              >
+                <div className="flex items-center justify-between gap-2">
+                  <span className="font-medium">{f.fotografoNome}</span>
+                  <span className="text-xs text-muted-foreground">{f.totalEnsaios} ensaio(s)</span>
+                </div>
+                <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-sm">
+                  <div className="flex justify-between gap-2">
+                    <span className="text-muted-foreground">Cobrado</span>
+                    <span className="tabular-nums">{formatCurrency(f.totalValorCobrado)}</span>
+                  </div>
+                  <div className="flex justify-between gap-2">
+                    <span className="text-muted-foreground">Custos</span>
+                    <span className="tabular-nums text-rose-500">{formatCurrency(f.totalCustos)}</span>
+                  </div>
+                  <div className="flex justify-between gap-2">
+                    <span className="text-muted-foreground">Partilha</span>
+                    <span className="tabular-nums">{formatCurrency(f.totalPartilha)}</span>
+                  </div>
+                  <div className="flex justify-between gap-2">
+                    <span className="text-muted-foreground">Repasse</span>
+                    <span className="tabular-nums text-amber-600">{formatCurrency(f.totalRepasse)}</span>
+                  </div>
+                </div>
+                <div className="flex items-center justify-between gap-2 border-t pt-2 text-sm font-semibold">
+                  <span>Lucro do Estúdio</span>
+                  <span className="tabular-nums text-emerald-600">{formatCurrency(f.totalLucroCrm)}</span>
+                </div>
+              </button>
+            ))}
           </div>
         </>
       )}

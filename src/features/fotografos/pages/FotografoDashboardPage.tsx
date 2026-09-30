@@ -39,7 +39,7 @@ export function FotografoDashboardPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-4">
           <Button variant="ghost" size="icon" onClick={() => navigate('/fotografos')} aria-label="Voltar para a lista de fotografos">
             <ArrowLeft className="h-5 w-5" />

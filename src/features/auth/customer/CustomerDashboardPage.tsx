@@ -60,7 +60,7 @@ export function CustomerDashboardPage() {
           <p className="text-sm text-muted-foreground mt-1">Bem-vindo à sua área do cliente</p>
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-2 gap-3 mb-8">
+        <div className="grid grid-cols-2 gap-3 mb-8">
           <div className="rounded-xl border bg-card p-4">
             <Image className="h-5 w-5 text-primary mb-2" />
             <p className="text-2xl font-bold">{agendamentosComFotos.length}</p>

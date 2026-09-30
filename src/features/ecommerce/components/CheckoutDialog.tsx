@@ -4,6 +4,7 @@ import { toast } from 'sonner'
 import type { CalculoCarrinhoResponse, CompraExtraResponse, MetodoPagamento } from '../types/ecommerce.types'
 import { ecommerceService } from '../services/ecommerce.service'
 import { cn } from '@/shared/lib/cn'
+import { Sheet, SheetContent, SheetTitle } from '@/shared/components/ui/sheet'
 import { BEACH_CTA } from '@/shared/components/beach/beach'
 import { extractErrorMessage } from '@/shared/api'
 
@@ -107,14 +108,17 @@ export function CheckoutDialog({
     }
   }
 
-  if (!open) return null
-
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm" onClick={() => !isProcessing && !isEnviando && onClose()}>
-      <div className="max-h-[90vh] w-full max-w-lg space-y-5 overflow-y-auto rounded-3xl bg-white p-6 shadow-xl ring-1 ring-cyan-100" onClick={(e) => e.stopPropagation()}>
-        <h2 className="font-display text-lg font-semibold text-cyan-950">
+    <Sheet
+      open={open}
+      onOpenChange={(o) => {
+        if (!o && !isProcessing && !isEnviando) onClose()
+      }}
+    >
+      <SheetContent className="h-dvh max-h-none w-full max-w-lg gap-5 overflow-y-auto rounded-none bg-white p-6 sm:h-full">
+        <SheetTitle className="font-display text-lg font-semibold text-cyan-950">
           {successMessage && compra?.status === 'PAGA' ? 'Pagamento Confirmado' : 'Finalizar Compra'}
-        </h2>
+        </SheetTitle>
 
         {/* Cart summary (before success) */}
         {!successMessage && calculo && (
@@ -313,7 +317,7 @@ export function CheckoutDialog({
             </button>
           </div>
         )}
-      </div>
-    </div>
+      </SheetContent>
+    </Sheet>
   )
 }

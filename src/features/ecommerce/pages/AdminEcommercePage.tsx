@@ -81,6 +81,29 @@ export function AdminEcommercePage() {
     onError: (err: Error) => toast.error(extractErrorMessage(err, 'Erro ao cancelar')),
   })
 
+  const renderAcoes = (compra: CompraExtraResponse) => (
+    <div className="flex items-center gap-1">
+      <button onClick={() => setDetailCompraId(compra.id)}
+        className="inline-flex h-9 w-9 items-center justify-center rounded hover:bg-accent" aria-label="Ver detalhes">
+        <Eye className="h-4 w-4" />
+      </button>
+      {(compra.status === 'AGUARDANDO_COMPROVANTE' || compra.status === 'AGUARDANDO_CONFIRMACAO') && (
+        <button onClick={() => confirmar(compra.id)} disabled={isConfirming}
+          className="inline-flex h-9 w-9 items-center justify-center rounded hover:bg-emerald-100 hover:text-emerald-700 dark:hover:bg-emerald-900/30 dark:hover:text-emerald-400"
+          aria-label="Confirmar pagamento">
+          <Check className="h-4 w-4" />
+        </button>
+      )}
+      {compra.status !== 'PAGA' && compra.status !== 'CANCELADA' && (
+        <button onClick={() => setConfirmCancelId(compra.id)} disabled={isCancelling}
+          className="inline-flex h-9 w-9 items-center justify-center rounded hover:bg-destructive/10 hover:text-destructive"
+          aria-label="Cancelar compra">
+          <X className="h-4 w-4" />
+        </button>
+      )}
+    </div>
+  )
+
   const columns: ColumnDef<CompraExtraResponse>[] = [
     {
       accessorKey: 'id',
@@ -127,31 +150,7 @@ export function AdminEcommercePage() {
     {
       id: 'actions',
       header: '',
-      cell: ({ row }) => {
-        const compra = row.original
-        return (
-          <div className="flex items-center gap-1">
-            <button onClick={() => setDetailCompraId(compra.id)}
-              className="h-7 w-7 rounded hover:bg-accent flex items-center justify-center" title="Detalhes">
-              <Eye className="h-3.5 w-3.5" />
-            </button>
-            {(compra.status === 'AGUARDANDO_COMPROVANTE' || compra.status === 'AGUARDANDO_CONFIRMACAO') && (
-              <button onClick={() => confirmar(compra.id)} disabled={isConfirming}
-                className="h-7 w-7 rounded hover:bg-emerald-100 hover:text-emerald-700 dark:hover:bg-emerald-900/30 dark:hover:text-emerald-400 flex items-center justify-center"
-                title="Confirmar pagamento">
-                <Check className="h-3.5 w-3.5" />
-              </button>
-            )}
-            {compra.status !== 'PAGA' && compra.status !== 'CANCELADA' && (
-              <button onClick={() => setConfirmCancelId(compra.id)} disabled={isCancelling}
-                className="h-7 w-7 rounded hover:bg-destructive/10 hover:text-destructive flex items-center justify-center"
-                title="Cancelar">
-                <X className="h-3.5 w-3.5" />
-              </button>
-            )}
-          </div>
-        )
-      },
+      cell: ({ row }) => renderAcoes(row.original),
     },
   ]
 
@@ -221,8 +220,38 @@ export function AdminEcommercePage() {
           onPageChange={setPage}
           onPageSizeChange={setPerPage}
           emptyMessage="Nenhuma compra encontrada"
-          mobileHiddenIds={['id', 'quantidadeFotos', 'metodoPagamento']}
-          minWidthClassName="min-w-[640px]" />
+          minWidthClassName="min-w-[640px]"
+          renderMobileCard={(compra) => (
+            <div className="space-y-3 rounded-lg border bg-card p-4">
+              <div className="flex items-start justify-between gap-2">
+                <div className="min-w-0">
+                  <p className="font-mono text-xs text-muted-foreground">#{compra.id.slice(0, 8)}</p>
+                  <p className="text-lg font-semibold tabular-nums">{formatCurrency(compra.valorTotal)}</p>
+                </div>
+                <StatusBadge
+                  status={compra.status}
+                  customLabels={{ [compra.status]: statusBadge(compra.status) }}
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs">
+                <div className="flex justify-between gap-2">
+                  <span className="text-muted-foreground">Fotos</span>
+                  <span>{compra.quantidadeFotos ?? '-'}</span>
+                </div>
+                <div className="flex justify-between gap-2">
+                  <span className="text-muted-foreground">Pagamento</span>
+                  <span>{compra.metodoPagamento ?? '-'}</span>
+                </div>
+                <div className="col-span-2 flex justify-between gap-2">
+                  <span className="text-muted-foreground">Data</span>
+                  <span>
+                    {compra.dataPagamento ? new Date(compra.dataPagamento).toLocaleDateString('pt-BR') : '-'}
+                  </span>
+                </div>
+              </div>
+              <div className="flex justify-end">{renderAcoes(compra)}</div>
+            </div>
+          )} />
       </div>
 
       <AdminCompraDetalheDialog

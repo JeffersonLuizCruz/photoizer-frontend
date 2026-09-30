@@ -5,6 +5,7 @@ import { toast } from 'sonner'
 import type { FotoEnsaio, FotoComentario } from '../types/ecommerce.types'
 import { ecommerceService } from '../services/ecommerce.service'
 import { cn } from '@/shared/lib/cn'
+import { Sheet, SheetContent, SheetTitle } from '@/shared/components/ui/sheet'
 import { extractErrorMessage } from '@/shared/api'
 
 interface FotoViewerProps {
@@ -223,14 +224,16 @@ export function FotoViewer({
       </div>
 
       {/* Painel de comentários */}
-      {commentsOpen && (
-        <div onClick={(e) => e.stopPropagation()}
-          className="absolute inset-y-0 right-0 z-40 flex w-full animate-in flex-col border-l border-cyan-100 bg-white/95 shadow-2xl backdrop-blur-xl duration-300 slide-in-from-right sm:w-[360px]">
+      <Sheet open={commentsOpen} onOpenChange={onCommentsOpenChange}>
+        <SheetContent
+          hideClose
+          className="h-dvh max-h-none w-full gap-0 overflow-hidden border-l border-cyan-100 bg-white/95 p-0 backdrop-blur-xl sm:h-full sm:w-[360px] sm:max-w-[360px]"
+        >
           <div className="flex items-center justify-between border-b border-cyan-100 px-4 py-3">
-            <span className="flex items-center gap-2 font-display text-sm font-semibold text-cyan-950">
+            <SheetTitle className="flex items-center gap-2 font-display text-sm font-semibold text-cyan-950">
               <User className="h-4 w-4 text-cyan-500" />
               Comentários da foto
-            </span>
+            </SheetTitle>
             <button onClick={() => onCommentsOpenChange(false)}
               className="flex h-8 w-8 items-center justify-center rounded-full bg-cyan-50 text-cyan-600 transition-colors hover:bg-cyan-100">
               <X className="h-4 w-4" />
@@ -277,8 +280,8 @@ export function FotoViewer({
               Enviar comentário
             </button>
           </div>
-        </div>
-      )}
+        </SheetContent>
+      </Sheet>
     </div>
   )
 }

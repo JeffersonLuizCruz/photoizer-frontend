@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Search, Plus, Pencil, Trash2, ChevronDown, ChevronRight, Package, Image, Video, Percent, User } from 'lucide-react'
 import { toast } from 'sonner'
 import { PageTitle } from '@/shared/components/layout/PageTitle'
+import { ConfirmDialog } from '@/shared/components/layout/ConfirmDialog'
 import { Button } from '@/shared/components/ui/button'
 import { Input } from '@/shared/components/ui/input'
 import { cn } from '@/shared/lib/cn'
@@ -48,13 +49,17 @@ function IndicadorRow({
 
   return (
     <div className="rounded-lg border">
-      <div className="flex items-center gap-3 p-4">
-        <button
+      <div className="flex flex-wrap items-center gap-3 p-4">
+        <Button
+          variant="ghost"
+          size="icon"
           onClick={() => setExpanded(!expanded)}
-          className="shrink-0 text-muted-foreground hover:text-foreground transition-colors"
+          aria-label={expanded ? 'Recolher indicações' : 'Expandir indicações'}
+          aria-expanded={expanded}
+          className="shrink-0"
         >
           {expanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
-        </button>
+        </Button>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
             <p className="font-medium truncate">{indicador.indicadorNome}</p>
@@ -88,6 +93,21 @@ function IndicadorRow({
           <Button variant="ghost" size="icon" onClick={() => onDelete(indicador)} aria-label={`Excluir indicador ${indicador.indicadorNome}`}>
             <Trash2 className="h-4 w-4 text-destructive" />
           </Button>
+        </div>
+
+        <div className="flex w-full items-center justify-between gap-4 pt-1 text-sm sm:hidden">
+          <div>
+            <p className="text-xs text-muted-foreground">Pendente</p>
+            <p className="font-medium text-yellow-600 tabular-nums">{currency(indicador.totalPendente)}</p>
+          </div>
+          <div>
+            <p className="text-xs text-muted-foreground">Pago</p>
+            <p className="font-medium text-green-600 tabular-nums">{currency(indicador.totalPago)}</p>
+          </div>
+          <div>
+            <p className="text-xs text-muted-foreground">Indicações</p>
+            <p className="font-medium tabular-nums">{indicador.totalIndicacoes}</p>
+          </div>
         </div>
       </div>
 
@@ -245,23 +265,23 @@ export function ComissoesConsultaPage() {
         indicador={editIndicador}
       />
 
-      {deleteTarget && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-          <div className="rounded-lg border bg-card p-6 max-w-sm mx-4 shadow-lg">
-            <h3 className="font-semibold mb-2">Remover Indicador</h3>
-            <p className="text-sm text-muted-foreground mb-4">
-              Tem certeza que deseja remover <strong>{deleteTarget.indicadorNome}</strong>?
-              As comissões já registradas permanecem no histórico.
-            </p>
-            <div className="flex justify-end gap-2">
-              <Button variant="outline" onClick={() => setDeleteTarget(null)}>Cancelar</Button>
-              <Button variant="destructive" onClick={() => removerIndicador(deleteTarget.indicadorTelefone)}>
-                Remover
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
+      <ConfirmDialog
+        open={deleteTarget !== null}
+        onOpenChange={(open) => {
+          if (!open) setDeleteTarget(null)
+        }}
+        onConfirm={() => {
+          if (deleteTarget) removerIndicador(deleteTarget.indicadorTelefone)
+        }}
+        title="Remover Indicador"
+        description={
+          deleteTarget
+            ? `Tem certeza que deseja remover ${deleteTarget.indicadorNome}? As comissões já registradas permanecem no histórico.`
+            : ''
+        }
+        confirmText="Remover"
+        variant="destructive"
+      />
     </>
   )
 }

@@ -10,6 +10,7 @@ import {
   DropdownMenuTrigger,
 } from '@/shared/components/ui/dropdown-menu'
 import { formatCurrency, formatDateBR } from '@/shared/lib/format'
+import { cn } from '@/shared/lib/cn'
 import type { Receita, StatusReceita } from '../types/receita.types'
 
 interface ReceitaTableProps {
@@ -37,6 +38,36 @@ const tipoServicoLabels: Record<string, string> = {
 }
 
 export function ReceitaTable({ receitas, isLoading, onReceber, onEditar, onDuplicar, onExcluir }: ReceitaTableProps) {
+  const renderAcoes = (r: Receita) => (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant="ghost" size="icon" aria-label="Ações">
+          <MoreHorizontal className="h-4 w-4" />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end">
+        {r.status !== 'PAGO_TOTAL' && r.status !== 'CANCELADO' && (
+          <DropdownMenuItem onClick={() => onReceber(r)}>
+            <Check className="mr-2 h-4 w-4 text-emerald-500" />
+            Marcar como recebida
+          </DropdownMenuItem>
+        )}
+        <DropdownMenuItem onClick={() => onEditar(r)}>
+          <Pencil className="mr-2 h-4 w-4" />
+          Editar
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={() => onDuplicar(r)}>
+          <Copy className="mr-2 h-4 w-4" />
+          Duplicar
+        </DropdownMenuItem>
+        <DropdownMenuItem className="text-destructive focus:text-destructive" onClick={() => onExcluir(r)}>
+          <Trash2 className="mr-2 h-4 w-4" />
+          Excluir
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  )
+
   if (isLoading) {
     return <div className="py-10 text-center text-sm text-muted-foreground">Carregando receitas...</div>
   }
@@ -46,7 +77,8 @@ export function ReceitaTable({ receitas, isLoading, onReceber, onEditar, onDupli
   }
 
   return (
-    <div className="overflow-x-auto">
+    <div className="space-y-3">
+      <div className="hidden overflow-x-auto md:block">
       <Table className="min-w-[720px]">
         <TableHeader>
           <TableRow>
@@ -77,40 +109,58 @@ export function ReceitaTable({ receitas, isLoading, onReceber, onEditar, onDupli
                 <TableCell className="text-right tabular-nums text-muted-foreground">{formatCurrency(r.valorBruto)}</TableCell>
                 <TableCell className="text-right font-medium tabular-nums">{formatCurrency(r.valorFinal)}</TableCell>
                 <TableCell className="text-right tabular-nums text-emerald-600 dark:text-emerald-400">{formatCurrency(r.valorRecebido)}</TableCell>
-                <TableCell>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="icon" aria-label="Ações">
-                        <MoreHorizontal className="h-4 w-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      {r.status !== 'PAGO_TOTAL' && r.status !== 'CANCELADO' && (
-                        <DropdownMenuItem onClick={() => onReceber(r)}>
-                          <Check className="mr-2 h-4 w-4 text-emerald-500" />
-                          Marcar como recebida
-                        </DropdownMenuItem>
-                      )}
-                      <DropdownMenuItem onClick={() => onEditar(r)}>
-                        <Pencil className="mr-2 h-4 w-4" />
-                        Editar
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => onDuplicar(r)}>
-                        <Copy className="mr-2 h-4 w-4" />
-                        Duplicar
-                      </DropdownMenuItem>
-                      <DropdownMenuItem className="text-destructive focus:text-destructive" onClick={() => onExcluir(r)}>
-                        <Trash2 className="mr-2 h-4 w-4" />
-                        Excluir
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </TableCell>
+                <TableCell>{renderAcoes(r)}</TableCell>
               </TableRow>
             )
           })}
         </TableBody>
       </Table>
+      </div>
+
+      <div className="space-y-3 md:hidden">
+        {receitas.map((r) => {
+          const badge = statusBadge[r.status]
+          return (
+            <div
+              key={r.id}
+              className={cn('space-y-3 rounded-lg border bg-card p-4', r.status === 'CANCELADO' && 'opacity-50')}
+            >
+              <div className="flex items-start justify-between gap-2">
+                <div className="min-w-0">
+                  <p className="truncate font-medium">{r.clienteNome}</p>
+                  {r.descricao && <p className="truncate text-xs text-muted-foreground">{r.descricao}</p>}
+                </div>
+                <Badge variant={badge.variant}>{badge.label}</Badge>
+              </div>
+              <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-sm">
+                <div className="flex justify-between gap-2">
+                  <span className="text-muted-foreground">Serviço</span>
+                  <span>{tipoServicoLabels[r.tipoServico] ?? r.tipoServico}</span>
+                </div>
+                <div className="flex justify-between gap-2">
+                  <span className="text-muted-foreground">Previsão</span>
+                  <span>{formatDateBR(r.dataPrevisaoRecebimento)}</span>
+                </div>
+                <div className="flex justify-between gap-2">
+                  <span className="text-muted-foreground">Bruto</span>
+                  <span className="tabular-nums">{formatCurrency(r.valorBruto)}</span>
+                </div>
+                <div className="flex justify-between gap-2">
+                  <span className="text-muted-foreground">Final</span>
+                  <span className="font-medium tabular-nums">{formatCurrency(r.valorFinal)}</span>
+                </div>
+                <div className="col-span-2 flex justify-between gap-2">
+                  <span className="text-muted-foreground">Recebido</span>
+                  <span className="tabular-nums text-emerald-600 dark:text-emerald-400">
+                    {formatCurrency(r.valorRecebido)}
+                  </span>
+                </div>
+              </div>
+              <div className="flex justify-end">{renderAcoes(r)}</div>
+            </div>
+          )
+        })}
+      </div>
     </div>
   )
 }

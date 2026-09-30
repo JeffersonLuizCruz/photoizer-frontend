@@ -10,6 +10,7 @@ import { useRepassesPendentes, usePagarRepasseLote, useParceirosList, useAtualiz
 import { formatCurrency } from '@/shared/lib/format'
 import { AGENDAMENTO_STATUS } from '@/shared/constants'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/components/ui/select'
+import { cn } from '@/shared/lib/cn'
 import { RepasseInlineEditor } from '../components/RepasseInlineEditor'
 
 export function RepassesPendentesPage() {
@@ -50,7 +51,7 @@ export function RepassesPendentesPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Repasses Pendentes</h1>
           <p className="text-sm text-muted-foreground">
@@ -98,8 +99,8 @@ export function RepassesPendentesPage() {
         </Card>
       </div>
 
-      <div className="flex items-center gap-4">
-        <div className="w-64">
+      <div className="flex flex-wrap items-center gap-4">
+        <div className="w-full sm:w-64">
           <Select value={filtroFotografo} onValueChange={(v) => setFiltroFotografo(v === 'todos' ? '' : v)}>
             <SelectTrigger>
               <SelectValue placeholder="Filtrar por parceiro" />
@@ -127,7 +128,8 @@ export function RepassesPendentesPage() {
           </p>
         </div>
       ) : (
-        <div className="rounded-md border overflow-x-auto">
+        <>
+          <div className="hidden rounded-md border overflow-x-auto md:block">
           <Table className="min-w-[720px]">
             <TableHeader>
               <TableRow>
@@ -233,6 +235,87 @@ export function RepassesPendentesPage() {
             </TableBody>
           </Table>
         </div>
+
+        <div className="space-y-3 md:hidden">
+          {repasses.map((r) => (
+            <div
+              key={r.id}
+              className={cn('space-y-3 rounded-lg border bg-card p-4', r.status === 'PAGO' && 'opacity-60')}
+            >
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex min-w-0 items-start gap-3">
+                  {r.status === 'PENDENTE' && isEnsaioFinalizado(r) && (
+                    <input
+                      type="checkbox"
+                      className="mt-1 h-4 w-4 shrink-0"
+                      checked={selecionados.has(r.id)}
+                      aria-label={`Selecionar repasse de ${r.fotografo?.nome ?? 'fotógrafo'}`}
+                      onChange={() => toggleSelecao(r.id)}
+                    />
+                  )}
+                  {r.status === 'PENDENTE' && !isEnsaioFinalizado(r) && (
+                    <Lock className="mt-1 h-4 w-4 shrink-0 text-muted-foreground" />
+                  )}
+                  {r.status === 'PAGO' && <Check className="mt-1 h-4 w-4 shrink-0 text-emerald-500" />}
+                  <div className="min-w-0">
+                    <p className="truncate font-medium">{r.fotografo?.nome ?? '—'}</p>
+                    <p className="truncate text-sm text-muted-foreground">
+                      {r.agendamento?.cliente?.nome ?? '—'}
+                    </p>
+                    <p className="truncate text-xs text-muted-foreground">
+                      {r.agendamento?.pacote?.nome ?? '—'}
+                    </p>
+                  </div>
+                </div>
+                <Badge variant={r.status === 'PAGO' ? 'success' : 'warning'}>
+                  {r.status === 'PAGO' ? 'Pago' : 'Pendente'}
+                </Badge>
+              </div>
+
+              <div className="flex items-center justify-between gap-2 text-sm">
+                <span className="text-muted-foreground">
+                  {r.agendamento?.dataHoraEnsaio
+                    ? format(new Date(r.agendamento.dataHoraEnsaio), 'dd/MM/yyyy', { locale: ptBR })
+                    : '—'}
+                </span>
+                <span className="font-semibold tabular-nums">{formatCurrency(r.valorRepassar)}</span>
+              </div>
+
+              {r.status === 'PENDENTE' && !isEnsaioFinalizado(r) && (
+                <p className="text-xs text-muted-foreground">Aguardando finalização</p>
+              )}
+
+              {r.status === 'PENDENTE' && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="w-full"
+                  onClick={() => setEditandoId(editandoId === r.id ? null : r.id)}
+                  disabled={atualizarRepasse.isPending}
+                >
+                  <Pencil className="mr-1 h-4 w-4" />
+                  {editandoId === r.id ? 'Cancelar' : 'Editar'}
+                </Button>
+              )}
+
+              {editandoId === r.id && (
+                <RepasseInlineEditor
+                  initial={{ tipoValor: r.tipoValor, percentual: r.percentual, valorRepassar: r.valorRepassar }}
+                  isSaving={atualizarRepasse.isPending}
+                  onSave={(payload) => {
+                    if (!r.agendamento?.id || !r.fotografo?.id) return
+                    atualizarRepasse.mutate(
+                      { agendamentoId: r.agendamento.id, fotografoId: r.fotografo.id, payload },
+                      { onSuccess: () => setEditandoId(null) },
+                    )
+                  }}
+                  onCancel={() => setEditandoId(null)}
+                />
+              )}
+            </div>
+          ))}
+        </div>
+        </>
       )}
     </div>
   )

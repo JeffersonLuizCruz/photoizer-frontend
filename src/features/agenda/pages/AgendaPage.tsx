@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { DateRangePicker, type DateRange } from '@/shared/components/layout/DateRangePicker'
 import { ROUTES } from '@/shared/constants'
 import { useDebounce } from '@/shared/hooks/useDebounce'
+import { useIsMobile } from '@/shared/hooks/use-media-query'
 import { useAgendamentosList, usePacotesList, useUsuariosList } from '../api/queries'
 import { AgendaCalendar, type CalendarView } from '../components/AgendaCalendar'
 import { AgendamentoList } from '../components/AgendamentoList'
@@ -45,7 +46,8 @@ export function AgendaPage() {
 
 function AgendaPageContent() {
   const navigate = useNavigate()
-  const [viewMode, setViewMode] = useState<'calendar' | 'list'>('calendar')
+  const isMobile = useIsMobile()
+  const [viewMode, setViewMode] = useState<'calendar' | 'list'>(() => (isMobile ? 'list' : 'calendar'))
   const [calendarView, setCalendarView] = useState<CalendarView>('month')
 
   const [statusFilter, setStatusFilter] = useState('')
@@ -156,13 +158,13 @@ function AgendaPageContent() {
             className="w-full sm:w-56"
           />
 
-          <div className="relative">
+          <div className="relative w-full sm:w-44">
             <Search className="absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
               placeholder="Buscar cliente..."
               value={clientSearch}
               onChange={(e) => setClientSearch(e.target.value)}
-              className="w-full pl-8 sm:w-44"
+              className="w-full pl-8"
             />
           </div>
 

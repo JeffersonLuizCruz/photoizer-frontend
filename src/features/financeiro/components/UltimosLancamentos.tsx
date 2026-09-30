@@ -57,7 +57,8 @@ export function UltimosLancamentos({ lancamentos, isLoading }: UltimosLancamento
   }
 
   return (
-    <div className="overflow-x-auto">
+    <>
+      <div className="hidden overflow-x-auto md:block">
       <Table className="min-w-[640px]">
         <TableHeader>
           <TableRow>
@@ -101,6 +102,40 @@ export function UltimosLancamentos({ lancamentos, isLoading }: UltimosLancamento
           })}
         </TableBody>
       </Table>
-    </div>
+      </div>
+
+      <div className="space-y-2 md:hidden">
+        {lancamentos.map((l) => {
+          const isReceita = l.tipo === 'RECEITA'
+          const badge = statusBadge(l.status)
+          return (
+            <div key={l.id} className="space-y-2 rounded-lg border bg-card p-4">
+              <div className="flex items-start justify-between gap-2">
+                <div className="min-w-0">
+                  <p className="truncate font-medium">{l.descricao}</p>
+                  <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                    <Badge variant="outline" className="px-1.5 py-0 text-[10px] font-medium">
+                      {origemLabel(l.origem)}
+                    </Badge>
+                    <span className="truncate">{l.categoria}</span>
+                  </div>
+                </div>
+                <Badge variant={badge.variant}>{badge.label}</Badge>
+              </div>
+              <div className="flex items-center justify-between gap-2 text-sm">
+                <span className="text-muted-foreground">{formatDateBR(l.data)}</span>
+                <span
+                  className={`font-medium tabular-nums ${
+                    isReceita ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-500 dark:text-rose-300'
+                  }`}
+                >
+                  {isReceita ? '+' : '−'}{formatCurrency(l.valor)}
+                </span>
+              </div>
+            </div>
+          )
+        })}
+      </div>
+    </>
   )
 }

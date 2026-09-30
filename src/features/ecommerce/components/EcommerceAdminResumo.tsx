@@ -105,8 +105,8 @@ export function EcommerceAdminResumo({ agendamentoId }: EcommerceAdminResumoProp
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <Button variant="outline" size="sm" onClick={copiarLink}>
             <Link2 className="mr-1 h-4 w-4" />
             Copiar Link
@@ -172,12 +172,12 @@ export function EcommerceAdminResumo({ agendamentoId }: EcommerceAdminResumoProp
                     {data.favoritosPorFoto[foto.id]}
                   </span>
                 )}
-                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors flex items-center justify-center gap-1.5 opacity-0 group-hover:opacity-100">
+                <div className="absolute inset-0 bg-black/25 md:bg-black/0 transition-colors flex items-center justify-center gap-1.5 opacity-100 md:opacity-0 md:group-hover:bg-black/40 md:group-hover:opacity-100">
                   {foto.status === 'PUBLICADA' && !foto.compraExtraId && (
                     <button
                       onClick={() => overrideSelecao({ fotoId: foto.id, selecionada: !foto.selecionadaPacote })}
-                      className={`h-6 w-6 rounded-full flex items-center justify-center ${foto.selecionadaPacote ? 'bg-amber-500' : 'bg-emerald-500'}`}
-                      title={foto.selecionadaPacote ? 'Remover do pacote' : 'Incluir no pacote'}
+                      className={`h-7 w-7 rounded-full flex items-center justify-center ${foto.selecionadaPacote ? 'bg-amber-500' : 'bg-emerald-500'}`}
+                      aria-label={foto.selecionadaPacote ? 'Remover do pacote' : 'Incluir no pacote'}
                     >
                       {foto.selecionadaPacote ? <X className="h-3 w-3 text-white" /> : <Check className="h-3 w-3 text-white" />}
                     </button>
@@ -186,8 +186,8 @@ export function EcommerceAdminResumo({ agendamentoId }: EcommerceAdminResumoProp
                     <button
                       onClick={() => confirmarCompra(foto.compraExtraId!)}
                       disabled={isConfirming}
-                      className="h-6 w-6 rounded-full bg-emerald-500 flex items-center justify-center hover:bg-emerald-600"
-                      title="Confirmar pagamento (liberar download)"
+                      className="h-7 w-7 rounded-full bg-emerald-500 flex items-center justify-center hover:bg-emerald-600"
+                      aria-label="Confirmar pagamento e liberar download"
                     >
                       <Check className="h-3 w-3 text-white" />
                     </button>
@@ -220,8 +220,8 @@ export function EcommerceAdminResumo({ agendamentoId }: EcommerceAdminResumoProp
       {data.comprasExtras.length > 0 && (
         <div>
           <h3 className="text-sm font-semibold mb-3">Compras de Extras</h3>
-          <div className="rounded-lg border">
-            <table className="w-full text-sm">
+          <div className="rounded-lg border overflow-x-auto">
+            <table className="w-full min-w-[640px] text-sm">
               <thead>
                 <tr className="border-b bg-muted/50">
                   <th className="text-left px-3 py-2 font-medium text-xs">ID</th>

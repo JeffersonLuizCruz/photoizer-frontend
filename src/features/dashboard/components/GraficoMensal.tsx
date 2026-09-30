@@ -78,23 +78,33 @@ interface MetricDef {
 
 function MetricCard({ metric: m }: { metric: MetricDef }) {
   const Icon = m.icon
+  const [showInfo, setShowInfo] = useState(false)
   const display = m.suffix ? `${m.value}${m.suffix}` : currencyFormat(m.value)
   return (
-    <div className={`relative rounded-lg border ${m.border} ${m.bg} p-3 group overflow-hidden`}>
+    <div className={`relative rounded-lg border ${m.border} ${m.bg} p-3`}>
       <div className="flex items-center justify-between gap-1.5 text-xs text-muted-foreground mb-1.5">
-        <div className="flex items-center gap-1.5">
+        <div className="flex items-center gap-1.5 min-w-0">
           <Icon className="h-3.5 w-3.5 shrink-0" />
-          <span>{m.label}</span>
+          <span className="truncate">{m.label}</span>
         </div>
-        <Info className="h-3 w-3 shrink-0 opacity-40 group-hover:opacity-100 transition-opacity cursor-help" />
+        <button
+          type="button"
+          onClick={() => setShowInfo((v) => !v)}
+          aria-label={`Sobre ${m.label}`}
+          aria-expanded={showInfo}
+          className="shrink-0 rounded p-0.5"
+        >
+          <Info className="h-3.5 w-3.5 opacity-60 hover:opacity-100 transition-opacity" />
+        </button>
       </div>
-      <p className={`text-lg font-bold tabular-nums leading-tight whitespace-nowrap overflow-hidden text-ellipsis ${m.color}`}>{display}</p>
-      <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:block z-10">
-        <div className="rounded-md border bg-popover px-3 py-1.5 text-xs text-popover-foreground shadow-md whitespace-nowrap">
-          {m.description}
-          <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-popover" />
+      <p className={`text-base font-bold tabular-nums leading-tight break-words sm:text-lg ${m.color}`}>{display}</p>
+      {showInfo && (
+        <div className="absolute bottom-full left-1/2 z-20 mb-2 w-48 -translate-x-1/2">
+          <div className="rounded-md border bg-popover px-3 py-1.5 text-xs text-popover-foreground shadow-md">
+            {m.description}
+          </div>
         </div>
-      </div>
+      )}
     </div>
   )
 }
@@ -233,7 +243,7 @@ export function GraficoMensal() {
       </div>
 
       <div className="p-6 space-y-6">
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
           {metrics.map((m) => (
             <MetricCard key={m.label} metric={m} />
           ))}

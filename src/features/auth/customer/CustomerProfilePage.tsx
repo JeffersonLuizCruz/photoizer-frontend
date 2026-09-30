@@ -121,7 +121,7 @@ export function CustomerProfilePage() {
             <Label htmlFor="cpf">CPF</Label>
             <Input id="cpf" value={cpf} onChange={(e) => setCpf(e.target.value)} placeholder="000.000.000-00" />
           </div>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div>
               <Label htmlFor="cidade">Cidade</Label>
               <Input id="cidade" value={cidade} onChange={(e) => setCidade(e.target.value)} />

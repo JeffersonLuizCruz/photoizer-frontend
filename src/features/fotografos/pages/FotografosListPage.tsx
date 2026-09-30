@@ -54,10 +54,80 @@ export function FotografosListPage() {
     setDeleteId(null)
   }
 
+  type FotografoItem = (typeof fotografos)[number]
+
+  const renderAcoes = (f: FotografoItem) => (
+    <div className="flex justify-end gap-1">
+      <Button
+        variant="ghost"
+        size="icon"
+        onClick={(e) => {
+          e.stopPropagation()
+          toggleStatus.mutate(f.id)
+        }}
+        aria-label={f.ativo ? `Desativar ${f.nome}` : `Ativar ${f.nome}`}
+      >
+        {f.ativo ? <ToggleLeft className="h-4 w-4" /> : <ToggleRight className="h-4 w-4" />}
+      </Button>
+      <Button
+        variant="ghost"
+        size="icon"
+        onClick={(e) => {
+          e.stopPropagation()
+          navigate(`/fotografos/${f.id}/editar`)
+        }}
+        aria-label={`Editar ${f.nome}`}
+      >
+        <Pencil className="h-4 w-4" />
+      </Button>
+      <Button
+        variant="ghost"
+        size="icon"
+        onClick={(e) => {
+          e.stopPropagation()
+          fotografoService.exportarCsv(f.id)
+        }}
+        aria-label={`Exportar CSV de ${f.nome}`}
+      >
+        <FileDown className="h-4 w-4" />
+      </Button>
+      <AlertDialog>
+        <AlertDialogTrigger asChild>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={(e) => {
+              e.stopPropagation()
+              setDeleteId(f.id)
+            }}
+            aria-label={`Remover ${f.nome}`}
+          >
+            <Trash2 className="h-4 w-4 text-destructive" />
+          </Button>
+        </AlertDialogTrigger>
+        <AlertDialogContent onClick={(e) => e.stopPropagation()}>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Remover Fotógrafo</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja remover <strong>{f.nome}</strong>?
+              Esta ação só é permitida se o fotógrafo não tiver ensaios vinculados.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground">
+              Remover
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </div>
+  )
+
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="min-w-0">
           <h1 className="text-2xl font-bold tracking-tight">Fotógrafos</h1>
           <p className="text-sm text-muted-foreground">
             Gerencie as finanças e ensaios dos fotógrafos
@@ -101,7 +171,8 @@ export function FotografosListPage() {
           </p>
         </div>
       ) : (
-        <div className="rounded-md border overflow-x-auto">
+        <>
+        <div className="hidden rounded-md border overflow-x-auto md:block">
           <Table className="min-w-[480px]">
             <TableHeader>
               <TableRow>
@@ -121,78 +192,33 @@ export function FotografosListPage() {
                       {f.ativo ? 'Ativo' : 'Inativo'}
                     </Badge>
                   </TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex justify-end gap-1">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          toggleStatus.mutate(f.id)
-                        }}
-                        title={f.ativo ? 'Desativar' : 'Ativar'}
-                      >
-                        {f.ativo ? <ToggleLeft className="h-4 w-4" /> : <ToggleRight className="h-4 w-4" />}
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          navigate(`/fotografos/${f.id}/editar`)
-                        }}
-                        title="Editar"
-                      >
-                        <Pencil className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          fotografoService.exportarCsv(f.id)
-                        }}
-                        title="Exportar CSV"
-                      >
-                        <FileDown className="h-4 w-4" />
-                      </Button>
-                      <AlertDialog>
-                        <AlertDialogTrigger asChild>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={(e) => {
-                              e.stopPropagation()
-                              setDeleteId(f.id)
-                            }}
-                            title="Remover"
-                          >
-                            <Trash2 className="h-4 w-4 text-destructive" />
-                          </Button>
-                        </AlertDialogTrigger>
-                        <AlertDialogContent onClick={(e) => e.stopPropagation()}>
-                          <AlertDialogHeader>
-                            <AlertDialogTitle>Remover Fotógrafo</AlertDialogTitle>
-                            <AlertDialogDescription>
-                              Tem certeza que deseja remover <strong>{f.nome}</strong>?
-                              Esta ação só é permitida se o fotógrafo não tiver ensaios vinculados.
-                            </AlertDialogDescription>
-                          </AlertDialogHeader>
-                          <AlertDialogFooter>
-                            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                            <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground">
-                              Remover
-                            </AlertDialogAction>
-                          </AlertDialogFooter>
-                        </AlertDialogContent>
-                      </AlertDialog>
-                    </div>
-                  </TableCell>
+                  <TableCell className="text-right">{renderAcoes(f)}</TableCell>
                 </TableRow>
               ))}
             </TableBody>
           </Table>
         </div>
+        <div className="space-y-3 md:hidden">
+          {filtered.map((f) => (
+            <div
+              key={f.id}
+              className="space-y-3 rounded-lg border bg-card p-4"
+              onClick={() => navigate(`/fotografos/${f.id}`)}
+            >
+              <div className="flex items-start justify-between gap-2">
+                <div className="min-w-0">
+                  <p className="truncate font-medium">{f.nome}</p>
+                  <p className="truncate text-xs text-muted-foreground">{f.email}</p>
+                </div>
+                <Badge variant={f.ativo ? 'success' : 'destructive'}>
+                  {f.ativo ? 'Ativo' : 'Inativo'}
+                </Badge>
+              </div>
+              {renderAcoes(f)}
+            </div>
+          ))}
+        </div>
+        </>
       )}
     </div>
   )

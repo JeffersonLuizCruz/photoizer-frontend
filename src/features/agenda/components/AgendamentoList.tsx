@@ -147,6 +147,50 @@ export function AgendamentoList({ agendamentos, isLoading, pacotes, usuarios }: 
       emptyMessage="Nenhum agendamento encontrado"
       mobileHiddenIds={['localEnsaio', 'pago', 'editor', 'pacote']}
       minWidthClassName="min-w-[640px]"
+      renderMobileCard={(a) => {
+        const pacoteNome = pacoteMap.get(a.pacoteId) ?? a.pacoteId
+        const editorNome = a.editorId ? usuarioMap.get(a.editorId) ?? a.editorId : '—'
+        return (
+          <div className="space-y-3 rounded-lg border bg-card p-4">
+            <div className="flex items-start justify-between gap-2">
+              <div className="min-w-0">
+                <p className="truncate font-medium">{a.clienteNome}</p>
+                <p className="truncate text-xs text-muted-foreground">{pacoteNome}</p>
+              </div>
+              <StatusBadge status={a.status} customLabels={statusLabels} />
+            </div>
+            <div className="flex items-center justify-between gap-2 text-sm">
+              <span className="text-muted-foreground">
+                {format(new Date(a.dataHoraEnsaio), "dd/MM/yy 'às' HH:mm", { locale: ptBR })}
+              </span>
+              <span className="font-medium tabular-nums">{formatCurrency(a.valorTotalFinal)}</span>
+            </div>
+            <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs">
+              <div className="flex justify-between gap-2">
+                <span className="text-muted-foreground">Local</span>
+                <span className="truncate">{a.localEnsaio || '—'}</span>
+              </div>
+              <div className="flex justify-between gap-2">
+                <span className="text-muted-foreground">Pago</span>
+                <span className="tabular-nums">{formatCurrency(a.valorEntradaPago)}</span>
+              </div>
+              <div className="col-span-2 flex justify-between gap-2">
+                <span className="text-muted-foreground">Editor</span>
+                <span className="truncate">{editorNome}</span>
+              </div>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              className="w-full"
+              onClick={() => navigate(ROUTES.AGENDA_DETALHES.replace(':id', a.id))}
+            >
+              <Eye className="mr-1 h-4 w-4" />
+              Ver detalhes
+            </Button>
+          </div>
+        )
+      }}
       renderActions={(row) => (
         <Button
           variant="ghost"

@@ -31,7 +31,8 @@ export function RentabilidadePorTrabalho({ trabalhos, isLoading }: Rentabilidade
   }
 
   return (
-    <div className="overflow-x-auto">
+    <>
+      <div className="hidden overflow-x-auto md:block">
       <Table className="min-w-[560px]">
         <TableHeader>
           <TableRow>
@@ -59,6 +60,32 @@ export function RentabilidadePorTrabalho({ trabalhos, isLoading }: Rentabilidade
           })}
         </TableBody>
       </Table>
-    </div>
+      </div>
+
+      <div className="space-y-2 md:hidden">
+        {trabalhos.map((t) => {
+          const badge = roiBadge(t.roi)
+          return (
+            <div key={t.agendamentoId ?? t.clienteNome} className="space-y-2 rounded-lg border bg-card p-4">
+              <div className="flex items-start justify-between gap-2">
+                <div className="min-w-0">
+                  <p className="truncate font-medium">{t.clienteNome}</p>
+                  <p className="truncate text-xs text-muted-foreground">{t.tipoServico}</p>
+                </div>
+                <Badge variant={badge.variant}>ROI {badge.label}</Badge>
+              </div>
+              <div className="flex items-center justify-between gap-2 text-sm">
+                <span className="text-muted-foreground">Valor do trabalho</span>
+                <span className="tabular-nums">{formatCurrency(t.valorTrabalho)}</span>
+              </div>
+              <div className="flex items-center justify-between gap-2 text-sm">
+                <span className="text-muted-foreground">Custo</span>
+                <span className="tabular-nums text-muted-foreground">{formatCurrency(t.custoTrabalho)}</span>
+              </div>
+            </div>
+          )
+        })}
+      </div>
+    </>
   )
 }

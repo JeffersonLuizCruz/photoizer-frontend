@@ -1,4 +1,5 @@
 import { X, Heart, Check, ShoppingCart, Trash2, Plus } from 'lucide-react'
+import { Sheet, SheetContent, SheetTitle } from '@/shared/components/ui/sheet'
 import type { FotoEnsaio } from '../types/ecommerce.types'
 import { cn } from '@/shared/lib/cn'
 
@@ -23,21 +24,18 @@ export function FavoritosPanel({
   open, onClose, fotos, favoritoIds, selectedIds, carrinhoIds,
   pacoteLimit, valorUnitario, onToggleSelect, onToggleCarrinho, onToggleFavorito,
 }: FavoritosPanelProps) {
-  if (!open) return null
-
   const favoritas = fotos.filter((f) => favoritoIds.has(f.id))
   const packageFull = selectedIds.size >= pacoteLimit
 
   return (
-    <>
-      <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm" onClick={onClose} />
-      <div className="fixed right-0 top-0 z-50 flex h-full w-full max-w-md flex-col border-l border-cyan-100 bg-white">
+    <Sheet open={open} onOpenChange={(o) => { if (!o) onClose() }}>
+      <SheetContent hideClose className="h-dvh max-h-none w-full max-w-md gap-0 overflow-hidden border-l border-cyan-100 bg-white p-0 sm:h-full">
         {/* Header */}
         <div className="flex h-14 shrink-0 items-center justify-between bg-gradient-to-r from-rose-400 via-orange-400 to-amber-400 px-4 pb-2 pt-[env(safe-area-inset-top)] text-white">
-          <h2 className="flex items-center gap-2 font-display text-sm font-semibold">
+          <SheetTitle className="flex items-center gap-2 font-display text-sm font-semibold">
             <Heart className="h-4 w-4" fill="currentColor" />
             Gostei ({favoritas.length})
-          </h2>
+          </SheetTitle>
           <button onClick={onClose} className="rounded-lg p-2 transition-colors hover:bg-white/20" title="Fechar" aria-label="Fechar favoritos">
             <X className="h-4 w-4" />
           </button>
@@ -127,7 +125,7 @@ export function FavoritosPanel({
             </ul>
           )}
         </div>
-      </div>
-    </>
+      </SheetContent>
+    </Sheet>
   )
 }

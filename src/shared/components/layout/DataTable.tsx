@@ -1,4 +1,4 @@
-import { useState, useMemo, type ReactNode } from 'react'
+import { useState, useMemo, Fragment, type ReactNode } from 'react'
 import type { ColumnDef, PaginationState, SortingState } from '@tanstack/react-table'
 import { flexRender, getCoreRowModel, getSortedRowModel, useReactTable } from '@tanstack/react-table'
 import { ChevronUp, ChevronDown, ChevronsUpDown, ChevronLeft, ChevronRight } from 'lucide-react'
@@ -28,6 +28,7 @@ export interface DataTableProps<TData> {
   onGlobalFilterChange?: (value: string) => void
   mobileHiddenIds?: string[]
   minWidthClassName?: string
+  renderMobileCard?: (row: TData) => ReactNode
 }
 
 export function DataTable<TData>({
@@ -48,6 +49,7 @@ export function DataTable<TData>({
   onGlobalFilterChange,
   mobileHiddenIds,
   minWidthClassName,
+  renderMobileCard,
 }: DataTableProps<TData>) {
   const [sorting, setSorting] = useState<SortingState>([])
   const [pagination, setPagination] = useState<PaginationState>({ pageIndex, pageSize })
@@ -90,13 +92,23 @@ export function DataTable<TData>({
   if (isLoading) {
     return (
       <div className="space-y-3">
-        {enableFiltering && <Skeleton className="h-9 w-64" />}
-        <div className="rounded-md border">
-          <Table>
+        {enableFiltering && <Skeleton className="h-9 w-full sm:w-64" />}
+        {renderMobileCard && (
+          <div className="space-y-3 md:hidden">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <Skeleton key={i} className="h-24 w-full rounded-lg" />
+            ))}
+          </div>
+        )}
+        <div className={cn('rounded-md border', renderMobileCard && 'hidden md:block')}>
+          <Table className={minWidthClassName}>
             <TableHeader>
               <TableRow>
-                {columns.map((_col, i) => (
-                  <TableHead key={i}>
+                {columns.map((col, i) => (
+                  <TableHead
+                    key={col.id ?? i}
+                    className={cn(mobileHiddenIds?.includes(col.id ?? '') && 'hidden md:table-cell')}
+                  >
                     <Skeleton className="h-4 w-24" />
                   </TableHead>
                 ))}
@@ -110,8 +122,11 @@ export function DataTable<TData>({
             <TableBody>
               {Array.from({ length: 5 }).map((_, rowIdx) => (
                 <TableRow key={rowIdx}>
-                  {columns.map((__, colIdx) => (
-                    <TableCell key={colIdx}>
+                  {columns.map((col, colIdx) => (
+                    <TableCell
+                      key={col.id ?? colIdx}
+                      className={cn(mobileHiddenIds?.includes(col.id ?? '') && 'hidden md:table-cell')}
+                    >
                       <Skeleton className="h-4 w-full" />
                     </TableCell>
                   ))}
@@ -144,7 +159,7 @@ export function DataTable<TData>({
         />
       )}
 
-      <div className="rounded-md border overflow-x-auto">
+      <div className={cn('rounded-md border', renderMobileCard && 'hidden md:block')}>
         <Table className={minWidthClassName}>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
@@ -194,6 +209,14 @@ export function DataTable<TData>({
           </TableBody>
         </Table>
       </div>
+
+      {renderMobileCard && (
+        <div className="space-y-3 md:hidden">
+          {data.map((row, index) => (
+            <Fragment key={index}>{renderMobileCard(row)}</Fragment>
+          ))}
+        </div>
+      )}
 
       {enablePagination && pageCount && pageCount > 1 && (
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">

@@ -47,6 +47,39 @@ interface Grupo {
   despesas: DespesaResponse[]
 }
 
+function despesaAcoes(
+  d: DespesaResponse,
+  onPagar: (despesa: DespesaResponse) => void,
+  onEditar: (despesa: DespesaResponse) => void,
+  onExcluir: (despesa: DespesaResponse) => void,
+) {
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant="ghost" size="icon" aria-label="Ações">
+          <MoreHorizontal className="h-4 w-4" />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end">
+        {d.status !== 'PAGO' && (
+          <DropdownMenuItem onClick={() => onPagar(d)}>
+            <Check className="mr-2 h-4 w-4 text-emerald-500" />
+            Marcar como pago
+          </DropdownMenuItem>
+        )}
+        <DropdownMenuItem onClick={() => onEditar(d)}>
+          <Pencil className="mr-2 h-4 w-4" />
+          Editar
+        </DropdownMenuItem>
+        <DropdownMenuItem className="text-destructive focus:text-destructive" onClick={() => onExcluir(d)}>
+          <Trash2 className="mr-2 h-4 w-4" />
+          Excluir
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  )
+}
+
 export function DespesaTable({ despesas, isLoading, onPagar, onEditar, onExcluir }: DespesaTableProps) {
   const grupos = useMemo<Grupo[]>(() => {
     const map = new Map<string, Grupo>()
@@ -89,7 +122,7 @@ export function DespesaTable({ despesas, isLoading, onPagar, onEditar, onExcluir
         <Badge variant="warning">Pendente: {formatCurrency(totalPendente)}</Badge>
       </div>
 
-      <div className="overflow-x-auto">
+      <div className="hidden overflow-x-auto md:block">
         <Table className="min-w-[640px]">
           <TableHeader>
             <TableRow>
@@ -114,6 +147,65 @@ export function DespesaTable({ despesas, isLoading, onPagar, onEditar, onExcluir
             ))}
           </TableBody>
         </Table>
+      </div>
+
+      <div className="space-y-6 md:hidden">
+        {grupos.map((grupo) => (
+          <div key={grupo.categoria} className="space-y-3">
+            <div className="flex items-center justify-between gap-2">
+              <span className="inline-flex items-center gap-2 font-medium">
+                <span
+                  className="inline-block h-2.5 w-2.5 rounded-full"
+                  style={{ backgroundColor: grupo.cor ?? '#94a3b8' }}
+                />
+                {grupo.categoria}
+                <span className="text-xs text-muted-foreground">({grupo.despesas.length})</span>
+              </span>
+              <span className="font-semibold tabular-nums">{formatCurrency(grupo.subtotal)}</span>
+            </div>
+
+            {grupo.despesas.map((d) => {
+              const badge = statusBadge[d.status]
+              return (
+                <div key={d.id} className="space-y-3 rounded-lg border bg-card p-4">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0">
+                      <p className="truncate font-medium">{d.descricao}</p>
+                      {d.observacao && <p className="truncate text-xs text-muted-foreground">{d.observacao}</p>}
+                    </div>
+                    <Badge variant={badge.variant}>{badge.label}</Badge>
+                  </div>
+                  <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-sm">
+                    <div className="flex justify-between gap-2">
+                      <span className="text-muted-foreground">Data</span>
+                      <span>{formatDateBR(d.data)}</span>
+                    </div>
+                    <div className="flex justify-between gap-2">
+                      <span className="text-muted-foreground">Recorrência</span>
+                      <span>{recorrenciaLabels[d.recorrencia] ?? d.recorrencia}</span>
+                    </div>
+                    <div className="col-span-2 flex justify-between gap-2">
+                      <span className="text-muted-foreground">Valor</span>
+                      <span className="font-medium tabular-nums">{formatCurrency(d.valor)}</span>
+                    </div>
+                  </div>
+                  {d.urlComprovante && (
+                    <a
+                      href={d.urlComprovante}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="inline-flex items-center gap-1 text-xs text-primary hover:underline"
+                    >
+                      <ExternalLink className="h-3 w-3" />
+                      Comprovante
+                    </a>
+                  )}
+                  <div className="flex justify-end">{despesaAcoes(d, onPagar, onEditar, onExcluir)}</div>
+                </div>
+              )
+            })}
+          </div>
+        ))}
       </div>
     </div>
   )
@@ -170,29 +262,7 @@ function DespesaGrupoRows({
             <TableCell className="text-muted-foreground">{recorrenciaLabels[d.recorrencia] ?? d.recorrencia}</TableCell>
             <TableCell className="text-right font-medium">{formatCurrency(d.valor)}</TableCell>
             <TableCell>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon" aria-label="Ações">
-                    <MoreHorizontal className="h-4 w-4" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  {d.status !== 'PAGO' && (
-                    <DropdownMenuItem onClick={() => onPagar(d)}>
-                      <Check className="mr-2 h-4 w-4 text-emerald-500" />
-                      Marcar como pago
-                    </DropdownMenuItem>
-                  )}
-                  <DropdownMenuItem onClick={() => onEditar(d)}>
-                    <Pencil className="mr-2 h-4 w-4" />
-                    Editar
-                  </DropdownMenuItem>
-                  <DropdownMenuItem className="text-destructive focus:text-destructive" onClick={() => onExcluir(d)}>
-                    <Trash2 className="mr-2 h-4 w-4" />
-                    Excluir
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+              {despesaAcoes(d, onPagar, onEditar, onExcluir)}
             </TableCell>
           </TableRow>
         )

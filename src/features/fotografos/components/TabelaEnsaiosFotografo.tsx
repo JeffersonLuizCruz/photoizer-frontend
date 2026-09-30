@@ -22,7 +22,8 @@ export function TabelaEnsaiosFotografo({ ensaios, showStudioProfit }: TabelaEnsa
   const numColunas = showStudioProfit ? 9 : 8
 
   return (
-    <div className="rounded-md border overflow-x-auto">
+    <>
+      <div className="hidden rounded-md border overflow-x-auto md:block">
       <Table className="min-w-[760px]">
         <TableHeader>
           <TableRow>
@@ -69,6 +70,53 @@ export function TabelaEnsaiosFotografo({ ensaios, showStudioProfit }: TabelaEnsa
           })}
         </TableBody>
       </Table>
-    </div>
+      </div>
+
+      <div className="space-y-3 md:hidden">
+        {ensaios.length === 0 && (
+          <p className="py-6 text-center text-sm text-muted-foreground">Nenhum ensaio encontrado.</p>
+        )}
+        {ensaios.map((e) => {
+          const statusInfo = statusMap[e.status] ?? { label: e.status, variant: 'outline' as const }
+          return (
+            <div key={e.agendamentoId} className="space-y-3 rounded-lg border bg-card p-4">
+              <div className="flex items-start justify-between gap-2">
+                <div className="min-w-0">
+                  <p className="truncate font-medium">{e.clienteNome}</p>
+                  <p className="truncate text-xs text-muted-foreground">{e.pacoteNome ?? '—'}</p>
+                </div>
+                <Badge variant={statusInfo.variant}>{statusInfo.label}</Badge>
+              </div>
+              <div className="flex items-center justify-between gap-2 text-sm">
+                <span className="text-muted-foreground">
+                  {format(new Date(e.dataHoraEnsaio), 'dd/MM/yyyy', { locale: ptBR })}
+                </span>
+                <span className="font-semibold tabular-nums">{formatCurrency(e.valorTotal)}</span>
+              </div>
+              <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs">
+                <div className="flex justify-between gap-2">
+                  <span className="text-muted-foreground">Custos</span>
+                  <span className="tabular-nums text-rose-500">{formatCurrency(e.custosFotografo)}</span>
+                </div>
+                <div className="flex justify-between gap-2">
+                  <span className="text-muted-foreground">Partilha</span>
+                  <span className="tabular-nums">{formatCurrency(e.partilhaFotografo)}</span>
+                </div>
+                <div className="flex justify-between gap-2">
+                  <span className="text-muted-foreground">Repasse</span>
+                  <span className="tabular-nums text-amber-600">{formatCurrency(e.repassarFotografo)}</span>
+                </div>
+                {showStudioProfit && (
+                  <div className="flex justify-between gap-2">
+                    <span className="text-muted-foreground">Lucro Estúdio</span>
+                    <span className="tabular-nums text-emerald-600">{formatCurrency(e.lucroCrm)}</span>
+                  </div>
+                )}
+              </div>
+            </div>
+          )
+        })}
+      </div>
+    </>
   )
 }

@@ -271,8 +271,9 @@ export function FluxoCaixaPage() {
             ))}
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
+          <>
+          <div className="hidden overflow-x-auto md:block">
+            <table className="w-full min-w-[720px] text-sm">
               <thead>
                 <tr className="border-b text-left text-xs uppercase tracking-wide text-muted-foreground">
                   <th className="pb-2 pr-4 font-medium">Descrição</th>
@@ -335,6 +336,62 @@ export function FluxoCaixaPage() {
               </tbody>
             </table>
           </div>
+          <div className="space-y-2 md:hidden">
+            {!data?.itens?.length ? (
+              <p className="py-8 text-center text-sm text-muted-foreground">Nenhum lançamento no período</p>
+            ) : (
+              (data?.itens ?? []).map((item) => (
+                <div key={item.id} className="space-y-2 rounded-lg border bg-card p-4">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0">
+                      <p className="truncate font-medium">{item.descricao}</p>
+                      <p className="truncate text-xs text-muted-foreground">{item.categoria}</p>
+                    </div>
+                    <Badge variant={statusVariant(item.status)}>
+                      {STATUS_LABEL[item.status] ?? item.status}
+                    </Badge>
+                  </div>
+                  <div className="flex items-center justify-between gap-2 text-sm">
+                    <span className="text-muted-foreground">{item.data ? formatDateBR(item.data) : '—'}</span>
+                    <span
+                      className={cn(
+                        'font-medium tabular-nums',
+                        item.tipo === 'RECEITA' ? 'text-emerald-600' : 'text-rose-500',
+                      )}
+                    >
+                      {item.tipo === 'RECEITA' ? '+' : '−'}{formatCurrency(item.valor)}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between gap-2">
+                    <span
+                      className={cn(
+                        'inline-flex items-center gap-1 text-xs font-medium',
+                        item.tipo === 'RECEITA' ? 'text-emerald-600' : 'text-rose-500',
+                      )}
+                    >
+                      {item.tipo === 'RECEITA' ? (
+                        <ArrowUpRight className="h-3.5 w-3.5" />
+                      ) : (
+                        <ArrowDownLeft className="h-3.5 w-3.5" />
+                      )}
+                      {item.tipo === 'RECEITA' ? 'Receita' : 'Despesa'}
+                    </span>
+                    {item.tipo === 'RECEITA' && item.status !== 'PAGO_TOTAL' && item.status !== 'CANCELADO' && (
+                      <Button size="sm" variant="outline" onClick={() => handleReceber(item.id)}>
+                        Receber
+                      </Button>
+                    )}
+                    {item.tipo === 'DESPESA' && item.status !== 'PAGO' && item.status !== 'CANCELADO' && (
+                      <Button size="sm" variant="outline" onClick={() => handlePagar(item.id)}>
+                        Pagar
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+          </>
         )}
       </ChartCard>
     </div>

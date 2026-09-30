@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react'
-import { X, Download, Loader2, AlertTriangle } from 'lucide-react'
+import { Download, Loader2, AlertTriangle } from 'lucide-react'
 import { ecommerceService } from '../services/ecommerce.service'
 import type { AdminCompraDetalheResponse } from '../types/ecommerce.types'
 import { AuthImage } from '@/shared/components/ui/AuthImage'
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/shared/components/ui/sheet'
 import { downloadProtected, openProtected } from '@/shared/api'
 
 interface AdminCompraDetalheDialogProps {
@@ -24,17 +25,12 @@ export function AdminCompraDetalheDialog({ compraId, open, onOpenChange }: Admin
       .finally(() => setIsLoading(false))
   }, [open, compraId])
 
-  if (!open) return null
-
   return (
-    <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4" onClick={() => onOpenChange(false)}>
-      <div className="bg-background rounded-xl border shadow-lg max-w-2xl w-full p-6 space-y-4 max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
-        <div className="flex items-center justify-between">
-          <h2 className="text-base font-semibold">Detalhe da Compra</h2>
-          <button onClick={() => onOpenChange(false)} className="h-8 w-8 rounded-full hover:bg-accent flex items-center justify-center">
-            <X className="h-4 w-4" />
-          </button>
-        </div>
+    <Sheet open={open} onOpenChange={onOpenChange}>
+      <SheetContent>
+        <SheetHeader>
+          <SheetTitle>Detalhe da Compra</SheetTitle>
+        </SheetHeader>
 
         {isLoading ? (
           <div className="flex items-center justify-center py-12">
@@ -42,7 +38,7 @@ export function AdminCompraDetalheDialog({ compraId, open, onOpenChange }: Admin
           </div>
         ) : detalhe ? (
           <>
-            <div className="grid grid-cols-2 gap-3 text-sm">
+            <div className="grid grid-cols-1 gap-3 text-sm sm:grid-cols-2">
               <div>
                 <span className="text-muted-foreground text-xs">ID</span>
                 <p className="font-mono text-xs">{detalhe.id.slice(0, 8)}...</p>
@@ -67,7 +63,7 @@ export function AdminCompraDetalheDialog({ compraId, open, onOpenChange }: Admin
                 <span className="text-muted-foreground text-xs">Data Pagamento</span>
                 <p className="font-medium">{detalhe.dataPagamento ? new Date(detalhe.dataPagamento).toLocaleDateString('pt-BR') : '-'}</p>
               </div>
-              <div className="col-span-2">
+              <div className="sm:col-span-2">
                 <span className="text-muted-foreground text-xs">Comprovante</span>
                 {detalhe.urlComprovante ? (
                   <button onClick={() => openProtected(detalhe.urlComprovante!)} className="block text-primary underline text-sm mt-0.5">Ver comprovante</button>
@@ -76,7 +72,7 @@ export function AdminCompraDetalheDialog({ compraId, open, onOpenChange }: Admin
                 )}
               </div>
               {detalhe.motivoRecusa && (
-                <div className="col-span-2 rounded-lg bg-rose-50 dark:bg-rose-950/20 border border-rose-200 dark:border-rose-800 p-3 space-y-1">
+                <div className="sm:col-span-2 rounded-lg bg-rose-50 dark:bg-rose-950/20 border border-rose-200 dark:border-rose-800 p-3 space-y-1">
                   <div className="flex items-center gap-1.5 text-xs font-medium text-rose-600 dark:text-rose-300">
                     <AlertTriangle className="h-3.5 w-3.5" />
                     Motivo da recusa
@@ -89,7 +85,7 @@ export function AdminCompraDetalheDialog({ compraId, open, onOpenChange }: Admin
             {detalhe.fotos.length > 0 && (
               <div>
                 <h3 className="text-xs font-medium text-muted-foreground mb-2">FOTOS ({detalhe.fotos.length})</h3>
-                <div className="grid grid-cols-4 sm:grid-cols-6 gap-2">
+                <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
                   {detalhe.fotos.map((foto) => (
                     <div key={foto.id} className="rounded-lg border bg-card overflow-hidden">
                       <AuthImage src={foto.thumbUrl} alt={foto.fileName} className="aspect-[3/2] w-full object-cover" />
@@ -113,7 +109,7 @@ export function AdminCompraDetalheDialog({ compraId, open, onOpenChange }: Admin
         ) : (
           <p className="text-sm text-muted-foreground text-center py-4">Compra não encontrada</p>
         )}
-      </div>
-    </div>
+      </SheetContent>
+    </Sheet>
   )
 }

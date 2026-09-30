@@ -13,6 +13,8 @@ const contractClasses = [
   '[&_p]:mb-2 [&_p]:text-sm [&_p]:leading-relaxed [&_p]:text-slate-600',
   '[&_ul]:my-3 [&_ul]:list-disc [&_ul]:space-y-1.5 [&_ul]:pl-6',
   '[&_li]:text-sm [&_li]:leading-relaxed [&_li]:text-slate-600 [&_li]:marker:text-cyan-500',
+  '[&_table]:my-4 [&_table]:block [&_table]:w-full [&_table]:overflow-x-auto [&_th]:text-left [&_td]:whitespace-nowrap [&_td]:pr-4',
+  '[&_img]:h-auto [&_img]:max-w-full [&_a]:break-words',
 ].join(' ')
 
 export function ContractDocument({ html }: ContractDocumentProps) {

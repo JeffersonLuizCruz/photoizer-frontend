@@ -40,7 +40,8 @@ export function FotografoCustosList({ fotografoId }: FotografoCustosListProps) {
           Nenhum custo vinculado a este fotógrafo.
         </div>
       ) : (
-        <div className="rounded-md border overflow-x-auto">
+        <>
+        <div className="hidden rounded-md border overflow-x-auto md:block">
           <Table className="min-w-[560px]">
             <TableHeader>
               <TableRow>
@@ -77,6 +78,29 @@ export function FotografoCustosList({ fotografoId }: FotografoCustosListProps) {
             </TableBody>
           </Table>
         </div>
+        <div className="space-y-3 md:hidden">
+          {custos.map((c) => (
+            <div key={c.id} className="space-y-2 rounded-lg border bg-card p-4">
+              <div className="flex items-start justify-between gap-2">
+                <p className="font-medium">{c.descricao}</p>
+                <Badge variant={statusVariant[c.status] ?? 'outline'}>
+                  {c.status === 'PAGO' ? 'Pago' : c.status === 'PENDENTE' ? 'Pendente' : 'Recorrente'}
+                </Badge>
+              </div>
+              <div className="flex items-center justify-between gap-2 text-sm">
+                <Badge variant="outline" className="gap-1">
+                  <span className="h-2 w-2 rounded-full" style={{ backgroundColor: c.cor ?? '#888' }} />
+                  {c.categoria}
+                </Badge>
+                <span className="tabular-nums text-rose-500">{formatCurrency(c.valor)}</span>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                {format(new Date(c.data), 'dd/MM/yyyy', { locale: ptBR })}
+              </p>
+            </div>
+          ))}
+        </div>
+        </>
       )}
     </div>
   )

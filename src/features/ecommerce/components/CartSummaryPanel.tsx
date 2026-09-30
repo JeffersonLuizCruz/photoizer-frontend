@@ -1,4 +1,5 @@
 import { X, Trash2, ShoppingCart } from 'lucide-react'
+import { Sheet, SheetContent, SheetTitle } from '@/shared/components/ui/sheet'
 import type { FotoEnsaio } from '../types/ecommerce.types'
 
 interface CartSummaryPanelProps {
@@ -20,22 +21,19 @@ export function CartSummaryPanel({
   open, onClose, fotos, selectedIds, carrinhoIds,
   pacoteLimit, valorUnitario, onRemoveFromCart, onCheckout,
 }: CartSummaryPanelProps) {
-  if (!open) return null
-
   const pacoteFotos = fotos.filter((f) => selectedIds.has(f.id))
   const cartFotos = fotos.filter((f) => carrinhoIds.has(f.id))
   const subtotalExtras = cartFotos.length * valorUnitario
 
   return (
-    <>
-      <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm" onClick={onClose} />
-      <div className="fixed right-0 top-0 z-50 flex h-full w-full max-w-md flex-col border-l border-cyan-100 bg-white">
+    <Sheet open={open} onOpenChange={(o) => { if (!o) onClose() }}>
+      <SheetContent hideClose className="h-dvh max-h-none w-full max-w-md gap-0 overflow-hidden border-l border-cyan-100 bg-white p-0 sm:h-full">
         {/* Header */}
         <div className="flex h-14 shrink-0 items-center justify-between bg-gradient-to-r from-cyan-500 via-sky-500 to-teal-400 px-4 pb-2 pt-[env(safe-area-inset-top)] text-white">
-          <h2 className="flex items-center gap-2 font-display text-sm font-semibold">
+          <SheetTitle className="flex items-center gap-2 font-display text-sm font-semibold">
             <ShoppingCart className="h-4 w-4" />
             Meu Carrinho
-          </h2>
+          </SheetTitle>
           <button onClick={onClose} className="rounded-lg p-2 transition-colors hover:bg-white/20" title="Fechar">
             <X className="h-4 w-4" />
           </button>
@@ -131,7 +129,7 @@ export function CartSummaryPanel({
             Finalizar Compra ({formatBRL(subtotalExtras)})
           </button>
         </div>
-      </div>
-    </>
+      </SheetContent>
+    </Sheet>
   )
 }

@@ -55,12 +55,12 @@ export function EcommerceDashboardCards() {
           <div className="space-y-1.5">
             {data.topClientes.map((cliente, i) => (
               <div key={i} className="flex items-center justify-between text-sm">
-                <div className="flex items-center gap-2">
-                  <span className="text-xs text-muted-foreground font-mono w-4">#{i + 1}</span>
-                  <span className="font-medium">{cliente.nomeCliente}</span>
+                <div className="flex items-center gap-2 min-w-0">
+                  <span className="text-xs text-muted-foreground font-mono w-4 shrink-0">#{i + 1}</span>
+                  <span className="font-medium truncate">{cliente.nomeCliente}</span>
                 </div>
-                <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                  <span>{cliente.quantidadeCompras} compra(s)</span>
+                <div className="flex items-center gap-3 text-xs text-muted-foreground shrink-0">
+                  <span className="hidden sm:inline">{cliente.quantidadeCompras} compra(s)</span>
                   <span className="font-medium text-foreground">{formatCurrency(cliente.totalGasto)}</span>
                 </div>
               </div>

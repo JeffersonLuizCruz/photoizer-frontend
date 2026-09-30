@@ -46,11 +46,11 @@ export function GraficoRentabilidade({ data, isLoading }: GraficoRentabilidadePr
           <YAxis
             type="category"
             dataKey="tipoServico"
-            tick={{ fontSize: 12 }}
+            tick={{ fontSize: 11 }}
             className="text-muted-foreground"
             axisLine={false}
             tickLine={false}
-            width={90}
+            width={72}
           />
           <Tooltip content={<TooltipContent />} />
           <Legend wrapperStyle={{ fontSize: 12, paddingTop: 8 }} iconType="circle" />

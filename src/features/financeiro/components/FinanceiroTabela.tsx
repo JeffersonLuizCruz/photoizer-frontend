@@ -73,7 +73,8 @@ export function FinanceiroTabela({ agendamentos, dateRange, isLoading }: Finance
   }
 
   return (
-    <div className="rounded-md border overflow-x-auto">
+    <>
+      <div className="hidden rounded-md border overflow-x-auto md:block">
       <Table className="min-w-[820px]">
         <TableHeader>
           <TableRow>
@@ -134,6 +135,66 @@ export function FinanceiroTabela({ agendamentos, dateRange, isLoading }: Finance
           <span> no período selecionado</span>
         )}
       </div>
-    </div>
+      </div>
+
+      <div className="space-y-3 md:hidden">
+        {filtered.map((agendamento) => {
+          const config = statusLabels[agendamento.status] ?? { label: agendamento.status, variant: 'default' as const }
+          return (
+            <div
+              key={agendamento.id}
+              className="cursor-pointer space-y-3 rounded-lg border bg-card p-4"
+              onClick={() => navigate(ROUTES.AGENDA_DETALHES.replace(':id', agendamento.id))}
+            >
+              <div className="flex items-start justify-between gap-2">
+                <div className="min-w-0">
+                  <p className="truncate font-medium">{agendamento.clienteNome}</p>
+                  <p className="truncate text-xs text-muted-foreground">{agendamento.pacoteNome ?? '—'}</p>
+                </div>
+                <Badge variant={config.variant}>{config.label}</Badge>
+              </div>
+              <div className="flex items-center justify-between gap-2 text-sm">
+                <span className="text-muted-foreground">
+                  {agendamento.dataHoraEnsaio
+                    ? format(new Date(agendamento.dataHoraEnsaio), 'dd/MM/yyyy', { locale: ptBR })
+                    : '—'}
+                </span>
+                <span className="font-semibold tabular-nums">
+                  R$ {agendamento.valorTotalFinal.toFixed(2)}
+                </span>
+              </div>
+              <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs">
+                <div className="flex justify-between gap-2">
+                  <span className="text-muted-foreground">Total</span>
+                  <span className="tabular-nums">R$ {agendamento.valorTotal.toFixed(2)}</span>
+                </div>
+                <div className="flex justify-between gap-2">
+                  <span className="text-muted-foreground">Entrada</span>
+                  <span className={agendamento.valorEntradaPago > 0 ? 'tabular-nums text-emerald-600' : 'tabular-nums text-muted-foreground'}>
+                    R$ {agendamento.valorEntradaPago > 0 ? agendamento.valorEntradaPago.toFixed(2) : '0,00'}
+                  </span>
+                </div>
+                <div className="flex justify-between gap-2">
+                  <span className="text-muted-foreground">Restante</span>
+                  <span className="tabular-nums">R$ {agendamento.valorRestante.toFixed(2)}</span>
+                </div>
+                <div className="flex justify-between gap-2">
+                  <span className="text-muted-foreground">Extras</span>
+                  {agendamento.valorExtras > 0 ? (
+                    <span className="tabular-nums text-purple-600">R$ {agendamento.valorExtras.toFixed(2)}</span>
+                  ) : (
+                    <span className="tabular-nums text-muted-foreground">-</span>
+                  )}
+                </div>
+              </div>
+            </div>
+          )
+        })}
+        <p className="text-xs text-muted-foreground">
+          Exibindo {filtered.length} agendamento(s)
+          {dateRange?.from && dateRange?.to && <span> no período selecionado</span>}
+        </p>
+      </div>
+    </>
   )
 }

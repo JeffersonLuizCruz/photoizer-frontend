@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useState, type ReactNode } from 'react'
 import { format } from 'date-fns'
 import { Download, FileText, FilterX, Table2 } from 'lucide-react'
 import { Button } from '@/shared/components/ui/button'
@@ -75,6 +75,37 @@ function TabelaVazia({ colSpan }: { colSpan: number }) {
         Nenhum dado encontrado no período
       </td>
     </tr>
+  )
+}
+
+function MobileRelatorioList({ children }: { children: ReactNode }) {
+  return <div className="space-y-3 md:hidden">{children}</div>
+}
+
+function MobileRelatorioCard({
+  title,
+  badge,
+  rows,
+}: {
+  title: string
+  badge?: ReactNode
+  rows: [string, ReactNode][]
+}) {
+  return (
+    <div className="space-y-2 rounded-lg border bg-card p-4">
+      <div className="flex items-start justify-between gap-2">
+        <p className="font-medium">{title}</p>
+        {badge}
+      </div>
+      <div className="space-y-1 text-sm">
+        {rows.map(([label, value], i) => (
+          <div key={i} className="flex justify-between gap-2">
+            <span className="text-muted-foreground">{label}</span>
+            <span className="text-right tabular-nums">{value}</span>
+          </div>
+        ))}
+      </div>
+    </div>
   )
 }
 
@@ -278,9 +309,10 @@ export function RelatoriosPage() {
       )}
 
       {tipo === 'despesas-categoria' && (
-        <div className="rounded-md border">
+        <>
+        <div className="hidden rounded-md border md:block">
           <div className="overflow-x-auto">
-            <table className="w-full text-sm">
+            <table className="w-full min-w-[560px] text-sm">
               <thead>
                 <tr className="border-b bg-muted/50 text-left text-xs uppercase tracking-wide text-muted-foreground">
                   <th className="px-4 py-2 font-medium">Categoria</th>
@@ -320,6 +352,34 @@ export function RelatoriosPage() {
             </table>
           </div>
         </div>
+        <MobileRelatorioList>
+          {despesasCategoria.isLoading ? (
+            <TabelaSkeleton />
+          ) : (despesasCategoria.data?.categorias ?? []).length === 0 ? (
+            <p className="py-8 text-center text-sm text-muted-foreground">Nenhum dado encontrado no período</p>
+          ) : (
+            <>
+              {(despesasCategoria.data?.categorias ?? []).map((c) => (
+                <MobileRelatorioCard
+                  key={c.categoria}
+                  title={c.categoria}
+                  badge={<span className="font-semibold tabular-nums">{formatCurrency(c.valor)}</span>}
+                  rows={[
+                    ['Quantidade', c.qtd],
+                    ['Percentual', formatPercent(c.percentual)],
+                  ]}
+                />
+              ))}
+              {despesasCategoria.data && (
+                <div className="flex items-center justify-between rounded-lg border bg-muted/50 p-4 text-sm font-semibold">
+                  <span>Total</span>
+                  <span className="tabular-nums">{formatCurrency(despesasCategoria.data.total)}</span>
+                </div>
+              )}
+            </>
+          )}
+        </MobileRelatorioList>
+        </>
       )}
 
       {tipo === 'inadimplencia' && (
@@ -341,9 +401,9 @@ export function RelatoriosPage() {
               isLoading={inadimplencia.isLoading}
             />
           </div>
-          <div className="rounded-md border">
+          <div className="hidden rounded-md border md:block">
             <div className="overflow-x-auto">
-              <table className="w-full text-sm">
+              <table className="w-full min-w-[720px] text-sm">
                 <thead>
                   <tr className="border-b bg-muted/50 text-left text-xs uppercase tracking-wide text-muted-foreground">
                     <th className="px-4 py-2 font-medium">Cliente</th>
@@ -381,13 +441,39 @@ export function RelatoriosPage() {
               </table>
             </div>
           </div>
+          <MobileRelatorioList>
+            {inadimplencia.isLoading ? (
+              <TabelaSkeleton />
+            ) : (inadimplencia.data?.itens ?? []).length === 0 ? (
+              <p className="py-8 text-center text-sm text-muted-foreground">Nenhum dado encontrado no período</p>
+            ) : (
+              (inadimplencia.data?.itens ?? []).map((i) => (
+                <MobileRelatorioCard
+                  key={i.receitaId}
+                  title={i.clienteNome}
+                  badge={
+                    <Badge variant={i.diasAtraso > 30 ? 'destructive' : i.diasAtraso > 7 ? 'warning' : 'outline'}>
+                      {i.diasAtraso} dia(s)
+                    </Badge>
+                  }
+                  rows={[
+                    ['Valor em aberto', <span className="text-rose-500">{formatCurrency(i.valorEmAberto)}</span>],
+                    ['Previsão', i.dataPrevisaoRecebimento ? i.dataPrevisaoRecebimento.split('-').reverse().join('/') : '—'],
+                    ['Serviço', TIPO_SERVICO_LABEL[i.tipoServico] ?? i.tipoServico],
+                    ['Descrição', i.descricao ?? '—'],
+                  ]}
+                />
+              ))
+            )}
+          </MobileRelatorioList>
         </div>
       )}
 
       {tipo === 'rentabilidade-servico' && (
-        <div className="rounded-md border">
+        <>
+        <div className="hidden rounded-md border md:block">
           <div className="overflow-x-auto">
-            <table className="w-full text-sm">
+            <table className="w-full min-w-[560px] text-sm">
               <thead>
                 <tr className="border-b bg-muted/50 text-left text-xs uppercase tracking-wide text-muted-foreground">
                   <th className="px-4 py-2 font-medium">Tipo de serviço</th>
@@ -417,12 +503,33 @@ export function RelatoriosPage() {
             </table>
           </div>
         </div>
+        <MobileRelatorioList>
+          {rentServico.isLoading ? (
+            <TabelaSkeleton />
+          ) : (rentServico.data ?? []).length === 0 ? (
+            <p className="py-8 text-center text-sm text-muted-foreground">Nenhum dado encontrado no período</p>
+          ) : (
+            (rentServico.data ?? []).map((s) => (
+              <MobileRelatorioCard
+                key={s.tipoServico}
+                title={TIPO_SERVICO_LABEL[s.tipoServico] ?? s.tipoServico}
+                badge={<Badge variant={margemVariant(s.margem)}>{formatPercent(s.margem)}</Badge>}
+                rows={[
+                  ['Receita', formatCurrency(s.receita)],
+                  ['Líquido', formatCurrency(s.liquido)],
+                ]}
+              />
+            ))
+          )}
+        </MobileRelatorioList>
+        </>
       )}
 
       {tipo === 'rentabilidade-cliente' && (
-        <div className="rounded-md border">
+        <>
+        <div className="hidden rounded-md border md:block">
           <div className="overflow-x-auto">
-            <table className="w-full text-sm">
+            <table className="w-full min-w-[820px] text-sm">
               <thead>
                 <tr className="border-b bg-muted/50 text-left text-xs uppercase tracking-wide text-muted-foreground">
                   <th className="px-4 py-2 font-medium">Cliente</th>
@@ -458,12 +565,36 @@ export function RelatoriosPage() {
             </table>
           </div>
         </div>
+        <MobileRelatorioList>
+          {rentCliente.isLoading ? (
+            <TabelaSkeleton />
+          ) : (rentCliente.data?.clientes ?? []).length === 0 ? (
+            <p className="py-8 text-center text-sm text-muted-foreground">Nenhum dado encontrado no período</p>
+          ) : (
+            (rentCliente.data?.clientes ?? []).map((c) => (
+              <MobileRelatorioCard
+                key={c.clienteId}
+                title={c.clienteNome}
+                badge={<Badge variant={margemVariant(c.margem)}>{formatPercent(c.margem)}</Badge>}
+                rows={[
+                  ['Receita bruta', formatCurrency(c.receitaBruta)],
+                  ['Receita líquida', formatCurrency(c.receitaLiquida)],
+                  ['Recebido', <span className="text-emerald-600">{formatCurrency(c.recebido)}</span>],
+                  ['A receber', <span className="text-amber-600">{formatCurrency(c.aReceber)}</span>],
+                  ['Qtde receitas', c.qtdReceitas],
+                ]}
+              />
+            ))
+          )}
+        </MobileRelatorioList>
+        </>
       )}
 
       {tipo === 'comparativo' && (
-        <div className="rounded-md border">
+        <>
+        <div className="hidden rounded-md border md:block">
           <div className="overflow-x-auto">
-            <table className="w-full text-sm">
+            <table className="w-full min-w-[640px] text-sm">
               <thead>
                 <tr className="border-b bg-muted/50 text-left text-xs uppercase tracking-wide text-muted-foreground">
                   <th className="px-4 py-2 font-medium">Período</th>
@@ -497,6 +628,31 @@ export function RelatoriosPage() {
             </table>
           </div>
         </div>
+        <MobileRelatorioList>
+          {comparativo.isLoading ? (
+            <TabelaSkeleton />
+          ) : (comparativo.data?.periodos ?? []).length === 0 ? (
+            <p className="py-8 text-center text-sm text-muted-foreground">Nenhum dado encontrado no período</p>
+          ) : (
+            (comparativo.data?.periodos ?? []).map((p) => (
+              <MobileRelatorioCard
+                key={p.periodo}
+                title={p.periodo}
+                badge={
+                  <Badge variant={p.variacao >= 0 ? 'success' : 'destructive'}>
+                    {p.variacao >= 0 ? '+' : ''}{p.variacao.toFixed(1)}%
+                  </Badge>
+                }
+                rows={[
+                  ['Receitas', formatCurrency(p.receitas)],
+                  ['Despesas', <span className="text-rose-500">{formatCurrency(p.despesas)}</span>],
+                  ['Lucro', formatCurrency(p.lucro)],
+                ]}
+              />
+            ))
+          )}
+        </MobileRelatorioList>
+        </>
       )}
 
       {tipo === 'fiscal' && (
@@ -507,9 +663,9 @@ export function RelatoriosPage() {
             <Card label="Total de despesas" value={formatCurrency(fiscal.data?.totalDespesas)} accent="text-rose-500" isLoading={fiscal.isLoading} />
             <Card label="Lucro líquido" value={formatCurrency(fiscal.data?.lucroLiquido)} accent="text-emerald-600" isLoading={fiscal.isLoading} />
           </div>
-          <div className="rounded-md border">
+          <div className="hidden rounded-md border md:block">
             <div className="overflow-x-auto">
-              <table className="w-full text-sm">
+              <table className="w-full min-w-[420px] text-sm">
                 <thead>
                   <tr className="border-b bg-muted/50 text-left text-xs uppercase tracking-wide text-muted-foreground">
                     <th className="px-4 py-2 font-medium">Categoria de despesa</th>
@@ -533,6 +689,22 @@ export function RelatoriosPage() {
               </table>
             </div>
           </div>
+          <MobileRelatorioList>
+            {fiscal.isLoading ? (
+              <TabelaSkeleton />
+            ) : (fiscal.data?.despesasPorCategoria ?? []).length === 0 ? (
+              <p className="py-8 text-center text-sm text-muted-foreground">Nenhum dado encontrado no período</p>
+            ) : (
+              (fiscal.data?.despesasPorCategoria ?? []).map((d) => (
+                <MobileRelatorioCard
+                  key={d.categoria}
+                  title={d.categoria}
+                  badge={<span className="font-semibold tabular-nums">{formatCurrency(d.valor)}</span>}
+                  rows={[]}
+                />
+              ))
+            )}
+          </MobileRelatorioList>
         </div>
       )}
     </div>

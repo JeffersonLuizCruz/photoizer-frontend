@@ -103,8 +103,8 @@ export function GerenciarCategoriasDialog({ open, onOpenChange }: GerenciarCateg
 
           {(criandoNova || editando) && (
             <div className="space-y-3 rounded-lg border p-4">
-              <div className="grid grid-cols-3 gap-3">
-                <div className="col-span-2">
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+                <div className="sm:col-span-2">
                   <Label htmlFor="nova-categoria-nome">Nome *</Label>
                   <Input id="nova-categoria-nome" value={nome} onChange={(e) => setNome(e.target.value)} placeholder="Ex: Marketing e Publicidade" />
                 </div>
@@ -116,7 +116,7 @@ export function GerenciarCategoriasDialog({ open, onOpenChange }: GerenciarCateg
                         key={c}
                         type="button"
                         onClick={() => setCor(c)}
-                        className={`h-6 w-6 rounded-full border-2 transition-transform ${cor === c ? 'scale-110 border-foreground' : 'border-transparent'}`}
+                        className={`h-8 w-8 rounded-full border-2 transition-transform ${cor === c ? 'scale-110 border-foreground' : 'border-transparent'}`}
                         style={{ backgroundColor: c }}
                         aria-label={`Cor ${c}`}
                       />

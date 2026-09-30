@@ -73,6 +73,64 @@ export function PacoteList({ data, isLoading, search, onSearchChange, onToggleAt
       emptyMessage="Nenhum pacote encontrado"
       mobileHiddenIds={['quantidadeVideos', 'diasParaEntrega', 'duracaoEstimada']}
       minWidthClassName="min-w-[560px]"
+      renderMobileCard={(p) => (
+        <div className="space-y-3 rounded-lg border bg-card p-4">
+          <div className="flex items-start justify-between gap-2">
+            <p className="font-medium">{p.nome}</p>
+            {p.ativo ? (
+              <StatusBadge status="active" customLabels={{ active: { label: 'Ativo', variant: 'success' } }} />
+            ) : (
+              <StatusBadge status="inactive" customLabels={{ inactive: { label: 'Inativo', variant: 'secondary' } }} />
+            )}
+          </div>
+          <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-sm">
+            <div className="flex justify-between gap-2">
+              <span className="text-muted-foreground">Fotos</span>
+              <span>{p.quantidadeFotos}</span>
+            </div>
+            <div className="flex justify-between gap-2">
+              <span className="text-muted-foreground">Vídeos</span>
+              <span>{p.quantidadeVideos}</span>
+            </div>
+            <div className="flex justify-between gap-2">
+              <span className="text-muted-foreground">Valor</span>
+              <span className="tabular-nums">{formatCurrency(p.valorBase)}</span>
+            </div>
+            <div className="flex justify-between gap-2">
+              <span className="text-muted-foreground">Duração</span>
+              <span>{p.duracaoEstimada ?? '—'}</span>
+            </div>
+            {p.diasParaEntrega ? (
+              <div className="col-span-2 flex justify-between gap-2">
+                <span className="text-muted-foreground">Prazo</span>
+                <span>{p.diasParaEntrega} dias</span>
+              </div>
+            ) : null}
+          </div>
+          <div className="flex justify-end gap-1">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => navigate(`/pacotes/${p.id}/editar`)}
+              aria-label={`Editar ${p.nome}`}
+            >
+              <Pencil className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => onToggleAtivo(p)}
+              aria-label={p.ativo ? `Inativar ${p.nome}` : `Ativar ${p.nome}`}
+            >
+              {p.ativo ? (
+                <PowerOff className="h-4 w-4 text-destructive" />
+              ) : (
+                <Power className="h-4 w-4 text-green-600" />
+              )}
+            </Button>
+          </div>
+        </div>
+      )}
       renderActions={(row) => (
         <div className="flex items-center gap-1">
           <Button

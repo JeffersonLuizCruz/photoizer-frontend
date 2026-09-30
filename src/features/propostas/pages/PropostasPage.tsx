@@ -10,6 +10,7 @@ import { Badge } from '@/shared/components/ui/badge'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/shared/components/ui/table'
 import { ROUTES, AGENDAMENTO_STATUS } from '@/shared/constants'
 import { formatCurrency } from '@/shared/lib/format'
+import { cn } from '@/shared/lib/cn'
 import {
   usePropostasList,
   useConfirmarPagamentoProposta,
@@ -42,8 +43,64 @@ export function PropostasPage() {
     toast.success('Link copiado para a área de transferência')
   }
 
+  const renderAcoes = (p: Proposta, className = 'justify-start') => {
+    const link = linkDe(p)
+    return (
+      <div className={cn('flex flex-wrap gap-1', className)}>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => navigate(ROUTES.AGENDA_DETALHES.replace(':id', p.id))}
+        >
+          Detalhes
+        </Button>
+        {link && (
+          <>
+            <Button variant="outline" size="sm" onClick={() => copiarLink(p)}>
+              <Copy className="mr-1 h-4 w-4" />
+              Copiar link
+            </Button>
+            <Button variant="outline" size="sm" onClick={() => window.open(link, '_blank', 'noopener')}>
+              <ExternalLink className="mr-1 h-4 w-4" />
+              Abrir
+            </Button>
+          </>
+        )}
+        {p.status === AGENDAMENTO_STATUS.AGUARDANDO_APROVACAO && (
+          <Button size="sm" onClick={() => confirmar.mutate(p.id)} disabled={confirmar.isPending}>
+            <ThumbsUp className="mr-1 h-4 w-4" />
+            Confirmar pagamento
+          </Button>
+        )}
+        {p.status === AGENDAMENTO_STATUS.PAGAMENTO_CONFIRMADO && (
+          <Button
+            size="sm"
+            onClick={() =>
+              aprovar.mutate(p.id, {
+                onError: (error) => {
+                  if (isAxiosError(error) && error.response?.status === 409) {
+                    toast.error('Conflito de agenda ao aprovar.', {
+                      action: {
+                        label: 'Abrir detalhes',
+                        onClick: () => navigate(ROUTES.AGENDA_DETALHES.replace(':id', p.id)),
+                      },
+                    })
+                  }
+                },
+              })
+            }
+            disabled={aprovar.isPending}
+          >
+            <CheckCircle2 className="mr-1 h-4 w-4" />
+            Aprovar
+          </Button>
+        )}
+      </div>
+    )
+  }
+
   return (
-    <div className="space-y-6 p-6">
+    <div className="space-y-6">
       <PageTitle
         title="Propostas"
         description="Pré-reservas aguardando assinatura, confirmação de pagamento e aprovação"
@@ -69,7 +126,8 @@ export function PropostasPage() {
           </p>
         </div>
       ) : (
-        <div className="rounded-md border overflow-x-auto">
+        <>
+          <div className="hidden rounded-md border overflow-x-auto md:block">
           <Table className="min-w-[860px]">
             <TableHeader>
               <TableRow>
@@ -84,7 +142,6 @@ export function PropostasPage() {
             <TableBody>
               {propostas.map((p) => {
                 const info = statusInfo[p.status] ?? { label: p.status, variant: 'warning' as const }
-                const link = linkDe(p)
                 return (
                   <TableRow key={p.id}>
                     <TableCell className="font-medium">{p.clienteNome ?? '—'}</TableCell>
@@ -101,69 +158,43 @@ export function PropostasPage() {
                         </p>
                       )}
                     </TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex flex-wrap justify-end gap-1">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => navigate(ROUTES.AGENDA_DETALHES.replace(':id', p.id))}
-                        >
-                          Detalhes
-                        </Button>
-                        {link && (
-                          <>
-                            <Button variant="outline" size="sm" onClick={() => copiarLink(p)}>
-                              <Copy className="mr-1 h-4 w-4" />
-                              Copiar link
-                            </Button>
-                            <Button variant="outline" size="sm" onClick={() => window.open(link, '_blank', 'noopener')}>
-                              <ExternalLink className="mr-1 h-4 w-4" />
-                              Abrir
-                            </Button>
-                          </>
-                        )}
-                        {p.status === AGENDAMENTO_STATUS.AGUARDANDO_APROVACAO && (
-                          <Button
-                            size="sm"
-                            onClick={() => confirmar.mutate(p.id)}
-                            disabled={confirmar.isPending}
-                          >
-                            <ThumbsUp className="mr-1 h-4 w-4" />
-                            Confirmar pagamento
-                          </Button>
-                        )}
-                        {p.status === AGENDAMENTO_STATUS.PAGAMENTO_CONFIRMADO && (
-                          <Button
-                            size="sm"
-                            onClick={() =>
-                              aprovar.mutate(p.id, {
-                                onError: (error) => {
-                                  if (isAxiosError(error) && error.response?.status === 409) {
-                                    toast.error('Conflito de agenda ao aprovar.', {
-                                      action: {
-                                        label: 'Abrir detalhes',
-                                        onClick: () =>
-                                          navigate(ROUTES.AGENDA_DETALHES.replace(':id', p.id)),
-                                      },
-                                    })
-                                  }
-                                },
-                              })
-                            }
-                            disabled={aprovar.isPending}
-                          >
-                            <CheckCircle2 className="mr-1 h-4 w-4" />
-                            Aprovar
-                          </Button>
-                        )}
-                      </div>
-                    </TableCell>
+                    <TableCell className="text-right">{renderAcoes(p, 'justify-end')}</TableCell>
                   </TableRow>
                 )
               })}
             </TableBody>
           </Table>
         </div>
+
+        <div className="space-y-3 md:hidden">
+          {propostas.map((p) => {
+            const info = statusInfo[p.status] ?? { label: p.status, variant: 'warning' as const }
+            return (
+              <div key={p.id} className="space-y-3 rounded-lg border bg-card p-4">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="min-w-0">
+                    <p className="truncate font-medium">{p.clienteNome ?? '—'}</p>
+                    <p className="truncate text-sm text-muted-foreground">{p.pacoteNome}</p>
+                  </div>
+                  <Badge variant={info.variant}>{info.label}</Badge>
+                </div>
+                <div className="flex items-center justify-between gap-2 text-sm">
+                  <span className="text-muted-foreground">
+                    {format(new Date(p.dataHoraEnsaio), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
+                  </span>
+                  <span className="font-semibold tabular-nums">{formatCurrency(p.valorTotal)}</span>
+                </div>
+                {p.dataAssinatura && (
+                  <p className="text-xs text-muted-foreground">
+                    Assinado em {format(new Date(p.dataAssinatura), 'dd/MM/yyyy')}
+                  </p>
+                )}
+                {renderAcoes(p)}
+              </div>
+            )
+          })}
+        </div>
+        </>
       )}
     </div>
   )

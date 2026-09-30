@@ -125,8 +125,8 @@ export function AgendamentoContrato({ agendamento, onUpdateClausulas }: Agendame
         </div>
 
         {linkProposta ? (
-          <div className="flex items-center gap-2">
-            <Input value={linkProposta} readOnly className="text-xs" />
+          <div className="flex flex-wrap items-center gap-2">
+            <Input value={linkProposta} readOnly className="min-w-0 flex-1 basis-full text-xs sm:basis-auto" />
             <Button variant="outline" size="sm" onClick={handleCopiarLink}>
               <Copy className="mr-1 h-4 w-4" />
               Copiar
