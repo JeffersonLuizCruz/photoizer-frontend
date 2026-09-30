@@ -41,7 +41,7 @@ function ComentarioBubble({ comentario }: { comentario: FotoComentario }) {
   return (
     <div className={cn('flex max-w-[85%] flex-col', isStaff ? 'ml-auto items-end' : 'mr-auto items-start')}>
       <span className={cn('mb-0.5 px-1 text-[10px] font-medium', isStaff ? 'text-cyan-600' : 'text-slate-400')}>
-        {autor} <span className="text-slate-400">· {formatComentarioData(comentario.auditInfo.createdAt)}</span>
+        {autor} <span className="text-slate-400">· {formatComentarioData(comentario.createdAt)}</span>
       </span>
       <div className={cn(
         'break-words rounded-2xl px-3.5 py-2.5 text-[13px] leading-relaxed shadow-sm',
@@ -125,6 +125,7 @@ export function FotoViewer({
   const controlBtn = 'flex items-center justify-center rounded-full bg-white/80 text-cyan-700 shadow-md ring-1 ring-cyan-100 backdrop-blur transition-all hover:scale-105 hover:bg-white active:scale-95'
 
   return (
+    <>
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-gradient-to-b from-sky-100/95 via-amber-50/95 to-amber-50/95 backdrop-blur" onClick={onClose}>
       <button onClick={(e) => { e.stopPropagation(); onClose() }}
         aria-label="Fechar visualização"
@@ -223,6 +224,8 @@ export function FotoViewer({
         )}
       </div>
 
+      </div>
+
       {/* Painel de comentários */}
       <Sheet open={commentsOpen} onOpenChange={onCommentsOpenChange}>
         <SheetContent
@@ -282,6 +285,6 @@ export function FotoViewer({
           </div>
         </SheetContent>
       </Sheet>
-    </div>
+    </>
   )
 }

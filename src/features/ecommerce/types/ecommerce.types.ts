@@ -109,7 +109,7 @@ export interface Sessao {
 
 export interface Avaliacao {
   id: string
-  auditInfo: AuditInfo
+  createdAt: string
   clienteId: string
   agendamentoId: string | null
   pacoteId: string | null
@@ -168,7 +168,7 @@ export type OrigemComentario = 'CLIENTE' | 'STAFF'
 
 export interface FotoComentario {
   id: string
-  auditInfo: AuditInfo
+  createdAt: string
   fotoId: string
   autorNome: string | null
   mensagem: string

@@ -270,7 +270,7 @@ export const ecommerceService = {
   },
 
   // Avaliações
-  criarAvaliacao: async (avaliacao: Omit<Avaliacao, 'id' | 'aprovado' | 'auditInfo'>): Promise<Avaliacao> => {
+  criarAvaliacao: async (avaliacao: Omit<Avaliacao, 'id' | 'aprovado' | 'createdAt'>): Promise<Avaliacao> => {
     const { data } = await apiClient.post<Avaliacao>('/avaliacoes', avaliacao)
     return data
   },
