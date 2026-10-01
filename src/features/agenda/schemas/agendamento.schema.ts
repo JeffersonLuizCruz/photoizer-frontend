@@ -27,7 +27,6 @@ export const editarAgendamentoSchema = z.object({
   pacoteId: z.string().min(1, 'Selecione um pacote'),
   dataHoraEnsaio: z.string().min(1, 'Selecione data e horário'),
   localEnsaio: z.string().min(3, 'Informe o local do ensaio'),
-  enderecoCompleto: z.string().optional().or(z.literal('')),
   editorId: z.string().optional().or(z.literal('')),
   fotografoId: z.string().optional(),
   fotografos: z.array(fotografoRepasseSchema).optional().default([]),

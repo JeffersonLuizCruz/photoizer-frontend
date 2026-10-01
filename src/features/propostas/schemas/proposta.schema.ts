@@ -5,9 +5,8 @@ export const novaPropostaSchema = z.object({
   data: z.date({ message: 'Informe a data do ensaio' }),
   hora: z.string().regex(/^\d{2}:\d{2}$/, 'Horário inválido (HH:mm)'),
   localEnsaio: z.string().min(3, 'Informe o local do ensaio'),
-  enderecoCompleto: z.string().optional(),
   editorId: z.string().optional(),
-  fotografoId: z.string().optional(),
+  fotografoId: z.string().min(1, 'Selecione o fotógrafo responsável'),
   fotografos: z.array(
     z.object({
       fotografoId: z.string().min(1, 'Selecione o parceiro'),

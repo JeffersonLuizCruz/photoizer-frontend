@@ -81,9 +81,6 @@ export function AgendamentoResumo({ agendamento }: AgendamentoResumoProps) {
           <MapPin className="h-3.5 w-3.5 text-muted-foreground" />
           <span>{agendamento.localEnsaio}</span>
         </div>
-        {agendamento.enderecoCompleto && (
-          <p className="text-xs text-muted-foreground ml-5">{agendamento.enderecoCompleto}</p>
-        )}
         <InfoRow label="Pacote" value={agendamento.pacoteNome} />
         <InfoRow label="Fotógrafo responsável" value={agendamento.fotografoNome} />
         <InfoRow label="Editor" value={agendamento.editorNome} />

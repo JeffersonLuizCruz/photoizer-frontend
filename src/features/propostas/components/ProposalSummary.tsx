@@ -42,7 +42,10 @@ export function ProposalSummary({ proposta }: ProposalSummaryProps) {
   const data = new Date(proposta.dataHoraEnsaio)
   const dataLabel = format(data, "EEEE, dd 'de' MMMM", { locale: ptBR })
   const horaLabel = format(data, 'HH:mm')
-  const profissionais = (proposta.fotografos ?? []).map((f) => f.nome).filter(Boolean).join(', ')
+  const profissionais = [proposta.fotografoResponsavel, ...(proposta.fotografos ?? []).map((f) => f.nome)]
+    .filter((nome): nome is string => !!nome && nome.trim().length > 0)
+    .filter((nome, index, nomes) => nomes.indexOf(nome) === index)
+    .join(', ')
 
   return (
     <div className="space-y-4">
@@ -82,9 +85,6 @@ export function ProposalSummary({ proposta }: ProposalSummaryProps) {
 
         <InfoCard icon={MapPin} label="Local">
           {proposta.localEnsaio || '—'}
-          {proposta.enderecoCompleto && (
-            <div className="mt-0.5 text-xs text-slate-500">{proposta.enderecoCompleto}</div>
-          )}
         </InfoCard>
 
         <InfoCard icon={Package} label="Pacote">

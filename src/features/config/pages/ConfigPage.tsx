@@ -10,6 +10,7 @@ import { Label } from '@/shared/components/ui/label'
 import { Skeleton } from '@/shared/components/ui/skeleton'
 import { configService } from '../services/config.service'
 import { extractErrorMessage } from '@/shared/api'
+import { QUERY_KEYS } from '@/shared/constants'
 
 const FIELDS = [
   { key: 'valorUnitarioFotoExtra', label: 'Valor Unitário da Foto Extra (R$)', placeholder: '15.00', type: 'number' as const },
@@ -19,15 +20,25 @@ const FIELDS = [
   { key: 'taxaDeslocamentoPadrao', label: 'Taxa de Deslocamento Padrão (R$)', placeholder: '0.00', type: 'number' as const },
 ] as const
 
+const CONTRATADA_FIELDS = [
+  { key: 'nomeContratada', label: 'Nome da Contratada', placeholder: 'Carol Oliva Fotografia' },
+  { key: 'cnpjContratada', label: 'CNPJ', placeholder: '00.000.000/0000-00' },
+  { key: 'enderecoContratada', label: 'Cidade / Sede', placeholder: 'Cidade - UF' },
+  { key: 'pixChave', label: 'Chave PIX', placeholder: 'CNPJ, CPF, e-mail ou telefone' },
+  { key: 'pixTipoChave', label: 'Tipo da Chave PIX', placeholder: 'CNPJ' },
+] as const
+
 export function ConfigPage() {
   const queryClient = useQueryClient()
   const [values, setValues] = useState<Record<string, string>>({})
   const [template, setTemplate] = useState('')
+  const [lastSavedAt, setLastSavedAt] = useState<Date | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const { data, isLoading } = useQuery({
     queryKey: ['config'],
     queryFn: () => configService.get(),
+    refetchOnWindowFocus: false,
   })
 
   const { data: templateData, isLoading: templateLoading } = useQuery({
@@ -43,6 +54,12 @@ export function ConfigPage() {
         percentualComissao: String(data.percentualComissao ?? '10.00'),
         percentualEntrada: String(data.percentualEntrada ?? '30.00'),
         taxaDeslocamentoPadrao: String(data.taxaDeslocamentoPadrao ?? '0.00'),
+        nomeFotografo: String(data.nomeFotografo ?? ''),
+        nomeContratada: String(data.nomeContratada ?? ''),
+        cnpjContratada: String(data.cnpjContratada ?? ''),
+        enderecoContratada: String(data.enderecoContratada ?? ''),
+        pixChave: String(data.pixChave ?? ''),
+        pixTipoChave: String(data.pixTipoChave ?? 'CNPJ'),
       })
     }
   }, [data])
@@ -56,7 +73,9 @@ export function ConfigPage() {
   const { mutate: save, isPending } = useMutation({
     mutationFn: () => configService.update(values),
     onSuccess: () => {
+      setLastSavedAt(new Date())
       queryClient.invalidateQueries({ queryKey: ['config'] })
+      queryClient.invalidateQueries({ queryKey: [...QUERY_KEYS.PROPOSTAS, 'usuarios'] })
       toast.success('Configurações salvas com sucesso')
     },
     onError: (error: Error) => {
@@ -110,6 +129,53 @@ export function ConfigPage() {
 
       <div className="grid gap-8 lg:grid-cols-2">
         <div className="space-y-6">
+          {lastSavedAt && (
+            <p className="text-xs text-muted-foreground">
+              Última atualização:{' '}
+              {lastSavedAt.toLocaleString('pt-BR', {
+                day: '2-digit',
+                month: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit',
+              })}
+            </p>
+          )}
+          <div className="space-y-4">
+            <h2 className="text-lg font-semibold">Dados da Contratada</h2>
+            {CONTRATADA_FIELDS.map(({ key, label, placeholder }) => (
+              <div key={key} className="space-y-2">
+                <Label htmlFor={key}>{label}</Label>
+                <Input
+                  id={key}
+                  placeholder={placeholder}
+                  value={values[key] ?? ''}
+                  onChange={(e) => setValues((prev) => ({ ...prev, [key]: e.target.value }))}
+                />
+              </div>
+            ))}
+            <Button onClick={() => save()} disabled={isPending}>
+              {isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
+              Salvar dados da contratada
+            </Button>
+          </div>
+
+          <div className="space-y-4">
+            <h2 className="text-lg font-semibold">Fotógrafo Responsável</h2>
+            <div className="space-y-2">
+              <Label htmlFor="nomeFotografo">Nome do Fotógrafo</Label>
+              <Input
+                id="nomeFotografo"
+                placeholder="Nome exibido como responsável e no contrato"
+                value={values.nomeFotografo ?? ''}
+                onChange={(e) => setValues((prev) => ({ ...prev, nomeFotografo: e.target.value }))}
+              />
+              <p className="text-xs text-muted-foreground">
+                Ao salvar, este nome vira um fotógrafo selecionável na Nova Proposta e é exibido na
+                linha &quot;Fotógrafo responsável&quot; do contrato.
+              </p>
+            </div>
+          </div>
+
           <h2 className="text-lg font-semibold">Valores Financeiros</h2>
 
           {isLoading ? (
@@ -178,7 +244,7 @@ export function ConfigPage() {
             Placeholders disponíveis:{' '}
             <code className="rounded bg-muted px-1 py-0.5 text-xs">
               clienteNome, clienteCPF, clienteTelefone, clienteEmail, clienteCidade, clienteEstado,
-              dataEnsaio, horarioEnsaio, localEnsaio, enderecoEnsaio, pacoteNome, precoFotoExtra,
+              dataEnsaio, horarioEnsaio, localEnsaio, fotografoResponsavel, profissionaisEnsaio, pacoteNome, precoFotoExtra,
               valorTotal, valorEntrada, percentualEntrada, valorRestante, contratadaNome, contratadaCnpj,
               contratadaCidade, pixChave, pixTipoChave, autorizaUsoImagem, taxaDeslocamento
             </code>

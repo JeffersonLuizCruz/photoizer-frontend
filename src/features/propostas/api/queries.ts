@@ -83,7 +83,6 @@ export function useCriarProposta() {
         fotografoId: payload.fotografoId || undefined,
         dataHoraEnsaio: dataHoraEnsaio.toISOString(),
         localEnsaio: payload.localEnsaio,
-        enderecoCompleto: payload.enderecoCompleto || undefined,
         custoDeslocamento: payload.custoDeslocamento,
         repassarDeslocamento: payload.repassarDeslocamento,
         observacoes: payload.observacoes || undefined,

@@ -6,6 +6,12 @@ export interface ConfigValues {
   percentualComissao: number
   percentualEntrada: number
   taxaDeslocamentoPadrao: number
+  nomeFotografo?: string
+  nomeContratada?: string
+  cnpjContratada?: string
+  enderecoContratada?: string
+  pixChave?: string
+  pixTipoChave?: string
 }
 
 export const configService = {

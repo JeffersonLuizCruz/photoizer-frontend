@@ -45,7 +45,6 @@ export function NovaPropostaPage() {
     data: dataParam ? new Date(`${dataParam}T00:00:00`) : (undefined as unknown as Date),
     hora: '',
     localEnsaio: '',
-    enderecoCompleto: '',
     fotografoId: '',
     fotografos: [],
     custoDeslocamento: 0,
@@ -96,8 +95,9 @@ export function NovaPropostaPage() {
   const baseCaculoRepasse = (pacoteEscolhido?.valorBase ?? 0) + (repassar ? custoDeslocamento : 0)
 
   const responsaveis = usuarios.filter(
-    (u) => (u.papel === 'FOTOGRAFO' || u.papel === 'ADMIN') && u.ativo !== false,
+    (u) => u.papel === 'FOTOGRAFO' && u.ativo !== false,
   )
+  const semFotografo = responsaveis.length === 0
 
   const { data: disponibilidade } = useDisponibilidadeProposta(
     dataValue instanceof Date ? dataValue : undefined,
@@ -232,29 +232,37 @@ export function NovaPropostaPage() {
             </div>
 
             <div className="sm:col-span-2">
-              <Label>Fotógrafo responsável (opcional)</Label>
+              <Label>Fotógrafo responsável *</Label>
               <Select
                 value={fotografoId ?? ''}
-                onValueChange={(value) => setValue('fotografoId', value === '__none__' ? undefined : value, { shouldValidate: true })}
+                onValueChange={(value) => setValue('fotografoId', value, { shouldValidate: true })}
+                disabled={semFotografo}
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Se não escolher, você será o responsável" />
+                  <SelectValue placeholder="Selecione o fotógrafo responsável" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="__none__">Sem responsável definido</SelectItem>
                   {responsaveis.map((u) => (
                     <SelectItem key={u.id} value={u.id}>{u.nome}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
-              <p className="mt-1 text-xs text-muted-foreground">
-                A disponibilidade é validada pela agenda do responsável escolhido.
-              </p>
-            </div>
-
-            <div className="sm:col-span-2">
-              <Label htmlFor="enderecoCompleto">Endereço completo</Label>
-              <Input id="enderecoCompleto" {...register('enderecoCompleto')} placeholder="Rua, número, bairro" />
+              {semFotografo ? (
+                <div className="rounded-lg border border-destructive/50 bg-destructive/5 p-3 mt-3">
+                  <div className="flex items-center gap-2">
+                    <AlertTriangle className="h-4 w-4 text-destructive shrink-0" />
+                    <p className="text-sm font-medium text-destructive">Nenhum fotógrafo cadastrado</p>
+                  </div>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    Defina o &quot;Nome do Fotógrafo&quot; em Configurações para poder criar propostas.
+                  </p>
+                </div>
+              ) : (
+                <p className="mt-1 text-xs text-muted-foreground">
+                  A disponibilidade é validada pela agenda do responsável escolhido.
+                </p>
+              )}
+              {errors.fotografoId && <p className="mt-1 text-sm text-destructive">{errors.fotografoId.message}</p>}
             </div>
 
             <div className="sm:col-span-2 space-y-3 rounded-lg border bg-muted/30 p-4">
@@ -395,7 +403,7 @@ export function NovaPropostaPage() {
 
           <div className="flex items-center justify-end gap-2">
             <Button type="button" variant="outline" onClick={() => navigate(ROUTES.PROPOSTAS)}>Cancelar</Button>
-            <Button type="submit" disabled={criar.isPending || !!conflito}>
+            <Button type="submit" disabled={criar.isPending || !!conflito || semFotografo}>
               {criar.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Criar proposta
             </Button>

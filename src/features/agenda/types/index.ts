@@ -49,7 +49,6 @@ export interface Agendamento {
   dataHoraEnsaio: string
   duracaoMinutos: number
   localEnsaio: string
-  enderecoCompleto: string | null
 
   valorTotal: number
   valorEntradaExigido: number

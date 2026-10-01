@@ -57,7 +57,6 @@ export interface NovaPropostaPayload {
   dataHoraEnsaio: string
   duracaoMinutos?: number
   localEnsaio: string
-  enderecoCompleto?: string
   custoDeslocamento?: number
   repassarDeslocamento?: boolean
   clausulasPersonalizadas?: string
@@ -87,13 +86,13 @@ export interface PropostaPublica {
   dataHoraEnsaio: string
   duracaoMinutos: number
   localEnsaio: string
-  enderecoCompleto: string | null
   taxaDeslocamento: number
   percentualEntrada: number
   valorTotal: number
   valorEntradaExigido: number
   valorRestante: number
   clausulasHtml: string
+  fotografoResponsavel: string | null
   fotografos: Array<{ nome: string; papel: string }>
 }
 

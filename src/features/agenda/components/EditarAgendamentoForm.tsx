@@ -43,7 +43,6 @@ export function EditarAgendamentoForm({ agendamento, onSubmit, isPending }: Edit
       pacoteId: agendamento.pacoteId,
       dataHoraEnsaio: agendamento.dataHoraEnsaio,
       localEnsaio: agendamento.localEnsaio,
-      enderecoCompleto: agendamento.enderecoCompleto ?? '',
       editorId: agendamento.editorId ?? '',
       fotografoId: agendamento.fotografoId ?? undefined,
       fotografos: (agendamento.fotografos ?? []).map((f) => ({
@@ -230,11 +229,6 @@ export function EditarAgendamentoForm({ agendamento, onSubmit, isPending }: Edit
           <Label htmlFor="localEnsaio">Local do Ensaio *</Label>
           <Input id="localEnsaio" {...register('localEnsaio')} placeholder="Local do ensaio" />
           {errors.localEnsaio && <p className="mt-1 text-sm text-destructive">{errors.localEnsaio.message}</p>}
-        </div>
-
-        <div>
-          <Label htmlFor="enderecoCompleto">Endereço Completo</Label>
-          <Input id="enderecoCompleto" {...register('enderecoCompleto')} placeholder="Endereço completo (opcional)" />
         </div>
 
         <div>
