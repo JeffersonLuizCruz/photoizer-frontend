@@ -134,6 +134,21 @@ export function useAprovarProposta() {
   })
 }
 
+export function useRecusarProposta() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ({ id, motivo }: { id: string; motivo: string }) => propostaService.recusar(id, motivo),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.PROPOSTAS })
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.AGENDA })
+      toast.success('Proposta recusada.')
+    },
+    onError: (error: Error) => {
+      toast.error(extractErrorMessage(error, 'Erro ao recusar proposta'))
+    },
+  })
+}
+
 export function usePropostaPublica(token: string) {
   return useQuery({
     queryKey: [...QUERY_KEYS.PROPOSTAS, 'publico', token],

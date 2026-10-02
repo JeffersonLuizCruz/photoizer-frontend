@@ -75,6 +75,11 @@ export const propostaService = {
     return data
   },
 
+  recusar: async (id: string, motivo: string): Promise<Proposta> => {
+    const { data } = await apiClient.patch<Proposta>(`/agendamentos/${id}/recusar`, { motivo })
+    return data
+  },
+
   carregarPublico: async (token: string): Promise<PropostaPublica> => {
     const { data } = await apiClient.get<PropostaPublica>(`/propostas/publico/${token}`)
     return data

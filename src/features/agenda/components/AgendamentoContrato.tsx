@@ -190,9 +190,9 @@ export function AgendamentoContrato({ agendamento, onUpdateClausulas }: Agendame
           />
         </div>
 
-        {(agendamento.urlComprovanteEntrada || agendamento.urlComprovanteFinal) && (
+        {(agendamento.temComprovanteEntrada || agendamento.temComprovanteFinal) && (
           <div className="mt-4 flex flex-wrap gap-2">
-            {agendamento.urlComprovanteEntrada && (
+            {agendamento.temComprovanteEntrada && (
               <Button
                 variant="outline"
                 size="sm"
@@ -203,7 +203,7 @@ export function AgendamentoContrato({ agendamento, onUpdateClausulas }: Agendame
                 Comprovante de Entrada
               </Button>
             )}
-            {agendamento.urlComprovanteFinal && (
+            {agendamento.temComprovanteFinal && (
               <Button
                 variant="outline"
                 size="sm"
@@ -214,6 +214,21 @@ export function AgendamentoContrato({ agendamento, onUpdateClausulas }: Agendame
                 Comprovante Final
               </Button>
             )}
+          </div>
+        )}
+
+        {agendamento.motivoRecusa && (
+          <div className="mt-4 rounded-md border border-destructive/40 bg-destructive/5 p-3">
+            <p className="text-sm">
+              <span className="font-medium text-destructive">Proposta recusada:</span>{' '}
+              {agendamento.motivoRecusa}
+            </p>
+            <p className="mt-1 text-xs text-muted-foreground">
+              {agendamento.recusadoPor ? `Por ${agendamento.recusadoPor}` : null}
+              {agendamento.dataRecusa
+                ? `${agendamento.recusadoPor ? ' em ' : 'Em '}${format(new Date(agendamento.dataRecusa), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}`
+                : ''}
+            </p>
           </div>
         )}
       </div>

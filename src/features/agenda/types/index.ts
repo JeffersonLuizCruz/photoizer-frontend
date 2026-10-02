@@ -70,15 +70,18 @@ export interface Agendamento {
   dataEntregaFinal: string | null
   dataFinalizacao: string | null
 
-  urlComprovanteEntrada: string | null
-  urlComprovanteFinal: string | null
+  temComprovanteEntrada: boolean
+  temComprovanteFinal: boolean
 
   autorizaUsoImagem: boolean
   clausulasPersonalizadas: string | null
   tokenProposta: string | null
   dataAssinatura: string | null
-  urlPdfAssinatura: string | null
-  urlAssinaturaImagem: string | null
+  temTermoAssinado: boolean
+
+  motivoRecusa: string | null
+  dataRecusa: string | null
+  recusadoPor: string | null
 
   ensaioDestaque: boolean
 

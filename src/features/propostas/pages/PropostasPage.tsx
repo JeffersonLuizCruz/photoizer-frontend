@@ -1,20 +1,45 @@
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import { isAxiosError } from 'axios'
-import { Plus, Loader2, Copy, ExternalLink, ThumbsUp, CheckCircle2, FileSignature } from 'lucide-react'
+import {
+  Plus,
+  Loader2,
+  Copy,
+  ExternalLink,
+  ThumbsUp,
+  CheckCircle2,
+  FileSignature,
+  Eye,
+  FileDown,
+  XCircle,
+} from 'lucide-react'
 import { toast } from 'sonner'
 import { PageTitle } from '@/shared/components/layout/PageTitle'
 import { Button } from '@/shared/components/ui/button'
 import { Badge } from '@/shared/components/ui/badge'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/shared/components/ui/table'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from '@/shared/components/ui/dialog'
+import { Label } from '@/shared/components/ui/label'
+import { Textarea } from '@/shared/components/ui/textarea'
+import { openProtected } from '@/shared/api/protectedResource'
 import { ROUTES, AGENDAMENTO_STATUS } from '@/shared/constants'
 import { formatCurrency } from '@/shared/lib/format'
 import { cn } from '@/shared/lib/cn'
+import { useAuth } from '@/features/auth/AuthProvider'
 import {
   usePropostasList,
   useConfirmarPagamentoProposta,
   useAprovarProposta,
+  useRecusarProposta,
 } from '../api/queries'
 import type { Proposta } from '../types'
 
@@ -26,9 +51,15 @@ const statusInfo: Record<string, { label: string; variant: 'warning' | 'info' | 
 
 export function PropostasPage() {
   const navigate = useNavigate()
+  const { papel } = useAuth()
+  const podeDecidir = papel === 'ADMIN' || papel === 'FOTOGRAFO'
   const { data: propostas = [], isLoading } = usePropostasList()
   const confirmar = useConfirmarPagamentoProposta()
   const aprovar = useAprovarProposta()
+  const recusar = useRecusarProposta()
+
+  const [recusa, setRecusa] = useState<{ id: string; cliente: string } | null>(null)
+  const [motivo, setMotivo] = useState('')
 
   const linkDe = (p: Proposta) =>
     p.tokenProposta ? `${window.location.origin}${ROUTES.PROPOSTA_PUBLICA.replace(':token', p.tokenProposta)}` : null
@@ -43,8 +74,34 @@ export function PropostasPage() {
     toast.success('Link copiado para a área de transferência')
   }
 
+  const abrirComprovante = (p: Proposta) =>
+    openProtected(`/documentos/comprovantes/${p.id}/entrada`).catch(() =>
+      toast.error('Erro ao abrir o comprovante'),
+    )
+
+  const abrirTermo = (p: Proposta) =>
+    openProtected(`/agendamentos/${p.id}/termo`).catch(() => toast.error('Erro ao abrir o termo'))
+
+  const abrirRecusa = (p: Proposta) => {
+    setMotivo('')
+    setRecusa({ id: p.id, cliente: p.clienteNome ?? 'esta proposta' })
+  }
+
+  const confirmarRecusa = () => {
+    if (!recusa) return
+    const texto = motivo.trim()
+    if (texto.length < 3) {
+      toast.error('Informe o motivo da recusa')
+      return
+    }
+    recusar.mutate({ id: recusa.id, motivo: texto }, { onSuccess: () => setRecusa(null) })
+  }
+
   const renderAcoes = (p: Proposta, className = 'justify-start') => {
     const link = linkDe(p)
+    const emAnalise =
+      p.status === AGENDAMENTO_STATUS.AGUARDANDO_APROVACAO ||
+      p.status === AGENDAMENTO_STATUS.PAGAMENTO_CONFIRMADO
     return (
       <div className={cn('flex flex-wrap gap-1', className)}>
         <Button
@@ -54,6 +111,18 @@ export function PropostasPage() {
         >
           Detalhes
         </Button>
+        {podeDecidir && emAnalise && p.temComprovanteEntrada && (
+          <Button variant="outline" size="sm" onClick={() => abrirComprovante(p)}>
+            <Eye className="mr-1 h-4 w-4" />
+            Ver comprovante
+          </Button>
+        )}
+        {p.temTermoAssinado && (
+          <Button variant="outline" size="sm" onClick={() => abrirTermo(p)}>
+            <FileDown className="mr-1 h-4 w-4" />
+            Ver termo
+          </Button>
+        )}
         {link && (
           <>
             <Button variant="outline" size="sm" onClick={() => copiarLink(p)}>
@@ -66,13 +135,13 @@ export function PropostasPage() {
             </Button>
           </>
         )}
-        {p.status === AGENDAMENTO_STATUS.AGUARDANDO_APROVACAO && (
+        {podeDecidir && p.status === AGENDAMENTO_STATUS.AGUARDANDO_APROVACAO && (
           <Button size="sm" onClick={() => confirmar.mutate(p.id)} disabled={confirmar.isPending}>
             <ThumbsUp className="mr-1 h-4 w-4" />
             Confirmar pagamento
           </Button>
         )}
-        {p.status === AGENDAMENTO_STATUS.PAGAMENTO_CONFIRMADO && (
+        {podeDecidir && p.status === AGENDAMENTO_STATUS.PAGAMENTO_CONFIRMADO && (
           <Button
             size="sm"
             onClick={() =>
@@ -93,6 +162,17 @@ export function PropostasPage() {
           >
             <CheckCircle2 className="mr-1 h-4 w-4" />
             Aprovar
+          </Button>
+        )}
+        {podeDecidir && emAnalise && (
+          <Button
+            variant="outline"
+            size="sm"
+            className="text-destructive hover:text-destructive"
+            onClick={() => abrirRecusa(p)}
+          >
+            <XCircle className="mr-1 h-4 w-4" />
+            Recusar
           </Button>
         )}
       </div>
@@ -196,6 +276,37 @@ export function PropostasPage() {
         </div>
         </>
       )}
+
+      <Dialog open={!!recusa} onOpenChange={(open) => !open && setRecusa(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Recusar proposta</DialogTitle>
+            <DialogDescription>
+              Informe o motivo da recusa de {recusa?.cliente}. O motivo ficará registrado no histórico.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-2">
+            <Label htmlFor="motivo-recusa">Motivo da recusa</Label>
+            <Textarea
+              id="motivo-recusa"
+              value={motivo}
+              onChange={(e) => setMotivo(e.target.value)}
+              maxLength={500}
+              rows={4}
+              placeholder="Ex.: comprovante ilegível, valor divergente, pagamento não identificado..."
+            />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setRecusa(null)} disabled={recusar.isPending}>
+              Cancelar
+            </Button>
+            <Button variant="destructive" onClick={confirmarRecusa} disabled={recusar.isPending}>
+              {recusar.isPending ? <Loader2 className="mr-1 h-4 w-4 animate-spin" /> : <XCircle className="mr-1 h-4 w-4" />}
+              Confirmar recusa
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

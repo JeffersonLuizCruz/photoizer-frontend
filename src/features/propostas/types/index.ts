@@ -48,6 +48,11 @@ export interface Proposta {
   valorRestante: number
   autorizaUsoImagem: boolean
   dataAssinatura: string | null
+  temComprovanteEntrada?: boolean
+  temTermoAssinado?: boolean
+  motivoRecusa?: string | null
+  dataRecusa?: string | null
+  recusadoPor?: string | null
 }
 
 export interface NovaPropostaPayload {
