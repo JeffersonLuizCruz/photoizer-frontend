@@ -202,13 +202,23 @@ export function GaleriaClientePage() {
       const selected = Array.from(selectedIds)
       const deselected = fotos.filter((f) => f.selecionadaPacote && !selectedIds.has(f.id) && !f.downloadada).map((f) => f.id)
       if (selected.length > 0) {
-        const result = await ecommerceService.selecionar(token, selected, true)
-        setGaleria((prev) => prev ? { ...prev, fotos: prev.fotos.map((f) => result.find((r) => r.id === f.id) ?? f) } : prev)
+        await ecommerceService.selecionar(token, selected, true)
       }
       if (deselected.length > 0) {
-        const result = await ecommerceService.selecionar(token, deselected, false)
-        setGaleria((prev) => prev ? { ...prev, fotos: prev.fotos.map((f) => result.find((r) => r.id === f.id) ?? f) } : prev)
+        await ecommerceService.selecionar(token, deselected, false)
       }
+      // Aplica a intenção localmente: o payload do PATCH pode retornar
+      // selecionadaPacote desatualizado (evento de domínio aplicado após o read).
+      const selectedSet = new Set(selected)
+      const deselectedSet = new Set(deselected)
+      setGaleria((prev) => prev ? {
+        ...prev,
+        fotos: prev.fotos.map((f) => selectedSet.has(f.id)
+          ? { ...f, selecionadaPacote: true }
+          : deselectedSet.has(f.id)
+            ? { ...f, selecionadaPacote: false }
+            : f)
+      } : prev)
       toast.success('Seleção salva!')
     } catch (err: any) {
       toast.error(err?.response?.data?.message || 'Erro ao salvar seleção')

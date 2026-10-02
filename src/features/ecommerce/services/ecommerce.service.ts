@@ -25,9 +25,20 @@ function invalidarSessao() {
   localStorage.removeItem(SESSION_STORAGE_KEY)
 }
 
+function sessaoValidaFormato(sessao: string | null): sessao is string {
+  if (!sessao) return false
+  const dotIndex = sessao.indexOf('.')
+  if (dotIndex <= 0) return false
+  const uuid = sessao.slice(0, dotIndex)
+  const assinatura = sessao.slice(dotIndex + 1)
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(uuid)
+    && assinatura.length === 64
+}
+
 async function obterSessao(): Promise<string> {
   const armazenada = localStorage.getItem(SESSION_STORAGE_KEY)
-  if (armazenada) return armazenada
+  if (sessaoValidaFormato(armazenada)) return armazenada
+  if (armazenada) invalidarSessao()
   if (!sessionPromise) {
     sessionPromise = apiClient
       .post<{ sessao: string }>('/ecommerce/sessao')
@@ -44,16 +55,17 @@ async function obterSessao(): Promise<string> {
 
 /**
  * Executa uma operação do carrinho com a sessão assinada.
- * Se o servidor rejeitar a sessão (422 "Sessão inválida"), reemite uma nova e
- * tenta uma única vez.
+ * Se o servidor rejeitar a sessão (400/401/422 "Sessão inválida"), reemite uma
+ * nova e tenta uma única vez. A detecção é feita pelo código de erro
+ * (`SESSAO_INVALIDA`) ou pela mensagem, para não depender do status exato.
  */
 async function comSessao<T>(fn: (sessionId: string) => Promise<T>): Promise<T> {
   try {
     return await fn(await obterSessao())
   } catch (err) {
-    const status = (err as { response?: { status?: number } })?.response?.status
-    const message = (err as { response?: { data?: { message?: string } } })?.response?.data?.message
-    if (status === 422 && String(message).toLowerCase().includes('sess')) {
+    const data = (err as { response?: { data?: { code?: string; message?: string } } })?.response?.data
+    const sessaoInvalida = data?.code === 'SESSAO_INVALIDA' || /sess/.test(String(data?.message).toLowerCase())
+    if (sessaoInvalida) {
       invalidarSessao()
       return await fn(await obterSessao())
     }
@@ -74,7 +86,11 @@ export const ecommerceService = {
       fotoIds,
       selecionada,
     })
-    return data
+    // Defensivo: o backend pode retornar selecionadaPacote desatualizado
+    // (evento de domínio aplicado após o read). Preserva o valor local para
+    // não regredir a marcação visual de quem consome o retorno diretamente.
+    const ids = new Set(fotoIds)
+    return data.map((foto) => (ids.has(foto.id) ? { ...foto, selecionadaPacote: selecionada } : foto))
   },
 
   adicionarAoCarrinho: async (token: string): Promise<void> => {
