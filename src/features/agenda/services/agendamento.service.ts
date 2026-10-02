@@ -1,7 +1,7 @@
 import { apiClient } from '@/shared/api'
 import { parseDuracao } from '@/shared/lib/duracao'
 import type { Agendamento, ExtraServicoResponse, Pacote, Pagamento, Usuario, FinanceiroTrabalho, Reatribuicao } from '../types'
-import type { AgendamentoStatus } from '@/shared/constants'
+import type { AgendamentoStatus, FormaPagamento } from '@/shared/constants'
 import type { EditarAgendamentoFormData } from '../schemas/agendamento.schema'
 
 export { parseDuracao }
@@ -172,10 +172,14 @@ export const agendamentoService = {
   registrarPagamentoFinal: async (
     id: string,
     comprovante?: File,
+    formaPagamento?: FormaPagamento,
   ): Promise<Agendamento> => {
     const formData = new FormData()
     if (comprovante) {
       formData.append('comprovanteFinal', comprovante)
+    }
+    if (formaPagamento) {
+      formData.append('formaPagamento', formaPagamento)
     }
     const { data } = await apiClient.post<Agendamento>(`/agendamentos/${id}/pagamento-final`, formData)
     return data

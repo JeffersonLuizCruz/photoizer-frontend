@@ -1,4 +1,4 @@
-import type { AgendamentoStatus } from '@/shared/constants'
+import type { AgendamentoStatus, FormaPagamento } from '@/shared/constants'
 
 export type TipoRepasse = 'FIXO' | 'PERCENTUAL'
 export type RepasseStatus = 'PENDENTE' | 'PAGO' | 'CANCELADO'
@@ -72,6 +72,7 @@ export interface Agendamento {
 
   temComprovanteEntrada: boolean
   temComprovanteFinal: boolean
+  formaPagamentoFinal: FormaPagamento | null
 
   autorizaUsoImagem: boolean
   clausulasPersonalizadas: string | null

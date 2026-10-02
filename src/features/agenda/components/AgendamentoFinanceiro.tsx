@@ -1,5 +1,5 @@
 import { useState, Fragment } from 'react'
-import { Plus, CreditCard, Receipt, Check, History, Link2, Download, FileSpreadsheet, HandCoins, Pencil } from 'lucide-react'
+import { Plus, CreditCard, Receipt, Check, History, Link2, Download, FileSpreadsheet, HandCoins, Pencil, Banknote } from 'lucide-react'
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import { toast } from 'sonner'
@@ -18,7 +18,8 @@ import { RepasseInlineEditor } from '@/features/fotografos/components/RepasseInl
 import { useAuth } from '@/features/auth/AuthProvider'
 import { montarReciboPagamento } from '../utils/recibo'
 import type { Agendamento } from '../types'
-import { AGENDAMENTO_STATUS } from '@/shared/constants'
+import { AGENDAMENTO_STATUS, FORMA_PAGAMENTO, FORMA_PAGAMENTO_LABELS } from '@/shared/constants'
+import type { FormaPagamento } from '@/shared/constants'
 import { extractErrorMessage } from '@/shared/api'
 
 interface AgendamentoFinanceiroProps {
@@ -30,6 +31,7 @@ interface FinanceiroRow {
   valor: number
   tipo: 'positivo' | 'negativo' | 'total'
   status?: string
+  formaPagamento?: FormaPagamento | null
 }
 
 const statusPagamentoMap: Record<string, { label: string; variant: 'success' | 'warning' | 'destructive' }> = {
@@ -145,6 +147,7 @@ export function AgendamentoFinanceiro({ agendamento }: AgendamentoFinanceiroProp
       valor: agendamento.valorTotalFinal - agendamento.valorEntradaExigido,
       tipo: 'negativo',
       status: agendamento.valorRestante > 0 ? 'A Pagar' : 'Pago',
+      formaPagamento: agendamento.valorRestante <= 0 ? agendamento.formaPagamentoFinal : null,
     },
     ...(agendamento.valorExtras > 0
       ? [
@@ -230,19 +233,36 @@ export function AgendamentoFinanceiro({ agendamento }: AgendamentoFinanceiroProp
                   R$ {row.valor.toFixed(2)}
                 </TableCell>
                 <TableCell className="text-right">
-                  {row.status && (
-                    <Badge
-                      variant={
-                        row.status === 'Pago'
-                          ? 'success'
-                          : row.status === 'Pendente'
-                            ? 'warning'
-                            : 'default'
-                      }
-                    >
-                      {row.status}
-                    </Badge>
-                  )}
+                  <div className="flex flex-wrap items-center justify-end gap-1">
+                    {row.status && (
+                      <Badge
+                        variant={
+                          row.status === 'Pago'
+                            ? 'success'
+                            : row.status === 'Pendente'
+                              ? 'warning'
+                              : 'default'
+                        }
+                      >
+                        {row.status}
+                      </Badge>
+                    )}
+                    {row.formaPagamento && (
+                      <Badge
+                        variant="outline"
+                        className={
+                          row.formaPagamento === FORMA_PAGAMENTO.DINHEIRO
+                            ? 'border-amber-500/50 text-amber-600 dark:text-amber-400'
+                            : undefined
+                        }
+                      >
+                        {row.formaPagamento === FORMA_PAGAMENTO.DINHEIRO && (
+                          <Banknote className="mr-1 h-3 w-3" />
+                        )}
+                        {FORMA_PAGAMENTO_LABELS[row.formaPagamento] ?? row.formaPagamento}
+                      </Badge>
+                    )}
+                  </div>
                 </TableCell>
               </TableRow>
             ))}

@@ -4,7 +4,7 @@ import { toast } from 'sonner'
 import { agendamentoService } from '../services/agendamento.service'
 import type { EditarAgendamentoFormData } from '../schemas/agendamento.schema'
 import { QUERY_KEYS } from '@/shared/constants'
-import type { AgendamentoStatus } from '@/shared/constants'
+import type { AgendamentoStatus, FormaPagamento } from '@/shared/constants'
 import { extractErrorMessage } from '@/shared/api'
 
 export function useConfig() {
@@ -279,8 +279,8 @@ export function useRegistrarPagamentoFinal() {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: ({ id, comprovante }: { id: string; comprovante?: File }) =>
-      agendamentoService.registrarPagamentoFinal(id, comprovante),
+    mutationFn: ({ id, comprovante, formaPagamento }: { id: string; comprovante?: File; formaPagamento?: FormaPagamento }) =>
+      agendamentoService.registrarPagamentoFinal(id, comprovante, formaPagamento),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.AGENDA })
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.FINANCEIRO })

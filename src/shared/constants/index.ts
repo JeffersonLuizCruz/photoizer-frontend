@@ -78,6 +78,23 @@ export const CONTRATO_STATUS = {
   EXPIRADO: 'EXPIRADO',
 } as const
 
+export const FORMA_PAGAMENTO = {
+  PIX: 'PIX',
+  CARTAO: 'CARTAO',
+  DINHEIRO: 'DINHEIRO',
+  TRANSFERENCIA: 'TRANSFERENCIA',
+  OUTRO: 'OUTRO',
+} as const
+
+export const FORMA_PAGAMENTO_LABELS: Record<string, string> = {
+  PIX: 'PIX',
+  CARTAO: 'Cartão',
+  DINHEIRO: 'Dinheiro',
+  TRANSFERENCIA: 'Transferência',
+  OUTRO: 'Outro',
+}
+
 export type AgendamentoStatus = (typeof AGENDAMENTO_STATUS)[keyof typeof AGENDAMENTO_STATUS]
 export type Origem = (typeof ORIGEM)[keyof typeof ORIGEM]
 export type ContratoStatus = (typeof CONTRATO_STATUS)[keyof typeof CONTRATO_STATUS]
+export type FormaPagamento = (typeof FORMA_PAGAMENTO)[keyof typeof FORMA_PAGAMENTO]
