@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
-import { Loader2, Copy, Check, Zap, Banknote, Send, CreditCard, Upload, X } from 'lucide-react'
+import { Loader2, Copy, Check, Banknote, Send, CreditCard, Upload, X } from 'lucide-react'
 import { toast } from 'sonner'
 import type { CalculoCarrinhoResponse, CompraExtraResponse, MetodoPagamento } from '../types/ecommerce.types'
 import { ecommerceService } from '../services/ecommerce.service'
@@ -8,24 +8,21 @@ import { Sheet, SheetContent, SheetTitle } from '@/shared/components/ui/sheet'
 import { BEACH_CTA } from '@/shared/components/beach/beach'
 import { extractErrorMessage } from '@/shared/api'
 
-type PaymentMode = 'online' | 'manual'
-
 interface CheckoutDialogProps {
   token: string
   open: boolean
   onClose: () => void
   onCheckout: (metodoPagamento: MetodoPagamento) => Promise<CompraExtraResponse>
-  onPagarSimulado: (compra: CompraExtraResponse) => Promise<void>
   onEnviarComprovante: (compra: CompraExtraResponse, file: File) => Promise<void>
 }
 
 const CHAVE_PIX = 'photoizer@email.com'
 
 export function CheckoutDialog({
-  token, open, onClose, onCheckout, onPagarSimulado, onEnviarComprovante,
+  token, open, onClose, onCheckout, onEnviarComprovante,
 }: CheckoutDialogProps) {
   const [calculo, setCalculo] = useState<CalculoCarrinhoResponse | null>(null)
-  const [paymentMode, setPaymentMode] = useState<PaymentMode | null>(null)
+  const [paymentMode, setPaymentMode] = useState<MetodoPagamento | null>(null)
   const [compra, setCompra] = useState<CompraExtraResponse | null>(null)
   const [comprovante, setComprovante] = useState<File | null>(null)
   const [isProcessing, setIsProcessing] = useState(false)
@@ -57,19 +54,12 @@ export function CheckoutDialog({
 
   const handleConfirmar = async () => {
     if (!paymentMode || !calculo) return
-    const metodoPagamento: MetodoPagamento = paymentMode === 'online' ? 'PIX' : 'TRANSFERENCIA'
     setIsProcessing(true)
     setErrorMessage(null)
     try {
-      const compraCriada = await onCheckout(metodoPagamento)
+      const compraCriada = await onCheckout(paymentMode)
       setCompra(compraCriada)
-
-      if (paymentMode === 'online') {
-        await onPagarSimulado(compraCriada)
-        setSuccessMessage('Pagamento confirmado! Suas fotos já estão disponíveis para download.')
-      } else {
-        setSuccessMessage('Compra criada! Envie o comprovante para liberar as fotos.')
-      }
+      setSuccessMessage('Compra criada! Envie o comprovante para liberar as fotos.')
     } catch (err: unknown) {
       const msg = extractErrorMessage(err, 'Erro ao processar pagamento')
       setErrorMessage(msg)
@@ -139,51 +129,51 @@ export function CheckoutDialog({
           </div>
         )}
 
-        {/* Payment mode selection (before checkout) */}
+        {/* Payment method selection (before checkout) — PIX/Transferência manual */}
         {!compra && !successMessage && (
           <div className="space-y-3">
             <h3 className="text-xs font-medium text-cyan-600">COMO DESEJA PAGAR?</h3>
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <button
-                onClick={() => setPaymentMode('online')}
+                onClick={() => setPaymentMode('PIX')}
                 role="radio"
-                aria-checked={paymentMode === 'online'}
+                aria-checked={paymentMode === 'PIX'}
                 className={cn(
                   'flex flex-col items-center gap-2 rounded-2xl border-2 p-4 text-center transition-all',
-                  paymentMode === 'online'
+                  paymentMode === 'PIX'
                     ? 'border-cyan-400 bg-cyan-50 shadow-sm'
                     : 'border-cyan-100 hover:border-cyan-200 hover:bg-cyan-50/50',
                 )}>
                 <div className={cn(
                   'flex h-10 w-10 items-center justify-center rounded-full transition-colors',
-                  paymentMode === 'online' ? 'bg-gradient-to-br from-cyan-500 to-teal-400 text-white' : 'bg-cyan-50 text-cyan-500',
+                  paymentMode === 'PIX' ? 'bg-gradient-to-br from-cyan-500 to-teal-400 text-white' : 'bg-cyan-50 text-cyan-500',
                 )}>
-                  <Zap className="h-5 w-5" />
+                  <CreditCard className="h-5 w-5" />
                 </div>
-                <span className="text-sm font-semibold text-slate-800">Pagamento Online</span>
+                <span className="text-sm font-semibold text-slate-800">PIX</span>
                 <span className="text-[11px] leading-relaxed text-slate-500">
-                  Pagamento processado automaticamente. Suas fotos são liberadas na hora.
+                  Pague via PIX e envie o comprovante. O estúdio libera após confirmar.
                 </span>
               </button>
               <button
-                onClick={() => setPaymentMode('manual')}
+                onClick={() => setPaymentMode('TRANSFERENCIA')}
                 role="radio"
-                aria-checked={paymentMode === 'manual'}
+                aria-checked={paymentMode === 'TRANSFERENCIA'}
                 className={cn(
                   'flex flex-col items-center gap-2 rounded-2xl border-2 p-4 text-center transition-all',
-                  paymentMode === 'manual'
+                  paymentMode === 'TRANSFERENCIA'
                     ? 'border-cyan-400 bg-cyan-50 shadow-sm'
                     : 'border-cyan-100 hover:border-cyan-200 hover:bg-cyan-50/50',
                 )}>
                 <div className={cn(
                   'flex h-10 w-10 items-center justify-center rounded-full transition-colors',
-                  paymentMode === 'manual' ? 'bg-gradient-to-br from-cyan-500 to-teal-400 text-white' : 'bg-cyan-50 text-cyan-500',
+                  paymentMode === 'TRANSFERENCIA' ? 'bg-gradient-to-br from-cyan-500 to-teal-400 text-white' : 'bg-cyan-50 text-cyan-500',
                 )}>
                   <Banknote className="h-5 w-5" />
                 </div>
-                <span className="text-sm font-semibold text-slate-800">PIX ou Transferência</span>
+                <span className="text-sm font-semibold text-slate-800">Transferência</span>
                 <span className="text-[11px] leading-relaxed text-slate-500">
-                  Você faz o pagamento e envia o comprovante. O estúdio libera após confirmar.
+                  Transfira e envie o comprovante. O estúdio libera após confirmar.
                 </span>
               </button>
             </div>
@@ -197,16 +187,12 @@ export function CheckoutDialog({
                 )}>
                 {isProcessing ? (
                   <Loader2 className="h-4 w-4 animate-spin" />
-                ) : paymentMode === 'online' ? (
-                  <Zap className="h-4 w-4" />
                 ) : (
                   <CreditCard className="h-4 w-4" />
                 )}
                 {isProcessing
                   ? 'Processando...'
-                  : paymentMode === 'online'
-                    ? `Confirmar e Pagar${calculo ? ` (R$ ${calculo.total.toFixed(2)})` : ''}`
-                    : `Finalizar${calculo ? ` (R$ ${calculo.total.toFixed(2)})` : ''}`}
+                  : `Finalizar${calculo ? ` (R$ ${calculo.total.toFixed(2)})` : ''}`}
               </button>
             )}
 
@@ -219,7 +205,7 @@ export function CheckoutDialog({
         )}
 
         {/* Post-checkout: manual payment instructions + comprovante */}
-        {compra && paymentMode === 'manual' && !successMessage?.includes('já estão disponíveis') && (
+        {compra && paymentMode && !successMessage?.includes('já estão disponíveis') && (
           <>
             <div className="space-y-3 rounded-2xl bg-cyan-50/60 p-4 text-sm ring-1 ring-cyan-100">
               <p className="font-semibold text-cyan-950">Instruções de pagamento</p>
@@ -304,19 +290,6 @@ export function CheckoutDialog({
           </>
         )}
 
-        {/* Success state (apenas pagamento online) */}
-        {successMessage && compra?.status === 'PAGA' && (
-          <div className="flex flex-col items-center gap-3 py-4 text-center">
-            <div className="flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br from-cyan-400 to-teal-400 shadow-lg shadow-cyan-200">
-              <Check className="h-7 w-7 text-white" />
-            </div>
-            <p className="text-sm font-medium text-slate-700">{successMessage}</p>
-            <button onClick={onClose}
-              className={cn('rounded-2xl px-6 py-2.5 text-sm font-semibold', BEACH_CTA)}>
-              Voltar para galeria
-            </button>
-          </div>
-        )}
       </SheetContent>
     </Sheet>
   )

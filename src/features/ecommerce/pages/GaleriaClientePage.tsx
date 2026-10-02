@@ -229,15 +229,6 @@ export function GaleriaClientePage() {
     return compra
   }
 
-  const handlePagarSimulado = async (compra: CompraExtraResponse) => {
-    if (!token) return
-    await ecommerceService.simularPagamento(token, compra.id)
-    setGaleria((prev) => prev ? {
-      ...prev,
-      fotos: prev.fotos.map((f) => f.compraExtraId === compra.id ? { ...f, status: 'PAGA' as const } : f)
-    } : prev)
-  }
-
   const handleEnviarComprovante = async (compra: CompraExtraResponse, file: File) => {
     if (!token) return
     await ecommerceService.uploadComprovante(token, compra.id, file)
@@ -506,7 +497,7 @@ export function GaleriaClientePage() {
         open={showCheckout}
         onClose={() => setShowCheckout(false)}
         onCheckout={handleCheckout}
-        onPagarSimulado={handlePagarSimulado}
+
         onEnviarComprovante={handleEnviarComprovante} />
     </div>
   )

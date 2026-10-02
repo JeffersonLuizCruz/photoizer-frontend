@@ -1,5 +1,6 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { ChevronDown, ScrollText } from 'lucide-react'
+import DOMPurify from 'dompurify'
 import { cn } from '@/shared/lib/cn'
 
 interface ContractDocumentProps {
@@ -17,8 +18,21 @@ const contractClasses = [
   '[&_img]:h-auto [&_img]:max-w-full [&_a]:break-words',
 ].join(' ')
 
+const ALLOWED_TAGS = ['h1', 'h2', 'p', 'ul', 'li', 'strong', 'em', 'br']
+
 export function ContractDocument({ html }: ContractDocumentProps) {
   const [aberto, setAberto] = useState(false)
+
+  const htmlSeguro = useMemo(
+    () =>
+      DOMPurify.sanitize(html ?? '', {
+        ALLOWED_TAGS,
+        ALLOWED_ATTR: [],
+        FORBID_TAGS: ['script', 'style', 'iframe', 'object', 'embed', 'form', 'input', 'svg'],
+        FORBID_ATTR: ['style', 'onerror', 'onload', 'onclick'],
+      }),
+    [html],
+  )
 
   if (!html) return null
 
@@ -51,7 +65,7 @@ export function ContractDocument({ html }: ContractDocumentProps) {
         <div className="overflow-hidden">
           <div
             className={cn('border-t border-cyan-100 px-5 py-6 sm:px-8', contractClasses)}
-            dangerouslySetInnerHTML={{ __html: html }}
+            dangerouslySetInnerHTML={{ __html: htmlSeguro }}
           />
         </div>
       </div>

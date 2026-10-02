@@ -3,7 +3,7 @@ export interface CustomerUser {
   nome: string
   email: string
   telefone: string
-  token: string
+  // A3: token fica em cookie HttpOnly; não é persistido no cliente.
   isLoggedIn: boolean
 }
 

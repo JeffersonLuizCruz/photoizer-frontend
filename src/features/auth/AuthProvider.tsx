@@ -31,7 +31,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const saved = authService.getUser()
-    if (saved && authService.getToken()) {
+    if (saved) {
       setUser(saved as AuthUser)
     }
     setIsLoading(false)
@@ -57,7 +57,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [])
 
   const logout = useCallback(() => {
-    authService.logout()
+    void authService.logout()
     setUser(null)
   }, [])
 

@@ -81,7 +81,7 @@ export function CheckoutPage() {
         const { data } = await apiClient.post('/auth/cliente/registro', { nome, email, telefone, senha })
         auth = data
       }
-      login({ id: auth.id, nome: auth.nome, email: auth.email, telefone: auth.telefone, token: auth.token, isLoggedIn: true })
+      login({ id: auth.id, nome: auth.nome, email: auth.email, telefone: auth.telefone, isLoggedIn: true })
       toast.success(`Bem-vindo, ${auth.nome}!`)
       setStep(2)
     } catch (err: any) {

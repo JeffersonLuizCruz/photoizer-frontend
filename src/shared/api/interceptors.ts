@@ -3,20 +3,31 @@ import { apiClient } from './client'
 import { authService } from '@/features/auth/services/auth.service'
 import { useCustomerAuth } from '@/features/auth/customer'
 
+const CSRF_COOKIE = 'XSRF-TOKEN'
+const CSRF_HEADER = 'X-XSRF-TOKEN'
+
+function readCookie(name: string): string | null {
+  const alvo = `${name}=`
+  const encontrado = document.cookie
+    .split('; ')
+    .find((linha) => linha.startsWith(alvo))
+  return encontrado ? decodeURIComponent(encontrado.slice(alvo.length)) : null
+}
+
 apiClient.interceptors.request.use((config) => {
   if (import.meta.env.DEV) {
     console.log(`[API] ${config.method?.toUpperCase()} ${config.url}`)
   }
 
-  const adminToken = authService.getToken()
-  if (adminToken) {
-    config.headers.Authorization = `Bearer ${adminToken}`
-    return config
-  }
-
-  const customerUser = useCustomerAuth.getState().user
-  if (customerUser?.token) {
-    config.headers.Authorization = `Bearer ${customerUser.token}`
+  // A3: autenticação via cookie HttpOnly. Enviamos apenas o token CSRF
+  // (double-submit) para métodos que mudam estado, pois o navegador não o
+  // adiciona automaticamente em cross-origin.
+  const metodo = (config.method || 'get').toLowerCase()
+  if (!['get', 'head', 'options'].includes(metodo)) {
+    const csrf = readCookie(CSRF_COOKIE)
+    if (csrf) {
+      config.headers[CSRF_HEADER] = csrf
+    }
   }
 
   return config

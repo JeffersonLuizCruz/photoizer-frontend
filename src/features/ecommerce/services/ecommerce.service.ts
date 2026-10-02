@@ -114,12 +114,6 @@ export const ecommerceService = {
         { headers: { 'X-Session-Id': sessionId } }).then(({ data }) => data))
   },
 
-  simularPagamento: async (token: string, compraExtraId: string): Promise<CompraExtraResponse> => {
-    const { data } = await apiClient.post<CompraExtraResponse>(
-      `/ecommerce/galeria/${token}/compras/${compraExtraId}/simular-pagamento`)
-    return data
-  },
-
   listarCompras: async (token: string): Promise<CompraExtraResponse[]> => {
     const { data } = await apiClient.get<CompraExtraResponse[]>(`/ecommerce/galeria/${token}/compras`)
     return data

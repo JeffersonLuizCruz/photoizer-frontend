@@ -91,7 +91,6 @@ export function EcommerceAdminResumo({ agendamentoId }: EcommerceAdminResumoProp
 
   const copiarLink = () => {
     const path = data.linkGaleria || (data.tokenGaleria ? `/g/${data.tokenGaleria}` : null)
-    console.log('[copiarLink] linkGaleria:', data.linkGaleria, 'tokenGaleria:', data.tokenGaleria, 'path:', path)
     if (!path) {
       toast.error('Link da galeria não disponível')
       return

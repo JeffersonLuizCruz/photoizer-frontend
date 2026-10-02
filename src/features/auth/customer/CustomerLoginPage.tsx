@@ -24,7 +24,8 @@ export function CustomerLoginPage() {
       const endpoint = isRegister ? '/auth/cliente/registro' : '/auth/cliente/login'
       const payload = isRegister ? { nome, email, telefone, senha } : { email, senha }
       const { data } = await apiClient.post(endpoint, payload)
-      login({ id: data.id, nome: data.nome, email: data.email, telefone: data.telefone, token: data.token, isLoggedIn: true })
+      // A3: o token vem em cookie HttpOnly; guardamos apenas dados de exibição.
+      login({ id: data.id, nome: data.nome, email: data.email, telefone: data.telefone, isLoggedIn: true })
       toast.success(isRegister ? 'Cadastro realizado!' : 'Login realizado!')
       navigate('/minha-conta')
     } catch (err: unknown) {
