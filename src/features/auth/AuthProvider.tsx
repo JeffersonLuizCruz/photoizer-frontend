@@ -1,5 +1,11 @@
 import { createContext, useContext, useState, useCallback, useEffect, type ReactNode } from 'react'
 import { authService } from './services/auth.service'
+import { useCustomerAuth } from './customer'
+import { customerProfileService } from './customer/customerProfile.service'
+
+function isUnauthorized(error: unknown): boolean {
+  return (error as { response?: { status?: number } })?.response?.status === 401
+}
 
 export type Papel = 'ADMIN' | 'FOTOGRAFO' | 'EDITOR' | 'AGENDADOR'
 
@@ -30,18 +36,58 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
-    const saved = authService.getUser()
-    if (saved) {
-      setUser(saved as AuthUser)
-    }
-    setIsLoading(false)
+    let cancelled = false
 
     const handleRedirect = (e: Event) => {
       const path = (e as CustomEvent).detail
       window.location.href = path
     }
     window.addEventListener('auth:redirect', handleRedirect)
-    return () => window.removeEventListener('auth:redirect', handleRedirect)
+
+    // M4: revalida a sessão no servidor. O papel/nome passam a vir do backend,
+    // não do localStorage. 401 encerra a sessão; falha de rede mantém o cache.
+    const revalidar = async () => {
+      const saved = authService.getUser()
+      if (saved) {
+        try {
+          const server = await authService.me()
+          if (!cancelled) setUser(server as AuthUser)
+        } catch (error) {
+          if (!cancelled && isUnauthorized(error)) {
+            setUser(null)
+          } else if (!cancelled) {
+            setUser(saved as AuthUser)
+          }
+        }
+      }
+
+      const customer = useCustomerAuth.getState().user
+      if (customer) {
+        try {
+          const perfil = await customerProfileService.getProfile()
+          if (!cancelled) {
+            useCustomerAuth.getState().updateUser({
+              nome: perfil.nome,
+              email: perfil.email,
+              telefone: perfil.telefone,
+            })
+          }
+        } catch (error) {
+          if (!cancelled && isUnauthorized(error)) {
+            useCustomerAuth.getState().logout()
+          }
+        }
+      }
+
+      if (!cancelled) setIsLoading(false)
+    }
+
+    void revalidar()
+
+    return () => {
+      cancelled = true
+      window.removeEventListener('auth:redirect', handleRedirect)
+    }
   }, [])
 
   const login = useCallback(async (email: string, password: string) => {
