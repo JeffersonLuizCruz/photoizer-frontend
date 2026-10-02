@@ -232,9 +232,14 @@ export function PropostasPage() {
                     <TableCell className="text-right tabular-nums">{formatCurrency(p.valorTotal)}</TableCell>
                     <TableCell className="text-center">
                       <Badge variant={info.variant}>{info.label}</Badge>
+                      {p.dataEnvioProposta && (
+                        <p className="mt-1 text-xs text-muted-foreground">
+                          Enviada em {format(new Date(p.dataEnvioProposta), "dd/MM/yyyy 'às' HH:mm")}
+                        </p>
+                      )}
                       {p.dataAssinatura && (
                         <p className="mt-1 text-xs text-muted-foreground">
-                          Assinado em {format(new Date(p.dataAssinatura), 'dd/MM/yyyy')}
+                          Assinada em {format(new Date(p.dataAssinatura), "dd/MM/yyyy 'às' HH:mm")}
                         </p>
                       )}
                     </TableCell>
@@ -264,9 +269,14 @@ export function PropostasPage() {
                   </span>
                   <span className="font-semibold tabular-nums">{formatCurrency(p.valorTotal)}</span>
                 </div>
+                {p.dataEnvioProposta && (
+                  <p className="text-xs text-muted-foreground">
+                    Enviada em {format(new Date(p.dataEnvioProposta), "dd/MM/yyyy 'às' HH:mm")}
+                  </p>
+                )}
                 {p.dataAssinatura && (
                   <p className="text-xs text-muted-foreground">
-                    Assinado em {format(new Date(p.dataAssinatura), 'dd/MM/yyyy')}
+                    Assinada em {format(new Date(p.dataAssinatura), "dd/MM/yyyy 'às' HH:mm")}
                   </p>
                 )}
                 {renderAcoes(p)}

@@ -80,14 +80,12 @@ Ações disponíveis por status (mapeamento em `statusActions`):
 CONFIRMADO             → realizar, reagendar, cancelar
 REALIZADO              → pagarFinal, cancelar
 AGUARDANDO_PAGAMENTO   → pagarFinal
-EM_EDICAO              → enviarSelecao
-FOTOS_ENVIADAS_SELECAO → confirmarEntrega
-FOTOS_ENTREGUES        → finalizar
+EM_EDICAO              → finalizar
 ```
 - `realizar` → `PATCH /agendamentos/:id/status` para `AGUARDANDO_PAGAMENTO_FINAL`
 - `reagendar` → abre `ReagendarDialog` → `PATCH /agendamentos/:id/reagendar`
 - `pagarFinal` → abre `RegistrarPagamentoDialog` → `POST /agendamentos/:id/pagamento-final` (multipart com comprovante)
-- `enviarSelecao` → atualiza status + **cria automaticamente** `Tarefa` do tipo `ENTREGA_FINAL` com prazo de 2 dias para o editor
+- `finalizar` → `PATCH /agendamentos/:id/status` para `FINALIZADO`
 - `cancelar`/`noShow` → `PATCH /agendamentos/:id/status`
 
 ### Fluxo 3: Gerenciamento de Tarefas
@@ -101,9 +99,8 @@ FOTOS_ENTREGUES        → finalizar
 2. **Criação usa FormData**: `createFromWizard()` constrói `FormData` manualmente. Datas formatadas com `date-fns` para `yyyy-MM-dd`. Comprovante anexado como `comprovanteEntrada`.
 3. **Busca de cliente por telefone**: Acionada quando telefone atinge 14+ caracteres. Usa `useDebounce(300ms)` no `AgendaPage`, chamada direta no `StepCliente`.
 4. **Ações contextuais**: `statusActions` define botões por status. `actionConfig` mapeia label, ícone, variante, título de confirmação e status alvo. Ações que abrem diálogo (reagendar, pagarFinal) vs `ConfirmDialog` (as demais).
-5. **Criação automática de tarefas**: Ao avançar de `EM_EDICAO` para `FOTOS_ENVIADAS_PARA_SELECAO`, tarefa `ENTREGA_FINAL` é criada com prazo de 2 dias.
-6. **Enums compartilhados**: `AGENDAMENTO_STATUS`, `TAREFA_STATUS`, `TAREFA_TIPO` em `shared/constants`. Interfaces em `types/` importam de lá.
-7. **recibo.ts**: Utilitário de texto puro para recibo formatado. Contém emoji no output.
+5. **Enums compartilhados**: `AGENDAMENTO_STATUS`, `TAREFA_STATUS`, `TAREFA_TIPO` em `shared/constants`. Interfaces em `types/` importam de lá.
+6. **recibo.ts**: Utilitário de texto puro para recibo formatado. Contém emoji no output.
 
 ## 6. Testes
 Não existem testes para este módulo.

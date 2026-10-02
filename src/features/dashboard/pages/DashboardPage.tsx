@@ -13,7 +13,7 @@ export function DashboardPage() {
   const entregasPendentes = useMemo(() => {
     if (!agendamentos) return []
     return agendamentos.filter(
-      (a) => a.status === AGENDAMENTO_STATUS.EM_EDICAO || a.status === AGENDAMENTO_STATUS.FOTOS_ENVIADAS_PARA_SELECAO,
+      (a) => a.status === AGENDAMENTO_STATUS.EM_EDICAO,
     )
   }, [agendamentos])
 

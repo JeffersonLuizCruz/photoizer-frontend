@@ -32,8 +32,6 @@ function montarResumoWhatsApp(agendamento: Agendamento): string {
     REALIZADO: '✅ Realizado',
     AGUARDANDO_PAGAMENTO_FINAL: '💰 Aguardando Pagamento Final',
     EM_EDICAO: '🎨 Em Edição',
-    FOTOS_ENVIADAS_PARA_SELECAO: '📤 Fotos Enviadas para Seleção',
-    FOTOS_ENTREGUES: '📸 Fotos Entregues',
     FINALIZADO: '✨ Finalizado',
     CANCELADO: '❌ Cancelado',
     NO_SHOW: '🚫 Não Compareceu',

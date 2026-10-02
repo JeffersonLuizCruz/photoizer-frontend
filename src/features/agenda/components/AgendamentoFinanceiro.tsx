@@ -71,8 +71,6 @@ export function AgendamentoFinanceiro({ agendamento }: AgendamentoFinanceiroProp
 
   const pagamentoFinalRealizado = ([
     AGENDAMENTO_STATUS.EM_EDICAO,
-    AGENDAMENTO_STATUS.FOTOS_ENVIADAS_PARA_SELECAO,
-    AGENDAMENTO_STATUS.FOTOS_ENTREGUES,
     AGENDAMENTO_STATUS.FINALIZADO,
   ] as Agendamento['status'][]).includes(agendamento.status)
 

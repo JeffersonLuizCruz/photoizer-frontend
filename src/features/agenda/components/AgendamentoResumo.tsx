@@ -107,10 +107,18 @@ export function AgendamentoResumo({ agendamento }: AgendamentoResumoProps) {
         )}
         <InfoRow label="Uso de Imagem" value={agendamento.autorizaUsoImagem ? 'Autorizado' : 'Não autorizado'} />
         <InfoRow
+          label="Proposta enviada"
+          value={
+            agendamento.dataEnvioProposta
+              ? format(new Date(agendamento.dataEnvioProposta), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })
+              : null
+          }
+        />
+        <InfoRow
           label="Contrato"
           value={
             agendamento.dataAssinatura
-              ? `Assinado em ${format(new Date(agendamento.dataAssinatura), 'dd/MM/yyyy', { locale: ptBR })}`
+              ? `Assinado em ${format(new Date(agendamento.dataAssinatura), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}`
               : 'Não assinado'
           }
         />

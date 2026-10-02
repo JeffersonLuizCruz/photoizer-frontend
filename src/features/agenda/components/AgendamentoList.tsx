@@ -25,8 +25,6 @@ const statusLabels: Record<string, { label: string; variant: 'success' | 'info' 
   [AGENDAMENTO_STATUS.REALIZADO]: { label: 'Realizado', variant: 'success' },
   [AGENDAMENTO_STATUS.AGUARDANDO_PAGAMENTO_FINAL]: { label: 'Aguardando Pagto', variant: 'warning' },
   [AGENDAMENTO_STATUS.EM_EDICAO]: { label: 'Em Edição', variant: 'warning' },
-  [AGENDAMENTO_STATUS.FOTOS_ENVIADAS_PARA_SELECAO]: { label: 'Fotos p/ Seleção', variant: 'info' },
-  [AGENDAMENTO_STATUS.FOTOS_ENTREGUES]: { label: 'Fotos Entregues', variant: 'success' },
   [AGENDAMENTO_STATUS.FINALIZADO]: { label: 'Finalizado', variant: 'success' },
   [AGENDAMENTO_STATUS.CANCELADO]: { label: 'Cancelado', variant: 'destructive' },
   [AGENDAMENTO_STATUS.NO_SHOW]: { label: 'Não Compareceu', variant: 'destructive' },

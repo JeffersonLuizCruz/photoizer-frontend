@@ -15,8 +15,6 @@ const statusLabel: Record<string, string> = {
   CONFIRMADO: 'Confirmado',
   REALIZADO: 'Realizado',
   EM_EDICAO: 'Em Edição',
-  FOTOS_ENVIADAS_PARA_SELECAO: 'Seleção',
-  FOTOS_ENTREGUES: 'Entregue',
   FINALIZADO: 'Finalizado',
 }
 

@@ -5,8 +5,6 @@ import {
   XCircle,
   Ban,
   CreditCard,
-  Send,
-  CheckCheck,
   CheckCircle2,
   Star,
   ArrowLeftRight,
@@ -27,7 +25,7 @@ interface AgendamentoActionsProps {
   agendamento: Agendamento
 }
 
-type ActionType = 'realizar' | 'reagendar' | 'cancelar' | 'noShow' | 'pagarFinal' | 'enviarSelecao' | 'confirmarEntrega' | 'finalizar' | 'confirmarPagamento' | 'aprovar'
+type ActionType = 'realizar' | 'reagendar' | 'cancelar' | 'noShow' | 'pagarFinal' | 'finalizar' | 'confirmarPagamento' | 'aprovar'
 
 const statusActions: Record<string, ActionType[]> = {
   [AGENDAMENTO_STATUS.AGUARDANDO_APROVACAO]: ['confirmarPagamento', 'cancelar'],
@@ -35,9 +33,7 @@ const statusActions: Record<string, ActionType[]> = {
   [AGENDAMENTO_STATUS.CONFIRMADO]: ['realizar', 'reagendar', 'cancelar', 'noShow'],
   [AGENDAMENTO_STATUS.REALIZADO]: ['pagarFinal', 'cancelar'],
   [AGENDAMENTO_STATUS.AGUARDANDO_PAGAMENTO_FINAL]: ['pagarFinal'],
-  [AGENDAMENTO_STATUS.EM_EDICAO]: ['enviarSelecao'],
-  [AGENDAMENTO_STATUS.FOTOS_ENVIADAS_PARA_SELECAO]: ['confirmarEntrega'],
-  [AGENDAMENTO_STATUS.FOTOS_ENTREGUES]: ['finalizar'],
+  [AGENDAMENTO_STATUS.EM_EDICAO]: ['finalizar'],
 }
 
 const actionConfig: Record<ActionType, { label: string; icon: React.ComponentType<{ className?: string }>; variant: 'default' | 'destructive' | 'outline' | 'secondary'; confirmTitle?: string; confirmDescription?: string; status: string }> = {
@@ -76,22 +72,6 @@ const actionConfig: Record<ActionType, { label: string; icon: React.ComponentTyp
     icon: CreditCard,
     variant: 'default',
     status: AGENDAMENTO_STATUS.AGUARDANDO_PAGAMENTO_FINAL,
-  },
-  enviarSelecao: {
-    label: 'Enviar para Seleção',
-    icon: Send,
-    variant: 'default',
-    confirmTitle: 'Enviar para Seleção',
-    confirmDescription: 'Confirmar que as fotos foram enviadas para seleção?',
-    status: AGENDAMENTO_STATUS.FOTOS_ENVIADAS_PARA_SELECAO,
-  },
-  confirmarEntrega: {
-    label: 'Confirmar Entrega',
-    icon: CheckCheck,
-    variant: 'default',
-    confirmTitle: 'Confirmar Entrega',
-    confirmDescription: 'Confirmar que as fotos foram entregues ao cliente?',
-    status: AGENDAMENTO_STATUS.FOTOS_ENTREGUES,
   },
   finalizar: {
     label: 'Finalizar',

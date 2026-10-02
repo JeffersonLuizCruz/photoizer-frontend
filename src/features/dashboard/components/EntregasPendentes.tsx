@@ -1,9 +1,7 @@
-import { format } from 'date-fns'
-import { ptBR } from 'date-fns/locale'
 import { Camera } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 
-import { ROUTES, AGENDAMENTO_STATUS } from '@/shared/constants'
+import { ROUTES } from '@/shared/constants'
 import type { Agendamento } from '@/features/agenda/types'
 
 interface EntregasPendentesProps {
@@ -39,8 +37,6 @@ export function EntregasPendentes({ agendamentos, isLoading }: EntregasPendentes
   return (
     <div className="space-y-2">
       {agendamentos.map((agendamento) => {
-        const statusLabel = agendamento.status === AGENDAMENTO_STATUS.EM_EDICAO ? 'Em Edição' : 'Fotos p/ Seleção'
-
         return (
           <div
             key={agendamento.id}
@@ -49,12 +45,7 @@ export function EntregasPendentes({ agendamentos, isLoading }: EntregasPendentes
           >
             <div className="min-w-0 flex-1">
               <p className="text-sm font-medium truncate">{agendamento.localEnsaio}</p>
-              <p className="text-xs text-muted-foreground">
-                {statusLabel}
-                {agendamento.dataEnvioSelecao && (
-                  <span> — Enviado em {format(new Date(agendamento.dataEnvioSelecao), "dd/MM", { locale: ptBR })}</span>
-                )}
-              </p>
+              <p className="text-xs text-muted-foreground">Em Edição</p>
             </div>
           </div>
         )

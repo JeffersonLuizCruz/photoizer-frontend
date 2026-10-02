@@ -66,8 +66,7 @@ export interface Agendamento {
   status: AgendamentoStatus
   dataConfirmacao: string | null
   dataRealizacao: string | null
-  dataEnvioSelecao: string | null
-  dataEntregaFinal: string | null
+  dataPagamentoFinal: string | null
   dataFinalizacao: string | null
 
   temComprovanteEntrada: boolean
@@ -77,6 +76,7 @@ export interface Agendamento {
   autorizaUsoImagem: boolean
   clausulasPersonalizadas: string | null
   tokenProposta: string | null
+  dataEnvioProposta: string | null
   dataAssinatura: string | null
   temTermoAssinado: boolean
 

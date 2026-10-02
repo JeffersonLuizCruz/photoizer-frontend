@@ -1,6 +1,6 @@
 import { format, differenceInDays } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
-import { CheckCircle2, Circle, XCircle, Clock, CalendarCheck, Send, FileCheck, Star, ArrowLeftRight } from 'lucide-react'
+import { CheckCircle2, Circle, XCircle, Clock, CalendarCheck, Star, ArrowLeftRight, PenLine, Send, CreditCard } from 'lucide-react'
 import { cn } from '@/shared/lib/cn'
 import type { Agendamento, Reatribuicao } from '../types'
 import { AGENDAMENTO_STATUS } from '@/shared/constants'
@@ -27,6 +27,24 @@ function buildTimelineEvents(agendamento: Agendamento, reatribuicoes: Reatribuic
     icon: CalendarCheck,
     status: 'completed',
   })
+
+  if (agendamento.dataEnvioProposta) {
+    events.push({
+      data: agendamento.dataEnvioProposta,
+      label: 'Proposta Enviada',
+      icon: Send,
+      status: 'completed',
+    })
+  }
+
+  if (agendamento.dataAssinatura) {
+    events.push({
+      data: agendamento.dataAssinatura,
+      label: 'Proposta Assinada pelo Cliente',
+      icon: PenLine,
+      status: 'completed',
+    })
+  }
 
   if (agendamento.dataConfirmacao) {
     events.push({
@@ -69,20 +87,11 @@ function buildTimelineEvents(agendamento: Agendamento, reatribuicoes: Reatribuic
     })
   }
 
-  if (agendamento.dataEnvioSelecao) {
+  if (agendamento.dataPagamentoFinal) {
     events.push({
-      data: agendamento.dataEnvioSelecao,
-      label: 'Fotos Enviadas para Seleção',
-      icon: Send,
-      status: 'completed',
-    })
-  }
-
-  if (agendamento.dataEntregaFinal) {
-    events.push({
-      data: agendamento.dataEntregaFinal,
-      label: 'Fotos Entregues',
-      icon: FileCheck,
+      data: agendamento.dataPagamentoFinal,
+      label: 'Pagamento Final Registrado',
+      icon: CreditCard,
       status: 'completed',
     })
   }
@@ -102,8 +111,6 @@ function buildTimelineEvents(agendamento: Agendamento, reatribuicoes: Reatribuic
       REALIZADO: 'Aguardando Pagamento',
       AGUARDANDO_PAGAMENTO_FINAL: 'Aguardando Pagamento Final',
       EM_EDICAO: 'Em Edição',
-      FOTOS_ENVIADAS_PARA_SELECAO: 'Aguardando Confirmação de Entrega',
-      FOTOS_ENTREGUES: 'Aguardando Finalização',
     }
     const label = statusLabel[statusStr]
 

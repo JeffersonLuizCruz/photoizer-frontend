@@ -27,8 +27,6 @@ const statusOptions: { value: string; label: string }[] = [
   { value: 'REALIZADO', label: 'Realizado' },
   { value: 'AGUARDANDO_PAGAMENTO_FINAL', label: 'Aguardando Pagamento' },
   { value: 'EM_EDICAO', label: 'Em Edição' },
-  { value: 'FOTOS_ENVIADAS_PARA_SELECAO', label: 'Fotos p/ Seleção' },
-  { value: 'FOTOS_ENTREGUES', label: 'Fotos Entregues' },
   { value: 'FINALIZADO', label: 'Finalizado' },
   { value: 'CANCELADO', label: 'Cancelado' },
   { value: 'NO_SHOW', label: 'Não Compareceu' },

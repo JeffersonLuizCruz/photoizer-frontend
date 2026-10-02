@@ -47,6 +47,7 @@ export interface Proposta {
   valorEntradaExigido: number
   valorRestante: number
   autorizaUsoImagem: boolean
+  dataEnvioProposta: string | null
   dataAssinatura: string | null
   temComprovanteEntrada?: boolean
   temTermoAssinado?: boolean
