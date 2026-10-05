@@ -289,7 +289,7 @@ export function RelatoriosPage() {
       )}
 
       {tipo === 'resumo-mensal' && (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
           <Card label="Receitas brutas" value={formatCurrency(resumo.data?.receitasBrutas)} isLoading={resumo.isLoading} />
           <Card label="Receitas recebidas" value={formatCurrency(resumo.data?.receitasRecebidas)} accent="text-emerald-600" isLoading={resumo.isLoading} />
           <Card label="A receber" value={formatCurrency(resumo.data?.aReceber)} accent="text-amber-600" isLoading={resumo.isLoading} />
@@ -384,7 +384,7 @@ export function RelatoriosPage() {
 
       {tipo === 'inadimplencia' && (
         <div>
-          <div className="mb-4 grid gap-4 sm:grid-cols-3">
+          <div className="mb-4 grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4">
             <Card label="Total em aberto" value={formatCurrency(inadimplencia.data?.totalEmAberto)} accent="text-rose-500" isLoading={inadimplencia.isLoading} />
             <Card
               label="Itens vencidos"
@@ -657,7 +657,7 @@ export function RelatoriosPage() {
 
       {tipo === 'fiscal' && (
         <div>
-          <div className="mb-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="mb-4 grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
             <Card label="Total de receitas" value={formatCurrency(fiscal.data?.totalReceitas)} isLoading={fiscal.isLoading} />
             <Card label="Comissões" value={formatCurrency(fiscal.data?.totalComissoes)} accent="text-amber-600" isLoading={fiscal.isLoading} />
             <Card label="Total de despesas" value={formatCurrency(fiscal.data?.totalDespesas)} accent="text-rose-500" isLoading={fiscal.isLoading} />

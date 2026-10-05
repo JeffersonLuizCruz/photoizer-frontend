@@ -47,7 +47,7 @@ export function FotografosForm({ onSubmit, defaultValues, isPending, mode }: Fot
 
       <div className="space-y-2">
         <Label htmlFor="email">Email *</Label>
-        <Input id="email" type="email" {...register('email')} placeholder="email@exemplo.com" />
+        <Input id="email" type="email" inputMode="email" autoComplete="email" {...register('email')} placeholder="email@exemplo.com" />
         {errors.email && <p className="text-sm text-destructive">{errors.email.message}</p>}
       </div>
 
@@ -61,10 +61,17 @@ export function FotografosForm({ onSubmit, defaultValues, isPending, mode }: Fot
 
       <div className="space-y-2">
         <Label htmlFor="telefone">Telefone</Label>
-        <Input id="telefone" {...register('telefone')} placeholder="(11) 99999-9999" />
+        <Input
+          id="telefone"
+          type="tel"
+          inputMode="tel"
+          autoComplete="tel"
+          {...register('telefone')}
+          placeholder="(11) 99999-9999"
+        />
       </div>
 
-      <Button type="submit" disabled={isPending}>
+      <Button type="submit" disabled={isPending} className="sticky bottom-[calc(4rem+env(safe-area-inset-bottom))] z-10 w-full sm:static sm:w-auto">
         {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
         {mode === 'create' ? 'Criar Fotógrafo' : 'Salvar Alterações'}
       </Button>

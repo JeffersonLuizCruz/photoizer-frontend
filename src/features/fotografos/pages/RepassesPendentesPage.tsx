@@ -70,29 +70,29 @@ export function RepassesPendentesPage() {
         )}
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-3">
-        <Card>
-          <CardHeader className="pb-2">
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4">
+        <Card className="p-4">
+          <CardHeader className="p-0 pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">Total Pendente</CardTitle>
           </CardHeader>
-          <CardContent>
-            <p className="text-2xl font-bold text-amber-600">{formatCurrency(totalPendente)}</p>
+          <CardContent className="p-0">
+            <p className="text-xl font-bold tabular-nums text-amber-600 sm:text-2xl">{formatCurrency(totalPendente)}</p>
           </CardContent>
         </Card>
-        <Card>
-          <CardHeader className="pb-2">
+        <Card className="p-4">
+          <CardHeader className="p-0 pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">Repasses Pendentes</CardTitle>
           </CardHeader>
-          <CardContent>
-            <p className="text-2xl font-bold">{pendentes.length}</p>
+          <CardContent className="p-0">
+            <p className="text-xl font-bold sm:text-2xl">{pendentes.length}</p>
           </CardContent>
         </Card>
-        <Card>
-          <CardHeader className="pb-2">
+        <Card className="p-4">
+          <CardHeader className="p-0 pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">Parceiros com Pendência</CardTitle>
           </CardHeader>
-          <CardContent>
-            <p className="text-2xl font-bold">
+          <CardContent className="p-0">
+            <p className="text-xl font-bold sm:text-2xl">
               {new Set(pendentes.map(r => r.fotografo?.id ?? r.fotografo?.toString())).size}
             </p>
           </CardContent>

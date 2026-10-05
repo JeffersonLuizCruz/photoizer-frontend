@@ -4,6 +4,7 @@ import {
   Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Legend, Line, ComposedChart,
 } from 'recharts'
 import { Button } from '@/shared/components/ui/button'
+import { useIsMobile } from '@/shared/hooks/use-media-query'
 import { useFinanceiroMensal } from '../api/queries'
 import { DespesaFormDialog } from '@/features/despesas/components/DespesaFormDialog'
 
@@ -118,6 +119,7 @@ const PERIODOS = [
 export function GraficoMensal() {
   const [meses, setMeses] = useState(6)
   const [dialogOpen, setDialogOpen] = useState(false)
+  const isMobile = useIsMobile()
   const { data, isLoading } = useFinanceiroMensal(meses)
 
   if (isLoading) {
@@ -283,7 +285,24 @@ export function GraficoMensal() {
           </div>
         </div>
 
-        <div className="h-72 pt-2">
+        {isMobile && (
+          <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground">
+            <span className="flex items-center gap-1">
+              <span className="inline-block h-2.5 w-2.5 rounded-sm bg-emerald-500" />
+              Recebido
+            </span>
+            <span className="flex items-center gap-1">
+              <span className="inline-block h-2.5 w-2.5 rounded-sm bg-amber-400" />
+              Pendente
+            </span>
+            <span className="flex items-center gap-1">
+              <span className="inline-block h-2.5 w-2.5 rounded-sm bg-rose-400" />
+              Despesas
+            </span>
+          </div>
+        )}
+
+        <div className="h-56 sm:h-72 sm:pt-2">
           <ResponsiveContainer width="100%" height="100%">
             <ComposedChart data={chartData}>
               <defs>
@@ -295,34 +314,36 @@ export function GraficoMensal() {
               <CartesianGrid strokeDasharray="3 3" className="stroke-border" strokeOpacity={0.3} />
               <XAxis
                 dataKey="mes"
-                tick={{ fontSize: 12 }}
+                tick={{ fontSize: isMobile ? 10 : 12 }}
                 className="text-muted-foreground"
                 axisLine={false}
                 tickLine={false}
+                interval={isMobile ? 'preserveStartEnd' : 0}
               />
-              <YAxis
-                tick={{ fontSize: 11 }}
-                className="text-muted-foreground"
-                axisLine={false}
-                tickLine={false}
-                tickFormatter={(v: number) => v === 0 ? '0' : `${(v / 1000).toFixed(0)}k`}
-              />
+              {!isMobile && (
+                <YAxis
+                  tick={{ fontSize: 11 }}
+                  className="text-muted-foreground"
+                  axisLine={false}
+                  tickLine={false}
+                  tickFormatter={(v: number) => v === 0 ? '0' : `${(v / 1000).toFixed(0)}k`}
+                />
+              )}
               <Tooltip content={<ChartTooltip />} />
-              <Legend
-                wrapperStyle={{ fontSize: 12, paddingTop: 8 }}
-                iconType="circle"
-              />
+              {!isMobile && <Legend wrapperStyle={{ fontSize: 12, paddingTop: 8 }} iconType="circle" />}
               <Bar stackId="a" dataKey="Recebido" fill="#10b981" radius={[0, 0, 0, 0]} fillOpacity={0.85} />
               <Bar stackId="a" dataKey="Pendente" fill="#fbbf24" radius={[4, 4, 0, 0]} fillOpacity={0.7} />
               <Bar dataKey="Despesas" fill="#e1749a" radius={[4, 4, 0, 0]} fillOpacity={0.45} />
-              <Line
-                type="monotone"
-                dataKey="Líquido Previsto"
-                stroke="#8b5cf6"
-                strokeWidth={2.5}
-                dot={{ r: 4, fill: '#8b5cf6', strokeWidth: 0 }}
-                name="Líquido Previsto"
-              />
+              {!isMobile && (
+                <Line
+                  type="monotone"
+                  dataKey="Líquido Previsto"
+                  stroke="#8b5cf6"
+                  strokeWidth={2.5}
+                  dot={{ r: 4, fill: '#8b5cf6', strokeWidth: 0 }}
+                  name="Líquido Previsto"
+                />
+              )}
             </ComposedChart>
           </ResponsiveContainer>
         </div>

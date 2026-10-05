@@ -1,11 +1,11 @@
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { Search, Plus, Pencil, Trash2, ChevronDown, ChevronRight, Package, Image, Video, Percent, User } from 'lucide-react'
+import { Plus, Pencil, Trash2, ChevronDown, ChevronRight, Package, Image, Video, Percent, User } from 'lucide-react'
 import { toast } from 'sonner'
 import { PageTitle } from '@/shared/components/layout/PageTitle'
 import { ConfirmDialog } from '@/shared/components/layout/ConfirmDialog'
 import { Button } from '@/shared/components/ui/button'
-import { Input } from '@/shared/components/ui/input'
+import { ListToolbar } from '@/shared/components/mobile'
 import { cn } from '@/shared/lib/cn'
 import { comissoesService } from '../services/comissoes.service'
 import { indicadorService } from '../services/indicador.service'
@@ -217,17 +217,11 @@ export function ComissoesConsultaPage() {
         }
       />
 
-      <div className="max-w-md mb-6">
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            placeholder="Buscar por nome ou telefone..."
-            className="pl-9"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
-        </div>
-      </div>
+      <ListToolbar
+        searchValue={search}
+        onSearchChange={setSearch}
+        searchPlaceholder="Buscar por nome ou telefone..."
+      />
 
       {isLoading ? (
         <div className="space-y-3">

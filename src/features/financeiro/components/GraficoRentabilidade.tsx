@@ -1,6 +1,7 @@
 import { Bar, BarChart, CartesianGrid, Legend, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import { Skeleton } from '@/shared/components/ui/skeleton'
 import { formatCurrency } from '@/shared/lib/format'
+import { useIsMobile } from '@/shared/hooks/use-media-query'
 import type { RentabilidadeServico } from '../types/dashboard.types'
 
 interface GraficoRentabilidadeProps {
@@ -20,6 +21,8 @@ function TooltipContent({ active, payload, label }: any) {
 }
 
 export function GraficoRentabilidade({ data, isLoading }: GraficoRentabilidadeProps) {
+  const isMobile = useIsMobile()
+
   if (isLoading) {
     return <Skeleton className="h-56 w-full rounded-lg" />
   }
@@ -31,7 +34,7 @@ export function GraficoRentabilidade({ data, isLoading }: GraficoRentabilidadePr
     )
   }
   return (
-    <div className="h-64">
+    <div className="h-56 sm:h-64">
       <ResponsiveContainer width="100%" height="100%">
         <BarChart data={data} layout="vertical" margin={{ top: 5, right: 20, left: 10, bottom: 0 }}>
           <CartesianGrid strokeDasharray="3 3" className="stroke-border" strokeOpacity={0.3} horizontal={false} />
@@ -46,14 +49,14 @@ export function GraficoRentabilidade({ data, isLoading }: GraficoRentabilidadePr
           <YAxis
             type="category"
             dataKey="tipoServico"
-            tick={{ fontSize: 11 }}
+            tick={{ fontSize: isMobile ? 10 : 11 }}
             className="text-muted-foreground"
             axisLine={false}
             tickLine={false}
-            width={72}
+            width={isMobile ? 56 : 72}
           />
           <Tooltip content={<TooltipContent />} />
-          <Legend wrapperStyle={{ fontSize: 12, paddingTop: 8 }} iconType="circle" />
+          {!isMobile && <Legend wrapperStyle={{ fontSize: 12, paddingTop: 8 }} iconType="circle" />}
           <Bar dataKey="receita" name="Receita" fill="#10b981" radius={[0, 4, 4, 0]} fillOpacity={0.85} barSize={14} />
           <Bar dataKey="liquido" name="Líquido" fill="#8b5cf6" radius={[0, 4, 4, 0]} fillOpacity={0.7} barSize={14} />
         </BarChart>

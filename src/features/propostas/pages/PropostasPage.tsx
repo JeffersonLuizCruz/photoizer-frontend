@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
@@ -14,6 +14,8 @@ import {
   Eye,
   FileDown,
   XCircle,
+  MoreVertical,
+  ChevronDown,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { PageTitle } from '@/shared/components/layout/PageTitle'
@@ -30,6 +32,14 @@ import {
 } from '@/shared/components/ui/dialog'
 import { Label } from '@/shared/components/ui/label'
 import { Textarea } from '@/shared/components/ui/textarea'
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+} from '@/shared/components/ui/sheet'
+import { ListToolbar, FilterSheet, MobileListCard } from '@/shared/components/mobile'
 import { openProtected } from '@/shared/api/protectedResource'
 import { ROUTES, AGENDAMENTO_STATUS } from '@/shared/constants'
 import { formatCurrency } from '@/shared/lib/format'
@@ -43,11 +53,19 @@ import {
 } from '../api/queries'
 import type { Proposta } from '../types'
 
-const statusInfo: Record<string, { label: string; variant: 'warning' | 'info' | 'success' }> = {
+type StatusVariant = 'warning' | 'info' | 'success'
+
+const statusInfo: Record<string, { label: string; variant: StatusVariant }> = {
   [AGENDAMENTO_STATUS.PRE_RESERVA]: { label: 'Aguardando assinatura', variant: 'warning' },
   [AGENDAMENTO_STATUS.AGUARDANDO_APROVACAO]: { label: 'Aguardando aprovação', variant: 'info' },
   [AGENDAMENTO_STATUS.PAGAMENTO_CONFIRMADO]: { label: 'Pagamento confirmado', variant: 'info' },
 }
+
+const fases: Array<{ status: string; label: string; variant: StatusVariant }> = [
+  { status: AGENDAMENTO_STATUS.PRE_RESERVA, label: 'Aguardando assinatura', variant: 'warning' },
+  { status: AGENDAMENTO_STATUS.AGUARDANDO_APROVACAO, label: 'Aguardando aprovação', variant: 'info' },
+  { status: AGENDAMENTO_STATUS.PAGAMENTO_CONFIRMADO, label: 'Pagamento confirmado', variant: 'success' },
+]
 
 export function PropostasPage() {
   const navigate = useNavigate()
@@ -58,6 +76,15 @@ export function PropostasPage() {
   const aprovar = useAprovarProposta()
   const recusar = useRecusarProposta()
 
+  const [busca, setBusca] = useState('')
+  const [faseAtiva, setFaseAtiva] = useState<string>('TODAS')
+  const [filtrosOpen, setFiltrosOpen] = useState(false)
+  const [acaoProposta, setAcaoProposta] = useState<Proposta | null>(null)
+  const [fasesAbertas, setFasesAbertas] = useState<Record<string, boolean>>({
+    [AGENDAMENTO_STATUS.PRE_RESERVA]: true,
+    [AGENDAMENTO_STATUS.AGUARDANDO_APROVACAO]: true,
+    [AGENDAMENTO_STATUS.PAGAMENTO_CONFIRMADO]: true,
+  })
   const [recusa, setRecusa] = useState<{ id: string; cliente: string } | null>(null)
   const [motivo, setMotivo] = useState('')
 
@@ -85,6 +112,7 @@ export function PropostasPage() {
   const abrirRecusa = (p: Proposta) => {
     setMotivo('')
     setRecusa({ id: p.id, cliente: p.clienteNome ?? 'esta proposta' })
+    setAcaoProposta(null)
   }
 
   const confirmarRecusa = () => {
@@ -97,6 +125,33 @@ export function PropostasPage() {
     recusar.mutate({ id: recusa.id, motivo: texto }, { onSuccess: () => setRecusa(null) })
   }
 
+  const concluirAcao = (acao: (id: string, options?: { onSuccess?: () => void }) => void) => {
+    if (!acaoProposta) return
+    acao(acaoProposta.id, { onSuccess: () => setAcaoProposta(null) })
+  }
+
+  const filtradas = useMemo(() => {
+    const termo = busca.trim().toLowerCase()
+    return propostas.filter((p) => {
+      if (faseAtiva !== 'TODAS' && p.status !== faseAtiva) return false
+      if (!termo) return true
+      return (
+        (p.clienteNome ?? '').toLowerCase().includes(termo) ||
+        p.pacoteNome.toLowerCase().includes(termo)
+      )
+    })
+  }, [propostas, busca, faseAtiva])
+
+  const porFase = useMemo(
+    () =>
+      fases
+        .map((fase) => ({ ...fase, itens: filtradas.filter((p) => p.status === fase.status) }))
+        .filter((fase) => faseAtiva === 'TODAS' || faseAtiva === fase.status),
+    [filtradas, faseAtiva],
+  )
+
+  const filtrosAtivos = faseAtiva === 'TODAS' ? 0 : 1
+
   const renderAcoes = (p: Proposta, className = 'justify-start') => {
     const link = linkDe(p)
     const emAnalise =
@@ -104,11 +159,7 @@ export function PropostasPage() {
       p.status === AGENDAMENTO_STATUS.PAGAMENTO_CONFIRMADO
     return (
       <div className={cn('flex flex-wrap gap-1', className)}>
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => navigate(ROUTES.AGENDA_DETALHES.replace(':id', p.id))}
-        >
+        <Button variant="ghost" size="sm" onClick={() => navigate(ROUTES.AGENDA_DETALHES.replace(':id', p.id))}>
           Detalhes
         </Button>
         {podeDecidir && emAnalise && p.temComprovanteEntrada && (
@@ -180,7 +231,7 @@ export function PropostasPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-5">
       <PageTitle
         title="Propostas"
         description="Pré-reservas aguardando assinatura, confirmação de pagamento e aprovação"
@@ -192,6 +243,45 @@ export function PropostasPage() {
           </Button>
         }
       />
+
+      <ListToolbar
+        searchValue={busca}
+        onSearchChange={setBusca}
+        searchPlaceholder="Buscar por cliente ou pacote"
+        onOpenFilters={() => setFiltrosOpen(true)}
+        activeFilterCount={filtrosAtivos}
+      />
+
+      <FilterSheet
+        open={filtrosOpen}
+        onOpenChange={setFiltrosOpen}
+        title="Filtrar propostas"
+        description="Selecione a fase do funil"
+        onApply={() => setFiltrosOpen(false)}
+        onClear={() => setFaseAtiva('TODAS')}
+      >
+        <div className="flex flex-col gap-2">
+          <Button
+            type="button"
+            variant={faseAtiva === 'TODAS' ? 'default' : 'outline'}
+            className="justify-start"
+            onClick={() => setFaseAtiva('TODAS')}
+          >
+            Todas as fases
+          </Button>
+          {fases.map((fase) => (
+            <Button
+              key={fase.status}
+              type="button"
+              variant={faseAtiva === fase.status ? 'default' : 'outline'}
+              className="justify-start"
+              onClick={() => setFaseAtiva(fase.status)}
+            >
+              {fase.label}
+            </Button>
+          ))}
+        </div>
+      </FilterSheet>
 
       {isLoading ? (
         <div className="flex items-center justify-center py-12">
@@ -205,87 +295,242 @@ export function PropostasPage() {
             Crie uma proposta a partir de uma data e envie o link para o cliente.
           </p>
         </div>
+      ) : filtradas.length === 0 ? (
+        <div className="rounded-lg border bg-card p-12 text-center">
+          <h3 className="text-base font-semibold">Nenhuma proposta encontrada</h3>
+          <p className="mt-2 text-sm text-muted-foreground">Ajuste a busca ou os filtros.</p>
+        </div>
       ) : (
         <>
-          <div className="hidden rounded-md border overflow-x-auto md:block">
-          <Table className="min-w-[860px]">
-            <TableHeader>
-              <TableRow>
-                <TableHead>Cliente</TableHead>
-                <TableHead>Pacote</TableHead>
-                <TableHead>Ensaio</TableHead>
-                <TableHead className="text-right">Total</TableHead>
-                <TableHead className="text-center">Status</TableHead>
-                <TableHead className="text-right">Ações</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {propostas.map((p) => {
-                const info = statusInfo[p.status] ?? { label: p.status, variant: 'warning' as const }
-                return (
-                  <TableRow key={p.id}>
-                    <TableCell className="font-medium">{p.clienteNome ?? '—'}</TableCell>
-                    <TableCell>{p.pacoteNome}</TableCell>
-                    <TableCell>
-                      {format(new Date(p.dataHoraEnsaio), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
-                    </TableCell>
-                    <TableCell className="text-right tabular-nums">{formatCurrency(p.valorTotal)}</TableCell>
-                    <TableCell className="text-center">
-                      <Badge variant={info.variant}>{info.label}</Badge>
-                      {p.dataEnvioProposta && (
-                        <p className="mt-1 text-xs text-muted-foreground">
-                          Enviada em {format(new Date(p.dataEnvioProposta), "dd/MM/yyyy 'às' HH:mm")}
-                        </p>
-                      )}
-                      {p.dataAssinatura && (
-                        <p className="mt-1 text-xs text-muted-foreground">
-                          Assinada em {format(new Date(p.dataAssinatura), "dd/MM/yyyy 'às' HH:mm")}
-                        </p>
-                      )}
-                    </TableCell>
-                    <TableCell className="text-right">{renderAcoes(p, 'justify-end')}</TableCell>
-                  </TableRow>
-                )
-              })}
-            </TableBody>
-          </Table>
-        </div>
-
-        <div className="space-y-3 md:hidden">
-          {propostas.map((p) => {
-            const info = statusInfo[p.status] ?? { label: p.status, variant: 'warning' as const }
-            return (
-              <div key={p.id} className="space-y-3 rounded-lg border bg-card p-4">
-                <div className="flex items-start justify-between gap-2">
-                  <div className="min-w-0">
-                    <p className="truncate font-medium">{p.clienteNome ?? '—'}</p>
-                    <p className="truncate text-sm text-muted-foreground">{p.pacoteNome}</p>
-                  </div>
-                  <Badge variant={info.variant}>{info.label}</Badge>
-                </div>
-                <div className="flex items-center justify-between gap-2 text-sm">
-                  <span className="text-muted-foreground">
-                    {format(new Date(p.dataHoraEnsaio), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
+          {/* Mobile: pipeline agrupado por fase */}
+          <div className="space-y-5 md:hidden">
+            {porFase.map((fase) => (
+              <section key={fase.status} aria-label={fase.label}>
+                <button
+                  type="button"
+                  onClick={() =>
+                    setFasesAbertas((prev) => ({ ...prev, [fase.status]: !prev[fase.status] }))
+                  }
+                  aria-expanded={!!fasesAbertas[fase.status]}
+                  className="flex w-full items-center gap-2 rounded-lg py-2 text-left"
+                >
+                  <span className="text-sm font-semibold">{fase.label}</span>
+                  <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-muted px-1.5 text-xs font-semibold text-muted-foreground">
+                    {fase.itens.length}
                   </span>
-                  <span className="font-semibold tabular-nums">{formatCurrency(p.valorTotal)}</span>
-                </div>
-                {p.dataEnvioProposta && (
-                  <p className="text-xs text-muted-foreground">
-                    Enviada em {format(new Date(p.dataEnvioProposta), "dd/MM/yyyy 'às' HH:mm")}
-                  </p>
+                  <ChevronDown
+                    className={cn(
+                      'ml-auto h-4 w-4 shrink-0 text-muted-foreground transition-transform',
+                      fasesAbertas[fase.status] && 'rotate-180',
+                    )}
+                    aria-hidden="true"
+                  />
+                </button>
+
+                {fasesAbertas[fase.status] && (
+                  <div className="mt-1 space-y-3">
+                    {fase.itens.length === 0 ? (
+                      <p className="rounded-lg border border-dashed py-6 text-center text-sm text-muted-foreground">
+                        Nenhuma proposta nesta fase
+                      </p>
+                    ) : (
+                      fase.itens.map((p) => (
+                        <MobileListCard
+                          key={p.id}
+                          onClick={() => navigate(ROUTES.AGENDA_DETALHES.replace(':id', p.id))}
+                          title={p.clienteNome ?? '—'}
+                          subtitle={p.pacoteNome}
+                          trailing={<Badge variant={fase.variant}>{statusInfo[p.status]?.label ?? p.status}</Badge>}
+                          meta={
+                            <div className="flex items-center justify-between gap-2 text-sm">
+                              <span className="text-muted-foreground">
+                                {format(new Date(p.dataHoraEnsaio), "dd/MM/yy 'às' HH:mm", { locale: ptBR })}
+                              </span>
+                              <span className="font-semibold tabular-nums">{formatCurrency(p.valorTotal)}</span>
+                            </div>
+                          }
+                          actions={
+                            <>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => navigate(ROUTES.AGENDA_DETALHES.replace(':id', p.id))}
+                              >
+                                <Eye className="mr-1 h-4 w-4" aria-hidden="true" />
+                                Detalhes
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                aria-label={`Mais ações para ${p.clienteNome ?? 'proposta'}`}
+                                onClick={() => setAcaoProposta(p)}
+                              >
+                                <MoreVertical className="h-5 w-5" aria-hidden="true" />
+                              </Button>
+                            </>
+                          }
+                        />
+                      ))
+                    )}
+                  </div>
                 )}
-                {p.dataAssinatura && (
-                  <p className="text-xs text-muted-foreground">
-                    Assinada em {format(new Date(p.dataAssinatura), "dd/MM/yyyy 'às' HH:mm")}
-                  </p>
-                )}
-                {renderAcoes(p)}
-              </div>
-            )
-          })}
-        </div>
+              </section>
+            ))}
+          </div>
+
+          {/* Desktop: tabela */}
+          <div className="hidden overflow-x-auto rounded-md border md:block">
+            <Table className="min-w-[860px]">
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Cliente</TableHead>
+                  <TableHead>Pacote</TableHead>
+                  <TableHead>Ensaio</TableHead>
+                  <TableHead className="text-right">Total</TableHead>
+                  <TableHead className="text-center">Status</TableHead>
+                  <TableHead className="text-right">Ações</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filtradas.map((p) => {
+                  const info = statusInfo[p.status] ?? { label: p.status, variant: 'warning' as const }
+                  return (
+                    <TableRow key={p.id}>
+                      <TableCell className="font-medium">{p.clienteNome ?? '—'}</TableCell>
+                      <TableCell>{p.pacoteNome}</TableCell>
+                      <TableCell>
+                        {format(new Date(p.dataHoraEnsaio), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
+                      </TableCell>
+                      <TableCell className="text-right tabular-nums">{formatCurrency(p.valorTotal)}</TableCell>
+                      <TableCell className="text-center">
+                        <Badge variant={info.variant}>{info.label}</Badge>
+                        {p.dataEnvioProposta && (
+                          <p className="mt-1 text-xs text-muted-foreground">
+                            Enviada em {format(new Date(p.dataEnvioProposta), "dd/MM/yyyy 'às' HH:mm")}
+                          </p>
+                        )}
+                        {p.dataAssinatura && (
+                          <p className="mt-1 text-xs text-muted-foreground">
+                            Assinada em {format(new Date(p.dataAssinatura), "dd/MM/yyyy 'às' HH:mm")}
+                          </p>
+                        )}
+                      </TableCell>
+                      <TableCell className="text-right">{renderAcoes(p, 'justify-end')}</TableCell>
+                    </TableRow>
+                  )
+                })}
+              </TableBody>
+            </Table>
+          </div>
         </>
       )}
+
+      <Sheet open={!!acaoProposta} onOpenChange={(open) => !open && setAcaoProposta(null)}>
+        <SheetContent className="gap-0 p-0">
+          <SheetHeader className="border-b px-6 pb-4 pr-14 pt-5 text-left">
+            <SheetTitle>Ações da proposta</SheetTitle>
+            <SheetDescription>{acaoProposta?.clienteNome ?? 'Proposta'}</SheetDescription>
+          </SheetHeader>
+          <div className="flex flex-col gap-2 px-6 py-4">
+            {acaoProposta && (
+              <>
+                <Button
+                  variant="outline"
+                  className="justify-start"
+                  onClick={() => {
+                    navigate(ROUTES.AGENDA_DETALHES.replace(':id', acaoProposta.id))
+                    setAcaoProposta(null)
+                  }}
+                >
+                  <Eye className="mr-2 h-4 w-4" aria-hidden="true" />
+                  Ver detalhes
+                </Button>
+                {podeDecidir && acaoProposta.temComprovanteEntrada && (
+                  <Button
+                    variant="outline"
+                    className="justify-start"
+                    onClick={() => {
+                      abrirComprovante(acaoProposta)
+                      setAcaoProposta(null)
+                    }}
+                  >
+                    <Eye className="mr-2 h-4 w-4" aria-hidden="true" />
+                    Ver comprovante
+                  </Button>
+                )}
+                {acaoProposta.temTermoAssinado && (
+                  <Button
+                    variant="outline"
+                    className="justify-start"
+                    onClick={() => {
+                      abrirTermo(acaoProposta)
+                      setAcaoProposta(null)
+                    }}
+                  >
+                    <FileDown className="mr-2 h-4 w-4" aria-hidden="true" />
+                    Ver termo assinado
+                  </Button>
+                )}
+                {linkDe(acaoProposta) && (
+                  <>
+                    <Button
+                      variant="outline"
+                      className="justify-start"
+                      onClick={() => {
+                        void copiarLink(acaoProposta)
+                        setAcaoProposta(null)
+                      }}
+                    >
+                      <Copy className="mr-2 h-4 w-4" aria-hidden="true" />
+                      Copiar link da proposta
+                    </Button>
+                    <Button
+                      variant="outline"
+                      className="justify-start"
+                      onClick={() => window.open(linkDe(acaoProposta)!, '_blank', 'noopener')}
+                    >
+                      <ExternalLink className="mr-2 h-4 w-4" aria-hidden="true" />
+                      Abrir link
+                    </Button>
+                  </>
+                )}
+                {podeDecidir && acaoProposta.status === AGENDAMENTO_STATUS.AGUARDANDO_APROVACAO && (
+                  <Button
+                    className="justify-start"
+                    disabled={confirmar.isPending}
+                    onClick={() => concluirAcao(confirmar.mutate)}
+                  >
+                    <ThumbsUp className="mr-2 h-4 w-4" aria-hidden="true" />
+                    Confirmar pagamento
+                  </Button>
+                )}
+                {podeDecidir && acaoProposta.status === AGENDAMENTO_STATUS.PAGAMENTO_CONFIRMADO && (
+                  <Button
+                    className="justify-start"
+                    disabled={aprovar.isPending}
+                    onClick={() => concluirAcao(aprovar.mutate)}
+                  >
+                    <CheckCircle2 className="mr-2 h-4 w-4" aria-hidden="true" />
+                    Aprovar proposta
+                  </Button>
+                )}
+                {podeDecidir &&
+                  (acaoProposta.status === AGENDAMENTO_STATUS.AGUARDANDO_APROVACAO ||
+                    acaoProposta.status === AGENDAMENTO_STATUS.PAGAMENTO_CONFIRMADO) && (
+                    <Button
+                      variant="outline"
+                      className="justify-start text-destructive hover:text-destructive"
+                      onClick={() => abrirRecusa(acaoProposta)}
+                    >
+                      <XCircle className="mr-2 h-4 w-4" aria-hidden="true" />
+                      Recusar proposta
+                    </Button>
+                  )}
+              </>
+            )}
+          </div>
+        </SheetContent>
+      </Sheet>
 
       <Dialog open={!!recusa} onOpenChange={(open) => !open && setRecusa(null)}>
         <DialogContent>

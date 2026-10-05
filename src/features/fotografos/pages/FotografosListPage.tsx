@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Camera, FileDown, Pencil, Plus, Search, Trash2, ToggleLeft, ToggleRight } from 'lucide-react'
-import { Input } from '@/shared/components/ui/input'
+import { Camera, FileDown, MoreVertical, Pencil, Plus, Trash2, ToggleLeft, ToggleRight } from 'lucide-react'
 import { Button } from '@/shared/components/ui/button'
 import { Badge } from '@/shared/components/ui/badge'
 import {
@@ -13,9 +12,15 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger,
 } from '@/shared/components/ui/alert-dialog'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/shared/components/ui/dropdown-menu'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/shared/components/ui/table'
+import { ListToolbar, MobileListCard } from '@/shared/components/mobile'
 import { useFotografosList, useToggleStatusFotografo, useRemoverFotografo } from '../api/queries'
 import { fotografoService } from '../services/fotografo.service'
 import { toast } from 'sonner'
@@ -91,36 +96,17 @@ export function FotografosListPage() {
       >
         <FileDown className="h-4 w-4" />
       </Button>
-      <AlertDialog>
-        <AlertDialogTrigger asChild>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={(e) => {
-              e.stopPropagation()
-              setDeleteId(f.id)
-            }}
-            aria-label={`Remover ${f.nome}`}
-          >
-            <Trash2 className="h-4 w-4 text-destructive" />
-          </Button>
-        </AlertDialogTrigger>
-        <AlertDialogContent onClick={(e) => e.stopPropagation()}>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Remover Fotógrafo</AlertDialogTitle>
-            <AlertDialogDescription>
-              Tem certeza que deseja remover <strong>{f.nome}</strong>?
-              Esta ação só é permitida se o fotógrafo não tiver ensaios vinculados.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground">
-              Remover
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <Button
+        variant="ghost"
+        size="icon"
+        onClick={(e) => {
+          e.stopPropagation()
+          setDeleteId(f.id)
+        }}
+        aria-label={`Remover ${f.nome}`}
+      >
+        <Trash2 className="h-4 w-4 text-destructive" />
+      </Button>
     </div>
   )
 
@@ -147,24 +133,16 @@ export function FotografosListPage() {
         </div>
       </div>
 
-      <div className="relative">
-        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-        <Input
-          placeholder="Buscar fotógrafo..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="pl-9 max-w-sm"
-        />
-      </div>
+      <ListToolbar searchValue={search} onSearchChange={setSearch} searchPlaceholder="Buscar fotógrafo..." />
 
       {isLoading ? (
         <div className="space-y-3">
           {[1, 2, 3].map((i) => (
-            <div key={i} className="animate-pulse h-20 w-full bg-muted rounded" />
+            <div key={i} className="h-20 w-full animate-pulse rounded bg-muted" />
           ))}
         </div>
       ) : filtered.length === 0 ? (
-        <div className="rounded-lg border bg-card p-12 flex flex-col items-center justify-center">
+        <div className="flex flex-col items-center justify-center rounded-lg border bg-card p-12">
           <Camera className="h-12 w-12 text-muted-foreground/50" />
           <p className="mt-4 text-sm text-muted-foreground">
             {search ? 'Nenhum fotógrafo encontrado' : 'Nenhum fotógrafo cadastrado'}
@@ -172,54 +150,108 @@ export function FotografosListPage() {
         </div>
       ) : (
         <>
-        <div className="hidden rounded-md border overflow-x-auto md:block">
-          <Table className="min-w-[480px]">
-            <TableHeader>
-              <TableRow>
-                <TableHead>Nome</TableHead>
-                <TableHead>Email</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="text-right">Ações</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filtered.map((f) => (
-                <TableRow key={f.id} className="cursor-pointer" onClick={() => navigate(`/fotografos/${f.id}`)}>
-                  <TableCell className="font-medium">{f.nome}</TableCell>
-                  <TableCell>{f.email}</TableCell>
-                  <TableCell>
-                    <Badge variant={f.ativo ? 'success' : 'destructive'}>
-                      {f.ativo ? 'Ativo' : 'Inativo'}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="text-right">{renderAcoes(f)}</TableCell>
+          <div className="hidden overflow-x-auto rounded-md border md:block">
+            <Table className="min-w-[480px]">
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Nome</TableHead>
+                  <TableHead>Email</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead className="text-right">Ações</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
-        <div className="space-y-3 md:hidden">
-          {filtered.map((f) => (
-            <div
-              key={f.id}
-              className="space-y-3 rounded-lg border bg-card p-4"
-              onClick={() => navigate(`/fotografos/${f.id}`)}
-            >
-              <div className="flex items-start justify-between gap-2">
-                <div className="min-w-0">
-                  <p className="truncate font-medium">{f.nome}</p>
-                  <p className="truncate text-xs text-muted-foreground">{f.email}</p>
-                </div>
-                <Badge variant={f.ativo ? 'success' : 'destructive'}>
-                  {f.ativo ? 'Ativo' : 'Inativo'}
-                </Badge>
-              </div>
-              {renderAcoes(f)}
-            </div>
-          ))}
-        </div>
+              </TableHeader>
+              <TableBody>
+                {filtered.map((f) => (
+                  <TableRow key={f.id} className="cursor-pointer" onClick={() => navigate(`/fotografos/${f.id}`)}>
+                    <TableCell className="font-medium">{f.nome}</TableCell>
+                    <TableCell>{f.email}</TableCell>
+                    <TableCell>
+                      <Badge variant={f.ativo ? 'success' : 'destructive'}>
+                        {f.ativo ? 'Ativo' : 'Inativo'}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-right">{renderAcoes(f)}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+
+          <div className="space-y-3 md:hidden">
+            {filtered.map((f) => (
+              <MobileListCard
+                key={f.id}
+                onClick={() => navigate(`/fotografos/${f.id}`)}
+                title={f.nome}
+                subtitle={f.email}
+                trailing={
+                  <Badge variant={f.ativo ? 'success' : 'destructive'}>
+                    {f.ativo ? 'Ativo' : 'Inativo'}
+                  </Badge>
+                }
+                actions={
+                  <>
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      onClick={() => toggleStatus.mutate(f.id)}
+                      aria-label={f.ativo ? `Desativar ${f.nome}` : `Ativar ${f.nome}`}
+                    >
+                      {f.ativo ? <ToggleLeft className="h-5 w-5" aria-hidden="true" /> : <ToggleRight className="h-5 w-5" aria-hidden="true" />}
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      onClick={() => navigate(`/fotografos/${f.id}/editar`)}
+                      aria-label={`Editar ${f.nome}`}
+                    >
+                      <Pencil className="h-5 w-5" aria-hidden="true" />
+                    </Button>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="icon" aria-label={`Mais ações para ${f.nome}`}>
+                          <MoreVertical className="h-5 w-5" aria-hidden="true" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={() => fotografoService.exportarCsv(f.id)}>
+                          <FileDown className="mr-2 h-4 w-4" aria-hidden="true" />
+                          Exportar CSV
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          className="text-destructive focus:text-destructive"
+                          onClick={() => setDeleteId(f.id)}
+                        >
+                          <Trash2 className="mr-2 h-4 w-4" aria-hidden="true" />
+                          Remover
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </>
+                }
+              />
+            ))}
+          </div>
         </>
       )}
+
+      <AlertDialog open={deleteId !== null} onOpenChange={(open) => !open && setDeleteId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Remover Fotógrafo</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja remover este fotógrafo? Esta ação só é permitida se não houver
+              ensaios vinculados.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground">
+              Remover
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }

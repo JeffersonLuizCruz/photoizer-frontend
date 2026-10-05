@@ -29,7 +29,7 @@ export function RelatorioGlobalPage() {
 
       {relatorio && (
         <>
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
             <div className="rounded-lg border bg-card p-4">
               <div className="flex items-center gap-2">
                 <Camera className="h-4 w-4 text-muted-foreground" />
@@ -54,7 +54,7 @@ export function RelatorioGlobalPage() {
             </div>
           </div>
 
-          <div className="grid gap-4 sm:grid-cols-3">
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4">
             <div className="rounded-lg border bg-card p-4">
               <p className="text-xs text-muted-foreground">Valor Cobrado Total</p>
               <p className="text-lg font-bold tabular-nums">{formatCurrency(relatorio.totalValorCobrado)}</p>

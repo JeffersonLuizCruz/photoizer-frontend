@@ -31,13 +31,23 @@ export function MobileNav() {
               end={tab.end}
               className={({ isActive }) =>
                 cn(
-                  'flex min-w-0 flex-1 flex-col items-center justify-center gap-1 py-2 text-[10px] font-medium transition-colors',
-                  isActive ? 'text-primary' : 'text-muted-foreground',
+                  'relative flex min-h-12 min-w-0 flex-1 flex-col items-center justify-center gap-1 py-2 text-[10px] font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring',
+                  isActive ? 'text-primary' : 'text-muted-foreground active:text-foreground',
                 )
               }
             >
-              <Icon className="h-5 w-5 shrink-0" aria-hidden="true" />
-              <span className="w-full max-w-full truncate px-1 text-center">{tab.label}</span>
+              {({ isActive }) => (
+                <>
+                  {isActive && (
+                    <span
+                      className="absolute inset-x-3 top-0 h-0.5 rounded-full bg-primary"
+                      aria-hidden="true"
+                    />
+                  )}
+                  <Icon className="h-5 w-5 shrink-0" aria-hidden="true" />
+                  <span className="w-full max-w-full truncate px-1 text-center">{tab.shortLabel ?? tab.label}</span>
+                </>
+              )}
             </NavLink>
           )
         })}
@@ -48,8 +58,8 @@ export function MobileNav() {
           aria-label="Abrir menu com mais opções"
           aria-expanded={mobileOpen}
           className={cn(
-            'flex min-w-0 flex-1 flex-col items-center justify-center gap-1 py-2 text-[10px] font-medium transition-colors',
-            isMaisActive ? 'text-primary' : 'text-muted-foreground',
+            'flex min-h-12 min-w-0 flex-1 flex-col items-center justify-center gap-1 py-2 text-[10px] font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring',
+            isMaisActive ? 'text-primary' : 'text-muted-foreground active:text-foreground',
           )}
         >
           <MoreHorizontal className="h-5 w-5 shrink-0" aria-hidden="true" />

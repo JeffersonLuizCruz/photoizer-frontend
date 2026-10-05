@@ -3,9 +3,9 @@ import { useNavigate, Navigate } from 'react-router-dom'
 import { CalendarDays, Table2, FilterX, Search, Clock, MapPin } from 'lucide-react'
 import { format } from 'date-fns'
 import { Button } from '@/shared/components/ui/button'
-import { Input } from '@/shared/components/ui/input'
 import { Badge } from '@/shared/components/ui/badge'
 import { PageTitle } from '@/shared/components/layout/PageTitle'
+import { ListToolbar, FilterSheet } from '@/shared/components/mobile'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/components/ui/select'
 import { DateRangePicker, type DateRange } from '@/shared/components/layout/DateRangePicker'
 import { ROUTES } from '@/shared/constants'
@@ -53,6 +53,7 @@ function AgendaPageContent() {
   const [pacoteFilter, setPacoteFilter] = useState('')
   const [dateRange, setDateRange] = useState<DateRange | undefined>()
   const [clientSearch, setClientSearch] = useState('')
+  const [filtrosOpen, setFiltrosOpen] = useState(false)
 
   const debouncedClientSearch = useDebounce(clientSearch, 300)
 
@@ -98,6 +99,82 @@ function AgendaPageContent() {
     setClientSearch('')
   }
 
+  const filtrosControles = (
+    <>
+      <Select value={statusFilter} onValueChange={setStatusFilter}>
+        <SelectTrigger className="w-full sm:w-44">
+          <SelectValue placeholder="Filtrar por status" />
+        </SelectTrigger>
+        <SelectContent>
+          {statusOptions.map((opt) => (
+            <SelectItem key={opt.value} value={opt.value}>
+              {opt.label}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+
+      <Select value={editorFilter} onValueChange={setEditorFilter}>
+        <SelectTrigger className="w-full sm:w-44">
+          <SelectValue placeholder="Filtrar por editor" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="">Todos os editores</SelectItem>
+          {usuarios?.map((u) => (
+            <SelectItem key={u.id} value={u.id}>
+              {u.nome}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+
+      <Select value={pacoteFilter} onValueChange={setPacoteFilter}>
+        <SelectTrigger className="w-full sm:w-44">
+          <SelectValue placeholder="Filtrar por pacote" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="">Todos os pacotes</SelectItem>
+          {pacotes?.map((p) => (
+            <SelectItem key={p.id} value={p.id}>
+              {p.nome}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+
+      <DateRangePicker
+        value={dateRange}
+        onChange={setDateRange}
+        placeholder="Filtrar por período"
+        className="w-full sm:w-56"
+      />
+    </>
+  )
+
+  const viewToggle = (
+    <div className="flex items-center gap-1 rounded-lg border p-0.5">
+      <Button
+        variant={viewMode === 'calendar' ? 'secondary' : 'ghost'}
+        size="sm"
+        onClick={() => setViewMode('calendar')}
+        aria-pressed={viewMode === 'calendar'}
+      >
+        <CalendarDays className="mr-1 h-4 w-4" aria-hidden="true" />
+        <span className="hidden sm:inline">Calendário</span>
+        <span className="sm:hidden">Mês</span>
+      </Button>
+      <Button
+        variant={viewMode === 'list' ? 'secondary' : 'ghost'}
+        size="sm"
+        onClick={() => setViewMode('list')}
+        aria-pressed={viewMode === 'list'}
+      >
+        <Table2 className="mr-1 h-4 w-4" aria-hidden="true" />
+        Lista
+      </Button>
+    </div>
+  )
+
   return (
     <div>
       <PageTitle
@@ -106,93 +183,40 @@ function AgendaPageContent() {
         breadcrumbs={[{ label: 'Agenda' }]}
       />
 
-      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-        <div className="flex flex-wrap items-center gap-2">
-          <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger className="w-full sm:w-44">
-              <SelectValue placeholder="Filtrar por status" />
-            </SelectTrigger>
-            <SelectContent>
-              {statusOptions.map((opt) => (
-                <SelectItem key={opt.value} value={opt.value}>
-                  {opt.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+      <ListToolbar
+        searchValue={clientSearch}
+        onSearchChange={setClientSearch}
+        searchPlaceholder="Buscar cliente..."
+        onOpenFilters={() => setFiltrosOpen(true)}
+        activeFilterCount={[statusFilter, editorFilter, pacoteFilter, dateRange?.from].filter(Boolean).length}
+        right={viewToggle}
+      />
 
-          <Select value={editorFilter} onValueChange={setEditorFilter}>
-            <SelectTrigger className="w-full sm:w-44">
-              <SelectValue placeholder="Filtrar por editor" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="">Todos os editores</SelectItem>
-              {usuarios?.map((u) => (
-                <SelectItem key={u.id} value={u.id}>
-                  {u.nome}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-
-          <Select value={pacoteFilter} onValueChange={setPacoteFilter}>
-            <SelectTrigger className="w-full sm:w-44">
-              <SelectValue placeholder="Filtrar por pacote" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="">Todos os pacotes</SelectItem>
-              {pacotes?.map((p) => (
-                <SelectItem key={p.id} value={p.id}>
-                  {p.nome}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-
-          <DateRangePicker
-            value={dateRange}
-            onChange={setDateRange}
-            placeholder="Filtrar por período"
-            className="w-full sm:w-56"
-          />
-
-          <div className="relative w-full sm:w-44">
-            <Search className="absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-            <Input
-              placeholder="Buscar cliente..."
-              value={clientSearch}
-              onChange={(e) => setClientSearch(e.target.value)}
-              className="w-full pl-8"
-            />
-          </div>
-
-          {hasActiveFilters && (
-            <Button variant="ghost" size="sm" onClick={clearFilters}>
-              <FilterX className="mr-1 h-4 w-4" />
-              Limpar
-            </Button>
-          )}
-        </div>
-
-        <div className="flex items-center gap-1 rounded-lg border p-0.5">
-          <Button
-            variant={viewMode === 'calendar' ? 'secondary' : 'ghost'}
-            size="sm"
-            onClick={() => setViewMode('calendar')}
-          >
-            <CalendarDays className="mr-1 h-4 w-4" />
-            Calendário
+      <div className="mb-4 hidden flex-wrap items-center gap-2 md:flex">
+        {filtrosControles}
+        {hasActiveFilters && (
+          <Button variant="ghost" size="sm" onClick={clearFilters}>
+            <FilterX className="mr-1 h-4 w-4" />
+            Limpar
           </Button>
-          <Button
-            variant={viewMode === 'list' ? 'secondary' : 'ghost'}
-            size="sm"
-            onClick={() => setViewMode('list')}
-          >
-            <Table2 className="mr-1 h-4 w-4" />
-            Lista
-          </Button>
-        </div>
+        )}
       </div>
+
+      <FilterSheet
+        open={filtrosOpen}
+        onOpenChange={setFiltrosOpen}
+        title="Filtrar agenda"
+        description="Refine os ensaios exibidos"
+        onApply={() => setFiltrosOpen(false)}
+        onClear={clearFilters}
+      >
+        <div className="space-y-4">
+          <div className="space-y-2">
+            <span className="text-sm font-medium">Status</span>
+            {filtrosControles}
+          </div>
+        </div>
+      </FilterSheet>
 
       {viewMode === 'calendar' ? (
         <AgendaCalendar

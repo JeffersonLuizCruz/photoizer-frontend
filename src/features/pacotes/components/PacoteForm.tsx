@@ -139,7 +139,7 @@ export function PacoteForm({ onSubmit, defaultValues, isLoading, mode }: PacoteF
         </div>
       </div>
 
-      <div className="flex items-center justify-end gap-2">
+      <div className="sticky bottom-[calc(4rem+env(safe-area-inset-bottom))] z-20 mt-4 flex items-center justify-end gap-2 border-t bg-card py-3 lg:bottom-0">
         <Button type="button" variant="outline" onClick={() => navigate(ROUTES.PACOTES)}>
           Cancelar
         </Button>

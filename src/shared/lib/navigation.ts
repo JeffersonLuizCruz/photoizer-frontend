@@ -77,9 +77,7 @@ const allowedRoutesByPapel: Record<string, Set<string>> = {
   AGENDADOR: new Set([
     ROUTES.AGENDA,
     ROUTES.PACOTES,
-    ROUTES.COMISSOES,
     ROUTES.PROPOSTAS,
-    ROUTES.CONFIG,
   ]),
 }
 
@@ -103,8 +101,8 @@ export function getVisibleEntries(papel: Papel | null): NavEntry[] {
         )
       : navEntries
 
-  // Parceiro (FOTOGRAFO/EDITOR/AGENDADOR) também acessa o autoatendimento (Minhas Finanças, Meu Painel, Minha Agenda)
-  if (papel === 'EDITOR' || papel === 'AGENDADOR') {
+  // Parceiro EDITOR também acessa o autoatendimento (Minhas Finanças, Meu Painel, Minha Agenda)
+  if (papel === 'EDITOR') {
     return [...fotografoEntries, ...base]
   }
 
@@ -114,24 +112,25 @@ export function getVisibleEntries(papel: Papel | null): NavEntry[] {
 export interface MobileTab {
   to: string
   label: string
+  shortLabel?: string
   icon: ElementType
   end?: boolean
 }
 
 const mobilePriority: MobileTab[] = [
-  { to: ROUTES.DASHBOARD, label: 'Dashboard', icon: LayoutDashboard, end: true },
-  { to: ROUTES.AGENDA, label: 'Agenda', icon: Calendar },
-  { to: ROUTES.PROPOSTAS, label: 'Propostas', icon: FileSignature },
-  { to: ROUTES.ADMIN_ECOMMERCE, label: 'Ecommerce', icon: ShoppingCart },
-  { to: ROUTES.PACOTES, label: 'Pacotes', icon: Package },
-  { to: ROUTES.COMISSOES, label: 'Comissões', icon: Percent },
-  { to: ROUTES.CONFIG, label: 'Configurações', icon: Settings },
+  { to: ROUTES.DASHBOARD, label: 'Dashboard', shortLabel: 'Início', icon: LayoutDashboard, end: true },
+  { to: ROUTES.AGENDA, label: 'Agenda', shortLabel: 'Agenda', icon: Calendar },
+  { to: ROUTES.PROPOSTAS, label: 'Propostas', shortLabel: 'Propostas', icon: FileSignature },
+  { to: ROUTES.ADMIN_ECOMMERCE, label: 'Ecommerce', shortLabel: 'Loja', icon: ShoppingCart },
+  { to: ROUTES.PACOTES, label: 'Pacotes', shortLabel: 'Pacotes', icon: Package },
+  { to: ROUTES.COMISSOES, label: 'Comissões', shortLabel: 'Comissões', icon: Percent },
+  { to: ROUTES.CONFIG, label: 'Configurações', shortLabel: 'Ajustes', icon: Settings },
 ]
 
 const fotografoMobileTabs: MobileTab[] = [
-  { to: ROUTES.MEU_PAINEL, label: 'Meu Painel', icon: LayoutDashboard, end: true },
-  { to: ROUTES.MINHA_AGENDA, label: 'Minha Agenda', icon: Calendar },
-  { to: ROUTES.MINHAS_FINANCAS, label: 'Minhas Finanças', icon: DollarSign },
+  { to: ROUTES.MEU_PAINEL, label: 'Meu Painel', shortLabel: 'Painel', icon: LayoutDashboard, end: true },
+  { to: ROUTES.MINHA_AGENDA, label: 'Minha Agenda', shortLabel: 'Agenda', icon: Calendar },
+  { to: ROUTES.MINHAS_FINANCAS, label: 'Minhas Finanças', shortLabel: 'Finanças', icon: DollarSign },
 ]
 
 export function getMobileTabs(papel: Papel | null): MobileTab[] {

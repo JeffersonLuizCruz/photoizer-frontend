@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react'
-import { useForm, FormProvider } from 'react-hook-form'
+import { useForm, FormProvider, type FieldPath } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { format } from 'date-fns'
@@ -58,6 +58,7 @@ export function NovaPropostaPage() {
   const [isOpen, setIsOpen] = useState(false)
   const [selectedIndicadorId, setSelectedIndicadorId] = useState<string | null>(null)
   const [selectedPercentual, setSelectedPercentual] = useState<number | null>(null)
+  const [step, setStep] = useState(0)
   const inputIndicadorRef = useRef<HTMLInputElement>(null)
   const dropdownIndicadorRef = useRef<HTMLDivElement>(null)
   const { data: indicadores = [], isFetching: isFetchingIndicadores } = useIndicadoresSearch(searchIndicador)
@@ -140,6 +141,17 @@ export function NovaPropostaPage() {
     }
   }
 
+  const camposPorPasso: FieldPath<NovaPropostaFormValues>[][] = [
+    ['pacoteId', 'data', 'hora', 'localEnsaio', 'fotografoId'],
+    [],
+    [],
+  ]
+
+  const proximoPasso = async () => {
+    const valido = await methods.trigger(camposPorPasso[step])
+    if (valido) setStep((s) => Math.min(s + 1, 2))
+  }
+
   return (
     <div>
       <PageTitle
@@ -153,6 +165,42 @@ export function NovaPropostaPage() {
 
       <FormProvider {...methods}>
         <form onSubmit={handleSubmit(onSubmit)} className="mx-auto max-w-2xl space-y-6">
+          <div className="space-y-2">
+            <div className="flex items-baseline justify-between gap-2">
+              <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                Passo {step + 1} de 3
+              </p>
+              <h2 className="text-base font-semibold">{['Ensaio', 'Valores', 'Indicação'][step]}</h2>
+            </div>
+            <div
+              role="progressbar"
+              aria-valuemin={0}
+              aria-valuemax={100}
+              aria-valuenow={Math.round(((step + 1) / 3) * 100)}
+              aria-label={`Progresso: passo ${step + 1} de 3`}
+              className="h-1.5 w-full overflow-hidden rounded-full bg-muted"
+            >
+              <div className="h-full rounded-full bg-primary transition-all duration-300" style={{ width: `${((step + 1) / 3) * 100}%` }} />
+            </div>
+            <ol className="flex flex-wrap gap-x-4 gap-y-1" aria-label="Etapas">
+              {['Ensaio', 'Valores', 'Indicação'].map((titulo, index) => (
+                <li key={titulo} className="flex items-center gap-1.5 text-xs">
+                  <span
+                    aria-hidden="true"
+                    className={cn(
+                      'flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-semibold',
+                      index <= step ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground',
+                    )}
+                  >
+                    {index + 1}
+                  </span>
+                  <span className={cn(index === step ? 'font-semibold text-foreground' : 'text-muted-foreground')}>{titulo}</span>
+                </li>
+              ))}
+            </ol>
+          </div>
+
+          {step === 0 && (
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="sm:col-span-2">
               <Label htmlFor="pacoteId">Pacote *</Label>
@@ -268,7 +316,11 @@ export function NovaPropostaPage() {
             <div className="sm:col-span-2 space-y-3 rounded-lg border bg-muted/30 p-4">
               <ParceirosRepasseList base={baseCaculoRepasse} />
             </div>
+          </div>
+          )}
 
+          {step === 1 && (
+          <div className="grid gap-4 sm:grid-cols-2">
             <div>
               <Label htmlFor="custoDeslocamento">Custo de Deslocamento (R$)</Label>
               <CurrencyInput id="custoDeslocamento" value={custoDeslocamento} onChange={(value) => setValue('custoDeslocamento', value, { shouldValidate: true })} />
@@ -290,7 +342,11 @@ export function NovaPropostaPage() {
               <Label htmlFor="observacoes">Observações</Label>
               <Textarea id="observacoes" {...register('observacoes')} rows={3} placeholder="Observações internas sobre a proposta" />
             </div>
+          </div>
+          )}
 
+          {step === 2 && (
+          <div className="grid gap-4 sm:grid-cols-2">
             <div className="sm:col-span-2 space-y-3 rounded-lg border bg-muted/30 p-4">
               <div>
                 <p className="text-sm font-medium">Indicação (opcional)</p>
@@ -384,6 +440,9 @@ export function NovaPropostaPage() {
                     <Label htmlFor="indicadorTelefone">Telefone do Indicador</Label>
                     <Input
                       id="indicadorTelefone"
+                      type="tel"
+                      inputMode="tel"
+                      autoComplete="tel"
                       placeholder="(11) 99999-9999"
                       disabled={!!selectedIndicadorId}
                       value={(indicadorTelefone as string) ?? ''}
@@ -400,13 +459,22 @@ export function NovaPropostaPage() {
               </div>
             </div>
           </div>
+          )}
 
-          <div className="flex items-center justify-end gap-2">
-            <Button type="button" variant="outline" onClick={() => navigate(ROUTES.PROPOSTAS)}>Cancelar</Button>
-            <Button type="submit" disabled={criar.isPending || !!conflito || semFotografo}>
-              {criar.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Criar proposta
-            </Button>
+          <div className="sticky bottom-[calc(4rem+env(safe-area-inset-bottom))] z-20 -mx-4 flex items-center justify-end gap-2 border-t bg-background/95 px-4 py-3 backdrop-blur sm:-mx-6 sm:px-6 lg:bottom-0">
+            {step > 0 ? (
+              <Button type="button" variant="outline" onClick={() => setStep((s) => s - 1)}>Voltar</Button>
+            ) : (
+              <Button type="button" variant="outline" onClick={() => navigate(ROUTES.PROPOSTAS)}>Cancelar</Button>
+            )}
+            {step < 2 ? (
+              <Button type="button" onClick={proximoPasso}>Continuar</Button>
+            ) : (
+              <Button type="submit" disabled={criar.isPending || !!conflito || semFotografo}>
+                {criar.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                Criar proposta
+              </Button>
+            )}
           </div>
         </form>
       </FormProvider>

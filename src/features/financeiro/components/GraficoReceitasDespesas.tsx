@@ -1,6 +1,7 @@
 import { Bar, BarChart, CartesianGrid, Legend, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import { Skeleton } from '@/shared/components/ui/skeleton'
 import { formatCurrency } from '@/shared/lib/format'
+import { useIsMobile } from '@/shared/hooks/use-media-query'
 import type { DadoMensal } from '../types/dashboard.types'
 
 interface GraficoReceitasDespesasProps {
@@ -32,28 +33,46 @@ function TooltipContent({ active, payload, label }: any) {
 }
 
 export function GraficoReceitasDespesas({ data, isLoading }: GraficoReceitasDespesasProps) {
+  const isMobile = useIsMobile()
+
   if (isLoading) {
     return <div className="space-y-3"><Skeleton className="h-56 w-full" /></div>
   }
   return (
-    <div className="h-64">
-      <ResponsiveContainer width="100%" height="100%">
-        <BarChart data={data} margin={{ top: 5, right: 5, left: 5, bottom: 0 }}>
-          <CartesianGrid strokeDasharray="3 3" className="stroke-border" strokeOpacity={0.3} />
-          <XAxis dataKey="mes" tick={{ fontSize: 12 }} className="text-muted-foreground" axisLine={false} tickLine={false} />
-          <YAxis
-            tick={{ fontSize: 11 }}
-            className="text-muted-foreground"
-            axisLine={false}
-            tickLine={false}
-            tickFormatter={(v: number) => (v === 0 ? '0' : `${(v / 1000).toFixed(0)}k`)}
-          />
-          <Tooltip content={<TooltipContent />} />
-          <Legend wrapperStyle={{ fontSize: 12, paddingTop: 8 }} iconType="circle" />
-          <Bar dataKey="receitas" name="Receitas" fill="#10b981" radius={[4, 4, 0, 0]} fillOpacity={0.85} />
-          <Bar dataKey="despesas" name="Despesas" fill="#e1749a" radius={[4, 4, 0, 0]} fillOpacity={0.5} />
-        </BarChart>
-      </ResponsiveContainer>
+    <div>
+      {isMobile && (
+        <div className="mb-2 flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground">
+          <span className="flex items-center gap-1">
+            <span className="inline-block h-2.5 w-2.5 rounded-sm bg-emerald-500" />
+            Receitas
+          </span>
+          <span className="flex items-center gap-1">
+            <span className="inline-block h-2.5 w-2.5 rounded-sm bg-rose-400" />
+            Despesas
+          </span>
+        </div>
+      )}
+      <div className="h-56 sm:h-64">
+        <ResponsiveContainer width="100%" height="100%">
+          <BarChart data={data} margin={{ top: 5, right: 5, left: 5, bottom: 0 }}>
+            <CartesianGrid strokeDasharray="3 3" className="stroke-border" strokeOpacity={0.3} />
+            <XAxis dataKey="mes" tick={{ fontSize: isMobile ? 10 : 12 }} className="text-muted-foreground" axisLine={false} tickLine={false} interval={isMobile ? 'preserveStartEnd' : 0} />
+            {!isMobile && (
+              <YAxis
+                tick={{ fontSize: 11 }}
+                className="text-muted-foreground"
+                axisLine={false}
+                tickLine={false}
+                tickFormatter={(v: number) => (v === 0 ? '0' : `${(v / 1000).toFixed(0)}k`)}
+              />
+            )}
+            <Tooltip content={<TooltipContent />} />
+            {!isMobile && <Legend wrapperStyle={{ fontSize: 12, paddingTop: 8 }} iconType="circle" />}
+            <Bar dataKey="receitas" name="Receitas" fill="#10b981" radius={[4, 4, 0, 0]} fillOpacity={0.85} />
+            <Bar dataKey="despesas" name="Despesas" fill="#e1749a" radius={[4, 4, 0, 0]} fillOpacity={0.5} />
+          </BarChart>
+        </ResponsiveContainer>
+      </div>
     </div>
   )
 }
