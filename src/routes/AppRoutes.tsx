@@ -3,8 +3,12 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { Loader2 } from 'lucide-react'
 import { AppLayout } from '@/shared/components/layout/AppLayout'
 import { ROUTES } from '@/shared/constants'
-import { useAuth } from '@/features/auth/AuthProvider'
+import { useAuth, type Papel } from '@/features/auth/AuthProvider'
 import { LoginPage, ProtectedRoute } from '@/features/auth'
+
+// Papéis que NÃO incluem AGENDADOR (sem visibilidade financeira interna).
+const ROLES_SEM_AGENDADOR: Papel[] = ['ADMIN', 'FOTOGRAFO', 'EDITOR']
+const ROLES_ADMIN: Papel[] = ['ADMIN']
 
 // RNF001: code splitting por rota — cada página é carregada sob demanda
 const GaleriaClientePage = lazy(() => import('@/features/ecommerce/pages/GaleriaClientePage').then(m => ({ default: m.GaleriaClientePage })))
@@ -82,34 +86,34 @@ export function AppRoutes() {
 
           <Route element={<ProtectedRoute><AppLayout /></ProtectedRoute>}>
             <Route path="/" element={<HomeRedirect />} />
-            <Route path={ROUTES.DASHBOARD} element={<DashboardPage />} />
+            <Route path={ROUTES.DASHBOARD} element={<ProtectedRoute allowedRoles={ROLES_SEM_AGENDADOR}><DashboardPage /></ProtectedRoute>} />
             <Route path={ROUTES.AGENDA} element={<AgendaPage />} />
             <Route path={ROUTES.AGENDA_DETALHES} element={<AgendamentoDetalhesPage />} />
-            <Route path={ROUTES.AGENDA_EDITAR} element={<EditarAgendamentoPage />} />
+            <Route path={ROUTES.AGENDA_EDITAR} element={<ProtectedRoute allowedRoles={ROLES_SEM_AGENDADOR}><EditarAgendamentoPage /></ProtectedRoute>} />
             <Route path={ROUTES.PROPOSTAS} element={<PropostasPage />} />
             <Route path={ROUTES.PROPOSTAS_NOVO} element={<NovaPropostaPage />} />
             <Route path={ROUTES.PACOTES} element={<PacotesListPage />} />
             <Route path={ROUTES.PACOTES_NOVO} element={<PacoteFormPage />} />
             <Route path={ROUTES.PACOTES_EDITAR} element={<PacoteFormPage />} />
-            <Route path={ROUTES.FINANCEIRO} element={<FinanceiroDashboardPage />} />
-            <Route path={ROUTES.FINANCEIRO_RECEITAS} element={<ReceitasPage />} />
-            <Route path={ROUTES.FINANCEIRO_DESPESAS} element={<DespesasPage />} />
-            <Route path={ROUTES.FINANCEIRO_FLUXO_CAIXA} element={<FluxoCaixaPage />} />
-            <Route path={ROUTES.FINANCEIRO_RELATORIOS} element={<RelatoriosPage />} />
-            <Route path={ROUTES.CONFIG} element={<ConfigPage />} />
-            <Route path={ROUTES.COMISSOES} element={<ComissoesConsultaPage />} />
+            <Route path={ROUTES.FINANCEIRO} element={<ProtectedRoute allowedRoles={ROLES_ADMIN}><FinanceiroDashboardPage /></ProtectedRoute>} />
+            <Route path={ROUTES.FINANCEIRO_RECEITAS} element={<ProtectedRoute allowedRoles={ROLES_ADMIN}><ReceitasPage /></ProtectedRoute>} />
+            <Route path={ROUTES.FINANCEIRO_DESPESAS} element={<ProtectedRoute allowedRoles={ROLES_ADMIN}><DespesasPage /></ProtectedRoute>} />
+            <Route path={ROUTES.FINANCEIRO_FLUXO_CAIXA} element={<ProtectedRoute allowedRoles={ROLES_ADMIN}><FluxoCaixaPage /></ProtectedRoute>} />
+            <Route path={ROUTES.FINANCEIRO_RELATORIOS} element={<ProtectedRoute allowedRoles={ROLES_ADMIN}><RelatoriosPage /></ProtectedRoute>} />
+            <Route path={ROUTES.CONFIG} element={<ProtectedRoute allowedRoles={ROLES_ADMIN}><ConfigPage /></ProtectedRoute>} />
+            <Route path={ROUTES.COMISSOES} element={<ProtectedRoute allowedRoles={ROLES_SEM_AGENDADOR}><ComissoesConsultaPage /></ProtectedRoute>} />
             <Route path={ROUTES.AGENDA_GALERIA} element={<AdminGaleriaPage />} />
-            <Route path={ROUTES.ADMIN_ECOMMERCE} element={<AdminEcommercePage />} />
-            <Route path={ROUTES.ADMIN_ANALYTICS} element={<AdminAnalyticsPage />} />
-            <Route path={ROUTES.FOTOGRAFOS} element={<FotografosListPage />} />
-            <Route path={ROUTES.FOTOGRAFOS_NOVO} element={<FotografosNovoPage />} />
-            <Route path={ROUTES.FOTOGRAFOS_RELATORIO} element={<RelatorioGlobalPage />} />
-            <Route path={ROUTES.REPASSES_PENDENTES} element={<RepassesPendentesPage />} />
-            <Route path={ROUTES.FOTOGRAFOS_DETALHES} element={<FotografoDashboardPage />} />
-            <Route path={ROUTES.FOTOGRAFOS_EDITAR} element={<FotografosEditarPage />} />
-            <Route path={ROUTES.MEU_PAINEL} element={<MeuPainelPage />} />
-            <Route path={ROUTES.MINHA_AGENDA} element={<MinhaAgendaPage />} />
-            <Route path={ROUTES.MINHAS_FINANCAS} element={<MinhasFinancasPage />} />
+            <Route path={ROUTES.ADMIN_ECOMMERCE} element={<ProtectedRoute allowedRoles={ROLES_SEM_AGENDADOR}><AdminEcommercePage /></ProtectedRoute>} />
+            <Route path={ROUTES.ADMIN_ANALYTICS} element={<ProtectedRoute allowedRoles={ROLES_SEM_AGENDADOR}><AdminAnalyticsPage /></ProtectedRoute>} />
+            <Route path={ROUTES.FOTOGRAFOS} element={<ProtectedRoute allowedRoles={ROLES_SEM_AGENDADOR}><FotografosListPage /></ProtectedRoute>} />
+            <Route path={ROUTES.FOTOGRAFOS_NOVO} element={<ProtectedRoute allowedRoles={ROLES_ADMIN}><FotografosNovoPage /></ProtectedRoute>} />
+            <Route path={ROUTES.FOTOGRAFOS_RELATORIO} element={<ProtectedRoute allowedRoles={ROLES_SEM_AGENDADOR}><RelatorioGlobalPage /></ProtectedRoute>} />
+            <Route path={ROUTES.REPASSES_PENDENTES} element={<ProtectedRoute allowedRoles={ROLES_SEM_AGENDADOR}><RepassesPendentesPage /></ProtectedRoute>} />
+            <Route path={ROUTES.FOTOGRAFOS_DETALHES} element={<ProtectedRoute allowedRoles={ROLES_SEM_AGENDADOR}><FotografoDashboardPage /></ProtectedRoute>} />
+            <Route path={ROUTES.FOTOGRAFOS_EDITAR} element={<ProtectedRoute allowedRoles={ROLES_ADMIN}><FotografosEditarPage /></ProtectedRoute>} />
+            <Route path={ROUTES.MEU_PAINEL} element={<ProtectedRoute allowedRoles={ROLES_SEM_AGENDADOR}><MeuPainelPage /></ProtectedRoute>} />
+            <Route path={ROUTES.MINHA_AGENDA} element={<ProtectedRoute allowedRoles={ROLES_SEM_AGENDADOR}><MinhaAgendaPage /></ProtectedRoute>} />
+            <Route path={ROUTES.MINHAS_FINANCAS} element={<ProtectedRoute allowedRoles={ROLES_SEM_AGENDADOR}><MinhasFinancasPage /></ProtectedRoute>} />
           </Route>
 
           <Route path="*" element={<NotFound />} />

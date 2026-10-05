@@ -7,10 +7,11 @@ export type PapelParceiro = 'ADMIN' | 'FOTOGRAFO' | 'EDITOR' | 'AGENDADOR'
 export interface FotografoNoAgendamento {
   fotografoId: string
   fotografoNome: string
-  valorRepassar: number
+  // Repasse é métrica interna: vem null para papéis sem visibilidade financeira (AGENDADOR).
+  valorRepassar: number | null
   status: RepasseStatus
   dataPagamento: string | null
-  tipoValor: TipoRepasse
+  tipoValor: TipoRepasse | null
   percentual: number | null
   papelParceiro: PapelParceiro | null
 }
@@ -56,7 +57,8 @@ export interface Agendamento {
   valorRestante: number
   valorExtras: number
   taxaDeslocamento: number
-  custoDeslocamento: number
+  // Custo interno: vem null para papéis sem visibilidade financeira (AGENDADOR).
+  custoDeslocamento: number | null
   repassarDeslocamento: boolean
   valorTotalFinal: number
   percentualEntrada: number

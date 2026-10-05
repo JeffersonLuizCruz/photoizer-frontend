@@ -47,11 +47,11 @@ export function EditarAgendamentoForm({ agendamento, onSubmit, isPending }: Edit
       fotografoId: agendamento.fotografoId ?? undefined,
       fotografos: (agendamento.fotografos ?? []).map((f) => ({
         fotografoId: f.fotografoId,
-        valorRepassar: f.tipoValor === 'PERCENTUAL' ? undefined : f.valorRepassar,
+        valorRepassar: f.tipoValor === 'PERCENTUAL' ? undefined : (f.valorRepassar ?? undefined),
         tipoValor: f.tipoValor ?? 'FIXO',
         percentual: f.tipoValor === 'PERCENTUAL' ? (f.percentual ?? undefined) : undefined,
       })),
-      custoDeslocamento: agendamento.custoDeslocamento,
+      custoDeslocamento: agendamento.custoDeslocamento ?? 0,
       repassarDeslocamento: agendamento.repassarDeslocamento,
       autorizaUsoImagem: agendamento.autorizaUsoImagem,
       observacoes: agendamento.observacoes ?? '',

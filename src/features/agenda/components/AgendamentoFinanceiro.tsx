@@ -126,7 +126,7 @@ export function AgendamentoFinanceiro({ agendamento }: AgendamentoFinanceiroProp
     },
     {
       descricao: agendamento.repassarDeslocamento ? 'Custo de Deslocamento' : 'Custo de Deslocamento (absorvido)',
-      valor: agendamento.custoDeslocamento,
+      valor: agendamento.custoDeslocamento ?? 0,
       tipo: 'positivo',
     },
     {

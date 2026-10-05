@@ -6,6 +6,7 @@ import type { Agendamento } from '../types'
 import { Badge } from '@/shared/components/ui/badge'
 import { Button } from '@/shared/components/ui/button'
 import { EditarClienteDialog } from './EditarClienteDialog'
+import { useAuth } from '@/features/auth/AuthProvider'
 
 interface AgendamentoResumoProps {
   agendamento: Agendamento
@@ -35,6 +36,8 @@ function InfoRow({ label, value }: { label: string; value: string | null | undef
 
 export function AgendamentoResumo({ agendamento }: AgendamentoResumoProps) {
   const [editClienteOpen, setEditClienteOpen] = useState(false)
+  const { isAgendador } = useAuth()
+  const podeVerMetricasInternas = !isAgendador
 
   const dataEnsaio = agendamento.dataHoraEnsaio
     ? format(new Date(agendamento.dataHoraEnsaio), "dd 'de' MMM 'de' yyyy", { locale: ptBR })
@@ -127,23 +130,25 @@ export function AgendamentoResumo({ agendamento }: AgendamentoResumoProps) {
       <InfoCard icon={DollarSign} title="Resumo Financeiro">
         <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/60 mb-1">Receita</p>
         <InfoRow label="Valor do Pacote" value={`R$ ${agendamento.valorPacote.toFixed(2)}`} />
-        <div className="flex items-center justify-between gap-2">
-          <span className="text-muted-foreground shrink-0">Custo Deslocamento:</span>
-          <div className="flex items-center gap-1.5">
-            <span className="text-right font-medium">R$ {agendamento.custoDeslocamento.toFixed(2)}</span>
-            {agendamento.repassarDeslocamento ? (
-              <span className="text-[10px] text-muted-foreground">(repassado)</span>
-            ) : (
-              <span className="text-[10px] text-destructive">(absorvido)</span>
-            )}
+        {podeVerMetricasInternas && (
+          <div className="flex items-center justify-between gap-2">
+            <span className="text-muted-foreground shrink-0">Custo Deslocamento:</span>
+            <div className="flex items-center gap-1.5">
+              <span className="text-right font-medium">R$ {(agendamento.custoDeslocamento ?? 0).toFixed(2)}</span>
+              {agendamento.repassarDeslocamento ? (
+                <span className="text-[10px] text-muted-foreground">(repassado)</span>
+              ) : (
+                <span className="text-[10px] text-destructive">(absorvido)</span>
+              )}
+            </div>
           </div>
-        </div>
+        )}
         <InfoRow label="Fotos Extras" value={agendamento.valorExtras > 0 ? `R$ ${agendamento.valorExtras.toFixed(2)}` : 'R$ 0,00'} />
         <div className="border-t pt-2 mt-2">
           <InfoRow label="Total Bruto" value={`R$ ${agendamento.valorTotal.toFixed(2)}`} />
         </div>
 
-        {agendamento.valorComissao != null && agendamento.indicadorNome && (
+        {podeVerMetricasInternas && agendamento.valorComissao != null && agendamento.indicadorNome && (
           <>
             <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/60 mt-4 mb-1">Obrigações</p>
             <div className="flex items-center justify-between gap-2">
@@ -174,7 +179,9 @@ export function AgendamentoResumo({ agendamento }: AgendamentoResumoProps) {
         <InfoRow label={`Restante (${100 - agendamento.percentualEntrada}%)`} value={`R$ ${agendamento.valorRestante.toFixed(2)}`} />
         <div className="border-t pt-2 mt-2">
           <InfoRow label="Total Final" value={`R$ ${agendamento.valorTotalFinal.toFixed(2)}`} />
-          <InfoRow label="Líquido Estimado" value={`R$ ${(agendamento.valorTotalFinal - (agendamento.valorComissao ?? 0) - (agendamento.repassarDeslocamento ? 0 : agendamento.custoDeslocamento)).toFixed(2)}`} />
+          {podeVerMetricasInternas && (
+            <InfoRow label="Líquido Estimado" value={`R$ ${(agendamento.valorTotalFinal - (agendamento.valorComissao ?? 0) - (agendamento.repassarDeslocamento ? 0 : (agendamento.custoDeslocamento ?? 0))).toFixed(2)}`} />
+          )}
         </div>
       </InfoCard>
 
