@@ -1,0 +1,107 @@
+name: CD
+
+on:
+  push:
+    branches: [develop, homolog, main]
+    tags: ['v*']
+
+permissions:
+  contents: read
+  packages: write
+
+env:
+  IMAGE: ghcr.io/${{ github.repository }}
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Login no GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build e push (develop -> :develop)
+        if: github.ref == 'refs/heads/develop'
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          build-args: VITE_API_URL=/api/v1
+          tags: ${{ env.IMAGE }}:develop
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Build e push (homolog -> :homolog)
+        if: github.ref == 'refs/heads/homolog'
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          build-args: VITE_API_URL=/api/v1
+          tags: ${{ env.IMAGE }}:homolog
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Build e push (main -> :prod e :latest)
+        if: github.ref == 'refs/heads/main'
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          build-args: VITE_API_URL=/api/v1
+          tags: |
+            ${{ env.IMAGE }}:prod
+            ${{ env.IMAGE }}:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Build e push (tag -> :prod e :vX.Y.Z)
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          build-args: VITE_API_URL=/api/v1
+          tags: |
+            ${{ env.IMAGE }}:prod
+            ${{ env.IMAGE }}:${{ github.ref_name }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  deploy-dev:
+    needs: publish
+    if: github.ref == 'refs/heads/develop'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Disparar deploy DEV no Coolify
+        run: |
+          curl -fsS -X POST "${{ secrets.COOLIFY_DEV_WEBHOOK }}" \
+            -H "Authorization: Bearer ${{ secrets.COOLIFY_DEV_TOKEN }}"
+
+  deploy-homolog:
+    needs: publish
+    if: github.ref == 'refs/heads/homolog'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Disparar deploy HOMOLOG no Coolify
+        run: |
+          curl -fsS -X POST "${{ secrets.COOLIFY_HOMOLOG_WEBHOOK }}" \
+            -H "Authorization: Bearer ${{ secrets.COOLIFY_HOMOLOG_TOKEN }}"
+
+  deploy-prod:
+    needs: publish
+    if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v')
+    environment: production
+    runs-on: ubuntu-latest
+    steps:
+      - name: Disparar deploy PROD no Coolify
+        run: |
+          curl -fsS -X POST "${{ secrets.COOLIFY_PROD_WEBHOOK }}" \
+            -H "Authorization: Bearer ${{ secrets.COOLIFY_PROD_TOKEN }}"
