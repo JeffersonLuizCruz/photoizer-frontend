@@ -2,21 +2,60 @@ name: CD
 
 on:
   push:
-    branches: [develop, homolog, main]
+    branches: [main]
     tags: ['v*']
+
+# Deploy de PROD (ambiente unico):
+#   push/merge na main (ou tag vX.Y.Z)
+#     -> test (CI) -> publish (GHCR) -> deploy-prod (aprovacao manual)
+#
+# O push no GHCR usa o GITHUB_TOKEN nativo (permissions: packages: write);
+# nao ha secret de registry. Habilitar "Read and write" em
+# Settings > Actions > General > Workflow permissions.
+#
+# Secrets necessarios (Settings > Secrets and variables > Actions):
+#   COOLIFY_URL           -> base da API (ex.: https://coolify.photoizer.com.br)
+#   COOLIFY_TOKEN         -> API token do Coolify (escopo de deploy)
+#   COOLIFY_PROD_APP_UUID -> UUID do app de PROD no Coolify
 
 permissions:
   contents: read
   packages: write
 
-env:
-  IMAGE: ghcr.io/${{ github.repository }}
+concurrency:
+  group: cd-${{ github.ref }}
+  cancel-in-progress: false
 
 jobs:
-  publish:
+  test:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
+      - name: Configurar Node 24
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+
+      - name: Instalar dependencias
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Build (typecheck + Vite)
+        run: npm run build
+
+  publish:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # GHCR exige nome de imagem minusculo.
+      - name: Definir imagem (GHCR)
+        run: echo "IMAGE=ghcr.io/${GITHUB_REPOSITORY,,}" >> "$GITHUB_ENV"
 
       - uses: docker/setup-buildx-action@v3
 
@@ -27,81 +66,40 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build e push (develop -> :develop)
-        if: github.ref == 'refs/heads/develop'
-        uses: docker/build-push-action@v6
+      - name: Metadados da imagem (tags)
+        id: meta
+        uses: docker/metadata-action@v5
         with:
-          context: .
-          push: true
-          build-args: VITE_API_URL=/api/v1
-          tags: ${{ env.IMAGE }}:develop
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-
-      - name: Build e push (homolog -> :homolog)
-        if: github.ref == 'refs/heads/homolog'
-        uses: docker/build-push-action@v6
-        with:
-          context: .
-          push: true
-          build-args: VITE_API_URL=/api/v1
-          tags: ${{ env.IMAGE }}:homolog
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-
-      - name: Build e push (main -> :prod e :latest)
-        if: github.ref == 'refs/heads/main'
-        uses: docker/build-push-action@v6
-        with:
-          context: .
-          push: true
-          build-args: VITE_API_URL=/api/v1
+          images: ${{ env.IMAGE }}
           tags: |
-            ${{ env.IMAGE }}:prod
-            ${{ env.IMAGE }}:latest
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+            type=sha,prefix=sha-
+            type=ref,event=tag
+            type=raw,value=prod
+            type=raw,value=latest
 
-      - name: Build e push (tag -> :prod e :vX.Y.Z)
-        if: startsWith(github.ref, 'refs/tags/v')
+      # VITE_API_URL relativo: o Nginx do container faz proxy de /api para
+      # BACKEND_URL (definido em runtime no Coolify).
+      - name: Build e push (GHCR)
         uses: docker/build-push-action@v6
         with:
           context: .
           push: true
           build-args: VITE_API_URL=/api/v1
-          tags: |
-            ${{ env.IMAGE }}:prod
-            ${{ env.IMAGE }}:${{ github.ref_name }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
-
-  deploy-dev:
-    needs: publish
-    if: github.ref == 'refs/heads/develop'
-    runs-on: ubuntu-latest
-    steps:
-      - name: Disparar deploy DEV no Coolify
-        run: |
-          curl -fsS -X POST "${{ secrets.COOLIFY_DEV_WEBHOOK }}" \
-            -H "Authorization: Bearer ${{ secrets.COOLIFY_DEV_TOKEN }}"
-
-  deploy-homolog:
-    needs: publish
-    if: github.ref == 'refs/heads/homolog'
-    runs-on: ubuntu-latest
-    steps:
-      - name: Disparar deploy HOMOLOG no Coolify
-        run: |
-          curl -fsS -X POST "${{ secrets.COOLIFY_HOMOLOG_WEBHOOK }}" \
-            -H "Authorization: Bearer ${{ secrets.COOLIFY_HOMOLOG_TOKEN }}"
 
   deploy-prod:
     needs: publish
-    if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v')
-    environment: production
     runs-on: ubuntu-latest
+    environment: production
     steps:
       - name: Disparar deploy PROD no Coolify
         run: |
-          curl -fsS -X POST "${{ secrets.COOLIFY_PROD_WEBHOOK }}" \
-            -H "Authorization: Bearer ${{ secrets.COOLIFY_PROD_TOKEN }}"
+          curl -fsS -X POST "$COOLIFY_URL/api/v1/deploy?uuid=$COOLIFY_PROD_APP_UUID" \
+            -H "Authorization: Bearer $COOLIFY_TOKEN"
+        env:
+          COOLIFY_URL: ${{ secrets.COOLIFY_URL }}
+          COOLIFY_TOKEN: ${{ secrets.COOLIFY_TOKEN }}
+          COOLIFY_PROD_APP_UUID: ${{ secrets.COOLIFY_PROD_APP_UUID }}
