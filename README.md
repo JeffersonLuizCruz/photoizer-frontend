@@ -30,8 +30,8 @@ Em desenvolvimento o Vite faz **proxy de `/api` para `http://localhost:8080`**
 
 ### Autenticação (login)
 
-Use um dos usuários semeados pelo backend (senha `dev123`). ADMIN e AGENDADOR são
-semeados em todos os ambientes; os demais são exclusivos de `dev`:
+Em **desenvolvimento**, use um dos usuários semeados pelo backend (senha `dev123`).
+ADMIN e AGENDADOR são semeados em todos os ambientes; os demais são exclusivos de `dev`:
 
 | Papel | E-mail | Ambiente |
 |-------|--------|----------|
@@ -39,6 +39,11 @@ semeados em todos os ambientes; os demais são exclusivos de `dev`:
 | AGENDADOR | `agendamento@photoizer.com` | todos |
 | FOTOGRAFO | `fotografo.teste@photoizer.com` | dev |
 | EDITOR | `editor.teste@photoizer.com` | dev |
+
+> Fora de `dev` (HOMOLOG/PROD), a senha padrão `dev123` é **rotacionada no boot** para o
+> valor de `ADMIN_PASSWORD`/`AGENDADOR_PASSWORD` (ver `AdminCredentialRotationSeeder`).
+> As credenciais reais ficam no cofre, não aqui. Detalhes em
+> `docs/infra/GUIA_SUBIDA_AMBIENTES.md` §9.3.
 
 - **Login da equipe:** rota `/login`.
 - **Login do cliente (e-commerce):** rota `/acesso-cliente` (autorregistro público).
