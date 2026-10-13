@@ -270,7 +270,7 @@ export function EditarAgendamentoForm({ agendamento, onSubmit, isPending }: Edit
         </div>
       </div>
 
-      <div className="flex items-center justify-end gap-2">
+      <div className="sticky bottom-[calc(4rem+env(safe-area-inset-bottom))] z-20 mt-4 flex items-center justify-end gap-2 border-t bg-background/95 py-3 backdrop-blur lg:bottom-0">
         <Button type="button" variant="outline" onClick={() => navigate(`/agenda/${agendamento.id}`)}>
           Cancelar
         </Button>

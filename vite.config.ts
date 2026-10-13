@@ -14,6 +14,7 @@ export default defineConfig({
       injectRegister: null,
       includeAssets: ['favicon.ico', 'favicon.svg', 'apple-touch-icon-180x180.png'],
       manifest: {
+        id: '/',
         name: 'Photoizer CRM',
         short_name: 'Photoizer',
         description: 'CRM para estúdio de fotografia: clientes, agenda, financeiro e e-commerce.',
@@ -21,7 +22,9 @@ export default defineConfig({
         start_url: '/',
         scope: '/',
         display: 'standalone',
-        orientation: 'portrait',
+        display_override: ['standalone', 'minimal-ui'],
+        orientation: 'any',
+        categories: ['business', 'productivity'],
         theme_color: '#863bff',
         background_color: '#ffffff',
         icons: [
@@ -29,6 +32,36 @@ export default defineConfig({
           { src: '/pwa-192x192.png', sizes: '192x192', type: 'image/png' },
           { src: '/pwa-512x512.png', sizes: '512x512', type: 'image/png' },
           { src: '/maskable-icon-512x512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
+        ],
+        shortcuts: [
+          {
+            name: 'Agenda',
+            short_name: 'Agenda',
+            description: 'Ver a agenda de ensaios',
+            url: '/agenda',
+            icons: [{ src: '/pwa-192x192.png', sizes: '192x192', type: 'image/png' }],
+          },
+          {
+            name: 'Pacotes',
+            short_name: 'Pacotes',
+            description: 'Gerenciar pacotes',
+            url: '/pacotes',
+            icons: [{ src: '/pwa-192x192.png', sizes: '192x192', type: 'image/png' }],
+          },
+          {
+            name: 'Nova Proposta',
+            short_name: 'Proposta',
+            description: 'Criar uma nova proposta',
+            url: '/propostas/nova',
+            icons: [{ src: '/pwa-192x192.png', sizes: '192x192', type: 'image/png' }],
+          },
+          {
+            name: 'Financeiro',
+            short_name: 'Financeiro',
+            description: 'Abrir o financeiro',
+            url: '/financeiro',
+            icons: [{ src: '/pwa-192x192.png', sizes: '192x192', type: 'image/png' }],
+          },
         ],
       },
       workbox: {

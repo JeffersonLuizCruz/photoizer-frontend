@@ -143,7 +143,7 @@ export function FotoViewer({
         </button>
       )}
       <div className={cn(
-        'relative h-full max-h-[85vh] w-full max-w-[90vw] bg-contain bg-center bg-no-repeat transition-opacity duration-300',
+        'relative h-full max-h-[85dvh] w-full max-w-[90vw] bg-contain bg-center bg-no-repeat transition-opacity duration-300',
         commentsOpen ? 'opacity-40 sm:opacity-100' : 'opacity-100',
       )}
         style={{ backgroundImage: `url("${foto.watermarkedUrl}")` }}

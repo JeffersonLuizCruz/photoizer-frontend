@@ -14,7 +14,6 @@ import {
 } from '@/shared/components/ui/dropdown-menu'
 import { useAuth } from '@/features/auth/AuthProvider'
 import { NotificationBell } from '@/features/notificacoes/components/NotificationBell'
-import { useIsTablet } from '@/shared/hooks/use-media-query'
 
 const papelConfig = {
   ADMIN: { label: 'Admin', variant: 'default' as const },
@@ -26,11 +25,8 @@ const papelConfig = {
 export function Header() {
   const toggle = useSidebarStore((state) => state.toggle)
   const isOpen = useSidebarStore((state) => state.isOpen)
-  const toggleMobile = useSidebarStore((state) => state.setMobileOpen)
-  const mobileOpen = useSidebarStore((state) => state.mobileOpen)
   const { theme, toggleTheme } = useThemeStore()
   const { user, logout } = useAuth()
-  const isTablet = useIsTablet()
 
   const initials = user?.nome
     ?.split(' ')
@@ -46,10 +42,11 @@ export function Header() {
       <Button
         variant="ghost"
         size="icon"
-        onClick={isTablet ? () => toggleMobile(!mobileOpen) : toggle}
+        onClick={toggle}
         aria-label="Alternar menu lateral"
-        aria-expanded={isTablet ? mobileOpen : isOpen}
+        aria-expanded={isOpen}
         aria-controls="app-sidebar"
+        className="hidden lg:inline-flex"
       >
         <PanelLeft className="h-5 w-5" />
       </Button>

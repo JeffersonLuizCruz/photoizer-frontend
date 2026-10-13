@@ -34,7 +34,7 @@ export function CustomerDashboardPage() {
   const agendamentosSemFotos = agendamentos.filter(a => a.totalFotosPublicadas === 0)
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background to-muted/30">
+    <div className="min-h-dvh bg-gradient-to-b from-background to-muted/30">
       <header className="border-b bg-background/95 backdrop-blur">
         <div className="max-w-5xl mx-auto px-4 h-14 pt-[env(safe-area-inset-top)] flex items-center justify-between">
           <div className="flex items-center gap-2">

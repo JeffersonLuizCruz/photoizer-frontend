@@ -21,6 +21,7 @@ import type { Agendamento } from '../types'
 import { AGENDAMENTO_STATUS, FORMA_PAGAMENTO, FORMA_PAGAMENTO_LABELS } from '@/shared/constants'
 import type { FormaPagamento } from '@/shared/constants'
 import { extractErrorMessage } from '@/shared/api'
+import { cn } from '@/shared/lib/cn'
 
 interface AgendamentoFinanceiroProps {
   agendamento: Agendamento
@@ -201,7 +202,7 @@ export function AgendamentoFinanceiro({ agendamento }: AgendamentoFinanceiroProp
         </div>
       </div>
 
-      <div className="rounded-md border overflow-x-auto">
+      <div className="hidden rounded-md border overflow-x-auto md:block">
         <Table className="min-w-[560px]">
           <TableHeader>
             <TableRow>
@@ -268,6 +269,56 @@ export function AgendamentoFinanceiro({ agendamento }: AgendamentoFinanceiroProp
         </Table>
       </div>
 
+      <div className="space-y-2 md:hidden">
+        {rows.map((row, index) => (
+          <div key={index} className="flex items-start justify-between gap-3 rounded-lg border bg-card p-3">
+            <span
+              className={cn(
+                'text-sm',
+                row.tipo === 'total' && 'font-semibold',
+                row.tipo === 'negativo' && 'text-muted-foreground',
+              )}
+            >
+              {row.descricao}
+            </span>
+            <div className="flex flex-col items-end gap-1">
+              <span
+                className={cn(
+                  'text-sm font-medium tabular-nums',
+                  row.tipo === 'negativo' ? 'text-muted-foreground' : 'text-emerald-600 dark:text-emerald-400',
+                )}
+              >
+                {row.tipo === 'negativo' ? '' : '+ '}R$ {row.valor.toFixed(2)}
+              </span>
+              {(row.status || row.formaPagamento) && (
+                <div className="flex flex-wrap items-center justify-end gap-1">
+                  {row.status && (
+                    <Badge
+                      variant={row.status === 'Pago' ? 'success' : row.status === 'Pendente' ? 'warning' : 'default'}
+                    >
+                      {row.status}
+                    </Badge>
+                  )}
+                  {row.formaPagamento && (
+                    <Badge
+                      variant="outline"
+                      className={
+                        row.formaPagamento === FORMA_PAGAMENTO.DINHEIRO
+                          ? 'border-amber-500/50 text-amber-600 dark:text-amber-400'
+                          : undefined
+                      }
+                    >
+                      {row.formaPagamento === FORMA_PAGAMENTO.DINHEIRO && <Banknote className="mr-1 h-3 w-3" />}
+                      {FORMA_PAGAMENTO_LABELS[row.formaPagamento] ?? row.formaPagamento}
+                    </Badge>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+        ))}
+      </div>
+
       {isLoading ? (
         <div className="space-y-3">
           <div className="animate-pulse h-8 w-full bg-muted rounded" />
@@ -332,7 +383,7 @@ export function AgendamentoFinanceiro({ agendamento }: AgendamentoFinanceiroProp
             )}
           </div>
 
-          <div className="rounded-md border overflow-x-auto">
+          <div className="hidden rounded-md border overflow-x-auto md:block">
             <Table className="min-w-[720px]">
               <TableHeader>
                 <TableRow>
@@ -434,12 +485,98 @@ export function AgendamentoFinanceiro({ agendamento }: AgendamentoFinanceiroProp
             </Table>
           </div>
 
+          <div className="space-y-2 md:hidden">
+            {resumo.fotografos.map((f) => (
+              <div key={f.fotografoId} className="space-y-3 rounded-lg border bg-card p-4">
+                <div className="flex items-start justify-between gap-2">
+                  <p className="font-medium">{f.fotografoNome}</p>
+                  <Badge
+                    variant={
+                      f.statusRepasse === 'PAGO'
+                        ? 'success'
+                        : f.statusRepasse === 'CANCELADO'
+                          ? 'destructive'
+                          : 'warning'
+                    }
+                  >
+                    {f.statusRepasse === 'PAGO' ? 'Pago' : f.statusRepasse === 'CANCELADO' ? 'Cancelado' : 'Pendente'}
+                  </Badge>
+                </div>
+                <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-sm">
+                  <div className="flex justify-between gap-2">
+                    <span className="text-muted-foreground">Custos</span>
+                    <span className="tabular-nums">{formatCurrency(f.custos)}</span>
+                  </div>
+                  <div className="flex justify-between gap-2">
+                    <span className="text-muted-foreground">Repasse</span>
+                    <span className="font-semibold tabular-nums">{formatCurrency(f.valorRepassar)}</span>
+                  </div>
+                  <div className="flex justify-between gap-2">
+                    <span className="text-muted-foreground">Tipo</span>
+                    <span>{f.tipoValor === 'PERCENTUAL' ? `${f.percentual ?? 0}%` : 'R$'}</span>
+                  </div>
+                  {f.dataPagamento && (
+                    <div className="flex justify-between gap-2">
+                      <span className="text-muted-foreground">Pago em</span>
+                      <span>{format(new Date(f.dataPagamento), 'dd/MM/yyyy')}</span>
+                    </div>
+                  )}
+                </div>
+                {((isAdmin && f.statusRepasse === 'PENDENTE') || f.statusRepasse === 'PAGO') && (
+                  <div className="flex flex-wrap items-center gap-2 border-t pt-3">
+                    {isAdmin && f.statusRepasse === 'PENDENTE' && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setEditandoFotografoId(f.fotografoId)}
+                        disabled={atualizarRepasse.isPending}
+                      >
+                        <Pencil className="mr-1 h-4 w-4" />
+                        Editar
+                      </Button>
+                    )}
+                    {isAdmin && f.statusRepasse === 'PENDENTE' && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => pagarRepasse.mutate({ agendamentoId: agendamento.id, fotografoId: f.fotografoId })}
+                        disabled={pagarRepasse.isPending || !ensaioFinalizado}
+                        title={!ensaioFinalizado ? 'O repasse só pode ser realizado após a finalização do ensaio' : undefined}
+                      >
+                        <HandCoins className="mr-1 h-4 w-4" />
+                        Pagar
+                      </Button>
+                    )}
+                    {f.statusRepasse === 'PAGO' && <span className="text-xs font-medium text-emerald-600">Pago</span>}
+                  </div>
+                )}
+                {editandoFotografoId === f.fotografoId && (
+                  <RepasseInlineEditor
+                    initial={{
+                      tipoValor: f.tipoValor,
+                      percentual: f.percentual,
+                      valorRepassar: f.valorRepassar,
+                    }}
+                    isSaving={atualizarRepasse.isPending}
+                    onSave={(payload) =>
+                      atualizarRepasse.mutate(
+                        { agendamentoId: agendamento.id, fotografoId: f.fotografoId, payload },
+                        { onSuccess: () => setEditandoFotografoId(null) },
+                      )
+                    }
+                    onCancel={() => setEditandoFotografoId(null)}
+                  />
+                )}
+              </div>
+            ))}
+          </div>
+
           {resumo.custosFotografo && resumo.custosFotografo.length > 0 && (
             <div className="space-y-2">
               <h5 className="flex items-center gap-2 text-xs font-semibold text-muted-foreground">
                 Custos dos Fotógrafos
               </h5>
-              <div className="rounded-md border overflow-x-auto">
+              <div className="hidden rounded-md border overflow-x-auto md:block">
                 <Table className="min-w-[420px]">
                   <TableHeader>
                     <TableRow>
@@ -464,6 +601,20 @@ export function AgendamentoFinanceiro({ agendamento }: AgendamentoFinanceiroProp
                   </TableBody>
                 </Table>
               </div>
+              <div className="space-y-2 md:hidden">
+                {resumo.custosFotografo.map((d) => (
+                  <div key={d.id} className="flex items-center justify-between gap-3 rounded-lg border bg-card p-3">
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-medium">{d.descricao}</p>
+                      <Badge variant="outline" className="mt-1 gap-1">
+                        <span className="h-2 w-2 rounded-full" style={{ backgroundColor: d.cor ?? '#888' }} />
+                        {d.categoria}
+                      </Badge>
+                    </div>
+                    <span className="shrink-0 text-sm font-medium tabular-nums">{formatCurrency(d.valor)}</span>
+                  </div>
+                ))}
+              </div>
             </div>
           )}
         </>
@@ -486,7 +637,7 @@ export function AgendamentoFinanceiro({ agendamento }: AgendamentoFinanceiroProp
             </Button>
           </div>
         </div>
-        <div className="rounded-md border overflow-x-auto">
+        <div className="hidden rounded-md border overflow-x-auto md:block">
           <Table className="min-w-[560px]">
             <TableHeader>
               <TableRow>
@@ -530,6 +681,44 @@ export function AgendamentoFinanceiro({ agendamento }: AgendamentoFinanceiroProp
             </TableBody>
           </Table>
         </div>
+
+        <div className="space-y-2 md:hidden">
+          {(resumo?.despesas ?? []).length === 0 && (
+            <p className="rounded-lg border bg-card p-4 text-center text-sm text-muted-foreground">
+              Nenhuma despesa vinculada a este trabalho.
+            </p>
+          )}
+          {(resumo?.despesas ?? []).map((d) => (
+            <div key={d.id} className="space-y-2 rounded-lg border bg-card p-3">
+              <div className="flex items-start justify-between gap-2">
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-medium">{d.descricao}</p>
+                  <Badge variant="outline" className="mt-1 gap-1">
+                    <span className="h-2 w-2 rounded-full" style={{ backgroundColor: d.cor ?? '#888' }} />
+                    {d.categoria}
+                  </Badge>
+                </div>
+                <div className="flex shrink-0 flex-col items-end gap-1">
+                  <span className="text-sm font-medium tabular-nums">{formatCurrency(d.valor)}</span>
+                  <Badge variant={d.status === 'PAGO' ? 'success' : d.status === 'RECORRENTE' ? 'outline' : 'warning'}>
+                    {d.status === 'PAGO' ? 'Pago' : d.status === 'RECORRENTE' ? 'Recorrente' : 'Pendente'}
+                  </Badge>
+                </div>
+              </div>
+              <div className="border-t pt-2">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => handleDesvincular(d.id)}
+                  disabled={vincular.isPending}
+                  className="w-full"
+                >
+                  Desvincular
+                </Button>
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
 
       {pagamentos.length > 0 && (
@@ -538,7 +727,7 @@ export function AgendamentoFinanceiro({ agendamento }: AgendamentoFinanceiroProp
             <History className="h-4 w-4" />
             Histórico de Pagamentos
           </h4>
-          <div className="rounded-md border overflow-x-auto">
+          <div className="hidden rounded-md border overflow-x-auto md:block">
             <Table className="min-w-[420px]">
               <TableHeader>
                 <TableRow>
@@ -574,6 +763,31 @@ export function AgendamentoFinanceiro({ agendamento }: AgendamentoFinanceiroProp
                 ))}
               </TableBody>
             </Table>
+          </div>
+
+          <div className="space-y-2 md:hidden">
+            {pagamentos.map((pag) => (
+              <div key={pag.id} className="flex items-center justify-between gap-3 rounded-lg border bg-card p-3">
+                <div className="min-w-0">
+                  <p className="text-sm tabular-nums">
+                    {format(new Date(pag.dataPagamento), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
+                  </p>
+                  <p className="text-sm font-medium tabular-nums">R$ {pag.valor.toFixed(2)}</p>
+                </div>
+                {pag.urlComprovante ? (
+                  <a
+                    href={pag.urlComprovante}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="shrink-0 text-sm text-primary underline"
+                  >
+                    Visualizar
+                  </a>
+                ) : (
+                  <span className="shrink-0 text-sm text-muted-foreground">—</span>
+                )}
+              </div>
+            ))}
           </div>
         </div>
       )}

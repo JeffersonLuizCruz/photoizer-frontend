@@ -52,7 +52,7 @@ function HomeRedirect() {
 
 function PageLoader() {
   return (
-    <div className="flex h-screen items-center justify-center" role="status" aria-label="Carregando página">
+    <div className="flex h-dvh items-center justify-center" role="status" aria-label="Carregando página">
       <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
     </div>
   )
@@ -60,7 +60,7 @@ function PageLoader() {
 
 function NotFound() {
   return (
-    <div className="flex h-screen items-center justify-center">
+    <div className="flex h-dvh items-center justify-center">
       <div className="text-center">
         <h1 className="text-4xl font-bold">404</h1>
         <p className="text-muted-foreground mt-2">Página não encontrada</p>

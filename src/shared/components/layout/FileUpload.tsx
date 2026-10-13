@@ -17,6 +17,7 @@ interface FileUploadProps {
   className?: string
   label?: string
   disabled?: boolean
+  capture?: 'user' | 'environment' | boolean
 }
 
 const DEFAULT_MAX_SIZE = 5 * 1024 * 1024
@@ -38,8 +39,9 @@ export function FileUpload({
   maxFiles = 5,
   onFilesChange,
   className,
-  label = 'Arraste arquivos ou clique para selecionar',
+  label = 'Toque para tirar foto ou selecionar arquivo',
   disabled,
+  capture,
 }: FileUploadProps) {
   const [files, setFiles] = useState<FilePreview[]>([])
   const inputRef = useRef<HTMLInputElement>(null)
@@ -124,6 +126,7 @@ export function FileUpload({
           type="file"
           accept={accept}
           multiple={multiple}
+          capture={capture}
           onChange={handleChange}
           disabled={disabled}
           className="hidden"

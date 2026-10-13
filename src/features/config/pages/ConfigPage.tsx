@@ -153,7 +153,7 @@ export function ConfigPage() {
                 />
               </div>
             ))}
-            <Button onClick={() => save()} disabled={isPending}>
+            <Button onClick={() => save()} disabled={isPending} className="w-full sm:w-auto">
               {isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
               Salvar dados da contratada
             </Button>
@@ -202,7 +202,7 @@ export function ConfigPage() {
                   />
                 </div>
               ))}
-              <Button onClick={() => save()} disabled={isPending}>
+              <Button onClick={() => save()} disabled={isPending} className="w-full sm:w-auto">
                 {isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
                 Salvar valores
               </Button>

@@ -113,7 +113,7 @@ export function CheckoutPage() {
 
   if (isLoading) {
     return (
-      <div className="relative flex min-h-screen items-center justify-center">
+      <div className="relative flex min-h-dvh items-center justify-center">
         <BeachBackdrop />
         <Loader2 className="h-8 w-8 animate-spin text-cyan-600" />
       </div>
@@ -122,7 +122,7 @@ export function CheckoutPage() {
 
   if (!pacote) {
     return (
-      <div className="relative flex min-h-screen items-center justify-center">
+      <div className="relative flex min-h-dvh items-center justify-center">
         <BeachBackdrop />
         <div className="text-center">
           <Camera className="mx-auto mb-3 h-12 w-12 text-cyan-400" />
@@ -137,7 +137,7 @@ export function CheckoutPage() {
   }
 
   return (
-    <div className="relative min-h-screen">
+    <div className="relative min-h-dvh">
       <BeachBackdrop />
 
       <header className="sticky top-0 z-40 border-b border-cyan-100 bg-white/80 backdrop-blur">
@@ -289,12 +289,12 @@ export function CheckoutPage() {
                 </div>
                 <div className="relative">
                   <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-cyan-400" />
-                  <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="seu@email.com"
+                  <input type="email" inputMode="email" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="seu@email.com"
                     className="w-full rounded-xl border border-cyan-100 bg-white py-2.5 pl-9 pr-4 text-sm outline-none focus:ring-2 focus:ring-cyan-200" />
                 </div>
                 <div className="relative">
                   <Phone className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-cyan-400" />
-                  <input value={telefone} onChange={(e) => setTelefone(e.target.value)} placeholder="(11) 99999-8888"
+                  <input type="tel" inputMode="tel" autoComplete="tel" value={telefone} onChange={(e) => setTelefone(e.target.value)} placeholder="(11) 99999-8888"
                     className="w-full rounded-xl border border-cyan-100 bg-white py-2.5 pl-9 pr-4 text-sm outline-none focus:ring-2 focus:ring-cyan-200" />
                 </div>
                 <div className="relative">

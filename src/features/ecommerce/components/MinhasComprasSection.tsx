@@ -130,11 +130,11 @@ export function MinhasComprasSection({ token }: MinhasComprasSectionProps) {
 
                   {compra.status === 'AGUARDANDO_COMPROVANTE' && (
                     <div className="flex items-center gap-2">
-                      <input type="file" accept="image/*,.pdf" className="text-xs flex-1"
+                      <input type="file" accept="image/*,.pdf" capture="environment" className="text-xs flex-1"
                         onChange={(e) => setComprovanteFiles((prev) => ({ ...prev, [compra.id]: e.target.files?.[0] ?? null }))} />
                       <button onClick={() => enviarComprovante(compra.id)}
                         disabled={isSending || !comprovanteFiles[compra.id]}
-                        className="flex items-center gap-1 rounded-lg bg-gradient-to-r from-orange-400 to-rose-400 px-3 py-1.5 text-xs font-semibold text-white transition-colors hover:from-orange-500 hover:to-rose-500 disabled:opacity-50">
+                        className="flex items-center gap-1 rounded-lg bg-gradient-to-r from-orange-400 to-rose-400 px-3 min-h-11 text-xs font-semibold text-white transition-colors hover:from-orange-500 hover:to-rose-500 disabled:opacity-50">
                         {isSending ? <Loader2 className="h-3 w-3 animate-spin" /> : <Upload className="h-3 w-3" />}
                         Enviar
                       </button>
@@ -143,11 +143,11 @@ export function MinhasComprasSection({ token }: MinhasComprasSectionProps) {
 
                   {compra.status === 'AGUARDANDO_CONFIRMACAO' && (
                     <div className="flex items-center gap-2">
-                      <input type="file" accept="image/*,.pdf" className="text-xs flex-1"
+                      <input type="file" accept="image/*,.pdf" capture="environment" className="text-xs flex-1"
                         onChange={(e) => setComprovanteFiles((prev) => ({ ...prev, [compra.id]: e.target.files?.[0] ?? null }))} />
                       <button onClick={() => enviarComprovante(compra.id)}
                         disabled={isSending || !comprovanteFiles[compra.id]}
-                        className="flex items-center gap-1 rounded-lg border border-cyan-200 px-3 py-1.5 text-xs font-medium text-cyan-700 transition-colors hover:bg-cyan-50 disabled:opacity-50">
+                        className="flex items-center gap-1 rounded-lg border border-cyan-200 px-3 min-h-11 text-xs font-medium text-cyan-700 transition-colors hover:bg-cyan-50 disabled:opacity-50">
                         {isSending ? <Loader2 className="h-3 w-3 animate-spin" /> : <Upload className="h-3 w-3" />}
                         Reenviar
                       </button>

@@ -65,6 +65,9 @@ export function ClienteForm({ onSubmit, defaultValues, isLoading, mode }: Client
           <Label htmlFor="telefone">Telefone *</Label>
           <Input
             id="telefone"
+            type="tel"
+            inputMode="tel"
+            autoComplete="tel"
             {...register('telefone')}
             placeholder="(11) 99999-9999"
             onChange={(e) => {
@@ -81,7 +84,7 @@ export function ClienteForm({ onSubmit, defaultValues, isLoading, mode }: Client
 
         <div>
           <Label htmlFor="email">Email</Label>
-          <Input id="email" type="email" {...register('email')} placeholder="email@exemplo.com" />
+          <Input id="email" type="email" inputMode="email" autoComplete="email" {...register('email')} placeholder="email@exemplo.com" />
           {errors.email && <p className="mt-1 text-sm text-destructive">{errors.email.message}</p>}
         </div>
 
@@ -89,6 +92,8 @@ export function ClienteForm({ onSubmit, defaultValues, isLoading, mode }: Client
           <Label htmlFor="cpf">CPF</Label>
           <Input
             id="cpf"
+            inputMode="numeric"
+            autoComplete="off"
             {...register('cpf')}
             placeholder="000.000.000-00"
             onChange={(e) => {
@@ -149,7 +154,7 @@ export function ClienteForm({ onSubmit, defaultValues, isLoading, mode }: Client
         </div>
       </div>
 
-      <div className="flex items-center justify-end gap-2">
+      <div className="sticky bottom-0 z-10 -mx-1 mt-4 flex items-center justify-end gap-2 border-t bg-background/95 px-1 py-3 backdrop-blur">
         <Button type="button" variant="outline" onClick={() => navigate(ROUTES.AGENDA)}>
           Cancelar
         </Button>

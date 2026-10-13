@@ -21,6 +21,7 @@ import { cn } from '@/shared/lib/cn'
 import { exportarCSV, exportarXLS } from '@/shared/lib/export'
 import { useFluxoCaixa, useReceberReceita } from '../api/queries'
 import { usePagarDespesa } from '@/features/despesas'
+import { useIsMobile } from '@/shared/hooks/use-media-query'
 
 const PRESETS = [
   { label: 'Próximo mês', months: 1 },
@@ -100,6 +101,7 @@ export function FluxoCaixaPage() {
   )
 
   const { data, isLoading } = useFluxoCaixa({ ...periodo, visao })
+  const isMobile = useIsMobile()
   const receber = useReceberReceita()
   const pagar = usePagarDespesa()
 
@@ -246,6 +248,7 @@ export function FluxoCaixaPage() {
                   <CartesianGrid strokeDasharray="3 3" className="stroke-border" strokeOpacity={0.3} />
                   <XAxis dataKey="rotulo" tick={{ fontSize: 11 }} className="text-muted-foreground" axisLine={false} tickLine={false} />
                   <YAxis
+                    hide={isMobile}
                     tick={{ fontSize: 11 }}
                     className="text-muted-foreground"
                     axisLine={false}

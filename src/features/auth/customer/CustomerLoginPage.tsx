@@ -36,7 +36,7 @@ export function CustomerLoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background to-muted/30 flex items-center justify-center p-4">
+    <div className="min-h-dvh bg-gradient-to-b from-background to-muted/30 flex items-center justify-center p-4">
       <div className="w-full max-w-sm">
         <div className="text-center mb-8">
           <div className="inline-flex h-16 w-16 rounded-full bg-primary/10 items-center justify-center mb-4">
@@ -64,7 +64,7 @@ export function CustomerLoginPage() {
             <label className="text-xs font-medium mb-1.5 block">Email</label>
             <div className="relative">
               <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required
+              <input type="email" inputMode="email" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} required
                 className="w-full rounded-xl border bg-background pl-9 pr-4 py-2.5 text-sm" placeholder="seu@email.com" />
             </div>
           </div>
@@ -74,7 +74,7 @@ export function CustomerLoginPage() {
               <label className="text-xs font-medium mb-1.5 block">Telefone</label>
               <div className="relative">
                 <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <input value={telefone} onChange={(e) => setTelefone(e.target.value)} required
+                <input type="tel" inputMode="tel" autoComplete="tel" value={telefone} onChange={(e) => setTelefone(e.target.value)} required
                   className="w-full rounded-xl border bg-background pl-9 pr-4 py-2.5 text-sm" placeholder="(11) 99999-8888" />
               </div>
             </div>

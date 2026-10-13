@@ -104,7 +104,7 @@ export function FavoritosPanel({
                       </div>
                       <button
                         onClick={() => onToggleFavorito(foto.id)}
-                        className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-rose-500 transition-colors hover:bg-rose-50"
+                        className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-rose-500 transition-colors hover:bg-rose-50"
                         title="Remover Gostei"
                         aria-label={`Remover ${foto.fileName} do Gostei`}>
                         <Trash2 className="h-3.5 w-3.5" />
@@ -113,7 +113,7 @@ export function FavoritosPanel({
                     <button
                       onClick={action.onClick}
                       className={cn(
-                        'mt-2 flex w-full items-center justify-center gap-1.5 rounded-lg py-2 text-xs font-medium transition-colors',
+                        'mt-2 flex w-full min-h-11 items-center justify-center gap-1.5 rounded-lg py-2 text-xs font-medium transition-colors',
                         action.className,
                       )}>
                       {action.icon && (action.label.startsWith('Comprar') ? <ShoppingCart className="h-3.5 w-3.5" /> : isSelected ? <Check className="h-3.5 w-3.5" /> : <Plus className="h-3.5 w-3.5" />)}

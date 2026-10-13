@@ -72,14 +72,14 @@ export function CustomerProfilePage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-dvh flex items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background to-muted/30">
+    <div className="min-h-dvh bg-gradient-to-b from-background to-muted/30">
       <header className="border-b bg-background/95 backdrop-blur">
         <div className="max-w-2xl mx-auto px-4 h-14 pt-[env(safe-area-inset-top)] flex items-center justify-between">
           <div className="flex items-center gap-2">
@@ -111,15 +111,15 @@ export function CustomerProfilePage() {
           </div>
           <div>
             <Label htmlFor="telefone">Telefone</Label>
-            <Input id="telefone" value={telefone} onChange={(e) => setTelefone(e.target.value)} />
+            <Input id="telefone" type="tel" inputMode="tel" autoComplete="tel" value={telefone} onChange={(e) => setTelefone(e.target.value)} />
           </div>
           <div>
             <Label htmlFor="email">Email</Label>
-            <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
+            <Input id="email" type="email" inputMode="email" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} />
           </div>
           <div>
             <Label htmlFor="cpf">CPF</Label>
-            <Input id="cpf" value={cpf} onChange={(e) => setCpf(e.target.value)} placeholder="000.000.000-00" />
+            <Input id="cpf" inputMode="numeric" autoComplete="off" value={cpf} onChange={(e) => setCpf(e.target.value)} placeholder="000.000.000-00" />
           </div>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div>

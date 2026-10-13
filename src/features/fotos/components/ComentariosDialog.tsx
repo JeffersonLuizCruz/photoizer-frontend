@@ -90,7 +90,7 @@ export function ComentariosDialog({ agendamentoId, foto, open, onOpenChange }: C
           </div>
         )}
 
-        <div className="max-h-[45vh] overflow-y-auto space-y-4 pr-1">
+        <div className="max-h-[45dvh] overflow-y-auto space-y-4 pr-1">
           {isLoading ? (
             <div className="flex items-center justify-center py-10">
               <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />

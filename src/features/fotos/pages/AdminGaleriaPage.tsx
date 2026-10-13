@@ -206,6 +206,7 @@ export function AdminGaleriaPage() {
         ref={replaceInputRef}
         type="file"
         accept="image/jpeg,image/png"
+        capture="environment"
         className="hidden"
         onChange={handleReplaceFileSelected}
       />
@@ -246,7 +247,7 @@ export function AdminGaleriaPage() {
               className="flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed p-8 transition-colors hover:border-primary/50 hover:bg-muted/50"
             >
               <ImagePlus className="mb-2 h-10 w-10 text-muted-foreground" />
-              <p className="text-sm font-medium">Clique para selecionar fotos</p>
+              <p className="text-sm font-medium">Toque para tirar fotos ou selecionar da galeria</p>
               <p className="text-xs text-muted-foreground mt-1">JPG, PNG — múltiplos arquivos</p>
               <input
                 ref={inputRef}
@@ -278,7 +279,7 @@ export function AdminGaleriaPage() {
                         type="button"
                         onClick={() => setSelectedFiles((prev) => prev.filter((_, j) => j !== i))}
                         aria-label={`Remover ${file.name}`}
-                        className="absolute -top-1.5 -right-1.5 h-6 w-6 rounded-full bg-destructive text-destructive-foreground flex items-center justify-center opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity"
+                        className="absolute -top-1.5 -right-1.5 h-9 w-9 rounded-full bg-destructive text-destructive-foreground flex items-center justify-center opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity"
                       >
                         <X className="h-3 w-3" />
                       </button>
@@ -378,7 +379,7 @@ export function AdminGaleriaPage() {
                     <button
                       type="button"
                       onClick={() => setEditFoto(foto)}
-                      className="h-8 w-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center"
+                      className="h-10 w-10 rounded-full bg-primary text-primary-foreground flex items-center justify-center"
                       title="Editar metadados"
                     >
                       <Pencil className="h-4 w-4" />
@@ -387,7 +388,7 @@ export function AdminGaleriaPage() {
                       <button
                         type="button"
                         onClick={() => alterarStatus({ fotoId: foto.id, status: 'INEDITA' })}
-                        className="h-8 w-8 rounded-full bg-amber-500 text-white flex items-center justify-center"
+                        className="h-10 w-10 rounded-full bg-amber-500 text-white flex items-center justify-center"
                         title="Despublicar"
                       >
                         <X className="h-4 w-4" />
@@ -396,7 +397,7 @@ export function AdminGaleriaPage() {
                       <button
                         type="button"
                         onClick={() => alterarStatus({ fotoId: foto.id, status: 'PUBLICADA' })}
-                        className="h-8 w-8 rounded-full bg-emerald-500 text-white flex items-center justify-center"
+                        className="h-10 w-10 rounded-full bg-emerald-500 text-white flex items-center justify-center"
                         title="Publicar individualmente"
                       >
                         <Send className="h-4 w-4" />
@@ -405,7 +406,7 @@ export function AdminGaleriaPage() {
                     <button
                       type="button"
                       onClick={() => alterarVisibilidade({ fotoId: foto.id, visivel: !foto.visivel })}
-                      className={`h-8 w-8 rounded-full flex items-center justify-center ${foto.visivel ? 'bg-slate-600 text-white' : 'bg-slate-300 text-slate-700'}`}
+                      className={`h-10 w-10 rounded-full flex items-center justify-center ${foto.visivel ? 'bg-slate-600 text-white' : 'bg-slate-300 text-slate-700'}`}
                       title={foto.visivel ? 'Ocultar da loja' : 'Exibir na loja'}
                     >
                       {foto.visivel ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
@@ -413,7 +414,7 @@ export function AdminGaleriaPage() {
                     <button
                       type="button"
                       onClick={() => setComentariosFoto(foto)}
-                      className="h-8 w-8 rounded-full bg-indigo-500 text-white flex items-center justify-center relative"
+                      className="h-10 w-10 rounded-full bg-indigo-500 text-white flex items-center justify-center relative"
                       title="Ver comentários dos clientes"
                     >
                       <MessageCircle className="h-4 w-4" />
@@ -427,7 +428,7 @@ export function AdminGaleriaPage() {
                       type="button"
                       onClick={() => handleReplaceImage(foto.id)}
                       disabled={isReplacing}
-                      className="h-8 w-8 rounded-full bg-blue-500 text-white flex items-center justify-center"
+                      className="h-10 w-10 rounded-full bg-blue-500 text-white flex items-center justify-center"
                       title="Substituir imagem"
                     >
                       <RefreshCw className="h-4 w-4" />
@@ -435,7 +436,7 @@ export function AdminGaleriaPage() {
                     <button
                       type="button"
                       onClick={() => setConfirmDeleteFotoId(foto.id)}
-                      className="h-8 w-8 rounded-full bg-destructive text-destructive-foreground flex items-center justify-center"
+                      className="h-10 w-10 rounded-full bg-destructive text-destructive-foreground flex items-center justify-center"
                       title="Remover permanentemente"
                     >
                       <Trash2 className="h-4 w-4" />

@@ -30,7 +30,7 @@ const SheetContent = forwardRef<
       ref={ref}
       className={cn(
         'fixed z-50 flex flex-col gap-4 overflow-y-auto overscroll-contain bg-background shadow-lg transition-transform duration-300 ease-in-out',
-        'inset-x-0 bottom-0 max-h-[90vh] rounded-t-xl border-t p-6 pb-[calc(1.5rem+env(safe-area-inset-bottom))]',
+        'inset-x-0 bottom-0 max-h-[90dvh] rounded-t-xl border-t p-6 pb-[calc(1.5rem+env(safe-area-inset-bottom))]',
         'data-[state=closed]:translate-y-full data-[state=open]:translate-y-0',
         'sm:inset-y-0 sm:left-auto sm:right-0 sm:h-full sm:max-h-none sm:w-3/4 sm:max-w-md sm:rounded-none sm:border-l sm:border-t-0 sm:p-6 sm:pb-6',
         'sm:data-[state=closed]:translate-x-full sm:data-[state=closed]:translate-y-0 sm:data-[state=open]:translate-x-0',
@@ -41,7 +41,7 @@ const SheetContent = forwardRef<
       {children}
       {!hideClose && (
         <SheetPrimitive.Close
-          className="absolute right-3 top-3 rounded-md p-2 opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+          className="absolute right-2 top-2 flex h-11 w-11 items-center justify-center rounded-md opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
           aria-label="Fechar"
         >
           <X className="h-4 w-4" />

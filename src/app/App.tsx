@@ -4,6 +4,7 @@ import { AuthProvider } from '@/features/auth'
 import { AppRoutes } from '@/routes'
 import { ErrorBoundary } from '@/shared/components/ErrorBoundary'
 import { OfflineBanner } from '@/shared/components/OfflineBanner'
+import { InstallPrompt } from '@/shared/components/InstallPrompt'
 import { TooltipProvider } from '@/shared/components/ui/tooltip'
 
 export function App() {
@@ -16,6 +17,7 @@ export function App() {
               <AppRoutes />
             </TooltipProvider>
             <OfflineBanner />
+            <InstallPrompt />
             <Toaster richColors closeButton position="top-right" />
           </AuthProvider>
         </QueryProvider>

@@ -7,8 +7,8 @@ import { getMobileTabs } from '@/shared/lib/navigation'
 
 export function MobileNav() {
   const { papel } = useAuth()
-  const mobileOpen = useSidebarStore((state) => state.mobileOpen)
-  const setMobileOpen = useSidebarStore((state) => state.setMobileOpen)
+  const mobileMenuOpen = useSidebarStore((state) => state.mobileMenuOpen)
+  const setMobileMenuOpen = useSidebarStore((state) => state.setMobileMenuOpen)
   const location = useLocation()
   const tabs = getMobileTabs(papel)
 
@@ -54,9 +54,9 @@ export function MobileNav() {
 
         <button
           type="button"
-          onClick={() => setMobileOpen(true)}
+          onClick={() => setMobileMenuOpen(true)}
           aria-label="Abrir menu com mais opções"
-          aria-expanded={mobileOpen}
+          aria-expanded={mobileMenuOpen}
           className={cn(
             'flex min-h-12 min-w-0 flex-1 flex-col items-center justify-center gap-1 py-2 text-[10px] font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring',
             isMaisActive ? 'text-primary' : 'text-muted-foreground active:text-foreground',

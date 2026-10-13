@@ -175,7 +175,7 @@ export function EcommerceAdminResumo({ agendamentoId }: EcommerceAdminResumoProp
                   {foto.status === 'PUBLICADA' && !foto.compraExtraId && (
                     <button
                       onClick={() => overrideSelecao({ fotoId: foto.id, selecionada: !foto.selecionadaPacote })}
-                      className={`h-7 w-7 rounded-full flex items-center justify-center ${foto.selecionadaPacote ? 'bg-amber-500' : 'bg-emerald-500'}`}
+                      className={`h-10 w-10 rounded-full flex items-center justify-center ${foto.selecionadaPacote ? 'bg-amber-500' : 'bg-emerald-500'}`}
                       aria-label={foto.selecionadaPacote ? 'Remover do pacote' : 'Incluir no pacote'}
                     >
                       {foto.selecionadaPacote ? <X className="h-3 w-3 text-white" /> : <Check className="h-3 w-3 text-white" />}
@@ -185,7 +185,7 @@ export function EcommerceAdminResumo({ agendamentoId }: EcommerceAdminResumoProp
                     <button
                       onClick={() => confirmarCompra(foto.compraExtraId!)}
                       disabled={isConfirming}
-                      className="h-7 w-7 rounded-full bg-emerald-500 flex items-center justify-center hover:bg-emerald-600"
+                      className="h-10 w-10 rounded-full bg-emerald-500 flex items-center justify-center hover:bg-emerald-600"
                       aria-label="Confirmar pagamento e liberar download"
                     >
                       <Check className="h-3 w-3 text-white" />
@@ -219,7 +219,7 @@ export function EcommerceAdminResumo({ agendamentoId }: EcommerceAdminResumoProp
       {data.comprasExtras.length > 0 && (
         <div>
           <h3 className="text-sm font-semibold mb-3">Compras de Extras</h3>
-          <div className="rounded-lg border overflow-x-auto">
+          <div className="hidden rounded-lg border overflow-x-auto md:block">
             <table className="w-full min-w-[640px] text-sm">
               <thead>
                 <tr className="border-b bg-muted/50">
@@ -275,6 +275,52 @@ export function EcommerceAdminResumo({ agendamentoId }: EcommerceAdminResumoProp
                 ))}
               </tbody>
             </table>
+          </div>
+
+          <div className="space-y-3 md:hidden">
+            {data.comprasExtras.map((compra) => (
+              <div key={compra.id} className="space-y-3 rounded-lg border bg-card p-4">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="min-w-0">
+                    <p className="font-mono text-xs text-muted-foreground">#{compra.id.slice(0, 8)}</p>
+                    <p className="text-lg font-semibold tabular-nums">{formatCurrency(compra.valorTotal)}</p>
+                  </div>
+                  <StatusBadge
+                    status={compra.status === 'PAGA' ? 'paid' : compra.status === 'AGUARDANDO_CONFIRMACAO' ? 'warning' : compra.status === 'CANCELADA' ? 'cancelled' : 'inactive'}
+                    customLabels={{
+                      paid: { label: 'Pago', variant: 'success' },
+                      warning: { label: 'Aguad. Confirmação', variant: 'warning' },
+                      cancelled: { label: 'Cancelada', variant: 'secondary' },
+                      inactive: { label: 'Aguad. Comprovante', variant: 'secondary' },
+                    }}
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs">
+                  <div className="flex justify-between gap-2">
+                    <span className="text-muted-foreground">Data</span>
+                    <span>{compra.dataPagamento ? new Date(compra.dataPagamento).toLocaleDateString('pt-BR') : '—'}</span>
+                  </div>
+                  <div className="flex justify-between gap-2">
+                    <span className="text-muted-foreground">Comprovante</span>
+                    {compra.urlComprovante ? (
+                      <button onClick={() => openProtected(compra.urlComprovante!)} className="text-primary underline">Ver</button>
+                    ) : (
+                      <span>—</span>
+                    )}
+                  </div>
+                </div>
+                {(compra.status === 'AGUARDANDO_COMPROVANTE' || compra.status === 'AGUARDANDO_CONFIRMACAO') && (
+                  <div className="flex items-center gap-2 border-t pt-3">
+                    <Button size="sm" onClick={() => confirmarCompra(compra.id)} disabled={isConfirming} className="flex-1">
+                      <Check className="mr-1 h-4 w-4" /> Confirmar
+                    </Button>
+                    <Button size="sm" variant="outline" onClick={() => setConfirmRecusarId(compra.id)} disabled={isRecusing} className="flex-1">
+                      <X className="mr-1 h-4 w-4" /> Recusar
+                    </Button>
+                  </div>
+                )}
+              </div>
+            ))}
           </div>
         </div>
       )}

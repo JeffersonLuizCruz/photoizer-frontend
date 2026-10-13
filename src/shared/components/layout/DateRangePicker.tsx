@@ -6,6 +6,7 @@ import { cn } from '@/shared/lib/cn'
 import { Button } from '@/shared/components/ui/button'
 import { Calendar, type CalendarProps } from '@/shared/components/ui/calendar'
 import { Popover, PopoverContent, PopoverTrigger } from '@/shared/components/ui/popover'
+import { Dialog, DialogContent, DialogTitle, DialogTrigger } from '@/shared/components/ui/dialog'
 import { useIsMobile } from '@/shared/hooks/use-media-query'
 
 export interface DateRange {
@@ -38,24 +39,52 @@ export function DateRangePicker({
       : `${format(value.from, 'dd/MM/yyyy', { locale: ptBR })} - ...`
     : placeholder
 
+  const trigger = (
+    <Button
+      variant="outline"
+      className={cn('w-full justify-start text-left font-normal', !value?.from && 'text-muted-foreground')}
+    >
+      <CalendarIcon className="mr-2 h-4 w-4" />
+      {displayText}
+    </Button>
+  )
+
+  const handleSelect = (range: DateRange | undefined) => {
+    onChange(range)
+    if (range?.from && range?.to) setOpen(false)
+  }
+
+  if (isMobile) {
+    return (
+      <div className={cn('grid gap-2', className)}>
+        <Dialog open={open} onOpenChange={setOpen}>
+          <DialogTrigger asChild>{trigger}</DialogTrigger>
+          <DialogContent className="w-full max-w-md">
+            <DialogTitle className="sr-only">Selecionar período</DialogTitle>
+            <Calendar
+              mode="range"
+              selected={value as { from: Date; to: Date } | undefined}
+              onSelect={handleSelect as never}
+              numberOfMonths={1}
+              locale={ptBR}
+              {...calendarProps}
+            />
+          </DialogContent>
+        </Dialog>
+      </div>
+    )
+  }
+
   return (
     <div className={cn('grid gap-2', className)}>
       <Popover open={open} onOpenChange={setOpen}>
-        <PopoverTrigger asChild>
-          <Button
-            variant="outline"
-            className={cn('w-full justify-start text-left font-normal', !value?.from && 'text-muted-foreground')}
-          >
-            <CalendarIcon className="mr-2 h-4 w-4" />
-            {displayText}
-          </Button>
-        </PopoverTrigger>
+        <PopoverTrigger asChild>{trigger}</PopoverTrigger>
         <PopoverContent className="w-auto p-0" align={align}>
           <Calendar
             mode="range"
             selected={value as { from: Date; to: Date } | undefined}
-            onSelect={(range) => onChange(range as DateRange | undefined)}
-            numberOfMonths={isMobile ? 1 : 2}
+            onSelect={handleSelect as never}
+            numberOfMonths={2}
             locale={ptBR}
             autoFocus
             {...calendarProps}

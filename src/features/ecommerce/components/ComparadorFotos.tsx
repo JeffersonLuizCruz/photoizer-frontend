@@ -46,7 +46,7 @@ export function ComparadorFotos({ fotos, onClose, selectedIds, pacoteLimit, onTo
                 <button
                   onClick={() => onToggleSelect(foto.id)}
                   disabled={!isSelected && selectedIds.size >= pacoteLimit}
-                  className={`shrink-0 rounded-lg px-3 py-1.5 text-xs font-medium transition-colors ${
+                  className={`shrink-0 min-h-11 rounded-lg px-3 py-2 text-xs font-medium transition-colors ${
                     isSelected
                       ? 'bg-teal-600 text-white hover:bg-teal-700'
                       : 'bg-white text-cyan-700 ring-1 ring-cyan-200 hover:bg-cyan-50 disabled:opacity-40'

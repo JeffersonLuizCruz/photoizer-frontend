@@ -2,14 +2,9 @@ import { Outlet } from 'react-router-dom'
 import { Sidebar } from './Sidebar'
 import { Header } from './Header'
 import { MobileNav } from './MobileNav'
-import { useSidebarStore } from '@/stores/sidebar.store'
-import { useIsTablet } from '@/shared/hooks/use-media-query'
+import { MobileMenu } from './MobileMenu'
 
 export function AppLayout() {
-  const mobileOpen = useSidebarStore((state) => state.mobileOpen)
-  const closeMobile = useSidebarStore((state) => state.closeMobile)
-  const isTablet = useIsTablet()
-
   return (
     <div className="flex h-dvh">
       <a
@@ -18,14 +13,6 @@ export function AppLayout() {
       >
         Pular para o conteúdo
       </a>
-
-      {isTablet && mobileOpen && (
-        <div
-          className="fixed inset-0 z-40 bg-black/50 lg:hidden"
-          onClick={closeMobile}
-          aria-hidden="true"
-        />
-      )}
 
       <Sidebar />
       <div className="flex flex-1 flex-col">
@@ -40,6 +27,7 @@ export function AppLayout() {
       </div>
 
       <MobileNav />
+      <MobileMenu />
     </div>
   )
 }

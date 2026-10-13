@@ -26,7 +26,7 @@ export function PackageCatalogPage() {
 
   if (isLoading) {
     return (
-      <div className="relative min-h-screen">
+      <div className="relative min-h-dvh">
         <BeachBackdrop />
         <div className="mx-auto max-w-7xl px-4 py-12 md:py-20">
           <div className="mx-auto mb-3 h-8 w-64 rounded-xl bg-white/70 animate-pulse" />
@@ -52,7 +52,7 @@ export function PackageCatalogPage() {
   }
 
   return (
-    <div className="relative min-h-screen">
+    <div className="relative min-h-dvh">
       <BeachBackdrop />
 
       <div className="mx-auto max-w-7xl px-4 py-12 md:py-20">

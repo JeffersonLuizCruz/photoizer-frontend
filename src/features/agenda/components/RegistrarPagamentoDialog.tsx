@@ -85,6 +85,7 @@ export function RegistrarPagamentoDialog({ open, onOpenChange, agendamento }: Re
 
           <FileUpload
             accept="image/*,.pdf"
+            capture="environment"
             label={
               comprovanteObrigatorio
                 ? 'Comprovante de pagamento (obrigatório)'

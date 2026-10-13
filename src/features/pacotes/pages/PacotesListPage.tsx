@@ -66,7 +66,7 @@ export function PacotesListPage() {
         description="Gerencie os pacotes de ensaio fotográfico"
         breadcrumbs={[{ label: 'Pacotes' }]}
         actions={
-          <Button onClick={() => navigate(ROUTES.PACOTES_NOVO)}>
+          <Button onClick={() => navigate(ROUTES.PACOTES_NOVO)} className="w-full sm:w-auto">
             <Plus className="mr-2 h-4 w-4" />
             Novo Pacote
           </Button>

@@ -67,7 +67,7 @@ function StatusScreen({
   children: ReactNode
 }) {
   return (
-    <div className="relative flex min-h-screen items-center justify-center p-4">
+    <div className="relative flex min-h-dvh items-center justify-center p-4">
       <BeachBackdrop />
       <div className="w-full max-w-md rounded-3xl bg-white/95 p-8 text-center shadow-sm ring-1 ring-cyan-100 backdrop-blur">
         <Icon className={cn('mx-auto h-16 w-16', iconClass)} />
@@ -98,7 +98,7 @@ export function PropostaPublicaPage() {
 
   if (isLoading) {
     return (
-      <div className="relative flex min-h-screen items-center justify-center p-4">
+      <div className="relative flex min-h-dvh items-center justify-center p-4">
         <BeachBackdrop />
         <PageLoading label="Carregando proposta..." />
       </div>
@@ -159,7 +159,7 @@ export function PropostaPublicaPage() {
   }
 
   return (
-    <div className="relative min-h-screen">
+    <div className="relative min-h-dvh">
       <BeachBackdrop />
 
       <main className="mx-auto max-w-3xl space-y-5 px-4 py-6 sm:py-10">
@@ -307,6 +307,7 @@ export function PropostaPublicaPage() {
 
               <FileUpload
                 accept="image/jpeg,image/png,application/pdf"
+                capture="environment"
                 maxSize={10 * 1024 * 1024}
                 onFilesChange={(files) => setComprovante(files[0] || null)}
                 label="Toque para anexar o comprovante (JPG, PNG ou PDF)"
@@ -316,17 +317,19 @@ export function PropostaPublicaPage() {
           )}
 
           {podeAssinar && (
-            <Button
-              type="submit"
-              disabled={assinar.isPending}
-              className="min-h-[52px] w-full rounded-2xl border-0 bg-gradient-to-r from-orange-400 to-rose-400 text-base font-semibold text-white shadow-lg shadow-orange-200/70 transition hover:from-orange-500 hover:to-rose-500"
-            >
-              {assinar.isPending ? (
-                <><Loader2 className="mr-2 h-5 w-5 animate-spin" />Enviando...</>
-              ) : (
-                <><FileSignature className="mr-2 h-5 w-5" />Assinar e enviar</>
-              )}
-            </Button>
+            <div className="sticky bottom-0 z-10 -mx-4 bg-white/85 px-4 pb-[calc(0.75rem+env(safe-area-inset-bottom))] pt-3 backdrop-blur sm:-mx-6 sm:px-6">
+              <Button
+                type="submit"
+                disabled={assinar.isPending}
+                className="min-h-[52px] w-full rounded-2xl border-0 bg-gradient-to-r from-orange-400 to-rose-400 text-base font-semibold text-white shadow-lg shadow-orange-200/70 transition hover:from-orange-500 hover:to-rose-500"
+              >
+                {assinar.isPending ? (
+                  <><Loader2 className="mr-2 h-5 w-5 animate-spin" />Enviando...</>
+                ) : (
+                  <><FileSignature className="mr-2 h-5 w-5" />Assinar e enviar</>
+                )}
+              </Button>
+            </div>
           )}
         </form>
 

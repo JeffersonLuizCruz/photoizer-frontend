@@ -254,7 +254,7 @@ export function GaleriaClientePage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-sky-100 via-cyan-50 to-amber-50">
+      <div className="min-h-dvh bg-gradient-to-b from-sky-100 via-cyan-50 to-amber-50">
         <div className="sticky top-0 z-40 border-b border-cyan-100 bg-white/80 px-4 py-3 backdrop-blur md:px-6">
           <div className="h-4 w-48 animate-pulse rounded bg-cyan-100" />
           <div className="mt-2 h-3 w-72 max-w-full animate-pulse rounded bg-cyan-50" />
@@ -273,7 +273,7 @@ export function GaleriaClientePage() {
   if (error) {
     const isExpired = error.includes('expirou')
     return (
-      <div className="flex min-h-screen items-center justify-center bg-gradient-to-b from-sky-200 via-cyan-100 to-amber-50">
+      <div className="flex min-h-dvh items-center justify-center bg-gradient-to-b from-sky-200 via-cyan-100 to-amber-50">
         <div className="flex max-w-sm flex-col items-center gap-3 rounded-3xl bg-white/95 p-8 text-center shadow-sm ring-1 ring-cyan-100 backdrop-blur">
           <ShieldAlert className={`h-12 w-12 ${isExpired ? 'text-amber-500' : 'text-cyan-500'}`} />
           <h1 className="font-display text-lg font-semibold text-cyan-950">{isExpired ? 'Link Expirado' : 'Galeria não disponível'}</h1>
@@ -285,7 +285,7 @@ export function GaleriaClientePage() {
 
   if (fotos.length === 0) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-gradient-to-b from-sky-200 via-cyan-100 to-amber-50">
+      <div className="flex min-h-dvh items-center justify-center bg-gradient-to-b from-sky-200 via-cyan-100 to-amber-50">
         <div className="flex max-w-sm flex-col items-center gap-3 rounded-3xl bg-white/95 p-8 text-center shadow-sm ring-1 ring-cyan-100 backdrop-blur">
           <Camera className="h-12 w-12 text-cyan-400" />
           <h1 className="font-display text-lg font-semibold text-cyan-950">Nenhuma foto publicada</h1>
@@ -296,7 +296,7 @@ export function GaleriaClientePage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-sky-50 via-amber-50/40 to-amber-50" onContextMenu={(e) => e.preventDefault()}>
+    <div className="min-h-dvh bg-gradient-to-b from-sky-50 via-amber-50/40 to-amber-50" onContextMenu={(e) => e.preventDefault()}>
       <header className="sticky top-0 z-40 border-b border-cyan-100 bg-white/85 backdrop-blur">
         <div className="flex flex-col gap-2 bg-gradient-to-r from-cyan-500 via-sky-500 to-teal-400 px-4 py-3 text-white md:h-14 md:flex-row md:items-center md:justify-between md:px-6">
           <div className="min-w-0">
@@ -308,7 +308,7 @@ export function GaleriaClientePage() {
               {galeria?.localEnsaio && ` · ${galeria.localEnsaio}`}
             </p>
           </div>
-          <div className="flex flex-wrap items-center gap-2 md:flex-nowrap md:overflow-x-auto md:overflow-y-visible">
+          <div className="flex items-center gap-2 overflow-x-auto md:flex-nowrap md:overflow-x-auto">
             <button onClick={() => setShowFavoritos(true)}
               className="flex shrink-0 items-center gap-1.5 rounded-xl border border-white/30 bg-white/10 px-3 py-2.5 text-xs font-medium transition-colors hover:bg-white/20"
               title="Fotos que você marcou como Gostei">
@@ -329,7 +329,7 @@ export function GaleriaClientePage() {
               </button>
             )}
             <button onClick={() => setShowCart(true)}
-              className="relative shrink-0 rounded-xl border border-white/30 bg-white/10 p-2.5 transition-colors hover:bg-white/20" title="Meu carrinho">
+              className="relative flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-white/30 bg-white/10 transition-colors hover:bg-white/20" title="Meu carrinho">
               <ShoppingCart className="h-4 w-4" />
               {carrinhoCount > 0 && (
                 <span className="absolute -right-1.5 -top-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-orange-400 px-0.5 text-[10px] font-medium text-white">

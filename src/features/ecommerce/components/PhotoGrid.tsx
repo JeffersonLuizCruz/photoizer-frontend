@@ -86,7 +86,7 @@ export function PhotoGrid({
                 aria-label={isFavorito ? `Remover ${foto.fileName} do Gostei` : `Marcar ${foto.fileName} como Gostei`}
                 title={isFavorito ? 'Remover Gostei' : 'Gostei'}
                 className={cn(
-                  'absolute right-2 top-2 flex h-8 w-8 items-center justify-center rounded-full shadow-md ring-1 backdrop-blur transition-all motion-safe:duration-200 hover:scale-110 active:scale-95',
+                  'absolute right-2 top-2 flex h-11 w-11 items-center justify-center rounded-full shadow-md ring-1 backdrop-blur transition-all motion-safe:duration-200 hover:scale-110 active:scale-95',
                   isFavorito
                     ? 'bg-rose-500 text-white ring-rose-300'
                     : 'bg-white/85 text-slate-500 ring-white/70 hover:text-rose-500',
@@ -126,7 +126,7 @@ export function PhotoGrid({
             <div className="mt-1.5">
               {jaComprada ? (
                 <a href={ecommerceService.downloadUrl(token, foto.id)}
-                  className="flex items-center justify-center gap-1 rounded py-1.5 text-[11px] font-medium text-cyan-700 motion-safe:transition-colors hover:bg-cyan-50">
+                  className="flex items-center justify-center gap-1 min-h-11 rounded py-2 text-xs font-medium text-cyan-700 motion-safe:transition-colors hover:bg-cyan-50">
                   <Download className="h-3 w-3" />
                   Download
                 </a>
@@ -137,20 +137,20 @@ export function PhotoGrid({
               ) : isSelected ? (
                 foto.downloadada ? (
                   <a href={ecommerceService.downloadUrl(token, foto.id)}
-                    className="flex items-center justify-center gap-1 rounded bg-teal-50 py-1.5 text-[11px] font-medium text-teal-700 motion-safe:transition-colors hover:bg-teal-100">
+                    className="flex items-center justify-center gap-1 min-h-11 rounded bg-teal-50 py-2 text-xs font-medium text-teal-700 motion-safe:transition-colors hover:bg-teal-100">
                     <Download className="h-3 w-3" />
                     Baixada
                   </a>
                 ) : (
                   <button onClick={() => onSelect(foto.id)}
-                    className="w-full rounded bg-teal-100 py-2 text-xs font-medium text-teal-700 motion-safe:transition-colors hover:bg-teal-200">
+                    className="w-full min-h-11 rounded bg-teal-100 py-2 text-xs font-medium text-teal-700 motion-safe:transition-colors hover:bg-teal-200">
                     Remover
                   </button>
                 )
               ) : isInCart ? (
                 <button onClick={() => onToggleCarrinho(foto.id)} disabled={isCartLoading}
                   className={cn(
-                    'w-full rounded py-2 text-xs font-medium motion-safe:transition-colors',
+                    'w-full min-h-11 rounded py-2 text-xs font-medium motion-safe:transition-colors',
                     isCartLoading ? 'bg-muted text-muted-foreground' :
                       'bg-cyan-100 text-cyan-700 hover:bg-cyan-200',
                   )}>
@@ -158,13 +158,13 @@ export function PhotoGrid({
                 </button>
               ) : !packageFull ? (
                 <button onClick={() => onSelect(foto.id)}
-                  className="w-full rounded bg-cyan-50 py-2 text-xs font-medium text-cyan-700 motion-safe:transition-colors hover:bg-cyan-100">
+                  className="w-full min-h-11 rounded bg-cyan-50 py-2 text-xs font-medium text-cyan-700 motion-safe:transition-colors hover:bg-cyan-100">
                   Incluir
                 </button>
               ) : (
                 <button onClick={() => onToggleCarrinho(foto.id)} disabled={isCartLoading}
                   className={cn(
-                    'w-full rounded py-2 text-xs font-medium motion-safe:transition-colors',
+                    'w-full min-h-11 rounded py-2 text-xs font-medium motion-safe:transition-colors',
                     isCartLoading ? 'bg-muted text-muted-foreground' :
                       'bg-orange-100 text-orange-700 hover:bg-orange-200',
                   )}>

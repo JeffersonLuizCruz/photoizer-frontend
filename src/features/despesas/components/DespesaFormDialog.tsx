@@ -308,6 +308,7 @@ export function DespesaFormDialog({ open, onOpenChange, despesa, onOpenCategoria
             <Label>Comprovante</Label>
             <FileUpload
               accept="image/*,.pdf"
+              capture="environment"
               label="Envie a imagem ou PDF do comprovante (opcional)"
               onFilesChange={(files) => setArquivo(files[0] ?? null)}
             />

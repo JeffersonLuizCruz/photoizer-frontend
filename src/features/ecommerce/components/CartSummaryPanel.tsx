@@ -34,7 +34,7 @@ export function CartSummaryPanel({
             <ShoppingCart className="h-4 w-4" />
             Meu Carrinho
           </SheetTitle>
-          <button onClick={onClose} className="rounded-lg p-2 transition-colors hover:bg-white/20" title="Fechar">
+          <button onClick={onClose} className="rounded-lg flex h-11 w-11 items-center justify-center transition-colors hover:bg-white/20" title="Fechar">
             <X className="h-4 w-4" />
           </button>
         </div>
@@ -90,7 +90,7 @@ export function CartSummaryPanel({
                     </div>
                     <button
                       onClick={() => onRemoveFromCart(foto.id)}
-                      className="rounded-lg p-2 text-slate-400 transition-colors hover:bg-rose-50 hover:text-rose-500"
+                      className="rounded-lg flex h-11 w-11 items-center justify-center text-slate-400 transition-colors hover:bg-rose-50 hover:text-rose-500"
                       aria-label={`Remover ${foto.fileName} do carrinho`}>
                       <Trash2 className="h-3.5 w-3.5" />
                     </button>

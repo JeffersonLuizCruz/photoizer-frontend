@@ -233,7 +233,7 @@ export function CheckoutDialog({
             <div className="space-y-2">
               <p className="text-xs font-medium text-cyan-600">ANEXAR COMPROVANTE</p>
 
-              <input ref={inputFileRef} type="file" accept="image/*,.pdf" className="hidden"
+              <input ref={inputFileRef} type="file" accept="image/*,.pdf" capture="environment" className="hidden"
                 onChange={(e) => selecionarArquivo(e.target.files?.[0] ?? null)} />
 
               {!comprovante ? (

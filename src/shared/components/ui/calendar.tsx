@@ -30,15 +30,14 @@ function Calendar({ className, classNames, showOutsideDays = true, ...props }: C
         [UI.Weeks]: 'w-full',
         [UI.Week]: 'grid grid-cols-7',
         [UI.Day]: cn(
-          'flex items-center justify-center text-sm focus-within:z-20',
+          'flex items-center justify-center text-sm focus-within:z-20 [&:has([aria-selected])]:bg-accent',
           props.mode === 'range'
             ? '[&:has(>.range_end)]:rounded-r-md [&:has(>.range_start)]:rounded-l-md first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md'
             : '[&:has([aria-selected])]:rounded-md',
-          '[&:has([aria-selected])]:bg-accent',
         ),
         [UI.DayButton]: cn(
           buttonVariants({ variant: 'ghost' }),
-          'h-11 w-11 p-0 font-normal aria-selected:opacity-100 sm:h-9 sm:w-9',
+          'h-11 w-full min-w-0 p-0 font-normal aria-selected:opacity-100 sm:h-9 sm:w-9',
         ),
         [SelectionState.selected]: 'bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground focus:bg-primary focus:text-primary-foreground',
         [DayFlag.today]: 'bg-accent text-accent-foreground',

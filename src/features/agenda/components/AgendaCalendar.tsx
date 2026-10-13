@@ -85,7 +85,7 @@ function MonthView({
 
   return (
     <div className="rounded-lg border bg-card overflow-x-auto">
-      <div className="min-w-[560px]">
+      <div className="sm:min-w-[560px]">
       <div className="grid grid-cols-7 border-b bg-muted/30">
         {WEEKDAYS.map((day) => (
           <div key={day} className="py-2.5 text-center text-xs font-semibold text-muted-foreground uppercase tracking-wide">
@@ -258,7 +258,7 @@ export function AgendaCalendar({ agendamentos, view, onViewChange, onEventClick,
 
       {view === 'week' && (
         <div className="rounded-lg border bg-card p-4 overflow-x-auto">
-          <div className="min-w-[560px]">
+          <div className="sm:min-w-[560px]">
           <WeekViewHeader />
           <div className="grid grid-cols-7 gap-px bg-border">
             {eachDayOfInterval({

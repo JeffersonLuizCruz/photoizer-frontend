@@ -1,10 +1,9 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { ChevronDown } from 'lucide-react'
 import { NavLink, useLocation } from 'react-router-dom'
 import { cn } from '@/shared/lib/cn'
 import { ROUTES } from '@/shared/constants'
 import { useSidebarStore } from '@/stores/sidebar.store'
-import { useIsTablet } from '@/shared/hooks/use-media-query'
 import { useAuth } from '@/features/auth/AuthProvider'
 import {
   getVisibleEntries,
@@ -15,16 +14,9 @@ import {
 export function Sidebar() {
   const isOpen = useSidebarStore((state) => state.isOpen)
   const setOpen = useSidebarStore((state) => state.setOpen)
-  const mobileOpen = useSidebarStore((state) => state.mobileOpen)
-  const closeMobile = useSidebarStore((state) => state.closeMobile)
-  const setMobileOpen = useSidebarStore((state) => state.setMobileOpen)
-  const isTablet = useIsTablet()
   const { papel } = useAuth()
   const location = useLocation()
   const entries = getVisibleEntries(papel)
-  const showLabels = isTablet ? mobileOpen : isOpen
-  const drawerOpen = isTablet && mobileOpen
-  const asideRef = useRef<HTMLElement>(null)
 
   const [groupsOpen, setGroupsOpen] = useState<Record<string, boolean>>({
     Financeiro: location.pathname.startsWith(ROUTES.FINANCEIRO),
@@ -43,39 +35,9 @@ export function Sidebar() {
     }
   }, [location.pathname])
 
-  useEffect(() => {
-    if (isTablet && mobileOpen) {
-      closeMobile()
-    }
-  }, [location.pathname, isTablet, mobileOpen, closeMobile])
-
-  useEffect(() => {
-    if (!drawerOpen) return
-
-    const previousOverflow = document.body.style.overflow
-    document.body.style.overflow = 'hidden'
-    asideRef.current?.focus()
-
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
-        closeMobile()
-      }
-    }
-    window.addEventListener('keydown', handleKeyDown)
-
-    return () => {
-      document.body.style.overflow = previousOverflow
-      window.removeEventListener('keydown', handleKeyDown)
-    }
-  }, [drawerOpen, closeMobile])
-
   const handleGroupClick = (label: string) => {
-    if (!showLabels) {
-      if (isTablet) {
-        setMobileOpen(true)
-      } else {
-        setOpen(true)
-      }
+    if (!isOpen) {
+      setOpen(true)
       setGroupsOpen((prev) => ({ ...prev, [label]: true }))
       return
     }
@@ -87,27 +49,21 @@ export function Sidebar() {
   return (
     <aside
       id="app-sidebar"
-      ref={asideRef}
-      role={drawerOpen ? 'dialog' : undefined}
-      aria-modal={drawerOpen ? 'true' : undefined}
-      aria-label={drawerOpen ? 'Menu de navegação' : undefined}
-      tabIndex={drawerOpen ? -1 : undefined}
+      aria-label="Menu de navegação"
       className={cn(
-        'border-r bg-card flex flex-col transition-all duration-300 focus:outline-none',
-        isTablet
-          ? cn('fixed inset-y-0 left-0 z-50 w-60', mobileOpen ? 'translate-x-0' : '-translate-x-full')
-          : cn(isOpen ? 'w-60' : 'w-16'),
+        'hidden border-r bg-card lg:flex lg:flex-col lg:transition-all lg:duration-300',
+        isOpen ? 'lg:w-60' : 'lg:w-16',
       )}
     >
-      <div className={cn('flex h-14 items-center border-b px-4', showLabels ? 'justify-start' : 'justify-center')}>
-        {showLabels ? (
+      <div className={cn('flex h-14 items-center border-b px-4', isOpen ? 'justify-start' : 'justify-center')}>
+        {isOpen ? (
           <span className="font-bold text-lg">Photoizer</span>
         ) : (
           <span className="font-bold text-lg">P</span>
         )}
       </div>
 
-      <nav className="flex flex-col gap-1 p-3 flex-1" aria-label="Menu de navegação">
+      <nav className="flex flex-1 flex-col gap-1 overflow-y-auto p-3" aria-label="Menu de navegação">
         {entries.map((entry) => {
           if (isNavItem(entry)) {
             const Icon = entry.icon
@@ -119,7 +75,7 @@ export function Sidebar() {
                 className={({ isActive }) =>
                   cn(
                     'flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors',
-                    showLabels ? 'justify-start' : 'justify-center',
+                    isOpen ? 'justify-start' : 'justify-center',
                     isActive
                       ? 'bg-primary/10 text-primary font-semibold'
                       : 'font-medium text-muted-foreground hover:bg-accent hover:text-accent-foreground',
@@ -127,7 +83,7 @@ export function Sidebar() {
                 }
               >
                 <Icon className="h-5 w-5 shrink-0" />
-                {showLabels && <span>{entry.label}</span>}
+                {isOpen && <span>{entry.label}</span>}
               </NavLink>
             )
           }
@@ -139,17 +95,17 @@ export function Sidebar() {
               <button
                 type="button"
                 onClick={() => handleGroupClick(entry.label)}
-                aria-expanded={showLabels ? !!groupsOpen[entry.label] : undefined}
+                aria-expanded={isOpen ? !!groupsOpen[entry.label] : undefined}
                 className={cn(
                   'flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors',
-                  showLabels ? 'justify-start' : 'justify-center',
+                  isOpen ? 'justify-start' : 'justify-center',
                   active
                     ? 'bg-primary/10 text-primary font-semibold'
                     : 'font-medium text-muted-foreground hover:bg-accent hover:text-accent-foreground',
                 )}
               >
                 <GroupIcon className="h-5 w-5 shrink-0" />
-                {showLabels && (
+                {isOpen && (
                   <>
                     <span className="flex-1 text-left">{entry.label}</span>
                     <ChevronDown
@@ -158,7 +114,7 @@ export function Sidebar() {
                   </>
                 )}
               </button>
-              {showLabels && (
+              {isOpen && (
                 <div
                   className={cn(
                     'grid transition-all duration-200',
