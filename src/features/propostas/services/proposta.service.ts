@@ -94,7 +94,6 @@ export const propostaService = {
     token: string,
     valores: AssinarPropostaFormValues,
     comprovante: File | undefined,
-    assinaturaImagem: Blob | null,
   ): Promise<PropostaStatusPublico> {
     const formData = new FormData()
     formData.append('nome', valores.nome)
@@ -104,11 +103,8 @@ export const propostaService = {
     if (valores.cidade) formData.append('cidade', valores.cidade)
     if (valores.estado) formData.append('estado', valores.estado)
     formData.append('autorizaUsoImagem', valores.autorizaUsoImagem)
-    formData.append('assinatura', valores.assinatura)
     if (!comprovante) throw new Error('Comprovante de pagamento da reserva é obrigatório')
     formData.append('comprovante', comprovante)
-    if (!assinaturaImagem) throw new Error('A assinatura (desenho) é obrigatória')
-    formData.append('assinaturaImagem', assinaturaImagem, 'assinatura.png')
 
     const dispositivo = coletarDadosDispositivo()
     formData.append('userAgent', dispositivo.userAgent)

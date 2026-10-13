@@ -136,7 +136,7 @@ export function AgendamentoContrato({ agendamento, onUpdateClausulas }: Agendame
           </div>
         ) : (
           <p className="text-sm text-muted-foreground">
-            Nenhum link de proposta ativo. Crie uma proposta para gerar o link de assinatura.
+            Nenhum link de proposta ativo. Crie uma proposta para gerar o link da proposta.
           </p>
         )}
       </div>
@@ -144,14 +144,14 @@ export function AgendamentoContrato({ agendamento, onUpdateClausulas }: Agendame
       <div className="rounded-lg border bg-card p-4">
         <div className="mb-4 flex items-center gap-2">
           <FileText className="h-5 w-5 text-muted-foreground" />
-          <h3 className="text-sm font-semibold">Termo assinado</h3>
-          {agendamento.dataAssinatura && <Badge variant="success">Assinado</Badge>}
+          <h3 className="text-sm font-semibold">Termo de aceite</h3>
+          {agendamento.dataAssinatura && <Badge variant="success">Confirmado</Badge>}
         </div>
 
         {agendamento.dataAssinatura ? (
           <div className="space-y-3">
             <p className="text-sm">
-              Contrato assinado em{' '}
+              Aceite registrado em{' '}
               <strong>{format(new Date(agendamento.dataAssinatura), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}</strong>.
             </p>
             <div className="flex flex-wrap gap-2">

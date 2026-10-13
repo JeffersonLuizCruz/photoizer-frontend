@@ -49,7 +49,7 @@ export function useDisponibilidadeProposta(
         pacote?.bloqueiaDiaInteiro ?? false,
         fotografoId,
       ),
-    enabled: !!data && !!hora,
+    enabled: !!data && !!hora && !!fotografoId,
     retry: false,
     staleTime: 1000 * 30,
   })
@@ -164,12 +164,10 @@ export function useAssinarProposta(token: string) {
     mutationFn: ({
       valores,
       comprovante,
-      assinaturaImagem,
     }: {
       valores: AssinarPropostaFormValues
       comprovante?: File
-      assinaturaImagem: Blob | null
-    }) => propostaService.assinar(token, valores, comprovante, assinaturaImagem),
+    }) => propostaService.assinar(token, valores, comprovante),
     onSuccess: (resultado) => {
       queryClient.setQueryData([...QUERY_KEYS.PROPOSTAS, 'publico', token], (atual: unknown) =>
         atual ? { ...(atual as object), status: resultado.status } : atual,

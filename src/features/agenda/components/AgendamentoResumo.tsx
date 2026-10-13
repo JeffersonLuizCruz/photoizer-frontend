@@ -121,8 +121,8 @@ export function AgendamentoResumo({ agendamento }: AgendamentoResumoProps) {
           label="Contrato"
           value={
             agendamento.dataAssinatura
-              ? `Assinado em ${format(new Date(agendamento.dataAssinatura), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}`
-              : 'Não assinado'
+              ? `Confirmado em ${format(new Date(agendamento.dataAssinatura), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}`
+              : 'Não confirmado'
           }
         />
       </InfoCard>

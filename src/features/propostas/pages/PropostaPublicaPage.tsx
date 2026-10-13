@@ -1,10 +1,9 @@
-import { useState, type ReactNode, type ComponentType } from 'react'
+import { useEffect, useRef, useState, type ReactNode, type ComponentType } from 'react'
 import { useParams } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import {
   CheckCircle2,
-  FileSignature,
   Loader2,
   Palmtree,
   Sun,
@@ -23,7 +22,6 @@ import { cn } from '@/shared/lib/cn'
 import { AGENDAMENTO_STATUS } from '@/shared/constants'
 import { assinarPropostaSchema, type AssinarPropostaFormValues, formatCpf } from '../schemas/proposta.schema'
 import { usePropostaPublica, useAssinarProposta } from '../api/queries'
-import { SignaturePad } from '../components/SignaturePad'
 import { BeachBackdrop } from '@/shared/components/beach/BeachBackdrop'
 import { ProposalSummary } from '../components/ProposalSummary'
 import { ContractDocument } from '../components/ContractDocument'
@@ -83,16 +81,22 @@ export function PropostaPublicaPage() {
   const { data: proposta, isLoading, error } = usePropostaPublica(token!)
   const assinar = useAssinarProposta(token!)
   const [comprovante, setComprovante] = useState<File | null>(null)
-  const [assinaturaImagem, setAssinaturaImagem] = useState<Blob | null>(null)
   const [assinado, setAssinado] = useState(false)
   const [erroEnvio, setErroEnvio] = useState<string | null>(null)
+  const erroRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (!erroEnvio) return
+    erroRef.current?.scrollIntoView({ block: 'center', behavior: 'smooth' })
+    erroRef.current?.focus()
+  }, [erroEnvio])
 
   const { register, handleSubmit, formState: { errors } } = useForm<AssinarPropostaFormValues>({
     resolver: zodResolver(assinarPropostaSchema),
     mode: 'onSubmit',
     defaultValues: {
       nome: '', telefone: '', email: '', cpf: '', cidade: '', estado: '',
-      autorizaUsoImagem: undefined, assinatura: '',
+      autorizaUsoImagem: undefined,
     },
   })
 
@@ -119,20 +123,20 @@ export function PropostaPublicaPage() {
 
   const jahAssinado = proposta.status !== AGENDAMENTO_STATUS.PRE_RESERVA
 
-  if (jahAssinado) {
+  if (assinado) {
     return (
-      <StatusScreen icon={Sun} iconClass="text-amber-400" title="Proposta já assinada">
-        <p>Esta proposta já foi assinada. Você pode fechar esta página.</p>
+      <StatusScreen icon={CheckCircle2} iconClass="text-emerald-500" title="Proposta confirmada com sucesso!">
+        <p>Recebemos sua confirmação para {proposta.contratadaNome}.</p>
+        <p>Aguarde a confirmação do pagamento e a aprovação do agendamento.</p>
+        <p className="text-xs">Você pode fechar esta página.</p>
       </StatusScreen>
     )
   }
 
-  if (assinado) {
+  if (jahAssinado) {
     return (
-      <StatusScreen icon={CheckCircle2} iconClass="text-emerald-500" title="Proposta assinada com sucesso!">
-        <p>Seu contrato foi enviado para {proposta.contratadaNome}.</p>
-        <p>Aguarde a confirmação do pagamento e a aprovação do agendamento.</p>
-        <p className="text-xs">Você pode fechar esta página.</p>
+      <StatusScreen icon={Sun} iconClass="text-amber-400" title="Proposta já confirmada">
+        <p>Esta proposta já foi confirmada. Você pode fechar esta página.</p>
       </StatusScreen>
     )
   }
@@ -142,18 +146,14 @@ export function PropostaPublicaPage() {
   const onSubmit = async (valores: AssinarPropostaFormValues) => {
     setErroEnvio(null)
     if (!comprovante) {
-      setErroEnvio('Anexe o comprovante de pagamento da reserva antes de assinar.')
-      return
-    }
-    if (!assinaturaImagem) {
-      setErroEnvio('Desenhe sua assinatura antes de enviar.')
+      setErroEnvio('Anexe o comprovante de pagamento da reserva antes de confirmar.')
       return
     }
     try {
-      await assinar.mutateAsync({ valores, comprovante, assinaturaImagem })
+      await assinar.mutateAsync({ valores, comprovante })
       setAssinado(true)
     } catch (e) {
-      const msg = (e as { response?: { data?: { message?: string } }; message?: string })?.response?.data?.message || (e as Error)?.message || 'Erro ao assinar proposta. Tente novamente.'
+      const msg = (e as { response?: { data?: { message?: string } }; message?: string })?.response?.data?.message || (e as Error)?.message || 'Erro ao confirmar proposta. Tente novamente.'
       setErroEnvio(msg)
     }
   }
@@ -162,11 +162,18 @@ export function PropostaPublicaPage() {
     <div className="relative min-h-dvh">
       <BeachBackdrop />
 
-      <main className="mx-auto max-w-3xl space-y-5 px-4 py-6 sm:py-10">
+      <main className="mx-auto max-w-3xl space-y-5 px-4 py-6 sm:px-6 sm:py-10">
         <ProposalSummary proposta={proposta} />
 
         {erroEnvio && (
-          <div className="rounded-2xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-700">{erroEnvio}</div>
+          <div
+            ref={erroRef}
+            tabIndex={-1}
+            role="alert"
+            className="rounded-2xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-400"
+          >
+            {erroEnvio}
+          </div>
         )}
 
         <ContractDocument html={proposta.clausulasHtml} />
@@ -271,28 +278,6 @@ export function PropostaPublicaPage() {
           {podeAssinar && (
             <FormSection
               step={3}
-              title="Assinatura digital"
-              description="Assine com o dedo ou o mouse e confirme digitando seu nome completo."
-              icon={FileSignature}
-            >
-              <div>
-                <Label>Assinatura (desenho) *</Label>
-                <div className="mt-2 rounded-2xl border border-cyan-100 bg-white p-2">
-                  <SignaturePad onChange={setAssinaturaImagem} />
-                </div>
-              </div>
-
-              <div>
-                <Label htmlFor="assinatura">Confirmação (digite seu nome completo) *</Label>
-                <Input id="assinatura" className="mt-1 rounded-xl" {...register('assinatura')} placeholder="Digite seu nome completo para confirmar" autoComplete="off" />
-                {errors.assinatura && <p className="mt-1 text-xs text-destructive">{errors.assinatura.message}</p>}
-              </div>
-            </FormSection>
-          )}
-
-          {podeAssinar && (
-            <FormSection
-              step={4}
               title="Comprovante da reserva"
               description="Anexe o comprovante do PIX da reserva para concluir."
               icon={Receipt}
@@ -307,12 +292,10 @@ export function PropostaPublicaPage() {
 
               <FileUpload
                 accept="image/jpeg,image/png,application/pdf"
-                capture="environment"
                 maxSize={10 * 1024 * 1024}
                 onFilesChange={(files) => setComprovante(files[0] || null)}
                 label="Toque para anexar o comprovante (JPG, PNG ou PDF)"
               />
-              {!comprovante && erroEnvio && <p className="text-xs text-destructive">Anexe o comprovante de pagamento.</p>}
             </FormSection>
           )}
 
@@ -326,7 +309,7 @@ export function PropostaPublicaPage() {
                 {assinar.isPending ? (
                   <><Loader2 className="mr-2 h-5 w-5 animate-spin" />Enviando...</>
                 ) : (
-                  <><FileSignature className="mr-2 h-5 w-5" />Assinar e enviar</>
+                  <><CheckCircle2 className="mr-2 h-5 w-5" />Confirmar e enviar</>
                 )}
               </Button>
             </div>

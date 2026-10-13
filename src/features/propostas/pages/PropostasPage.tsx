@@ -56,13 +56,13 @@ import type { Proposta } from '../types'
 type StatusVariant = 'warning' | 'info' | 'success'
 
 const statusInfo: Record<string, { label: string; variant: StatusVariant }> = {
-  [AGENDAMENTO_STATUS.PRE_RESERVA]: { label: 'Aguardando assinatura', variant: 'warning' },
+  [AGENDAMENTO_STATUS.PRE_RESERVA]: { label: 'Aguardando confirmação', variant: 'warning' },
   [AGENDAMENTO_STATUS.AGUARDANDO_APROVACAO]: { label: 'Aguardando aprovação', variant: 'info' },
   [AGENDAMENTO_STATUS.PAGAMENTO_CONFIRMADO]: { label: 'Pagamento confirmado', variant: 'info' },
 }
 
 const fases: Array<{ status: string; label: string; variant: StatusVariant }> = [
-  { status: AGENDAMENTO_STATUS.PRE_RESERVA, label: 'Aguardando assinatura', variant: 'warning' },
+  { status: AGENDAMENTO_STATUS.PRE_RESERVA, label: 'Aguardando confirmação', variant: 'warning' },
   { status: AGENDAMENTO_STATUS.AGUARDANDO_APROVACAO, label: 'Aguardando aprovação', variant: 'info' },
   { status: AGENDAMENTO_STATUS.PAGAMENTO_CONFIRMADO, label: 'Pagamento confirmado', variant: 'success' },
 ]
@@ -234,7 +234,7 @@ export function PropostasPage() {
     <div className="space-y-5">
       <PageTitle
         title="Propostas"
-        description="Pré-reservas aguardando assinatura, confirmação de pagamento e aprovação"
+        description="Pré-reservas aguardando confirmação do cliente, pagamento e aprovação"
         breadcrumbs={[{ label: 'Propostas' }]}
         actions={
           <Button onClick={() => navigate(ROUTES.PROPOSTAS_NOVO)}>
@@ -411,7 +411,7 @@ export function PropostasPage() {
                         )}
                         {p.dataAssinatura && (
                           <p className="mt-1 text-xs text-muted-foreground">
-                            Assinada em {format(new Date(p.dataAssinatura), "dd/MM/yyyy 'às' HH:mm")}
+                             Confirmada em {format(new Date(p.dataAssinatura), "dd/MM/yyyy 'às' HH:mm")}
                           </p>
                         )}
                       </TableCell>
@@ -468,7 +468,7 @@ export function PropostasPage() {
                     }}
                   >
                     <FileDown className="mr-2 h-4 w-4" aria-hidden="true" />
-                    Ver termo assinado
+                    Ver termo
                   </Button>
                 )}
                 {linkDe(acaoProposta) && (

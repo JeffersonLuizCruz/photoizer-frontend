@@ -32,8 +32,7 @@ export const assinarPropostaSchema = z.object({
   cpf: z.string().min(11, 'CPF inválido'),
   cidade: z.string().optional(),
   estado: z.string().optional(),
-  autorizaUsoImagem: z.enum(['true', 'false']),
-  assinatura: z.string().min(3, 'Digite seu nome para assinar'),
+  autorizaUsoImagem: z.enum(['true', 'false'], { message: 'Selecione uma opção de uso de imagem' }),
 })
 
 export type AssinarPropostaFormValues = z.input<typeof assinarPropostaSchema>

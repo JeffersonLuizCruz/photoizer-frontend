@@ -38,8 +38,33 @@ async function seedAdminAuth(page: Page) {
   }, ADMIN_USER)
 }
 
+const PROPOSTA_PUBLICA = {
+  status: 'PRE_RESERVA',
+  podeAssinar: true,
+  contratadaNome: 'Estúdio Photoizer',
+  contratadaCnpj: '00.000.000/0001-00',
+  contratadaCidade: 'São Paulo/SP',
+  pixChave: 'pix@photoizer.com',
+  pixTipoChave: 'E-mail',
+  pacoteNome: 'Ensaio Praia',
+  valorPacote: 900,
+  precoFotoExtra: 50,
+  dataHoraEnsaio: '2026-12-20T08:00:00',
+  duracaoMinutos: 60,
+  localEnsaio: 'Praia de Copacabana',
+  taxaDeslocamento: 0,
+  percentualEntrada: 30,
+  valorTotal: 900,
+  valorEntradaExigido: 270,
+  valorRestante: 630,
+  clausulasHtml: '<p>Contrato de teste.</p>',
+  fotografoResponsavel: 'Jefferson Luiz',
+  fotografos: [{ nome: 'Jefferson Luiz', papel: 'FOTOGRAFO' }],
+}
+
 function bodyFor(url: string): unknown {
   const path = url.split('/api/v1')[1]?.split('?')[0] ?? ''
+  if (path.startsWith('/propostas/publico/')) return PROPOSTA_PUBLICA
   switch (path) {
     case '/auth/me':
       return ADMIN_USER
@@ -183,6 +208,28 @@ test.describe('Shell de navegação mobile', () => {
     await page.getByRole('button', { name: 'Abrir menu completo' }).click()
     await expect(page.getByRole('dialog', { name: 'Menu de navegação' })).toBeVisible()
     await expect(page.getByRole('link', { name: 'Pacotes', exact: true })).toBeVisible()
+  })
+})
+
+test.describe('Página pública da proposta (/proposta/:token)', () => {
+  for (const width of [390, 768]) {
+    test(`sem scroll horizontal em ${width}px`, async ({ page }) => {
+      await page.setViewportSize({ width, height: 900 })
+      await mockApi(page)
+      await page.goto('/proposta/test-token')
+      await page.waitForTimeout(800)
+      expect(await horizontalOverflow(page)).toBeLessThanOrEqual(1)
+    })
+  }
+
+  test('mostra o fluxo de confirmação em 3 passos, sem campo de assinatura', async ({ page }) => {
+    await mockApi(page)
+    await page.goto('/proposta/test-token')
+    await page.waitForTimeout(800)
+
+    await expect(page.getByRole('button', { name: 'Confirmar e enviar' })).toBeVisible()
+    await expect(page.getByText('Assinatura digital')).toHaveCount(0)
+    await expect(page.getByText('Confirmação (digite seu nome completo)')).toHaveCount(0)
   })
 })
 

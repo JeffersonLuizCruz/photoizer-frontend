@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from 'react'
 import { useForm, FormProvider, type FieldPath } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import { format } from 'date-fns'
+import { format, startOfToday } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import { AlertTriangle, CalendarIcon, Loader2, Percent, Search, User, X } from 'lucide-react'
 import { PageTitle } from '@/shared/components/layout/PageTitle'
@@ -100,7 +100,7 @@ export function NovaPropostaPage() {
   )
   const semFotografo = responsaveis.length === 0
 
-  const { data: disponibilidade } = useDisponibilidadeProposta(
+  const { data: disponibilidade, isFetching: verificandoDisponibilidade } = useDisponibilidadeProposta(
     dataValue instanceof Date ? dataValue : undefined,
     horaValue || undefined,
     pacoteEscolhido,
@@ -156,7 +156,7 @@ export function NovaPropostaPage() {
     <div>
       <PageTitle
         title="Nova Proposta"
-        description="Crie a pré-reserva e envie o link para o cliente preencher os dados e assinar"
+        description="Crie a pré-reserva e envie o link para o cliente preencher os dados e confirmar"
         breadcrumbs={[
           { label: 'Propostas', href: ROUTES.PROPOSTAS },
           { label: 'Nova proposta' },
@@ -234,7 +234,7 @@ export function NovaPropostaPage() {
                     mode="single"
                     selected={dataValue instanceof Date ? dataValue : undefined}
                     onSelect={(date) => { if (date) setValue('data', date, { shouldValidate: true }) }}
-                    disabled={(date: Date) => date < new Date()}
+                    disabled={(date: Date) => date < startOfToday()}
                     locale={ptBR}
                     initialFocus
                   />
@@ -256,6 +256,11 @@ export function NovaPropostaPage() {
                 </SelectContent>
               </Select>
               {errors.hora && <p className="mt-1 text-sm text-destructive">{errors.hora.message}</p>}
+              {verificandoDisponibilidade && (
+                <p className="mt-1 flex items-center gap-2 text-xs text-muted-foreground">
+                  <Loader2 className="h-3 w-3 animate-spin" /> Verificando disponibilidade...
+                </p>
+              )}
               {conflito && disponibilidade && (
                 <div className="rounded-lg border border-destructive/50 bg-destructive/5 p-3 mt-3">
                   <div className="flex items-center gap-2">
@@ -470,7 +475,7 @@ export function NovaPropostaPage() {
             {step < 2 ? (
               <Button type="button" onClick={proximoPasso}>Continuar</Button>
             ) : (
-              <Button type="submit" disabled={criar.isPending || !!conflito || semFotografo}>
+              <Button type="submit" disabled={criar.isPending || !!conflito || verificandoDisponibilidade || semFotografo}>
                 {criar.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 Criar proposta
               </Button>
