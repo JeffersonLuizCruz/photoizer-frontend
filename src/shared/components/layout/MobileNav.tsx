@@ -1,4 +1,4 @@
-import { MoreHorizontal } from 'lucide-react'
+import { LayoutGrid } from 'lucide-react'
 import { NavLink, useLocation } from 'react-router-dom'
 import { cn } from '@/shared/lib/cn'
 import { useAuth } from '@/features/auth/AuthProvider'
@@ -55,15 +55,15 @@ export function MobileNav() {
         <button
           type="button"
           onClick={() => setMobileMenuOpen(true)}
-          aria-label="Abrir menu com mais opções"
+          aria-label="Abrir menu completo"
           aria-expanded={mobileMenuOpen}
           className={cn(
             'flex min-h-12 min-w-0 flex-1 flex-col items-center justify-center gap-1 py-2 text-[10px] font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring',
             isMaisActive ? 'text-primary' : 'text-muted-foreground active:text-foreground',
           )}
         >
-          <MoreHorizontal className="h-5 w-5 shrink-0" aria-hidden="true" />
-          <span className="w-full max-w-full truncate px-1 text-center">Mais</span>
+          <LayoutGrid className="h-5 w-5 shrink-0" aria-hidden="true" />
+          <span className="w-full max-w-full truncate px-1 text-center">Menu</span>
         </button>
       </div>
     </nav>

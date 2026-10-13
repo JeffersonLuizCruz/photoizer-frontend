@@ -1,6 +1,7 @@
 import type { ElementType } from 'react'
 import {
   ArrowDownLeft,
+  BarChart3,
   Calendar,
   Camera,
   DollarSign,
@@ -60,6 +61,7 @@ const navEntries: NavEntry[] = [
   { to: ROUTES.AGENDA, label: 'Agenda', icon: Calendar },
   { to: ROUTES.PACOTES, label: 'Pacotes', icon: Package },
   { to: ROUTES.ADMIN_ECOMMERCE, label: 'Ecommerce', icon: ShoppingCart },
+  { to: ROUTES.ADMIN_ANALYTICS, label: 'Analytics', icon: BarChart3 },
   { to: ROUTES.PROPOSTAS, label: 'Propostas', icon: FileSignature },
   { to: ROUTES.COMISSOES, label: 'Comissões', icon: Percent },
   financeiroGroup,

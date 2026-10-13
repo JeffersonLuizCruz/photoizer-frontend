@@ -107,16 +107,6 @@ test.describe('Responsivo - módulos admin', () => {
 })
 
 test.describe('Shell de navegação mobile', () => {
-  test.beforeEach(async ({ page }) => {
-    await page.addInitScript(() => {
-      document.addEventListener('DOMContentLoaded', () => {
-        const style = document.createElement('style')
-        style.textContent = '.tsqd-parent-container{display:none !important}'
-        document.head.appendChild(style)
-      })
-    })
-  })
-
   test('mostra a navegação inferior e esconde a sidebar', async ({ page }) => {
     await seedAdminAuth(page)
     await mockApi(page)
@@ -126,22 +116,43 @@ test.describe('Shell de navegação mobile', () => {
     await expect(page.getByRole('navigation', { name: 'Navegação principal' })).toBeVisible()
   })
 
-  test('abre o menu completo pelo botão "Mais" e expõe todos os recursos', async ({ page }) => {
+  test('abre o menu (launcher) pelo rodapé e expõe todos os módulos', async ({ page }) => {
     await seedAdminAuth(page)
     await mockApi(page)
     await page.goto('/dashboard')
     await page.waitForTimeout(1200)
 
-    await page.getByRole('button', { name: 'Abrir menu com mais opções' }).click()
+    await page.getByRole('button', { name: 'Abrir menu completo' }).click()
 
     await expect(page.getByRole('dialog', { name: 'Menu de navegação' })).toBeVisible()
 
-    for (const label of ['Pacotes', 'Financeiro', 'Parceiros', 'Configurações', 'Comissões']) {
-      await expect(page.getByRole('link', { name: label }).or(page.getByRole('button', { name: label })).first()).toBeVisible()
+    for (const label of [
+      'Pacotes',
+      'Comissões',
+      'Analytics',
+      'Configurações',
+      'Receitas',
+      'Despesas',
+      'Fluxo de Caixa',
+      'Relatórios',
+      'Repasses Pendentes',
+    ]) {
+      await expect(page.getByRole('link', { name: label, exact: true })).toBeVisible()
     }
 
     await page.waitForTimeout(400)
     await expect(page.getByRole('dialog', { name: 'Menu de navegação' })).toBeVisible()
+  })
+
+  test('abre o menu pelo botão do cabeçalho (topo)', async ({ page }) => {
+    await seedAdminAuth(page)
+    await mockApi(page)
+    await page.goto('/dashboard')
+    await page.waitForTimeout(1200)
+
+    await page.getByRole('button', { name: 'Abrir menu', exact: true }).click()
+    await expect(page.getByRole('dialog', { name: 'Menu de navegação' })).toBeVisible()
+    await expect(page.getByRole('link', { name: 'Pacotes', exact: true })).toBeVisible()
   })
 
   test('cria pacote a partir do telefone (menu -> Pacotes -> Novo Pacote)', async ({ page }) => {
@@ -150,8 +161,8 @@ test.describe('Shell de navegação mobile', () => {
     await page.goto('/dashboard')
     await page.waitForTimeout(1200)
 
-    await page.getByRole('button', { name: 'Abrir menu com mais opções' }).click()
-    await page.getByRole('link', { name: 'Pacotes' }).click()
+    await page.getByRole('button', { name: 'Abrir menu completo' }).click()
+    await page.getByRole('link', { name: 'Pacotes', exact: true }).click()
 
     await expect(page).toHaveURL(/\/pacotes$/)
     const novoPacote = page.getByRole('button', { name: /Novo Pacote/i })
@@ -169,23 +180,13 @@ test.describe('Shell de navegação mobile', () => {
     await page.goto('/dashboard')
     await page.waitForTimeout(1200)
 
-    await page.getByRole('button', { name: 'Abrir menu com mais opções' }).click()
+    await page.getByRole('button', { name: 'Abrir menu completo' }).click()
     await expect(page.getByRole('dialog', { name: 'Menu de navegação' })).toBeVisible()
-    await expect(page.getByRole('link', { name: 'Pacotes' })).toBeVisible()
+    await expect(page.getByRole('link', { name: 'Pacotes', exact: true })).toBeVisible()
   })
 })
 
 test.describe('Alvos de toque e larguras estreitas', () => {
-  test.beforeEach(async ({ page }) => {
-    await page.addInitScript(() => {
-      document.addEventListener('DOMContentLoaded', () => {
-        const style = document.createElement('style')
-        style.textContent = '.tsqd-parent-container{display:none !important}'
-        document.head.appendChild(style)
-      })
-    })
-  })
-
   test('itens da navegação inferior têm alvo >= 44px', async ({ page }) => {
     await seedAdminAuth(page)
     await mockApi(page)

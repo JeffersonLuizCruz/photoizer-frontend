@@ -99,3 +99,9 @@
     scroll-behavior: auto !important;
   }
 }
+
+@media (max-width: 1023px) {
+  .tsqd-parent-container {
+    display: none !important;
+  }
+}

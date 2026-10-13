@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react'
 import * as DialogPrimitive from '@radix-ui/react-dialog'
-import { ChevronDown, LogOut, Moon, Search, Sun, X } from 'lucide-react'
-import { NavLink, useLocation } from 'react-router-dom'
+import { LogOut, Moon, Search, Sun, X } from 'lucide-react'
+import { NavLink } from 'react-router-dom'
 import { cn } from '@/shared/lib/cn'
 import { Input } from '@/shared/components/ui/input'
 import { Badge } from '@/shared/components/ui/badge'
@@ -11,6 +11,7 @@ import { useAuth } from '@/features/auth/AuthProvider'
 import {
   getVisibleEntries,
   isNavItem,
+  type NavGroup,
   type NavItem,
 } from '@/shared/lib/navigation'
 
@@ -26,17 +27,17 @@ export function MobileMenu() {
   const setOpen = useSidebarStore((state) => state.setMobileMenuOpen)
   const { papel, user, logout } = useAuth()
   const { theme, toggleTheme } = useThemeStore()
-  const location = useLocation()
   const [query, setQuery] = useState('')
-  const [groupsOpen, setGroupsOpen] = useState<Record<string, boolean>>({})
 
   const entries = getVisibleEntries(papel)
 
+  const topLevel = useMemo(() => entries.filter(isNavItem), [entries])
+  const groups = useMemo(() => entries.filter((entry): entry is NavGroup => !isNavItem(entry)), [entries])
   const flatItems = useMemo(() => {
     const items: NavItem[] = []
     entries.forEach((entry) => {
       if (isNavItem(entry)) items.push(entry)
-      else entry.children.forEach((child) => items.push(child))
+      else items.push(...entry.children)
     })
     return items
   }, [entries])
@@ -47,12 +48,6 @@ export function MobileMenu() {
     : null
 
   const close = () => setOpen(false)
-
-  const isGroupOpen = (label: string, children: NavItem[]) =>
-    groupsOpen[label] ??
-    children.some(
-      (child) => location.pathname === child.to || location.pathname.startsWith(`${child.to}/`),
-    )
 
   const papelInfo = user?.papel ? papelConfig[user.papel] : null
 
@@ -103,76 +98,45 @@ export function MobileMenu() {
               <Input
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                placeholder="Buscar no menu..."
+                placeholder="Buscar módulo..."
                 type="search"
                 enterKeyHint="search"
-                aria-label="Buscar no menu"
+                aria-label="Buscar módulo"
                 className="pl-9"
               />
             </div>
           </div>
 
           <nav
-            className="flex-1 overflow-y-auto overscroll-contain p-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))]"
+            className="flex-1 space-y-5 overflow-y-auto overscroll-contain p-4 pb-[calc(1rem+env(safe-area-inset-bottom))]"
             aria-label="Menu de navegação"
           >
             {results ? (
-              <div className="flex flex-col gap-1">
-                {results.length === 0 && (
-                  <p className="px-3 py-6 text-center text-sm text-muted-foreground">
-                    Nenhum item encontrado
-                  </p>
-                )}
-                {results.map((item) => (
-                  <MenuLink key={item.to} item={item} onNavigate={close} />
-                ))}
-              </div>
+              results.length === 0 ? (
+                <p className="px-3 py-10 text-center text-sm text-muted-foreground">
+                  Nenhum módulo encontrado
+                </p>
+              ) : (
+                <MenuGrid items={results} onNavigate={close} />
+              )
             ) : (
-              <div className="flex flex-col gap-1">
-                {entries.map((entry) => {
-                  if (isNavItem(entry)) {
-                    return <MenuLink key={entry.to} item={entry} onNavigate={close} />
-                  }
+              <>
+                <section className="space-y-2">
+                  <h2 className="px-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                    Principal
+                  </h2>
+                  <MenuGrid items={topLevel} onNavigate={close} />
+                </section>
 
-                  const GroupIcon = entry.icon
-                  const groupOpen = isGroupOpen(entry.label, entry.children)
-                  return (
-                    <div key={entry.label}>
-                      <button
-                        type="button"
-                        onClick={() =>
-                          setGroupsOpen((prev) => ({ ...prev, [entry.label]: !groupOpen }))
-                        }
-                        aria-expanded={groupOpen}
-                        className="flex min-h-11 w-full items-center gap-3 rounded-md px-3 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                      >
-                        <GroupIcon className="h-5 w-5 shrink-0" />
-                        <span className="flex-1 text-left">{entry.label}</span>
-                        <ChevronDown
-                          className={cn(
-                            'h-4 w-4 shrink-0 transition-transform',
-                            groupOpen && 'rotate-180',
-                          )}
-                        />
-                      </button>
-                      <div
-                        className={cn(
-                          'grid transition-all duration-200',
-                          groupOpen ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]',
-                        )}
-                      >
-                        <div className="overflow-hidden">
-                          <div className="ml-4 mt-1 flex flex-col gap-1 border-l pl-2">
-                            {entry.children.map((child) => (
-                              <MenuLink key={child.to} item={child} onNavigate={close} />
-                            ))}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  )
-                })}
-              </div>
+                {groups.map((group) => (
+                  <section key={group.label} className="space-y-2">
+                    <h2 className="px-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                      {group.label}
+                    </h2>
+                    <MenuGrid items={group.children} onNavigate={close} />
+                  </section>
+                ))}
+              </>
             )}
           </nav>
 
@@ -211,7 +175,17 @@ export function MobileMenu() {
   )
 }
 
-function MenuLink({ item, onNavigate }: { item: NavItem; onNavigate: () => void }) {
+function MenuGrid({ items, onNavigate }: { items: NavItem[]; onNavigate: () => void }) {
+  return (
+    <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
+      {items.map((item) => (
+        <MenuTile key={item.to} item={item} onNavigate={onNavigate} />
+      ))}
+    </div>
+  )
+}
+
+function MenuTile({ item, onNavigate }: { item: NavItem; onNavigate: () => void }) {
   const Icon = item.icon
   return (
     <NavLink
@@ -220,15 +194,17 @@ function MenuLink({ item, onNavigate }: { item: NavItem; onNavigate: () => void 
       onClick={onNavigate}
       className={({ isActive }) =>
         cn(
-          'flex min-h-11 items-center gap-3 rounded-md px-3 text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+          'flex min-h-24 flex-col items-center justify-center gap-2 rounded-xl border bg-card p-3 text-center transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
           isActive
-            ? 'bg-primary/10 text-primary font-semibold'
-            : 'font-medium text-muted-foreground hover:bg-accent hover:text-accent-foreground',
+            ? 'border-primary/60 bg-primary/5 text-primary'
+            : 'text-foreground hover:bg-accent hover:text-accent-foreground',
         )
       }
     >
-      <Icon className="h-5 w-5 shrink-0" />
-      <span>{item.label}</span>
+      <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-muted">
+        <Icon className="h-5 w-5" />
+      </span>
+      <span className="text-xs font-medium leading-tight">{item.label}</span>
     </NavLink>
   )
 }

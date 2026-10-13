@@ -1,4 +1,4 @@
-import { PanelLeft, Moon, Sun, LogOut } from 'lucide-react'
+import { PanelLeft, Menu, Moon, Sun, LogOut } from 'lucide-react'
 import { useSidebarStore } from '@/stores/sidebar.store'
 import { useThemeStore } from '@/stores/theme.store'
 import { Button } from '@/shared/components/ui/button'
@@ -25,6 +25,7 @@ const papelConfig = {
 export function Header() {
   const toggle = useSidebarStore((state) => state.toggle)
   const isOpen = useSidebarStore((state) => state.isOpen)
+  const setMobileMenuOpen = useSidebarStore((state) => state.setMobileMenuOpen)
   const { theme, toggleTheme } = useThemeStore()
   const { user, logout } = useAuth()
 
@@ -39,17 +40,29 @@ export function Header() {
 
   return (
     <header className="border-b bg-card min-h-14 flex items-center justify-between px-4 sm:px-6 pt-[env(safe-area-inset-top)]">
-      <Button
-        variant="ghost"
-        size="icon"
-        onClick={toggle}
-        aria-label="Alternar menu lateral"
-        aria-expanded={isOpen}
-        aria-controls="app-sidebar"
-        className="hidden lg:inline-flex"
-      >
-        <PanelLeft className="h-5 w-5" />
-      </Button>
+      <div className="flex items-center gap-1">
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => setMobileMenuOpen(true)}
+          aria-label="Abrir menu"
+          className="lg:hidden"
+        >
+          <Menu className="h-5 w-5" />
+        </Button>
+
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={toggle}
+          aria-label="Alternar menu lateral"
+          aria-expanded={isOpen}
+          aria-controls="app-sidebar"
+          className="hidden lg:inline-flex"
+        >
+          <PanelLeft className="h-5 w-5" />
+        </Button>
+      </div>
 
       <div className="flex items-center gap-3">
         <Button variant="ghost" size="icon" onClick={toggleTheme} aria-label="Alternar tema" className="hidden sm:inline-flex">
