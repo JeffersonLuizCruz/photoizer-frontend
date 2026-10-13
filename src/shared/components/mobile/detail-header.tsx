@@ -56,9 +56,9 @@ export function DetailHeader({
         </Avatar>
 
         <div className="min-w-0 flex-1">
-          <div className="flex flex-wrap items-center gap-2">
-            <h1 className="truncate text-xl font-bold tracking-tight">{title}</h1>
-            {status}
+          <div className="flex min-w-0 flex-wrap items-center gap-2">
+            <h1 className="min-w-0 truncate text-xl font-bold tracking-tight">{title}</h1>
+            {status && <span className="shrink-0">{status}</span>}
           </div>
           {subtitle && <p className="mt-0.5 truncate text-sm text-muted-foreground">{subtitle}</p>}
         </div>

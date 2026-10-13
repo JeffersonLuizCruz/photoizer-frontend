@@ -296,12 +296,12 @@ export function EcommerceAdminResumo({ agendamentoId }: EcommerceAdminResumoProp
                   />
                 </div>
                 <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs">
-                  <div className="flex justify-between gap-2">
-                    <span className="text-muted-foreground">Data</span>
-                    <span>{compra.dataPagamento ? new Date(compra.dataPagamento).toLocaleDateString('pt-BR') : '—'}</span>
+                  <div className="flex min-w-0 justify-between gap-2">
+                    <span className="shrink-0 text-muted-foreground">Data</span>
+                    <span className="min-w-0 break-words text-right">{compra.dataPagamento ? new Date(compra.dataPagamento).toLocaleDateString('pt-BR') : '—'}</span>
                   </div>
-                  <div className="flex justify-between gap-2">
-                    <span className="text-muted-foreground">Comprovante</span>
+                  <div className="flex min-w-0 justify-between gap-2">
+                    <span className="shrink-0 text-muted-foreground">Comprovante</span>
                     {compra.urlComprovante ? (
                       <button onClick={() => openProtected(compra.urlComprovante!)} className="text-primary underline">Ver</button>
                     ) : (

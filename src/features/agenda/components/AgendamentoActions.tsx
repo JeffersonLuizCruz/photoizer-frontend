@@ -165,7 +165,7 @@ export function AgendamentoActions({ agendamento }: AgendamentoActionsProps) {
 
   return (
     <>
-      <div className="flex flex-wrap items-center gap-2">
+      <div className="flex w-max items-center gap-2">
         {actions.map((actionType) => {
           const config = actionConfig[actionType]
           const Icon = config.icon

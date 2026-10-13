@@ -1,3 +1,4 @@
+import { useEffect, useRef, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
@@ -38,6 +39,19 @@ export function AgendamentoDetalhesPage() {
   const { user } = useAuth()
   const podeEditar = user?.papel === 'ADMIN' || user?.papel === 'EDITOR'
   const isAdmin = user?.papel === 'ADMIN'
+  const [activeTab, setActiveTab] = useState('resumo')
+  const tabsListRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    const list = tabsListRef.current
+    const active = list?.querySelector<HTMLElement>('[data-state="active"]')
+    if (!list || !active) return
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    const listRect = list.getBoundingClientRect()
+    const activeRect = active.getBoundingClientRect()
+    const left = list.scrollLeft + (activeRect.left - listRect.left) - (list.clientWidth - activeRect.width) / 2
+    list.scrollTo({ left, behavior: reduceMotion ? 'auto' : 'smooth' })
+  }, [activeTab, agendamento?.id])
 
   if (isLoading) return <PageLoading />
   if (error || !agendamento) {
@@ -109,8 +123,8 @@ export function AgendamentoDetalhesPage() {
       />
 
       <div className="mt-5">
-        <Tabs defaultValue="resumo">
-          <TabsList>
+        <Tabs value={activeTab} onValueChange={setActiveTab}>
+          <TabsList ref={tabsListRef} scrollable aria-label="Seções do agendamento">
             <TabsTrigger value="resumo">
               <ClipboardList className="mr-1.5 h-4 w-4" />
               Resumo
@@ -163,7 +177,7 @@ export function AgendamentoDetalhesPage() {
       </div>
 
       <StickyActionBar>
-        <div className="flex w-full items-center gap-2 overflow-x-auto pb-1">
+        <div className="flex w-full snap-x items-center gap-2 overflow-x-auto pb-1 [mask-image:linear-gradient(to_right,black_calc(100%_-_1.5rem),transparent)] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           <AgendamentoActions agendamento={agendamento} />
         </div>
       </StickyActionBar>

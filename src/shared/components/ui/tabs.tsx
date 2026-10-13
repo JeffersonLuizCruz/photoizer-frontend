@@ -4,14 +4,20 @@ import { cn } from '@/shared/lib/cn'
 
 const Tabs = TabsPrimitive.Root
 
+interface TabsListProps extends ComponentPropsWithoutRef<typeof TabsPrimitive.List> {
+  scrollable?: boolean
+}
+
 const TabsList = forwardRef<
   ElementRef<typeof TabsPrimitive.List>,
-  ComponentPropsWithoutRef<typeof TabsPrimitive.List>
->(({ className, ...props }, ref) => (
+  TabsListProps
+>(({ className, scrollable, ...props }, ref) => (
   <TabsPrimitive.List
     ref={ref}
     className={cn(
       'inline-flex h-11 w-full max-w-full items-center justify-center overflow-x-auto rounded-lg bg-muted p-1 text-muted-foreground sm:h-9 sm:w-auto',
+      scrollable &&
+        '-mx-4 w-[calc(100%+2rem)] max-w-none snap-x snap-mandatory scroll-px-4 justify-start px-4 [mask-image:linear-gradient(to_right,transparent,black_1rem,black_calc(100%_-_1rem),transparent)] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:mx-0 sm:w-auto sm:max-w-full sm:justify-center sm:rounded-lg sm:px-1 sm:[mask-image:none]',
       className,
     )}
     {...props}

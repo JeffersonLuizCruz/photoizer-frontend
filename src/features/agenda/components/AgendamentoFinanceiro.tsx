@@ -274,14 +274,14 @@ export function AgendamentoFinanceiro({ agendamento }: AgendamentoFinanceiroProp
           <div key={index} className="flex items-start justify-between gap-3 rounded-lg border bg-card p-3">
             <span
               className={cn(
-                'text-sm',
+                'min-w-0 break-words text-sm',
                 row.tipo === 'total' && 'font-semibold',
                 row.tipo === 'negativo' && 'text-muted-foreground',
               )}
             >
               {row.descricao}
             </span>
-            <div className="flex flex-col items-end gap-1">
+            <div className="flex shrink-0 flex-col items-end gap-1">
               <span
                 className={cn(
                   'text-sm font-medium tabular-nums',
