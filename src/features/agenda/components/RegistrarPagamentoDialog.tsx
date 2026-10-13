@@ -1,6 +1,4 @@
 import { useState } from 'react'
-import { toast } from 'sonner'
-import { Banknote } from 'lucide-react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/shared/components/ui/dialog'
 import { Button } from '@/shared/components/ui/button'
 import { Label } from '@/shared/components/ui/label'
@@ -21,15 +19,7 @@ export function RegistrarPagamentoDialog({ open, onOpenChange, agendamento }: Re
   const [formaPagamento, setFormaPagamento] = useState<FormaPagamento>(FORMA_PAGAMENTO.PIX)
   const { mutate, isPending } = useRegistrarPagamentoFinal()
 
-  const dinheiro = formaPagamento === FORMA_PAGAMENTO.DINHEIRO
-  const comprovanteObrigatorio = !dinheiro
-
   const handleSubmit = () => {
-    if (comprovanteObrigatorio && !comprovante) {
-      toast.error('Anexe o comprovante de pagamento')
-      return
-    }
-
     mutate(
       { id: agendamento.id, comprovante: comprovante ?? undefined, formaPagamento },
       {
@@ -75,32 +65,26 @@ export function RegistrarPagamentoDialog({ open, onOpenChange, agendamento }: Re
                 ))}
               </SelectContent>
             </Select>
-            {dinheiro && (
-              <p className="flex items-center gap-1 text-xs text-muted-foreground">
-                <Banknote className="h-3.5 w-3.5" />
-                Pagamento em dinheiro vivo não exige comprovante.
-              </p>
-            )}
           </div>
 
-          <FileUpload
-            accept="image/*,.pdf"
-            capture="environment"
-            label={
-              comprovanteObrigatorio
-                ? 'Comprovante de pagamento (obrigatório)'
-                : 'Comprovante de pagamento (opcional)'
-            }
-            onFilesChange={(files) => setComprovante(files[0] ?? null)}
-            maxFiles={1}
-          />
+          <div className="space-y-2">
+            <FileUpload
+              accept="image/*,.pdf"
+              label="Comprovante de pagamento (opcional)"
+              onFilesChange={(files) => setComprovante(files[0] ?? null)}
+              maxFiles={1}
+            />
+            <p className="text-xs text-muted-foreground">
+              O comprovante é opcional — registre o pagamento mesmo sem anexo.
+            </p>
+          </div>
         </div>
 
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isPending}>
             Cancelar
           </Button>
-          <Button onClick={handleSubmit} disabled={isPending || (comprovanteObrigatorio && !comprovante)}>
+          <Button onClick={handleSubmit} disabled={isPending}>
             {isPending ? 'Registrando...' : 'Confirmar Pagamento'}
           </Button>
         </DialogFooter>
