@@ -27,7 +27,9 @@ export function InstallPrompt() {
     if (localStorage.getItem(DISMISS_KEY) === '1') return
 
     const ua = window.navigator.userAgent
-    const ios = /iphone|ipad|ipod/i.test(ua) && !/crios|fxios/i.test(ua)
+    // iPadOS em modo desktop se reporta como Macintosh; usamos maxTouchPoints para detectá-lo.
+    const isIPadOS = /macintosh/i.test(ua) && window.navigator.maxTouchPoints > 1
+    const ios = (/iphone|ipad|ipod/i.test(ua) && !/crios|fxios/i.test(ua)) || isIPadOS
     if (ios) {
       setIsIOS(true)
       setShow(true)
@@ -64,7 +66,11 @@ export function InstallPrompt() {
   }
 
   return (
-    <div className="fixed inset-x-0 bottom-[calc(4.5rem+env(safe-area-inset-bottom))] z-40 mx-3 rounded-2xl border bg-card p-4 shadow-lg lg:bottom-6 lg:mx-auto lg:max-w-sm">
+    <div
+      role="region"
+      aria-label="Instalar o Photoizer"
+      className="fixed inset-x-0 bottom-[calc(var(--nav-h)+0.75rem+env(safe-area-inset-bottom))] z-40 mx-3 rounded-2xl border bg-card p-4 shadow-lg lg:bottom-6 lg:mx-auto lg:max-w-sm"
+    >
       <div className="flex items-start gap-3">
         <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
           {isIOS ? <Share className="h-5 w-5" /> : <Download className="h-5 w-5" />}
@@ -87,7 +93,7 @@ export function InstallPrompt() {
           type="button"
           onClick={dismiss}
           aria-label="Dispensar aviso de instalação"
-          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent"
+          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         >
           <X className="h-4 w-4" />
         </button>

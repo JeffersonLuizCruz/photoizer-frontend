@@ -24,6 +24,8 @@
   --input: oklch(0.92 0.004 286.375);
   --ring: oklch(0.205 0.042 265.755);
   --radius: 0.625rem;
+  /** Altura da barra de navegação inferior no mobile (MobileNav = h-16). */
+  --nav-h: 4rem;
 }
 
 .dark {
@@ -83,9 +85,20 @@
   * {
     @apply border-border;
   }
+  html,
+  body {
+    -webkit-tap-highlight-color: transparent;
+    overscroll-behavior-y: none;
+  }
   body {
     @apply bg-background text-foreground;
     font-family: system-ui, -apple-system, sans-serif;
+  }
+  button,
+  a,
+  label,
+  [role='button'] {
+    touch-action: manipulation;
   }
 }
 
@@ -97,6 +110,12 @@
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
+  }
+  /* Mantém loaders girando: são o único feedback de progresso. */
+  .animate-spin,
+  [class*='animate-spin'] {
+    animation-duration: 1s !important;
+    animation-iteration-count: infinite !important;
   }
 }
 

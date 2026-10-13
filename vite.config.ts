@@ -25,7 +25,7 @@ export default defineConfig({
         display_override: ['standalone', 'minimal-ui'],
         orientation: 'any',
         categories: ['business', 'productivity'],
-        theme_color: '#863bff',
+        theme_color: '#0e162a',
         background_color: '#ffffff',
         icons: [
           { src: '/pwa-64x64.png', sizes: '64x64', type: 'image/png' },

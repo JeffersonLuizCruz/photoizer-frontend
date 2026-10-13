@@ -17,7 +17,7 @@ export function BulkActionsBar({ count, onClear, children, className }: BulkActi
       role="region"
       aria-label={`${count} item(ns) selecionado(s)`}
       className={cn(
-        'fixed inset-x-0 bottom-[calc(4rem+env(safe-area-inset-bottom))] z-40 lg:bottom-0',
+        'fixed inset-x-0 bottom-[calc(var(--nav-h)+env(safe-area-inset-bottom))] z-40 lg:bottom-0',
         className,
       )}
     >

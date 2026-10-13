@@ -13,7 +13,12 @@ const getSystemTheme = (): Theme =>
   window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
 
 const applyTheme = (theme: Theme) => {
-  document.documentElement.classList.toggle('dark', theme === 'dark')
+  const dark = theme === 'dark'
+  document.documentElement.classList.toggle('dark', dark)
+  document.querySelector('meta[name="theme-color"]')?.setAttribute('content', dark ? '#0a0a0a' : '#0e162a')
+  document
+    .querySelector('meta[name="apple-mobile-web-app-status-bar-style"]')
+    ?.setAttribute('content', dark ? 'black-translucent' : 'default')
 }
 
 export const useThemeStore = create<ThemeState>()(
