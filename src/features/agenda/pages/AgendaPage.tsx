@@ -14,23 +14,13 @@ import { useIsMobile } from '@/shared/hooks/use-media-query'
 import { useAgendamentosList, usePacotesList, useUsuariosList } from '../api/queries'
 import { AgendaCalendar, type CalendarView } from '../components/AgendaCalendar'
 import { AgendamentoList } from '../components/AgendamentoList'
+import { AgendaMobileHeader } from '../components/AgendaMobileHeader'
+import { AgendaOptionsDrawer, type AgendaViewMode } from '../components/AgendaOptionsDrawer'
+import { AgendaFab } from '../components/AgendaFab'
 import { statusLabels } from '../components/AgendaCalendarEvent'
+import { AGENDA_STATUS_OPTIONS } from '../constants'
 import type { AgendamentoStatus } from '@/shared/constants'
 import { useAuth } from '@/features/auth/AuthProvider'
-
-const statusOptions: { value: string; label: string }[] = [
-  { value: '', label: 'Todos os status' },
-  { value: 'PRE_RESERVA', label: 'Pré-reserva' },
-  { value: 'AGUARDANDO_APROVACAO', label: 'Aguardando Aprovação' },
-  { value: 'PAGAMENTO_CONFIRMADO', label: 'Pagamento Confirmado' },
-  { value: 'CONFIRMADO', label: 'Confirmado' },
-  { value: 'REALIZADO', label: 'Realizado' },
-  { value: 'AGUARDANDO_PAGAMENTO_FINAL', label: 'Aguardando Pagamento' },
-  { value: 'EM_EDICAO', label: 'Em Edição' },
-  { value: 'FINALIZADO', label: 'Finalizado' },
-  { value: 'CANCELADO', label: 'Cancelado' },
-  { value: 'NO_SHOW', label: 'Não Compareceu' },
-]
 
 export function AgendaPage() {
   const { papel } = useAuth()
@@ -45,8 +35,10 @@ export function AgendaPage() {
 function AgendaPageContent() {
   const navigate = useNavigate()
   const isMobile = useIsMobile()
-  const [viewMode, setViewMode] = useState<'calendar' | 'list'>(() => (isMobile ? 'list' : 'calendar'))
+  const [viewMode, setViewMode] = useState<AgendaViewMode>('calendar')
   const [calendarView, setCalendarView] = useState<CalendarView>('month')
+  const [currentDate, setCurrentDate] = useState(() => new Date())
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(() => new Date())
 
   const [statusFilter, setStatusFilter] = useState('')
   const [editorFilter, setEditorFilter] = useState('')
@@ -54,6 +46,7 @@ function AgendaPageContent() {
   const [dateRange, setDateRange] = useState<DateRange | undefined>()
   const [clientSearch, setClientSearch] = useState('')
   const [filtrosOpen, setFiltrosOpen] = useState(false)
+  const [optionsOpen, setOptionsOpen] = useState(false)
 
   const debouncedClientSearch = useDebounce(clientSearch, 300)
 
@@ -94,7 +87,7 @@ function AgendaPageContent() {
     })
   }, [agendamentos, pacoteFilter, statusFilter])
 
-  const hasActiveFilters = statusFilter || editorFilter || pacoteFilter || dateRange?.from || clientSearch
+  const hasActiveFilters = Boolean(statusFilter || editorFilter || pacoteFilter || dateRange?.from || clientSearch)
 
   const clearFilters = () => {
     setStatusFilter('')
@@ -104,6 +97,23 @@ function AgendaPageContent() {
     setClientSearch('')
   }
 
+  const goToToday = () => {
+    const today = new Date()
+    setCurrentDate(today)
+    setSelectedDate(today)
+  }
+
+  const handleMonthChange = (date: Date) => {
+    setCurrentDate(date)
+    setSelectedDate(date)
+  }
+
+  const openNewProposta = () => {
+    const params = new URLSearchParams()
+    params.set('data', format(selectedDate ?? new Date(), 'yyyy-MM-dd'))
+    navigate(`${ROUTES.PROPOSTAS_NOVO}?${params.toString()}`)
+  }
+
   const filtrosControles = (
     <>
       <Select value={statusFilter} onValueChange={setStatusFilter}>
@@ -111,7 +121,7 @@ function AgendaPageContent() {
           <SelectValue placeholder="Filtrar por status" />
         </SelectTrigger>
         <SelectContent>
-          {statusOptions.map((opt) => (
+          {AGENDA_STATUS_OPTIONS.map((opt) => (
             <SelectItem key={opt.value} value={opt.value}>
               {opt.label}
             </SelectItem>
@@ -182,59 +192,85 @@ function AgendaPageContent() {
 
   return (
     <div>
-      <PageTitle
-        title="Agenda"
-        description="Visualize e gerencie os ensaios agendados"
-        breadcrumbs={[{ label: 'Agenda' }]}
-      />
+      {!isMobile && (
+        <PageTitle
+          title="Agenda"
+          description="Visualize e gerencie os ensaios agendados"
+          breadcrumbs={[{ label: 'Agenda' }]}
+        />
+      )}
 
-      <ListToolbar
-        searchValue={clientSearch}
-        onSearchChange={setClientSearch}
-        searchPlaceholder="Buscar cliente..."
-        onOpenFilters={() => setFiltrosOpen(true)}
-        activeFilterCount={[statusFilter, editorFilter, pacoteFilter, dateRange?.from].filter(Boolean).length}
-        right={viewToggle}
-      />
+      {isMobile && (
+        <AgendaMobileHeader
+          currentDate={currentDate}
+          onMonthChange={handleMonthChange}
+          onOpenOptions={() => setOptionsOpen(true)}
+          searchValue={clientSearch}
+          onSearchChange={setClientSearch}
+        />
+      )}
 
-      <div className="mb-4 hidden flex-wrap items-center gap-2 md:flex">
-        {filtrosControles}
-        {hasActiveFilters && (
-          <Button variant="ghost" size="sm" onClick={clearFilters}>
-            <FilterX className="mr-1 h-4 w-4" />
-            Limpar
-          </Button>
-        )}
-      </div>
+      {!isMobile && (
+        <>
+          <ListToolbar
+            searchValue={clientSearch}
+            onSearchChange={setClientSearch}
+            searchPlaceholder="Buscar cliente..."
+            onOpenFilters={() => setFiltrosOpen(true)}
+            activeFilterCount={[statusFilter, editorFilter, pacoteFilter, dateRange?.from].filter(Boolean).length}
+            right={viewToggle}
+          />
 
-      <FilterSheet
-        open={filtrosOpen}
-        onOpenChange={setFiltrosOpen}
-        title="Filtrar agenda"
-        description="Refine os ensaios exibidos"
-        onApply={() => setFiltrosOpen(false)}
-        onClear={clearFilters}
-      >
-        <div className="space-y-4">
-          <div className="space-y-2">
-            <span className="text-sm font-medium">Status</span>
+          <div className="mb-4 hidden flex-wrap items-center gap-2 md:flex">
             {filtrosControles}
+            {hasActiveFilters && (
+              <Button variant="ghost" size="sm" onClick={clearFilters}>
+                <FilterX className="mr-1 h-4 w-4" />
+                Limpar
+              </Button>
+            )}
           </div>
-        </div>
-      </FilterSheet>
+
+          <FilterSheet
+            open={filtrosOpen}
+            onOpenChange={setFiltrosOpen}
+            title="Filtrar agenda"
+            description="Refine os ensaios exibidos"
+            onApply={() => setFiltrosOpen(false)}
+            onClear={clearFilters}
+          >
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <span className="text-sm font-medium">Status</span>
+                {filtrosControles}
+              </div>
+            </div>
+          </FilterSheet>
+        </>
+      )}
 
       {viewMode === 'calendar' ? (
         <AgendaCalendar
           agendamentos={filteredAgendamentos}
           view={calendarView}
           onViewChange={setCalendarView}
+          currentDate={currentDate}
+          onCurrentDateChange={setCurrentDate}
+          selectedDate={selectedDate}
+          onSelectedDateChange={setSelectedDate}
           onEventClick={(id) => navigate(ROUTES.AGENDA_DETALHES.replace(':id', id))}
-          onDateSelect={(date) => {
-            const params = new URLSearchParams()
-            params.set('data', format(date, 'yyyy-MM-dd'))
-            navigate(`${ROUTES.PROPOSTAS_NOVO}?${params.toString()}`)
-          }}
+          onDateSelect={
+            isMobile
+              ? undefined
+              : (date) => {
+                  const params = new URLSearchParams()
+                  params.set('data', format(date, 'yyyy-MM-dd'))
+                  navigate(`${ROUTES.PROPOSTAS_NOVO}?${params.toString()}`)
+                }
+          }
           isLoading={isLoading}
+          variant={isMobile ? 'mobile' : 'default'}
+          showToolbar={!isMobile}
         />
       ) : (
         <AgendamentoList
@@ -251,9 +287,7 @@ function AgendaPageContent() {
             <h3 className="text-sm font-semibold">
               Resultados da busca
               {filteredAgendamentos.length > 0 && (
-                <span className="ml-1.5 text-muted-foreground font-normal">
-                  ({filteredAgendamentos.length})
-                </span>
+                <span className="ml-1.5 font-normal text-muted-foreground">({filteredAgendamentos.length})</span>
               )}
             </h3>
           </div>
@@ -269,19 +303,19 @@ function AgendaPageContent() {
                 return (
                   <div
                     key={a.id}
-                    className="flex items-center justify-between px-4 py-3 transition-colors hover:bg-muted/50 cursor-pointer"
+                    className="flex cursor-pointer items-center justify-between px-4 py-3 transition-colors hover:bg-muted/50"
                     onClick={() => navigate(ROUTES.AGENDA_DETALHES.replace(':id', a.id))}
                   >
                     <div className="min-w-0 flex-1">
-                      <p className="text-sm font-medium truncate">{a.clienteNome}</p>
+                      <p className="truncate text-sm font-medium">{a.clienteNome}</p>
                       <div className="mt-0.5 flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground">
                         <span className="flex items-center gap-1">
                           <CalendarDays className="h-3 w-3" />
-                          {format(dataHora, "dd/MM/yyyy")}
+                          {format(dataHora, 'dd/MM/yyyy')}
                         </span>
                         <span className="flex items-center gap-1">
                           <Clock className="h-3 w-3" />
-                          {format(dataHora, "HH:mm")}
+                          {format(dataHora, 'HH:mm')}
                         </span>
                         {a.localEnsaio && (
                           <span className="flex items-center gap-1">
@@ -300,6 +334,33 @@ function AgendaPageContent() {
             )}
           </div>
         </div>
+      )}
+
+      {isMobile && (
+        <>
+          <AgendaOptionsDrawer
+            open={optionsOpen}
+            onOpenChange={setOptionsOpen}
+            viewMode={viewMode}
+            onViewModeChange={setViewMode}
+            calendarView={calendarView}
+            onCalendarViewChange={setCalendarView}
+            statusFilter={statusFilter}
+            onStatusFilterChange={setStatusFilter}
+            editorFilter={editorFilter}
+            onEditorFilterChange={setEditorFilter}
+            pacoteFilter={pacoteFilter}
+            onPacoteFilterChange={setPacoteFilter}
+            dateRange={dateRange}
+            onDateRangeChange={setDateRange}
+            usuarios={usuarios}
+            pacotes={pacotes}
+            hasActiveFilters={hasActiveFilters}
+            onClearFilters={clearFilters}
+            onGoToToday={goToToday}
+          />
+          <AgendaFab onClick={openNewProposta} />
+        </>
       )}
     </div>
   )

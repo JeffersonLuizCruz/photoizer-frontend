@@ -1,8 +1,11 @@
 import { PanelLeft, Menu, LogOut } from 'lucide-react'
+import { useLocation } from 'react-router-dom'
 import { useSidebarStore } from '@/stores/sidebar.store'
 import { Button } from '@/shared/components/ui/button'
 import { Avatar, AvatarFallback } from '@/shared/components/ui/avatar'
 import { Badge } from '@/shared/components/ui/badge'
+import { ROUTES } from '@/shared/constants'
+import { cn } from '@/shared/lib/cn'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -26,6 +29,11 @@ export function Header() {
   const isOpen = useSidebarStore((state) => state.isOpen)
   const setMobileMenuOpen = useSidebarStore((state) => state.setMobileMenuOpen)
   const { user, logout } = useAuth()
+  const location = useLocation()
+
+  // Na agenda mobile o hambúrguer do calendário abre as opções; a navegação
+  // global continua disponível pelo botão "Menu" da barra inferior.
+  const hideMobileMenuButton = location.pathname === ROUTES.AGENDA
 
   const initials = user?.nome
     ?.split(' ')
@@ -44,7 +52,7 @@ export function Header() {
           size="icon"
           onClick={() => setMobileMenuOpen(true)}
           aria-label="Abrir menu"
-          className="lg:hidden"
+          className={cn('lg:hidden', hideMobileMenuButton && 'hidden')}
         >
           <Menu className="h-5 w-5" />
         </Button>

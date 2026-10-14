@@ -12,6 +12,8 @@ interface AgendaCalendarEventProps {
   agendamento: Agendamento
   onClick?: (id: string) => void
   compact?: boolean
+  /** Formato "tarja" enxuto usado na visão de mês mobile (sem hora/ícone). */
+  pill?: boolean
 }
 
 export const statusLabels: Record<string, { label: string; variant: 'success' | 'info' | 'warning' | 'destructive' | 'default' | 'secondary' }> = {
@@ -46,12 +48,31 @@ function StatusMarker({ status, className }: { status: string; className?: strin
   return <span className={cn('h-1.5 w-1.5 shrink-0 rounded-full bg-current opacity-70', className)} aria-hidden="true" />
 }
 
-export function AgendaCalendarEvent({ agendamento, onClick, compact = false }: AgendaCalendarEventProps) {
+export function AgendaCalendarEvent({ agendamento, onClick, compact = false, pill = false }: AgendaCalendarEventProps) {
   const hora = format(new Date(agendamento.dataHoraEnsaio), 'HH:mm', { locale: ptBR })
   const isParceiro = agendamento.fotografos?.some((f) => f.status !== 'CANCELADO') ?? false
   const statusLabel = statusLabels[agendamento.status]?.label ?? agendamento.status
   const ariaLabel = `${hora} • ${agendamento.clienteNome ?? 'Cliente'} • Pacote ${agendamento.pacoteNome} • ${statusLabel}`
-  const titulo = `${hora} - ${agendamento.clienteNome ?? ''} (${agendamento.pacoteNome})`
+  const titulo = `${hora} - ${agendamento.clienteNome ?? ''} (${agendamento.pacoteNome}) • ${statusLabel}`
+
+  if (pill) {
+    return (
+      <button
+        type="button"
+        onClick={(e) => { e.stopPropagation(); onClick?.(agendamento.id) }}
+        className={cn(
+          'flex w-full items-center gap-1 rounded-sm px-1.5 py-0.5 text-left text-[11px] font-medium leading-tight',
+          'ring-1 ring-inset ring-black/10 transition hover:brightness-95 dark:ring-white/15',
+        )}
+        style={pacoteColorStyle(agendamento.pacoteCor)}
+        title={titulo}
+        aria-label={ariaLabel}
+        data-testid="agenda-calendar-event"
+      >
+        <span className="min-w-0 flex-1 truncate">{agendamento.clienteNome ?? 'Sem cliente'}</span>
+      </button>
+    )
+  }
 
   if (compact) {
     return (

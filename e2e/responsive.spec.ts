@@ -326,3 +326,95 @@ test.describe('Agenda - tarja colorida por pacote', () => {
     expect(await horizontalOverflow(page)).toBeLessThanOrEqual(1)
   })
 })
+
+const AGENDAMENTO_HOJE = {
+  id: 'e2e-agenda-1',
+  clienteId: 'e2e-cliente-1',
+  clienteNome: 'Maria Souza',
+  clienteTelefone: null,
+  clienteEmail: null,
+  clienteCpf: null,
+  clienteCidade: null,
+  clienteEstado: null,
+  pacoteId: 'e2e-pacote-1',
+  pacoteNome: 'Ensaio Praia',
+  pacoteCor: '#3B82F6',
+  editorId: null,
+  editorNome: null,
+  fotografoId: null,
+  fotografoNome: null,
+  fotografos: null,
+  dataHoraEnsaio: new Date().toISOString().slice(0, 19),
+  duracaoMinutos: 60,
+  localEnsaio: 'Estúdio Central',
+  valorTotal: 900,
+  valorEntradaExigido: 270,
+  valorEntradaPago: 0,
+  valorRestante: 630,
+  valorExtras: 0,
+  taxaDeslocamento: 0,
+  valorTotalFinal: 900,
+  percentualEntrada: 30,
+  valorPacote: 900,
+  saldoDevedor: 900,
+  status: 'CONFIRMADO',
+  autorizaUsoImagem: false,
+  ensaioDestaque: false,
+  observacoes: null,
+  createdAt: '',
+  updatedAt: '',
+}
+
+async function mockAgendaApi(page: Page, agendamentos: unknown[]) {
+  await page.route('**/api/v1/**', async (route) => {
+    const url = route.request().url()
+    const path = url.split('/api/v1')[1]?.split('?')[0] ?? ''
+    const isGet = route.request().method() === 'GET'
+    const body = isGet && path === '/agendamentos' ? agendamentos : isGet ? bodyFor(url) : {}
+    await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(body) })
+  })
+}
+
+test.describe('Agenda - visual Google Calendar (mobile)', () => {
+  test('visão de mês mobile sem scroll horizontal (390px)', async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 })
+    await seedAdminAuth(page)
+    await mockAgendaApi(page, [AGENDAMENTO_HOJE])
+    await page.goto('/agenda')
+    await page.waitForTimeout(1200)
+
+    await expect(page.getByTestId('agenda-calendar-event').first()).toBeVisible()
+    await expect(page.getByRole('button', { name: 'Abrir opções da agenda' })).toBeVisible()
+    expect(await horizontalOverflow(page)).toBeLessThanOrEqual(1)
+  })
+
+  test('hambúrguer abre o drawer de opções da agenda', async ({ page }) => {
+    await seedAdminAuth(page)
+    await mockAgendaApi(page, [AGENDAMENTO_HOJE])
+    await page.goto('/agenda')
+    await page.waitForTimeout(1200)
+
+    await page.getByRole('button', { name: 'Abrir opções da agenda' }).click()
+
+    const drawer = page.getByRole('dialog', { name: 'Opções da agenda' })
+    await expect(drawer).toBeVisible()
+    await expect(drawer.getByRole('button', { name: 'Ir para hoje' })).toBeVisible()
+    await expect(drawer.getByRole('button', { name: 'Mês' })).toBeVisible()
+
+    await drawer.getByRole('button', { name: 'Lista' }).click()
+    await drawer.getByRole('button', { name: 'Fechar opções' }).click()
+    await expect(drawer).not.toBeVisible()
+  })
+
+  test('FAB cria nova proposta', async ({ page }) => {
+    await seedAdminAuth(page)
+    await mockAgendaApi(page, [])
+    await page.goto('/agenda')
+    await page.waitForTimeout(1200)
+
+    const fab = page.getByTestId('agenda-fab')
+    await expect(fab).toBeVisible()
+    await fab.click()
+    await expect(page).toHaveURL(/\/propostas\/nova/)
+  })
+})
