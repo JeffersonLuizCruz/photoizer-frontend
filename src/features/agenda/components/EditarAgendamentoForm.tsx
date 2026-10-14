@@ -90,14 +90,16 @@ export function EditarAgendamentoForm({ agendamento, onSubmit, isPending }: Edit
     const hora = format(current, 'HH:mm')
     const novaData = new Date(date)
     novaData.setHours(Number(hora.split(':')[0]), Number(hora.split(':')[1]))
-    setValue('dataHoraEnsaio', novaData.toISOString(), { shouldValidate: true })
+    // Wall-clock (LocalDateTime no backend): nunca usar toISOString() aqui.
+    // Premissa: navegador e servidor no mesmo fuso do negócio (America/Sao_Paulo).
+    setValue('dataHoraEnsaio', format(novaData, "yyyy-MM-dd'T'HH:mm:ss"), { shouldValidate: true })
   }
 
   const handleHoraSelect = (hora: string) => {
     const current = new Date(watch('dataHoraEnsaio'))
     const novaData = new Date(current)
     novaData.setHours(Number(hora.split(':')[0]), Number(hora.split(':')[1]))
-    setValue('dataHoraEnsaio', novaData.toISOString(), { shouldValidate: true })
+    setValue('dataHoraEnsaio', format(novaData, "yyyy-MM-dd'T'HH:mm:ss"), { shouldValidate: true })
   }
 
   return (

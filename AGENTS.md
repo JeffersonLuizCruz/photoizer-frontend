@@ -111,6 +111,7 @@
   - Token anexado automaticamente pelo interceptor.
   - 401 → logout + redirect `/acesso-cliente`.
 - **Proxy dev:** `/api` → `http://localhost:8080` (vite.config.ts).
+- **Datas e fuso horário:** datas de ensaio são `LocalDateTime` (wall-clock) no backend; o frontend envia `yyyy-MM-dd'T'HH:mm:ss` **sem fuso** (nunca `toISOString()`, que converteria para UTC e deslocaria a hora). Premissa: navegador e servidor no mesmo fuso do negócio (`America/Sao_Paulo`, fixado no Dockerfile do backend).
 
 ## 6. Comandos Úteis
 - `npm run dev` — Inicia servidor de desenvolvimento Vite.

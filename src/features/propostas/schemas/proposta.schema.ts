@@ -4,6 +4,7 @@ export const novaPropostaSchema = z.object({
   pacoteId: z.string().min(1, 'Selecione o pacote'),
   data: z.date({ message: 'Informe a data do ensaio' }),
   hora: z.string().regex(/^\d{2}:\d{2}$/, 'Horário inválido (HH:mm)'),
+  duracaoMinutos: z.number().optional(),
   localEnsaio: z.string().min(3, 'Informe o local do ensaio'),
   editorId: z.string().optional(),
   fotografoId: z.string().min(1, 'Selecione o fotógrafo responsável'),

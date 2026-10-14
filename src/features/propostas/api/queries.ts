@@ -69,6 +69,10 @@ export function useCriarProposta() {
       const [h, m] = payload.hora.split(':').map(Number)
       const base = payload.data instanceof Date ? payload.data : new Date(payload.data)
       const dataHoraEnsaio = new Date(base.getFullYear(), base.getMonth(), base.getDate(), h, m, 0, 0)
+      // O backend usa LocalDateTime (wall-clock): enviamos a hora local sem fuso,
+      // nunca `toISOString()` (que converteria para UTC e deslocaria a hora).
+      // Premissa: navegador e servidor no mesmo fuso do negócio (America/Sao_Paulo,
+      // fixado no Dockerfile do backend).
       const fotografos = (payload.fotografos ?? [])
         .filter((f) => f?.fotografoId)
         .map((f) => ({
@@ -81,7 +85,8 @@ export function useCriarProposta() {
         pacoteId: payload.pacoteId,
         editorId: payload.editorId || undefined,
         fotografoId: payload.fotografoId || undefined,
-        dataHoraEnsaio: dataHoraEnsaio.toISOString(),
+        dataHoraEnsaio: format(dataHoraEnsaio, "yyyy-MM-dd'T'HH:mm:ss"),
+        duracaoMinutos: payload.duracaoMinutos,
         localEnsaio: payload.localEnsaio,
         custoDeslocamento: payload.custoDeslocamento,
         repassarDeslocamento: payload.repassarDeslocamento,

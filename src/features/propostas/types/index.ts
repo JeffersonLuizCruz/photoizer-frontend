@@ -91,6 +91,7 @@ export interface PropostaPublica {
   precoFotoExtra: number
   dataHoraEnsaio: string
   duracaoMinutos: number
+  duracaoLabel: string
   localEnsaio: string
   taxaDeslocamento: number
   percentualEntrada: number

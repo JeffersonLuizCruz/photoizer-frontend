@@ -79,7 +79,7 @@ export function ProposalSummary({ proposta }: ProposalSummaryProps) {
         <InfoCard icon={CalendarDays} label="Data do ensaio">
           {dataLabel}
           <div className="mt-0.5 flex items-center gap-1 text-xs text-slate-500">
-            <Clock className="h-3 w-3" /> {horaLabel} · {proposta.duracaoMinutos} min
+            <Clock className="h-3 w-3" /> {horaLabel} · {proposta.duracaoLabel}
           </div>
         </InfoCard>
 

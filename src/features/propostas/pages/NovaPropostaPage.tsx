@@ -17,6 +17,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/shared/components/ui/
 import { CurrencyInput } from '@/shared/components/layout/CurrencyInput'
 import { ROUTES } from '@/shared/constants'
 import { formatCurrency } from '@/shared/lib/format'
+import { parseDuracao } from '@/shared/lib/duracao'
 import { cn } from '@/shared/lib/cn'
 import { ParceirosRepasseList } from '@/shared/components/parceiros/ParceirosRepasseList'
 import { novaPropostaSchema, type NovaPropostaFormValues } from '../schemas/proposta.schema'
@@ -134,7 +135,7 @@ export function NovaPropostaPage() {
 
   const onSubmit = async (data: NovaPropostaFormValues) => {
     try {
-      await criar.mutateAsync(data)
+      await criar.mutateAsync({ ...data, duracaoMinutos: parseDuracao(pacoteEscolhido?.duracaoEstimada) })
       navigate(ROUTES.PROPOSTAS)
     } catch {
       /* toast tratado na mutation */

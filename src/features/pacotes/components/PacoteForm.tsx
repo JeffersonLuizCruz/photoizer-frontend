@@ -96,7 +96,8 @@ export function PacoteForm({ onSubmit, defaultValues, isLoading, mode }: PacoteF
 
         <div>
           <Label htmlFor="duracaoEstimada">Duração Estimada *</Label>
-          <Input id="duracaoEstimada" {...register('duracaoEstimada')} placeholder="Ex: 2h, 4h, 2 horas" />
+          <Input id="duracaoEstimada" {...register('duracaoEstimada')} placeholder="Ex: 2h, 2h30, 90min, 2 horas" />
+          <p className="mt-1 text-xs text-muted-foreground">Formatos aceitos: 2h, 2h30, 90min, 2 horas.</p>
           {errors.duracaoEstimada && <p className="mt-1 text-sm text-destructive">{errors.duracaoEstimada.message}</p>}
         </div>
 
