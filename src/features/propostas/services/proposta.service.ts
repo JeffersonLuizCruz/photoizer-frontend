@@ -9,6 +9,7 @@ import type {
   NovaPropostaPayload,
   PacoteOption,
   Proposta,
+  PropostaDetalhe,
   PropostaPublica,
   PropostaStatusPublico,
   UsuarioOption,
@@ -63,6 +64,22 @@ export const propostaService = {
   criarProposta: async (payload: NovaPropostaPayload): Promise<Proposta> => {
     const { data } = await apiClient.post<Proposta>('/agendamentos/proposta', payload)
     return data
+  },
+
+  buscarProposta: async (id: string): Promise<PropostaDetalhe> => {
+    const { data } = await apiClient.get<PropostaDetalhe>(`/agendamentos/${id}`)
+    return data
+  },
+
+  atualizarProposta: async (id: string, payload: NovaPropostaPayload): Promise<Proposta> => {
+    const { data } = await apiClient.put<Proposta>(`/agendamentos/${id}/proposta`, payload)
+    return data
+  },
+
+  removerProposta: async (id: string, motivo?: string): Promise<void> => {
+    await apiClient.delete(`/agendamentos/${id}/proposta`, {
+      params: motivo ? { motivo } : undefined,
+    })
   },
 
   confirmarPagamento: async (id: string): Promise<Proposta> => {

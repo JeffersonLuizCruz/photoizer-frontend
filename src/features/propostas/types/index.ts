@@ -56,6 +56,29 @@ export interface Proposta {
   recusadoPor?: string | null
 }
 
+export interface PropostaDetalhe {
+  id: string
+  status: AgendamentoStatus
+  pacoteId: string
+  editorId: string | null
+  fotografoId: string | null
+  dataHoraEnsaio: string
+  duracaoMinutos: number
+  localEnsaio: string
+  custoDeslocamento: number | null
+  repassarDeslocamento: boolean | null
+  clausulasPersonalizadas: string | null
+  observacoes: string | null
+  indicadorNome: string | null
+  tokenProposta: string | null
+  fotografos: Array<{
+    fotografoId: string
+    valorRepassar: number | null
+    tipoValor: 'FIXO' | 'PERCENTUAL' | null
+    percentual: number | null
+  }>
+}
+
 export interface NovaPropostaPayload {
   pacoteId: string
   editorId?: string

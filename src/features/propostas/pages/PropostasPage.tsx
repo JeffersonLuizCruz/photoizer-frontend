@@ -16,6 +16,8 @@ import {
   XCircle,
   MoreVertical,
   ChevronDown,
+  Pencil,
+  Trash2,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { PageTitle } from '@/shared/components/layout/PageTitle'
@@ -50,6 +52,7 @@ import {
   useConfirmarPagamentoProposta,
   useAprovarProposta,
   useRecusarProposta,
+  useRemoverProposta,
 } from '../api/queries'
 import type { Proposta } from '../types'
 
@@ -75,6 +78,7 @@ export function PropostasPage() {
   const confirmar = useConfirmarPagamentoProposta()
   const aprovar = useAprovarProposta()
   const recusar = useRecusarProposta()
+  const remover = useRemoverProposta()
 
   const [busca, setBusca] = useState('')
   const [faseAtiva, setFaseAtiva] = useState<string>('TODAS')
@@ -87,6 +91,30 @@ export function PropostasPage() {
   })
   const [recusa, setRecusa] = useState<{ id: string; cliente: string } | null>(null)
   const [motivo, setMotivo] = useState('')
+  const [remocao, setRemocao] = useState<{ id: string; cliente: string } | null>(null)
+  const [motivoRemocao, setMotivoRemocao] = useState('')
+
+  const podeEditar = (p: Proposta) => p.status === AGENDAMENTO_STATUS.PRE_RESERVA
+  const podeRemover = (p: Proposta) => p.status === AGENDAMENTO_STATUS.PRE_RESERVA
+
+  const abrirEdicao = (p: Proposta) => {
+    setAcaoProposta(null)
+    navigate(ROUTES.PROPOSTAS_EDITAR.replace(':id', p.id))
+  }
+
+  const abrirRemocao = (p: Proposta) => {
+    setMotivoRemocao('')
+    setRemocao({ id: p.id, cliente: p.clienteNome ?? 'esta proposta' })
+    setAcaoProposta(null)
+  }
+
+  const confirmarRemocao = () => {
+    if (!remocao) return
+    remover.mutate(
+      { id: remocao.id, motivo: motivoRemocao.trim() || undefined },
+      { onSuccess: () => setRemocao(null) },
+    )
+  }
 
   const linkDe = (p: Proposta) =>
     p.tokenProposta ? `${window.location.origin}${ROUTES.PROPOSTA_PUBLICA.replace(':token', p.tokenProposta)}` : null
@@ -162,6 +190,23 @@ export function PropostasPage() {
         <Button variant="ghost" size="sm" onClick={() => navigate(ROUTES.AGENDA_DETALHES.replace(':id', p.id))}>
           Detalhes
         </Button>
+        {podeDecidir && podeEditar(p) && (
+          <Button variant="outline" size="sm" onClick={() => abrirEdicao(p)}>
+            <Pencil className="mr-1 h-4 w-4" />
+            Editar
+          </Button>
+        )}
+        {podeDecidir && podeRemover(p) && (
+          <Button
+            variant="outline"
+            size="sm"
+            className="text-destructive hover:text-destructive"
+            onClick={() => abrirRemocao(p)}
+          >
+            <Trash2 className="mr-1 h-4 w-4" />
+            Remover
+          </Button>
+        )}
         {podeDecidir && emAnalise && p.temComprovanteEntrada && (
           <Button variant="outline" size="sm" onClick={() => abrirComprovante(p)}>
             <Eye className="mr-1 h-4 w-4" />
@@ -445,6 +490,26 @@ export function PropostasPage() {
                   <Eye className="mr-2 h-4 w-4" aria-hidden="true" />
                   Ver detalhes
                 </Button>
+                {podeDecidir && podeEditar(acaoProposta) && (
+                  <Button
+                    variant="outline"
+                    className="justify-start"
+                    onClick={() => abrirEdicao(acaoProposta)}
+                  >
+                    <Pencil className="mr-2 h-4 w-4" aria-hidden="true" />
+                    Editar proposta
+                  </Button>
+                )}
+                {podeDecidir && podeRemover(acaoProposta) && (
+                  <Button
+                    variant="outline"
+                    className="justify-start text-destructive hover:text-destructive"
+                    onClick={() => abrirRemocao(acaoProposta)}
+                  >
+                    <Trash2 className="mr-2 h-4 w-4" aria-hidden="true" />
+                    Remover proposta
+                  </Button>
+                )}
                 {podeDecidir && acaoProposta.temComprovanteEntrada && (
                   <Button
                     variant="outline"
@@ -558,6 +623,38 @@ export function PropostasPage() {
             <Button variant="destructive" onClick={confirmarRecusa} disabled={recusar.isPending}>
               {recusar.isPending ? <Loader2 className="mr-1 h-4 w-4 animate-spin" /> : <XCircle className="mr-1 h-4 w-4" />}
               Confirmar recusa
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={!!remocao} onOpenChange={(open) => !open && setRemocao(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Remover proposta</DialogTitle>
+            <DialogDescription>
+              A proposta de {remocao?.cliente} será cancelada e removida da listagem. O histórico e os arquivos
+              (termo/comprovante) são preservados para auditoria.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-2">
+            <Label htmlFor="motivo-remocao">Motivo (opcional)</Label>
+            <Textarea
+              id="motivo-remocao"
+              value={motivoRemocao}
+              onChange={(e) => setMotivoRemocao(e.target.value)}
+              maxLength={500}
+              rows={3}
+              placeholder="Ex.: proposta duplicada, cliente desistiu, dados incorretos..."
+            />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setRemocao(null)} disabled={remover.isPending}>
+              Cancelar
+            </Button>
+            <Button variant="destructive" onClick={confirmarRemocao} disabled={remover.isPending}>
+              {remover.isPending ? <Loader2 className="mr-1 h-4 w-4 animate-spin" /> : <Trash2 className="mr-1 h-4 w-4" />}
+              Remover proposta
             </Button>
           </DialogFooter>
         </DialogContent>

@@ -32,6 +32,7 @@ export const ROUTES = {
   MEU_PAINEL: '/meu-painel',
   PROPOSTAS: '/propostas',
   PROPOSTAS_NOVO: '/propostas/nova',
+  PROPOSTAS_EDITAR: '/propostas/:id/editar',
   PROPOSTA_PUBLICA: '/proposta/:token',
   REPASSES_PENDENTES: '/repasses-pendentes',
 } as const

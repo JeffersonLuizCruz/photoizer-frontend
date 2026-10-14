@@ -7,6 +7,7 @@ import { parseDuracao } from '@/shared/lib/duracao'
 import { extractErrorMessage } from '@/shared/api'
 import { propostaService } from '../services/proposta.service'
 import type { NovaPropostaFormValues, AssinarPropostaFormValues } from '../schemas/proposta.schema'
+import type { NovaPropostaPayload } from '../types'
 
 export function usePacotesOptions() {
   return useQuery({
@@ -62,41 +63,53 @@ export function usePropostasList() {
   })
 }
 
+export function usePropostaDetalhe(id: string | undefined) {
+  return useQuery({
+    queryKey: [...QUERY_KEYS.PROPOSTAS, 'detalhe', id],
+    queryFn: () => propostaService.buscarProposta(id!),
+    enabled: !!id,
+  })
+}
+
+/**
+ * Converte os valores do formulário no payload da API. O backend usa
+ * LocalDateTime (wall-clock): enviamos a hora local sem fuso, nunca
+ * `toISOString()` (que converteria para UTC e deslocaria a hora).
+ */
+function montarPayload(payload: NovaPropostaFormValues): NovaPropostaPayload {
+  const [h, m] = payload.hora.split(':').map(Number)
+  const base = payload.data instanceof Date ? payload.data : new Date(payload.data)
+  const dataHoraEnsaio = new Date(base.getFullYear(), base.getMonth(), base.getDate(), h, m, 0, 0)
+  const fotografos = (payload.fotografos ?? [])
+    .filter((f) => f?.fotografoId)
+    .map((f) => ({
+      fotografoId: f.fotografoId,
+      tipoValor: (f.tipoValor ?? 'FIXO') as 'FIXO' | 'PERCENTUAL',
+      valorRepassar: (f.tipoValor ?? 'FIXO') === 'FIXO' ? f.valorRepassar : undefined,
+      percentual: (f.tipoValor ?? 'FIXO') === 'PERCENTUAL' ? f.percentual : undefined,
+    }))
+  return {
+    pacoteId: payload.pacoteId,
+    editorId: payload.editorId || undefined,
+    fotografoId: payload.fotografoId || undefined,
+    dataHoraEnsaio: format(dataHoraEnsaio, "yyyy-MM-dd'T'HH:mm:ss"),
+    duracaoMinutos: payload.duracaoMinutos,
+    localEnsaio: payload.localEnsaio,
+    custoDeslocamento: payload.custoDeslocamento,
+    repassarDeslocamento: payload.repassarDeslocamento,
+    observacoes: payload.observacoes || undefined,
+    indicadorId: payload.indicadorId || undefined,
+    indicadorNome: payload.indicadorNome || undefined,
+    indicadorTelefone: payload.indicadorTelefone || undefined,
+    fotografos,
+  }
+}
+
 export function useCriarProposta() {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: (payload: NovaPropostaFormValues) => {
-      const [h, m] = payload.hora.split(':').map(Number)
-      const base = payload.data instanceof Date ? payload.data : new Date(payload.data)
-      const dataHoraEnsaio = new Date(base.getFullYear(), base.getMonth(), base.getDate(), h, m, 0, 0)
-      // O backend usa LocalDateTime (wall-clock): enviamos a hora local sem fuso,
-      // nunca `toISOString()` (que converteria para UTC e deslocaria a hora).
-      // Premissa: navegador e servidor no mesmo fuso do negócio (America/Sao_Paulo,
-      // fixado no Dockerfile do backend).
-      const fotografos = (payload.fotografos ?? [])
-        .filter((f) => f?.fotografoId)
-        .map((f) => ({
-          fotografoId: f.fotografoId,
-          tipoValor: (f.tipoValor ?? 'FIXO') as 'FIXO' | 'PERCENTUAL',
-          valorRepassar: (f.tipoValor ?? 'FIXO') === 'FIXO' ? f.valorRepassar : undefined,
-          percentual: (f.tipoValor ?? 'FIXO') === 'PERCENTUAL' ? f.percentual : undefined,
-        }))
-      return propostaService.criarProposta({
-        pacoteId: payload.pacoteId,
-        editorId: payload.editorId || undefined,
-        fotografoId: payload.fotografoId || undefined,
-        dataHoraEnsaio: format(dataHoraEnsaio, "yyyy-MM-dd'T'HH:mm:ss"),
-        duracaoMinutos: payload.duracaoMinutos,
-        localEnsaio: payload.localEnsaio,
-        custoDeslocamento: payload.custoDeslocamento,
-        repassarDeslocamento: payload.repassarDeslocamento,
-        observacoes: payload.observacoes || undefined,
-        indicadorId: payload.indicadorId || undefined,
-        indicadorNome: payload.indicadorNome || undefined,
-        indicadorTelefone: payload.indicadorTelefone || undefined,
-        fotografos: fotografos.length > 0 ? fotografos : undefined,
-      })
-    },
+    mutationFn: (payload: NovaPropostaFormValues) =>
+      propostaService.criarProposta(montarPayload(payload)),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.PROPOSTAS })
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.AGENDA })
@@ -104,6 +117,38 @@ export function useCriarProposta() {
     },
     onError: (error: Error) => {
       toast.error(extractErrorMessage(error, 'Erro ao criar proposta'))
+    },
+  })
+}
+
+export function useAtualizarProposta() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ({ id, payload }: { id: string; payload: NovaPropostaFormValues }) =>
+      propostaService.atualizarProposta(id, montarPayload(payload)),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.PROPOSTAS })
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.AGENDA })
+      toast.success('Proposta atualizada.')
+    },
+    onError: (error: Error) => {
+      toast.error(extractErrorMessage(error, 'Erro ao atualizar proposta'))
+    },
+  })
+}
+
+export function useRemoverProposta() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ({ id, motivo }: { id: string; motivo?: string }) =>
+      propostaService.removerProposta(id, motivo),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.PROPOSTAS })
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.AGENDA })
+      toast.success('Proposta removida.')
+    },
+    onError: (error: Error) => {
+      toast.error(extractErrorMessage(error, 'Erro ao remover proposta'))
     },
   })
 }

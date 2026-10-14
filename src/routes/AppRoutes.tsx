@@ -9,6 +9,8 @@ import { LoginPage, ProtectedRoute } from '@/features/auth'
 // Papéis que NÃO incluem AGENDADOR (sem visibilidade financeira interna).
 const ROLES_SEM_AGENDADOR: Papel[] = ['ADMIN', 'FOTOGRAFO', 'EDITOR']
 const ROLES_ADMIN: Papel[] = ['ADMIN']
+// Alteração/remoção de proposta exige os mesmos papéis que decidem a proposta.
+const ROLES_DECISAO_PROPOSTA: Papel[] = ['ADMIN', 'FOTOGRAFO']
 
 // RNF001: code splitting por rota — cada página é carregada sob demanda
 const GaleriaClientePage = lazy(() => import('@/features/ecommerce/pages/GaleriaClientePage').then(m => ({ default: m.GaleriaClientePage })))
@@ -35,6 +37,7 @@ const FluxoCaixaPage = lazy(() => import('@/features/financeiro').then(m => ({ d
 const DespesasPage = lazy(() => import('@/features/despesas').then(m => ({ default: m.DespesasPage })))
 const PropostasPage = lazy(() => import('@/features/propostas').then(m => ({ default: m.PropostasPage })))
 const NovaPropostaPage = lazy(() => import('@/features/propostas').then(m => ({ default: m.NovaPropostaPage })))
+const EditarPropostaPage = lazy(() => import('@/features/propostas').then(m => ({ default: m.EditarPropostaPage })))
 const PropostaPublicaPage = lazy(() => import('@/features/propostas').then(m => ({ default: m.PropostaPublicaPage })))
 const FotografosListPage = lazy(() => import('@/features/fotografos/pages/FotografosListPage').then(m => ({ default: m.FotografosListPage })))
 const FotografoDashboardPage = lazy(() => import('@/features/fotografos/pages/FotografoDashboardPage').then(m => ({ default: m.FotografoDashboardPage })))
@@ -92,6 +95,7 @@ export function AppRoutes() {
             <Route path={ROUTES.AGENDA_EDITAR} element={<ProtectedRoute allowedRoles={ROLES_SEM_AGENDADOR}><EditarAgendamentoPage /></ProtectedRoute>} />
             <Route path={ROUTES.PROPOSTAS} element={<PropostasPage />} />
             <Route path={ROUTES.PROPOSTAS_NOVO} element={<NovaPropostaPage />} />
+            <Route path={ROUTES.PROPOSTAS_EDITAR} element={<ProtectedRoute allowedRoles={ROLES_DECISAO_PROPOSTA}><EditarPropostaPage /></ProtectedRoute>} />
             <Route path={ROUTES.PACOTES} element={<PacotesListPage />} />
             <Route path={ROUTES.PACOTES_NOVO} element={<PacoteFormPage />} />
             <Route path={ROUTES.PACOTES_EDITAR} element={<PacoteFormPage />} />
