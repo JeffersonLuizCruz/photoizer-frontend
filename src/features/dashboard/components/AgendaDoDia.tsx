@@ -1,6 +1,6 @@
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
-import { CalendarDays, Clock, ArrowRight, Award } from 'lucide-react'
+import { CalendarDays, Clock, ArrowRight } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { Button } from '@/shared/components/ui/button'
 import { ROUTES } from '@/shared/constants'
@@ -58,9 +58,6 @@ export function AgendaDoDia({ agendamentos, isLoading }: AgendaDoDiaProps) {
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2">
                 <span className="text-sm font-medium truncate">{agendamento.localEnsaio}</span>
-                {agendamento.ensaioDestaque && (
-                  <Award className="h-3.5 w-3.5 shrink-0 text-amber-500" />
-                )}
               </div>
               <div className="mt-0.5 flex flex-wrap gap-x-3 gap-y-0.5 text-xs text-muted-foreground">
                 {agendamento.duracaoMinutos > 0 && (

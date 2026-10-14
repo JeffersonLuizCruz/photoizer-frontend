@@ -8,6 +8,7 @@ import { DataTable } from '@/shared/components/layout/DataTable'
 import { StatusBadge } from '@/shared/components/layout/StatusBadge'
 import { Button } from '@/shared/components/ui/button'
 import { ROUTES, AGENDAMENTO_STATUS } from '@/shared/constants'
+import { normalizePackageColor } from '@/shared/lib/pacote-color'
 import type { Agendamento, Pacote, Usuario } from '../types'
 
 interface AgendamentoListProps {
@@ -38,8 +39,8 @@ export function AgendamentoList({ agendamentos, isLoading, pacotes, usuarios }: 
   const navigate = useNavigate()
 
   const pacoteMap = useMemo(() => {
-    const map = new Map<string, string>()
-    pacotes?.forEach((p) => map.set(p.id, p.nome))
+    const map = new Map<string, Pacote>()
+    pacotes?.forEach((p) => map.set(p.id, p))
     return map
   }, [pacotes])
 
@@ -80,8 +81,17 @@ export function AgendamentoList({ agendamentos, isLoading, pacotes, usuarios }: 
         id: 'pacote',
         header: 'Pacote',
         cell: ({ row }) => {
-          const nome = pacoteMap.get(row.original.pacoteId)
-          return <span className="text-sm">{nome ?? row.original.pacoteId}</span>
+          const cor = row.original.pacoteCor ?? pacoteMap.get(row.original.pacoteId)?.cor
+          return (
+            <div className="flex items-center gap-2">
+              <span
+                className="h-3 w-3 shrink-0 rounded-full border border-black/10 dark:border-white/20"
+                style={{ backgroundColor: normalizePackageColor(cor) }}
+                aria-hidden="true"
+              />
+              <span className="text-sm">{row.original.pacoteNome ?? row.original.pacoteId}</span>
+            </div>
+          )
         },
       },
       {
@@ -146,14 +156,23 @@ export function AgendamentoList({ agendamentos, isLoading, pacotes, usuarios }: 
       mobileHiddenIds={['localEnsaio', 'pago', 'editor', 'pacote']}
       minWidthClassName="min-w-[640px]"
       renderMobileCard={(a) => {
-        const pacoteNome = pacoteMap.get(a.pacoteId) ?? a.pacoteId
+        const pacote = pacoteMap.get(a.pacoteId)
+        const pacoteNome = a.pacoteNome ?? pacote?.nome ?? a.pacoteId
+        const pacoteCor = a.pacoteCor ?? pacote?.cor
         const editorNome = a.editorId ? usuarioMap.get(a.editorId) ?? a.editorId : '—'
         return (
           <div className="space-y-3 rounded-lg border bg-card p-4">
             <div className="flex items-start justify-between gap-2">
               <div className="min-w-0">
                 <p className="truncate font-medium">{a.clienteNome}</p>
-                <p className="truncate text-xs text-muted-foreground">{pacoteNome}</p>
+                <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                  <span
+                    className="h-2.5 w-2.5 shrink-0 rounded-full border border-black/10 dark:border-white/20"
+                    style={{ backgroundColor: normalizePackageColor(pacoteCor) }}
+                    aria-hidden="true"
+                  />
+                  <span className="min-w-0 truncate">{pacoteNome}</span>
+                </p>
               </div>
               <StatusBadge status={a.status} customLabels={statusLabels} />
             </div>

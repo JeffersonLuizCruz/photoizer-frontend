@@ -41,6 +41,7 @@ export function PacotesListPage() {
         valorBase: selectedPacote.valorBase,
         bloqueiaDiaInteiro: selectedPacote.bloqueiaDiaInteiro,
         duracaoEstimada: selectedPacote.duracaoEstimada ?? '',
+        cor: selectedPacote.cor,
         ativo: true,
         diasParaEntrega: selectedPacote.diasParaEntrega ?? undefined,
       }

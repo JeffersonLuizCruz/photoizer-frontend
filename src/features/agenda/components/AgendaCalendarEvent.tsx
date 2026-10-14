@@ -1,42 +1,17 @@
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
-import { CalendarDays, Clock, MapPin, Star, User, Users } from 'lucide-react'
+import { CalendarDays, Check, Clock, MapPin, User, Users, X } from 'lucide-react'
 import { cn } from '@/shared/lib/cn'
 import { Badge } from '@/shared/components/ui/badge'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/shared/components/ui/tooltip'
+import { AGENDAMENTO_STATUS } from '@/shared/constants'
+import { pacoteColorStyle } from '@/shared/lib/pacote-color'
 import type { Agendamento } from '../types'
 
 interface AgendaCalendarEventProps {
   agendamento: Agendamento
   onClick?: (id: string) => void
   compact?: boolean
-}
-
-export const statusColors: Record<string, string> = {
-  PRE_RESERVA: 'bg-slate-400',
-  AGUARDANDO_APROVACAO: 'bg-indigo-400',
-  PAGAMENTO_CONFIRMADO: 'bg-cyan-400',
-  CONFIRMADO: 'bg-emerald-500',
-  REALIZADO: 'bg-blue-500',
-  AGUARDANDO_PAGAMENTO_FINAL: 'bg-amber-500',
-  EM_EDICAO: 'bg-orange-500',
-  FINALIZADO: 'bg-gray-400',
-  CANCELADO: 'bg-rose-400',
-  NO_SHOW: 'bg-rose-400',
-  RASCUNHO: 'bg-slate-300',
-}
-
-export const statusBgColors: Record<string, string> = {
-  PRE_RESERVA: 'bg-slate-50 border-dashed border-slate-300 hover:bg-slate-100',
-  AGUARDANDO_APROVACAO: 'bg-indigo-50 border-indigo-200 hover:bg-indigo-100',
-  PAGAMENTO_CONFIRMADO: 'bg-cyan-50 border-cyan-200 hover:bg-cyan-100',
-  CONFIRMADO: 'bg-emerald-50 border-emerald-200 hover:bg-emerald-100',
-  REALIZADO: 'bg-blue-50 border-blue-200 hover:bg-blue-100',
-  AGUARDANDO_PAGAMENTO_FINAL: 'bg-amber-50 border-amber-200 hover:bg-amber-100',
-  EM_EDICAO: 'bg-orange-50 border-orange-200 hover:bg-orange-100',
-  FINALIZADO: 'bg-gray-50 border-gray-200 hover:bg-gray-100',
-  CANCELADO: 'bg-rose-50 border-rose-200 hover:bg-rose-100',
-  RASCUNHO: 'bg-slate-50 border-dashed border-slate-300 hover:bg-slate-100',
 }
 
 export const statusLabels: Record<string, { label: string; variant: 'success' | 'info' | 'warning' | 'destructive' | 'default' | 'secondary' }> = {
@@ -53,9 +28,30 @@ export const statusLabels: Record<string, { label: string; variant: 'success' | 
   RASCUNHO: { label: 'Rascunho', variant: 'secondary' },
 }
 
+const STATUS_CONCLUIDO: string[] = [AGENDAMENTO_STATUS.REALIZADO, AGENDAMENTO_STATUS.CONFIRMADO, AGENDAMENTO_STATUS.FINALIZADO]
+const STATUS_FALHA: string[] = [AGENDAMENTO_STATUS.CANCELADO, AGENDAMENTO_STATUS.NO_SHOW]
+
+/**
+ * Indicador de status sobre a tarja colorida pelo pacote. A cor do evento
+ * representa o pacote; o status é comunicado por ícone/formato (nunca só cor).
+ */
+function StatusMarker({ status, className }: { status: string; className?: string }) {
+  const iconClass = cn('shrink-0', className)
+  if (STATUS_CONCLUIDO.includes(status)) {
+    return <Check className={iconClass} strokeWidth={3} aria-hidden="true" />
+  }
+  if (STATUS_FALHA.includes(status)) {
+    return <X className={iconClass} strokeWidth={3} aria-hidden="true" />
+  }
+  return <span className={cn('h-1.5 w-1.5 shrink-0 rounded-full bg-current opacity-70', className)} aria-hidden="true" />
+}
+
 export function AgendaCalendarEvent({ agendamento, onClick, compact = false }: AgendaCalendarEventProps) {
-  const data = format(new Date(agendamento.dataHoraEnsaio), "HH:mm", { locale: ptBR })
+  const hora = format(new Date(agendamento.dataHoraEnsaio), 'HH:mm', { locale: ptBR })
   const isParceiro = agendamento.fotografos?.some((f) => f.status !== 'CANCELADO') ?? false
+  const statusLabel = statusLabels[agendamento.status]?.label ?? agendamento.status
+  const ariaLabel = `${hora} • ${agendamento.clienteNome ?? 'Cliente'} • Pacote ${agendamento.pacoteNome} • ${statusLabel}`
+  const titulo = `${hora} - ${agendamento.clienteNome ?? ''} (${agendamento.pacoteNome})`
 
   if (compact) {
     return (
@@ -63,25 +59,24 @@ export function AgendaCalendarEvent({ agendamento, onClick, compact = false }: A
         type="button"
         onClick={(e) => { e.stopPropagation(); onClick?.(agendamento.id) }}
         className={cn(
-          'flex w-full items-center gap-1.5 rounded px-1.5 py-0.5 text-left text-xs transition-colors',
-          statusBgColors[agendamento.status] ?? 'bg-muted border-border hover:bg-accent',
+          'flex w-full items-center gap-1 rounded px-1.5 py-1 text-left text-xs font-medium shadow-sm',
+          'ring-1 ring-inset ring-black/10 transition hover:brightness-95 dark:ring-white/15',
         )}
+        style={pacoteColorStyle(agendamento.pacoteCor)}
+        title={titulo}
+        aria-label={ariaLabel}
+        data-testid="agenda-calendar-event"
       >
-        <span className={cn('h-2 w-2 shrink-0 rounded-full', statusColors[agendamento.status] ?? 'bg-gray-400')} />
-        <span className="truncate font-medium">{data}</span>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            {isParceiro ? (
-              <Users className="h-2.5 w-2.5 shrink-0 text-violet-500" />
-            ) : (
-              <User className="h-2.5 w-2.5 shrink-0 text-slate-400" />
-            )}
-          </TooltipTrigger>
-          <TooltipContent side="top">
-            {isParceiro ? 'Ensaio com parceiro' : 'Ensaio próprio'}
-          </TooltipContent>
-        </Tooltip>
-        {agendamento.ensaioDestaque && <Star className="h-2.5 w-2.5 shrink-0 fill-amber-400 text-amber-400" />}
+        <StatusMarker status={agendamento.status} className="h-3 w-3" />
+        <span className="min-w-0 flex-1 truncate">{agendamento.clienteNome ?? 'Sem cliente'}</span>
+        {isParceiro && (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Users className="ml-auto h-2.5 w-2.5 shrink-0 opacity-80" aria-hidden="true" />
+            </TooltipTrigger>
+            <TooltipContent side="top">Ensaio com parceiro</TooltipContent>
+          </Tooltip>
+        )}
       </button>
     )
   }
@@ -91,37 +86,31 @@ export function AgendaCalendarEvent({ agendamento, onClick, compact = false }: A
       type="button"
       onClick={(e) => { e.stopPropagation(); onClick?.(agendamento.id) }}
       className={cn(
-        'w-full rounded-lg border p-3 text-left transition-colors',
-        statusBgColors[agendamento.status] ?? 'bg-card border-border hover:bg-accent',
+        'w-full rounded-lg border p-3 text-left shadow-sm transition hover:brightness-[0.97]',
+        'ring-1 ring-inset ring-black/10 dark:ring-white/15',
       )}
+      style={pacoteColorStyle(agendamento.pacoteCor)}
+      aria-label={ariaLabel}
     >
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2">
-            <span className={cn('h-2.5 w-2.5 shrink-0 rounded-full', statusColors[agendamento.status] ?? 'bg-gray-400')} />
-            <span className="truncate text-sm font-medium">{agendamento.clienteNome}</span>
-            {agendamento.ensaioDestaque && <Star className="h-3 w-3 shrink-0 fill-amber-400 text-amber-400" />}
+            <StatusMarker status={agendamento.status} className="h-3.5 w-3.5" />
+            <span className="min-w-0 truncate text-sm font-semibold">{agendamento.clienteNome}</span>
           </div>
-          <div className="mt-1.5 flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground">
+          <div className="mt-1.5 flex flex-wrap gap-x-3 gap-y-1 text-xs opacity-90">
             <span className="flex items-center gap-1">
               <CalendarDays className="h-3 w-3" />
-              {format(new Date(agendamento.dataHoraEnsaio), "dd/MM", { locale: ptBR })}
+              {format(new Date(agendamento.dataHoraEnsaio), 'dd/MM', { locale: ptBR })}
             </span>
             <span className="flex items-center gap-1">
               <Clock className="h-3 w-3" />
-              {data}
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  {isParceiro ? (
-                    <Users className="h-3 w-3 text-violet-500" />
-                  ) : (
-                    <User className="h-3 w-3 text-slate-400" />
-                  )}
-                </TooltipTrigger>
-                <TooltipContent>
-                  {isParceiro ? 'Ensaio com parceiro' : 'Ensaio próprio'}
-                </TooltipContent>
-              </Tooltip>
+              {hora}
+              {isParceiro ? (
+                <Users className="h-3 w-3" aria-hidden="true" />
+              ) : (
+                <User className="h-3 w-3" aria-hidden="true" />
+              )}
             </span>
             <span className="flex items-center gap-1">
               <MapPin className="h-3 w-3" />
@@ -130,7 +119,7 @@ export function AgendaCalendarEvent({ agendamento, onClick, compact = false }: A
           </div>
         </div>
         <Badge variant={statusLabels[agendamento.status]?.variant ?? 'default'}>
-          {statusLabels[agendamento.status]?.label ?? agendamento.status}
+          {statusLabel}
         </Badge>
       </div>
     </button>

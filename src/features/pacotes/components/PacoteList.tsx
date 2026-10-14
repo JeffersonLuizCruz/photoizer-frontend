@@ -3,8 +3,19 @@ import { Pencil, Power, PowerOff } from 'lucide-react'
 import { DataTable } from '@/shared/components/layout/DataTable'
 import { Button } from '@/shared/components/ui/button'
 import { StatusBadge } from '@/shared/components/layout/StatusBadge'
+import { normalizePackageColor } from '@/shared/lib/pacote-color'
 import type { Pacote } from '../types'
 import type { ColumnDef } from '@tanstack/react-table'
+
+function PacoteColorDot({ cor, className }: { cor: string | null | undefined; className?: string }) {
+  return (
+    <span
+      className={`inline-block shrink-0 rounded-full border border-black/10 dark:border-white/20 ${className ?? 'h-3.5 w-3.5'}`}
+      style={{ backgroundColor: normalizePackageColor(cor) }}
+      aria-hidden="true"
+    />
+  )
+}
 
 function formatCurrency(value: number): string {
   return new Intl.NumberFormat('pt-BR', {
@@ -17,6 +28,12 @@ const columns: ColumnDef<Pacote>[] = [
   {
     accessorKey: 'nome',
     header: 'Nome',
+    cell: ({ row }) => (
+      <div className="flex items-center gap-2">
+        <PacoteColorDot cor={row.original.cor} />
+        <span className="font-medium">{row.original.nome}</span>
+      </div>
+    ),
   },
   {
     accessorKey: 'quantidadeFotos',
@@ -76,7 +93,10 @@ export function PacoteList({ data, isLoading, search, onSearchChange, onToggleAt
       renderMobileCard={(p) => (
         <div className="space-y-3 rounded-lg border bg-card p-4">
           <div className="flex items-start justify-between gap-2">
-            <p className="font-medium">{p.nome}</p>
+            <p className="flex items-center gap-2 font-medium">
+              <PacoteColorDot cor={p.cor} />
+              {p.nome}
+            </p>
             {p.ativo ? (
               <StatusBadge status="active" customLabels={{ active: { label: 'Ativo', variant: 'success' } }} />
             ) : (

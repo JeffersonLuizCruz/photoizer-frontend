@@ -1,11 +1,12 @@
 import { useState } from 'react'
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
-import { CalendarDays, Clock, MapPin, User, DollarSign, Camera, Award, Pencil, FileText } from 'lucide-react'
+import { CalendarDays, Clock, MapPin, User, DollarSign, Camera, Pencil, FileText } from 'lucide-react'
 import type { Agendamento } from '../types'
 import { cn } from '@/shared/lib/cn'
 import { Badge } from '@/shared/components/ui/badge'
 import { Button } from '@/shared/components/ui/button'
+import { PacoteColorChip } from '@/shared/components/ui/pacote-color-chip'
 import { EditarClienteDialog } from './EditarClienteDialog'
 import { useAuth } from '@/features/auth/AuthProvider'
 
@@ -88,7 +89,10 @@ export function AgendamentoResumo({ agendamento }: AgendamentoResumoProps) {
           <MapPin className="mt-0.5 h-3.5 w-3.5 shrink-0 text-muted-foreground" />
           <span className="min-w-0 break-words">{agendamento.localEnsaio}</span>
         </div>
-        <InfoRow label="Pacote" value={agendamento.pacoteNome} />
+        <InfoRow
+          label="Pacote"
+          value={<PacoteColorChip nome={agendamento.pacoteNome} cor={agendamento.pacoteCor} className="sm:ml-auto" />}
+        />
         <InfoRow label="Fotógrafo responsável" value={agendamento.fotografoNome} />
         <InfoRow label="Editor" value={agendamento.editorNome} />
         {agendamento.fotografos && agendamento.fotografos.length > 0 && (
@@ -104,12 +108,6 @@ export function AgendamentoResumo({ agendamento }: AgendamentoResumoProps) {
                 </li>
               ))}
             </ul>
-          </div>
-        )}
-        {agendamento.ensaioDestaque && (
-          <div className="flex min-w-0 items-center gap-1 text-amber-600">
-            <Award className="h-3.5 w-3.5 shrink-0" />
-            <span className="text-xs font-medium">Ensaio em Destaque</span>
           </div>
         )}
         <InfoRow label="Uso de Imagem" value={agendamento.autorizaUsoImagem ? 'Autorizado' : 'Não autorizado'} />

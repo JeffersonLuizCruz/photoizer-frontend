@@ -4,10 +4,12 @@ import { useNavigate } from 'react-router-dom'
 import { useEffect } from 'react'
 import { Loader2 } from 'lucide-react'
 import { pacoteSchema, type PacoteFormData } from '../schemas/pacote.schema'
+import { PacoteColorPicker } from './PacoteColorPicker'
 import { Button } from '@/shared/components/ui/button'
 import { Input } from '@/shared/components/ui/input'
 import { Label } from '@/shared/components/ui/label'
 import { ROUTES } from '@/shared/constants'
+import { DEFAULT_PACKAGE_COLOR } from '@/shared/lib/pacote-color'
 
 interface PacoteFormProps {
   onSubmit: (data: PacoteFormData) => void
@@ -29,6 +31,7 @@ export function PacoteForm({ onSubmit, defaultValues, isLoading, mode }: PacoteF
       valorBase: 0,
       bloqueiaDiaInteiro: false,
       duracaoEstimada: '',
+      cor: DEFAULT_PACKAGE_COLOR,
       ativo: true,
       diasParaEntrega: '',
       ...defaultValues,
@@ -39,6 +42,7 @@ export function PacoteForm({ onSubmit, defaultValues, isLoading, mode }: PacoteF
 
   const ativo = watch('ativo')
   const bloqueiaDiaInteiro = watch('bloqueiaDiaInteiro')
+  const cor = watch('cor')
 
   useEffect(() => {
     if (defaultValues) {
@@ -105,6 +109,14 @@ export function PacoteForm({ onSubmit, defaultValues, isLoading, mode }: PacoteF
           <Label htmlFor="diasParaEntrega">Prazo de Entrega (dias)</Label>
           <Input id="diasParaEntrega" type="number" min={0} onFocus={(e) => e.target.select()} {...register('diasParaEntrega')} placeholder="Ex: 15" />
           {errors.diasParaEntrega && <p className="mt-1 text-sm text-destructive">{errors.diasParaEntrega.message}</p>}
+        </div>
+
+        <div className="sm:col-span-2">
+          <PacoteColorPicker
+            value={cor}
+            onChange={(value) => setValue('cor', value, { shouldValidate: true })}
+            error={errors.cor?.message}
+          />
         </div>
 
         <div className="sm:col-span-2 space-y-4">

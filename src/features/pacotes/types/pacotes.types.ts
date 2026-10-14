@@ -13,6 +13,7 @@ export interface PacoteResponse {
   beneficios: string | null
   valorTotalMinimo: number
   duracaoEstimada: string | null
+  cor: string | null
   bloqueiaDiaInteiro: boolean
   ativo: boolean
   diasParaEntrega: number | null

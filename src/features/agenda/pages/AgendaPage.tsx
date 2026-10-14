@@ -8,7 +8,7 @@ import { PageTitle } from '@/shared/components/layout/PageTitle'
 import { ListToolbar, FilterSheet } from '@/shared/components/mobile'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/components/ui/select'
 import { DateRangePicker, type DateRange } from '@/shared/components/layout/DateRangePicker'
-import { ROUTES } from '@/shared/constants'
+import { ROUTES, AGENDAMENTO_STATUS } from '@/shared/constants'
 import { useDebounce } from '@/shared/hooks/useDebounce'
 import { useIsMobile } from '@/shared/hooks/use-media-query'
 import { useAgendamentosList, usePacotesList, useUsuariosList } from '../api/queries'
@@ -84,10 +84,15 @@ function AgendaPageContent() {
   const filteredAgendamentos = useMemo(() => {
     const base = agendamentos ?? []
     return base.filter((a) => {
+      // Propostas removidas/recusadas (CANCELADO) não devem poluir a agenda.
+      // Ficam visíveis apenas quando o usuário filtra explicitamente por "Cancelado".
+      if (a.status === AGENDAMENTO_STATUS.CANCELADO && statusFilter !== AGENDAMENTO_STATUS.CANCELADO) {
+        return false
+      }
       if (pacoteFilter && a.pacoteId !== pacoteFilter) return false
       return true
     })
-  }, [agendamentos, pacoteFilter])
+  }, [agendamentos, pacoteFilter, statusFilter])
 
   const hasActiveFilters = statusFilter || editorFilter || pacoteFilter || dateRange?.from || clientSearch
 

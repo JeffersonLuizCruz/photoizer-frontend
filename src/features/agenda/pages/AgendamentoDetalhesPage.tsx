@@ -6,7 +6,8 @@ import { FileText, ClipboardList, DollarSign, ListTodo, Pencil, Camera, Shopping
 import { Button } from '@/shared/components/ui/button'
 import { PageLoading } from '@/shared/components/layout/Loading'
 import { StatusBadge } from '@/shared/components/layout/StatusBadge'
-import { DetailHeader, StickyActionBar } from '@/shared/components/mobile'
+import { PacoteColorChip } from '@/shared/components/ui/pacote-color-chip'
+import { DetailHeader } from '@/shared/components/mobile'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/shared/components/ui/tabs'
 import { ROUTES, AGENDAMENTO_STATUS } from '@/shared/constants'
 import { useAuth } from '@/features/auth/AuthProvider'
@@ -74,14 +75,9 @@ export function AgendamentoDetalhesPage() {
       .toUpperCase()
       .slice(0, 2) ?? '?'
 
-  const subtitulo = [
-    agendamento.pacoteNome,
-    agendamento.dataHoraEnsaio
-      ? format(new Date(agendamento.dataHoraEnsaio), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })
-      : null,
-  ]
-    .filter(Boolean)
-    .join(' • ')
+  const subtitulo = agendamento.dataHoraEnsaio
+    ? format(new Date(agendamento.dataHoraEnsaio), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })
+    : null
 
   return (
     <div>
@@ -90,7 +86,12 @@ export function AgendamentoDetalhesPage() {
         initials={iniciais}
         title={agendamento.clienteNome ?? 'Detalhes do Agendamento'}
         subtitle={subtitulo}
-        status={<StatusBadge status={agendamento.status} customLabels={statusCustomLabels} />}
+        status={
+          <span className="inline-flex flex-wrap items-center gap-2">
+            <StatusBadge status={agendamento.status} customLabels={statusCustomLabels} />
+            <PacoteColorChip nome={agendamento.pacoteNome} cor={agendamento.pacoteCor} />
+          </span>
+        }
         contato={{
           telefone: agendamento.clienteTelefone,
           email: agendamento.clienteEmail,
@@ -176,11 +177,7 @@ export function AgendamentoDetalhesPage() {
         </Tabs>
       </div>
 
-      <StickyActionBar>
-        <div className="flex w-full snap-x items-center gap-2 overflow-x-auto pb-1 [mask-image:linear-gradient(to_right,black_calc(100%_-_1.5rem),transparent)] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-          <AgendamentoActions agendamento={agendamento} />
-        </div>
-      </StickyActionBar>
+      <AgendamentoActions agendamento={agendamento} />
     </div>
   )
 }

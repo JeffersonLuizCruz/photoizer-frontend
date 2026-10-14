@@ -6,17 +6,17 @@ import {
   Ban,
   CreditCard,
   CheckCircle2,
-  Star,
   ArrowLeftRight,
 } from 'lucide-react'
 import { isAxiosError } from 'axios'
 import { Button } from '@/shared/components/ui/button'
+import { StickyActionBar } from '@/shared/components/mobile'
 import { ConfirmDialog } from '@/shared/components/layout/ConfirmDialog'
 import { RegistrarPagamentoDialog } from './RegistrarPagamentoDialog'
 import { ReagendarDialog } from './ReagendarDialog'
 import { TransferirEnsaioDialog } from './TransferirEnsaioDialog'
 import { ConflitoAgendaDialog } from './ConflitoAgendaDialog'
-import { useUpdateAgendamentoStatus, useToggleDestaque, useConfirmarPagamentoAgendamento, useAprovarAgendamento } from '../api/queries'
+import { useUpdateAgendamentoStatus, useConfirmarPagamentoAgendamento, useAprovarAgendamento } from '../api/queries'
 import { useAuth } from '@/features/auth/AuthProvider'
 import { AGENDAMENTO_STATUS } from '@/shared/constants'
 import type { Agendamento } from '../types'
@@ -104,7 +104,6 @@ export function AgendamentoActions({ agendamento }: AgendamentoActionsProps) {
   const { papel } = useAuth()
   const isAdmin = papel === 'ADMIN'
   const { mutate: updateStatus, isPending } = useUpdateAgendamentoStatus()
-  const { mutate: toggleDestaque, isPending: isDestaquePending } = useToggleDestaque()
   const { mutate: confirmarPagamento, isPending: confirmarPending } = useConfirmarPagamentoAgendamento()
   const { mutate: aprovar, isPending: aprovarPending } = useAprovarAgendamento()
 
@@ -158,50 +157,43 @@ export function AgendamentoActions({ agendamento }: AgendamentoActionsProps) {
     )
   }
 
-  const podeDestacar =
-    agendamento.status !== AGENDAMENTO_STATUS.CANCELADO &&
-    agendamento.status !== AGENDAMENTO_STATUS.NO_SHOW &&
-    agendamento.status !== AGENDAMENTO_STATUS.FINALIZADO
+  const temTransferir = isAdmin && agendamento.status === AGENDAMENTO_STATUS.CONFIRMADO
+
+  if (actions.length === 0 && !temTransferir) {
+    return null
+  }
 
   return (
     <>
-      <div className="flex w-max items-center gap-2">
-        {actions.map((actionType) => {
-          const config = actionConfig[actionType]
-          const Icon = config.icon
-          return (
-            <Button
-              key={actionType}
-              variant={config.variant}
-              size="sm"
-              onClick={() => handleAction(actionType)}
-              disabled={isPending || confirmarPending || aprovarPending}
-            >
-              <Icon className="mr-1 h-4 w-4" />
-              {config.label}
-            </Button>
-          )
-        })}
+      <StickyActionBar>
+        <div className="flex w-full snap-x items-center gap-2 overflow-x-auto pb-1 [mask-image:linear-gradient(to_right,black_calc(100%_-_1.5rem),transparent)] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          <div className="flex w-max items-center gap-2">
+            {actions.map((actionType) => {
+              const config = actionConfig[actionType]
+              const Icon = config.icon
+              return (
+                <Button
+                  key={actionType}
+                  variant={config.variant}
+                  size="sm"
+                  onClick={() => handleAction(actionType)}
+                  disabled={isPending || confirmarPending || aprovarPending}
+                >
+                  <Icon className="mr-1 h-4 w-4" />
+                  {config.label}
+                </Button>
+              )
+            })}
 
-        {isAdmin && agendamento.status === AGENDAMENTO_STATUS.CONFIRMADO && (
-          <Button variant="outline" size="sm" onClick={() => setShowTransferir(true)}>
-            <ArrowLeftRight className="mr-1 h-4 w-4" />
-            Transferir
-          </Button>
-        )}
-
-        {podeDestacar && (
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => toggleDestaque(agendamento.id)}
-            disabled={isDestaquePending}
-          >
-            <Star className={`mr-1 h-4 w-4 ${agendamento.ensaioDestaque ? 'fill-amber-400 text-amber-400' : ''}`} />
-            {agendamento.ensaioDestaque ? 'Remover Destaque' : 'Destacar'}
-          </Button>
-        )}
-      </div>
+            {temTransferir && (
+              <Button variant="outline" size="sm" onClick={() => setShowTransferir(true)}>
+                <ArrowLeftRight className="mr-1 h-4 w-4" />
+                Transferir
+              </Button>
+            )}
+          </div>
+        </div>
+      </StickyActionBar>
 
       <ConfirmDialog
         open={confirmAction !== null}

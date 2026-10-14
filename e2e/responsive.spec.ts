@@ -261,3 +261,68 @@ test.describe('Alvos de toque e larguras estreitas', () => {
     })
   }
 })
+
+test.describe('Agenda - tarja colorida por pacote', () => {
+  test('nome de cliente longo é truncado sem vazar da tarja (768px)', async ({ page }) => {
+    const now = new Date()
+    const pad = (n: number) => String(n).padStart(2, '0')
+    const dataHoje = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}T10:00:00`
+
+    const agendamentoLongo = {
+      id: 'e2e-color-1',
+      clienteId: 'e2e-cliente-1',
+      clienteNome: 'Fernanda Albuquerque da Silva Sauro',
+      clienteTelefone: null,
+      clienteEmail: null,
+      clienteCpf: null,
+      clienteCidade: null,
+      clienteEstado: null,
+      pacoteId: 'e2e-pacote-1',
+      pacoteNome: 'Pacote Casamento Completo Premium',
+      pacoteCor: '#F9A8D4',
+      editorId: null,
+      editorNome: null,
+      fotografoId: null,
+      fotografoNome: null,
+      fotografos: null,
+      dataHoraEnsaio: dataHoje,
+      duracaoMinutos: 60,
+      localEnsaio: 'Estúdio Central',
+      valorTotal: 1000,
+      valorEntradaExigido: 300,
+      valorEntradaPago: 0,
+      valorRestante: 700,
+      valorExtras: 0,
+      taxaDeslocamento: 0,
+      valorTotalFinal: 1000,
+      percentualEntrada: 30,
+      valorPacote: 1000,
+      saldoDevedor: 1000,
+      status: 'CONFIRMADO',
+      autorizaUsoImagem: false,
+      ensaioDestaque: false,
+      observacoes: null,
+      createdAt: '',
+      updatedAt: '',
+    }
+
+    await page.setViewportSize({ width: 768, height: 900 })
+    await seedAdminAuth(page)
+    await page.route('**/api/v1/**', async (route) => {
+      const url = route.request().url()
+      const path = url.split('/api/v1')[1]?.split('?')[0] ?? ''
+      const isGet = route.request().method() === 'GET'
+      const body = isGet && path === '/agendamentos' ? [agendamentoLongo] : isGet ? bodyFor(url) : {}
+      await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(body) })
+    })
+    await page.goto('/agenda')
+    await page.waitForTimeout(1200)
+
+    const pill = page.getByTestId('agenda-calendar-event').first()
+    await expect(pill).toBeVisible()
+
+    const overflowInterno = await pill.evaluate((el) => el.scrollWidth - el.clientWidth)
+    expect(overflowInterno).toBeLessThanOrEqual(1)
+    expect(await horizontalOverflow(page)).toBeLessThanOrEqual(1)
+  })
+})

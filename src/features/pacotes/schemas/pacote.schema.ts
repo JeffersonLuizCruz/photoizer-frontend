@@ -10,6 +10,10 @@ export const pacoteSchema = z
     valorBase: z.coerce.number().min(0, 'Valor não pode ser negativo'),
     bloqueiaDiaInteiro: z.boolean().default(false),
     duracaoEstimada: z.string().min(1, 'Informe a duração estimada'),
+    cor: z
+      .string()
+      .regex(/^#[0-9A-Fa-f]{6}$/, 'Selecione uma cor válida')
+      .default('#64748B'),
     ativo: z.boolean().default(true),
     diasParaEntrega: z.coerce.number().int().min(0).optional().or(z.literal('')),
   })

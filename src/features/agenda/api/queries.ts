@@ -213,20 +213,6 @@ export function useReagendarAgendamento() {
   })
 }
 
-export function useToggleDestaque() {
-  const queryClient = useQueryClient()
-
-  return useMutation({
-    mutationFn: (id: string) => agendamentoService.toggleDestaque(id),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.AGENDA })
-    },
-    onError: (error: Error) => {
-      toast.error(extractErrorMessage(error, 'Erro ao alternar destaque'))
-    },
-  })
-}
-
 export function useAddFotoExtra() {
   const queryClient = useQueryClient()
 

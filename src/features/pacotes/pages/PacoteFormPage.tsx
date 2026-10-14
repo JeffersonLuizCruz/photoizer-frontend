@@ -57,6 +57,7 @@ export function PacoteFormPage() {
                   valorBase: pacote.valorBase,
                   bloqueiaDiaInteiro: pacote.bloqueiaDiaInteiro,
                   duracaoEstimada: pacote.duracaoEstimada,
+                  cor: pacote.cor,
                   ativo: pacote.ativo,
                   diasParaEntrega: pacote.diasParaEntrega ?? '',
                 }

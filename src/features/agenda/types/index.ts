@@ -23,6 +23,7 @@ export interface Pacote {
   quantidadeFotos: number
   quantidadeVideos: number
   valorBase: number
+  cor?: string | null
   bloqueiaDiaInteiro: boolean
   duracaoEstimada?: string
   ativo: boolean
@@ -39,6 +40,7 @@ export interface Agendamento {
   clienteEstado: string | null
   pacoteId: string
   pacoteNome: string
+  pacoteCor: string | null
   editorId: string | null
   editorNome: string | null
   fotografoId: string | null

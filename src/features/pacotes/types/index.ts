@@ -15,6 +15,7 @@ export interface Pacote {
   quantidadeFotos: number
   quantidadeVideos: number
   valorBase: number
+  cor: string
   bloqueiaDiaInteiro: boolean
   duracaoEstimada: string
   ativo: boolean

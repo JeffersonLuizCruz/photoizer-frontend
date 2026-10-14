@@ -118,11 +118,6 @@ export const agendamentoService = {
     return result
   },
 
-  toggleDestaque: async (id: string): Promise<Agendamento> => {
-    const { data } = await apiClient.patch<Agendamento>(`/agendamentos/${id}/destaque`)
-    return data
-  },
-
   addFotoExtra: async (
     agendamentoId: string,
     payload: { quantidade: number; valorUnitario: number; indicadorId?: string; indicadorNome?: string; indicadorTelefone?: string },
