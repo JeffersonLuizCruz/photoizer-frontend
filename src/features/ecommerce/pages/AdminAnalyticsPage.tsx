@@ -21,15 +21,15 @@ function StatusCard({ title, value, icon: Icon, subtitle, variant }: {
 }) {
   const colors = {
     default: 'bg-card border-border',
-    success: 'bg-emerald-50 border-emerald-200 dark:bg-emerald-950/30 dark:border-emerald-800',
-    warning: 'bg-amber-50 border-amber-200 dark:bg-amber-950/30 dark:border-amber-800',
-    info: 'bg-blue-50 border-blue-200 dark:bg-blue-950/30 dark:border-blue-800',
+    success: 'bg-emerald-50 border-emerald-200',
+    warning: 'bg-amber-50 border-amber-200',
+    info: 'bg-blue-50 border-blue-200',
   }
   const iconColors = {
     default: 'text-muted-foreground',
-    success: 'text-emerald-600 dark:text-emerald-400',
-    warning: 'text-amber-600 dark:text-amber-400',
-    info: 'text-blue-600 dark:text-blue-400',
+    success: 'text-emerald-600',
+    warning: 'text-amber-600',
+    info: 'text-blue-600',
   }
 
   return (
@@ -148,7 +148,7 @@ export function AdminAnalyticsPage() {
                     <div className="flex-1">
                       <div className="flex items-center gap-2">
                         <div
-                          className="h-3 bg-blue-400 dark:bg-blue-500 rounded transition-all"
+                          className="h-3 bg-blue-400 rounded transition-all"
                           style={{ width: `${(item.quantidadeCompras / maxComprasMensal) * 100}%` }}
                         />
                         <span className="text-xs font-medium">{item.quantidadeCompras} compras</span>
@@ -187,7 +187,7 @@ export function AdminAnalyticsPage() {
                           <span className="text-[10px] bg-primary/10 text-primary px-1.5 py-0.5 rounded">Pacote</span>
                         )}
                         {foto.vendidaExtra && (
-                          <span className="text-[10px] bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 px-1.5 py-0.5 rounded">Extra</span>
+                          <span className="text-[10px] bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded">Extra</span>
                         )}
                       </div>
                     </div>

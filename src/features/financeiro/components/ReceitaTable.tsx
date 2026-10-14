@@ -108,7 +108,7 @@ export function ReceitaTable({ receitas, isLoading, onReceber, onEditar, onDupli
                 </TableCell>
                 <TableCell className="text-right tabular-nums text-muted-foreground">{formatCurrency(r.valorBruto)}</TableCell>
                 <TableCell className="text-right font-medium tabular-nums">{formatCurrency(r.valorFinal)}</TableCell>
-                <TableCell className="text-right tabular-nums text-emerald-600 dark:text-emerald-400">{formatCurrency(r.valorRecebido)}</TableCell>
+                <TableCell className="text-right tabular-nums text-emerald-600">{formatCurrency(r.valorRecebido)}</TableCell>
                 <TableCell>{renderAcoes(r)}</TableCell>
               </TableRow>
             )
@@ -151,7 +151,7 @@ export function ReceitaTable({ receitas, isLoading, onReceber, onEditar, onDupli
                 </div>
                 <div className="col-span-2 flex justify-between gap-2">
                   <span className="text-muted-foreground">Recebido</span>
-                  <span className="tabular-nums text-emerald-600 dark:text-emerald-400">
+                  <span className="tabular-nums text-emerald-600">
                     {formatCurrency(r.valorRecebido)}
                   </span>
                 </div>

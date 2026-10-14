@@ -248,7 +248,7 @@ export function ReceitaFormDialog({ open, onOpenChange, receita }: ReceitaFormDi
             </div>
           </div>
 
-          <p className="flex items-start gap-1.5 rounded-md bg-blue-50 p-2 text-xs text-blue-800 dark:bg-blue-950/40 dark:text-blue-200">
+          <p className="flex items-start gap-1.5 rounded-md bg-blue-50 p-2 text-xs text-blue-800">
             <Info className="mt-0.5 h-3.5 w-3.5 shrink-0" />
             O valor final é calculado automaticamente: valor bruto menos a comissão do indicador (ou {percentualComissao}% padrão quando não há indicação).
           </p>

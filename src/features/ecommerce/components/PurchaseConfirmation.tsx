@@ -17,7 +17,7 @@ export function PurchaseConfirmation({ compra, onVoltar }: PurchaseConfirmationP
   return (
     <div className="min-h-dvh bg-background flex items-center justify-center">
       <div className="flex flex-col items-center gap-4 text-center max-w-md p-8">
-        <div className={`h-16 w-16 rounded-full flex items-center justify-center ${paga ? 'bg-emerald-100 dark:bg-emerald-900/30' : 'bg-amber-100 dark:bg-amber-900/30'}`}>
+        <div className={`h-16 w-16 rounded-full flex items-center justify-center ${paga ? 'bg-emerald-100' : 'bg-amber-100'}`}>
           {paga ? <Check className="h-8 w-8 text-emerald-600" /> : <Clock className="h-8 w-8 text-amber-600" />}
         </div>
         <h1 className="text-xl font-semibold">{paga ? 'Pagamento Confirmado!' : 'Compra Finalizada!'}</h1>

@@ -16,8 +16,8 @@ interface KpiCardProps {
 const toneClasses: Record<NonNullable<KpiCardProps['tone']>, string> = {
   default: 'text-foreground',
   primary: 'text-primary',
-  success: 'text-emerald-600 dark:text-emerald-400',
-  warning: 'text-amber-600 dark:text-amber-400',
+  success: 'text-emerald-600',
+  warning: 'text-amber-600',
   destructive: 'text-destructive',
 }
 
@@ -35,7 +35,7 @@ export function KpiCard({ label, value, icon, trend, hint, onClick, tone = 'defa
             <span
               className={cn(
                 'inline-flex items-center gap-0.5 font-medium',
-                trend >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-destructive',
+                trend >= 0 ? 'text-emerald-600' : 'text-destructive',
               )}
             >
               {trend >= 0 ? (

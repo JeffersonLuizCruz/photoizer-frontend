@@ -1,12 +1,11 @@
 import { useMemo, useState } from 'react'
 import * as DialogPrimitive from '@radix-ui/react-dialog'
-import { LogOut, Moon, Search, Sun, X } from 'lucide-react'
+import { LogOut, Search, X } from 'lucide-react'
 import { NavLink } from 'react-router-dom'
 import { cn } from '@/shared/lib/cn'
 import { Input } from '@/shared/components/ui/input'
 import { Badge } from '@/shared/components/ui/badge'
 import { useSidebarStore } from '@/stores/sidebar.store'
-import { useThemeStore } from '@/stores/theme.store'
 import { useAuth } from '@/features/auth/AuthProvider'
 import {
   getVisibleEntries,
@@ -26,7 +25,6 @@ export function MobileMenu() {
   const open = useSidebarStore((state) => state.mobileMenuOpen)
   const setOpen = useSidebarStore((state) => state.setMobileMenuOpen)
   const { papel, user, logout } = useAuth()
-  const { theme, toggleTheme } = useThemeStore()
   const [query, setQuery] = useState('')
 
   const entries = getVisibleEntries(papel)
@@ -72,14 +70,6 @@ export function MobileMenu() {
           <div className="flex items-center justify-between gap-2 border-b px-4 py-2 pt-[calc(0.5rem+env(safe-area-inset-top))]">
             <span className="font-bold text-lg">Photoizer</span>
             <div className="flex items-center gap-1">
-              <button
-                type="button"
-                onClick={toggleTheme}
-                aria-label="Alternar tema"
-                className="flex h-11 w-11 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-              >
-                {theme === 'light' ? <Moon className="h-5 w-5" /> : <Sun className="h-5 w-5" />}
-              </button>
               <DialogPrimitive.Close
                 aria-label="Fechar menu"
                 className="flex h-11 w-11 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"

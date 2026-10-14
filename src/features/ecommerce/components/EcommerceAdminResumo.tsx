@@ -130,27 +130,27 @@ export function EcommerceAdminResumo({ agendamentoId }: EcommerceAdminResumoProp
           <p className="text-xs text-muted-foreground">Total</p>
           <p className="text-lg font-bold">{data.totalFotos}</p>
         </div>
-        <div className="rounded-lg border border-rose-200 bg-rose-50 p-3 dark:border-rose-800 dark:bg-rose-950/30">
-          <p className="flex items-center gap-1 text-xs text-rose-600 dark:text-rose-400">
+        <div className="rounded-lg border border-rose-200 bg-rose-50 p-3">
+          <p className="flex items-center gap-1 text-xs text-rose-600">
             <Heart className="h-3 w-3" fill="currentColor" /> Curtidas
           </p>
-          <p className="text-lg font-bold text-rose-700 dark:text-rose-300">{totalCurtidas}</p>
+          <p className="text-lg font-bold text-rose-700">{totalCurtidas}</p>
         </div>
-        <div className="rounded-lg border bg-emerald-50 dark:bg-emerald-950/30 border-emerald-200 dark:border-emerald-800 p-3">
-          <p className="text-xs text-emerald-600 dark:text-emerald-400">Publicadas</p>
-          <p className="text-lg font-bold text-emerald-700 dark:text-emerald-300">{data.fotosPublicadas}</p>
+        <div className="rounded-lg border bg-emerald-50 border-emerald-200 p-3">
+          <p className="text-xs text-emerald-600">Publicadas</p>
+          <p className="text-lg font-bold text-emerald-700">{data.fotosPublicadas}</p>
         </div>
-        <div className="rounded-lg border bg-blue-50 dark:bg-blue-950/30 border-blue-200 dark:border-blue-800 p-3">
-          <p className="text-xs text-blue-600 dark:text-blue-400">No Pacote</p>
-          <p className="text-lg font-bold text-blue-700 dark:text-blue-300">{data.fotosSelecionadasPacote}</p>
+        <div className="rounded-lg border bg-blue-50 border-blue-200 p-3">
+          <p className="text-xs text-blue-600">No Pacote</p>
+          <p className="text-lg font-bold text-blue-700">{data.fotosSelecionadasPacote}</p>
         </div>
-        <div className="rounded-lg border bg-violet-50 dark:bg-violet-950/30 border-violet-200 dark:border-violet-800 p-3">
-          <p className="text-xs text-violet-600 dark:text-violet-400">Pagas</p>
-          <p className="text-lg font-bold text-violet-700 dark:text-violet-300">{data.fotosPagas}</p>
+        <div className="rounded-lg border bg-violet-50 border-violet-200 p-3">
+          <p className="text-xs text-violet-600">Pagas</p>
+          <p className="text-lg font-bold text-violet-700">{data.fotosPagas}</p>
         </div>
-        <div className="rounded-lg border bg-amber-50 dark:bg-amber-950/30 border-amber-200 dark:border-amber-800 p-3">
-          <p className="text-xs text-amber-600 dark:text-amber-400">Aguardando</p>
-          <p className="text-lg font-bold text-amber-700 dark:text-amber-300">{data.fotosAguardando}</p>
+        <div className="rounded-lg border bg-amber-50 border-amber-200 p-3">
+          <p className="text-xs text-amber-600">Aguardando</p>
+          <p className="text-lg font-bold text-amber-700">{data.fotosAguardando}</p>
         </div>
         <div className="rounded-lg border bg-card p-3">
           <p className="text-xs text-muted-foreground">Valor Extras</p>
@@ -195,12 +195,12 @@ export function EcommerceAdminResumo({ agendamentoId }: EcommerceAdminResumoProp
               </div>
               <div className="p-1">
                 <span className={`block text-[9px] font-medium px-1 py-0.5 rounded text-center ${
-                  foto.status === 'PAGA' ? 'bg-violet-100 text-violet-700 dark:bg-violet-900/30 dark:text-violet-400' :
-                  foto.compraExtraId && foto.status === 'PUBLICADA' ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400' :
-                  foto.status === 'PUBLICADA' && foto.selecionadaPacote ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400' :
-                  foto.status === 'PUBLICADA' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' :
-                  foto.status === 'AGUARDANDO_CONFIRMACAO' ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400' :
-                  foto.status === 'AGUARDANDO_COMPROVANTE' ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400' :
+                  foto.status === 'PAGA' ? 'bg-violet-100 text-violet-700' :
+                  foto.compraExtraId && foto.status === 'PUBLICADA' ? 'bg-amber-100 text-amber-700' :
+                  foto.status === 'PUBLICADA' && foto.selecionadaPacote ? 'bg-blue-100 text-blue-700' :
+                  foto.status === 'PUBLICADA' ? 'bg-emerald-100 text-emerald-700' :
+                  foto.status === 'AGUARDANDO_CONFIRMACAO' ? 'bg-amber-100 text-amber-700' :
+                  foto.status === 'AGUARDANDO_COMPROVANTE' ? 'bg-amber-100 text-amber-700' :
                   'bg-muted text-muted-foreground'
                 }`}>
                   {foto.status === 'PAGA' ? 'Paga' :
@@ -258,12 +258,12 @@ export function EcommerceAdminResumo({ agendamentoId }: EcommerceAdminResumoProp
                         {(compra.status === 'AGUARDANDO_COMPROVANTE' || compra.status === 'AGUARDANDO_CONFIRMACAO') && (
                           <>
                             <button onClick={() => confirmarCompra(compra.id)} disabled={isConfirming}
-                              className="h-6 w-6 rounded hover:bg-emerald-100 hover:text-emerald-700 dark:hover:bg-emerald-900/30 dark:hover:text-emerald-400 flex items-center justify-center"
+                              className="h-6 w-6 rounded hover:bg-emerald-100 hover:text-emerald-700 flex items-center justify-center"
                               title="Confirmar pagamento">
                               <Check className="h-3.5 w-3.5" />
                             </button>
                             <button onClick={() => setConfirmRecusarId(compra.id)} disabled={isRecusing}
-                              className="h-6 w-6 rounded hover:bg-rose-100 hover:text-rose-600 dark:hover:bg-rose-900/30 dark:hover:text-rose-300 flex items-center justify-center"
+                              className="h-6 w-6 rounded hover:bg-rose-100 hover:text-rose-600 flex items-center justify-center"
                               title="Recusar compra">
                               <X className="h-3.5 w-3.5" />
                             </button>

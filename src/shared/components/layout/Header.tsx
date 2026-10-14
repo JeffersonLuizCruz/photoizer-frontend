@@ -1,6 +1,5 @@
-import { PanelLeft, Menu, Moon, Sun, LogOut } from 'lucide-react'
+import { PanelLeft, Menu, LogOut } from 'lucide-react'
 import { useSidebarStore } from '@/stores/sidebar.store'
-import { useThemeStore } from '@/stores/theme.store'
 import { Button } from '@/shared/components/ui/button'
 import { Avatar, AvatarFallback } from '@/shared/components/ui/avatar'
 import { Badge } from '@/shared/components/ui/badge'
@@ -26,7 +25,6 @@ export function Header() {
   const toggle = useSidebarStore((state) => state.toggle)
   const isOpen = useSidebarStore((state) => state.isOpen)
   const setMobileMenuOpen = useSidebarStore((state) => state.setMobileMenuOpen)
-  const { theme, toggleTheme } = useThemeStore()
   const { user, logout } = useAuth()
 
   const initials = user?.nome
@@ -65,10 +63,6 @@ export function Header() {
       </div>
 
       <div className="flex items-center gap-3">
-        <Button variant="ghost" size="icon" onClick={toggleTheme} aria-label="Alternar tema" className="hidden sm:inline-flex">
-          {theme === 'light' ? <Moon className="h-5 w-5" /> : <Sun className="h-5 w-5" />}
-        </Button>
-
         <NotificationBell />
 
         {user && (

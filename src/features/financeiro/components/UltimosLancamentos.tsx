@@ -91,7 +91,7 @@ export function UltimosLancamentos({ lancamentos, isLoading }: UltimosLancamento
                     <span>{l.categoria}</span>
                   </div>
                 </TableCell>
-                <TableCell className={isReceita ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-500 dark:text-rose-300'}>
+                <TableCell className={isReceita ? 'text-emerald-600' : 'text-rose-500'}>
                   {isReceita ? '+' : '−'}{formatCurrency(l.valor)}
                 </TableCell>
                 <TableCell>
@@ -126,7 +126,7 @@ export function UltimosLancamentos({ lancamentos, isLoading }: UltimosLancamento
                 <span className="text-muted-foreground">{formatDateBR(l.data)}</span>
                 <span
                   className={`font-medium tabular-nums ${
-                    isReceita ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-500 dark:text-rose-300'
+                    isReceita ? 'text-emerald-600' : 'text-rose-500'
                   }`}
                 >
                   {isReceita ? '+' : '−'}{formatCurrency(l.valor)}

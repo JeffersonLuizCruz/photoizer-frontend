@@ -228,7 +228,7 @@ export function AgendamentoFinanceiro({ agendamento }: AgendamentoFinanceiroProp
                   </span>
                 </TableCell>
                 <TableCell className="text-right font-medium tabular-nums">
-                  {row.tipo === 'negativo' ? null : <span className="text-emerald-600 dark:text-emerald-400">+ </span>}
+                  {row.tipo === 'negativo' ? null : <span className="text-emerald-600">+ </span>}
                   R$ {row.valor.toFixed(2)}
                 </TableCell>
                 <TableCell className="text-right">
@@ -251,7 +251,7 @@ export function AgendamentoFinanceiro({ agendamento }: AgendamentoFinanceiroProp
                         variant="outline"
                         className={
                           row.formaPagamento === FORMA_PAGAMENTO.DINHEIRO
-                            ? 'border-amber-500/50 text-amber-600 dark:text-amber-400'
+                            ? 'border-amber-500/50 text-amber-600'
                             : undefined
                         }
                       >
@@ -285,7 +285,7 @@ export function AgendamentoFinanceiro({ agendamento }: AgendamentoFinanceiroProp
               <span
                 className={cn(
                   'text-sm font-medium tabular-nums',
-                  row.tipo === 'negativo' ? 'text-muted-foreground' : 'text-emerald-600 dark:text-emerald-400',
+                  row.tipo === 'negativo' ? 'text-muted-foreground' : 'text-emerald-600',
                 )}
               >
                 {row.tipo === 'negativo' ? '' : '+ '}R$ {row.valor.toFixed(2)}
@@ -304,7 +304,7 @@ export function AgendamentoFinanceiro({ agendamento }: AgendamentoFinanceiroProp
                       variant="outline"
                       className={
                         row.formaPagamento === FORMA_PAGAMENTO.DINHEIRO
-                          ? 'border-amber-500/50 text-amber-600 dark:text-amber-400'
+                          ? 'border-amber-500/50 text-amber-600'
                           : undefined
                       }
                     >

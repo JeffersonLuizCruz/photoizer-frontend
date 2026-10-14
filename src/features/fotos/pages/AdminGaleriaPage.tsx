@@ -447,9 +447,9 @@ export function AdminGaleriaPage() {
                   <p className="text-xs truncate text-muted-foreground">{foto.titulo || foto.fileName}</p>
                   <div className="flex items-center gap-1 mt-0.5 flex-wrap">
                     <span className={`inline-block text-[10px] font-medium px-1.5 py-0.5 rounded-sm ${
-                      foto.status === 'PUBLICADA' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' :
-                      foto.status === 'INEDITA' ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400' :
-                      'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
+                      foto.status === 'PUBLICADA' ? 'bg-emerald-100 text-emerald-700' :
+                      foto.status === 'INEDITA' ? 'bg-amber-100 text-amber-700' :
+                      'bg-blue-100 text-blue-700'
                     }`}>
                       {foto.status === 'PUBLICADA' ? 'Publicada' : foto.status === 'INEDITA' ? 'Inédita' : foto.status}
                     </span>

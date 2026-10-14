@@ -43,7 +43,7 @@ export function ContactActions({ telefone, email, nome, whatsappMessage, classNa
           target="_blank"
           rel="noopener noreferrer"
           aria-label={`Abrir WhatsApp de ${nome ?? 'contato'}`}
-          className="flex h-11 w-11 items-center justify-center rounded-full border border-emerald-200 bg-emerald-50 text-emerald-700 transition-colors hover:bg-emerald-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring dark:border-emerald-900 dark:bg-emerald-950 dark:text-emerald-200"
+          className="flex h-11 w-11 items-center justify-center rounded-full border border-emerald-200 bg-emerald-50 text-emerald-700 transition-colors hover:bg-emerald-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         >
           <MessageCircle className="h-5 w-5" aria-hidden="true" />
         </a>

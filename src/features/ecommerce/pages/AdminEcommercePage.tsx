@@ -89,7 +89,7 @@ export function AdminEcommercePage() {
       </button>
       {(compra.status === 'AGUARDANDO_COMPROVANTE' || compra.status === 'AGUARDANDO_CONFIRMACAO') && (
         <button onClick={() => confirmar(compra.id)} disabled={isConfirming}
-          className="inline-flex h-9 w-9 items-center justify-center rounded hover:bg-emerald-100 hover:text-emerald-700 dark:hover:bg-emerald-900/30 dark:hover:text-emerald-400"
+          className="inline-flex h-9 w-9 items-center justify-center rounded hover:bg-emerald-100 hover:text-emerald-700"
           aria-label="Confirmar pagamento">
           <Check className="h-4 w-4" />
         </button>
@@ -170,21 +170,21 @@ export function AdminEcommercePage() {
             <p className="text-xs text-muted-foreground">Total</p>
             <p className="text-lg font-bold">{relatorio.totalCompras}</p>
           </div>
-          <div className="rounded-lg border bg-amber-50 dark:bg-amber-950/30 border-amber-200 dark:border-amber-800 p-3">
-            <p className="text-xs text-amber-600 dark:text-amber-400">Aguad. Comp.</p>
-            <p className="text-lg font-bold text-amber-700 dark:text-amber-300">{relatorio.aguardandoComprovante}</p>
+          <div className="rounded-lg border bg-amber-50 border-amber-200 p-3">
+            <p className="text-xs text-amber-600">Aguad. Comp.</p>
+            <p className="text-lg font-bold text-amber-700">{relatorio.aguardandoComprovante}</p>
           </div>
-          <div className="rounded-lg border bg-orange-50 dark:bg-orange-950/30 border-orange-200 dark:border-orange-800 p-3">
-            <p className="text-xs text-orange-600 dark:text-orange-400">Aguad. Conf.</p>
-            <p className="text-lg font-bold text-orange-700 dark:text-orange-300">{relatorio.aguardandoConfirmacao}</p>
+          <div className="rounded-lg border bg-orange-50 border-orange-200 p-3">
+            <p className="text-xs text-orange-600">Aguad. Conf.</p>
+            <p className="text-lg font-bold text-orange-700">{relatorio.aguardandoConfirmacao}</p>
           </div>
-          <div className="rounded-lg border bg-emerald-50 dark:bg-emerald-950/30 border-emerald-200 dark:border-emerald-800 p-3">
-            <p className="text-xs text-emerald-600 dark:text-emerald-400">Pagas</p>
-            <p className="text-lg font-bold text-emerald-700 dark:text-emerald-300">{relatorio.pagas}</p>
+          <div className="rounded-lg border bg-emerald-50 border-emerald-200 p-3">
+            <p className="text-xs text-emerald-600">Pagas</p>
+            <p className="text-lg font-bold text-emerald-700">{relatorio.pagas}</p>
           </div>
-          <div className="rounded-lg border bg-rose-50 dark:bg-rose-950/30 border-rose-200 dark:border-rose-800 p-3">
-            <p className="text-xs text-rose-500 dark:text-rose-300">Canceladas</p>
-            <p className="text-lg font-bold text-rose-600 dark:text-rose-200">{relatorio.canceladas}</p>
+          <div className="rounded-lg border bg-rose-50 border-rose-200 p-3">
+            <p className="text-xs text-rose-500">Canceladas</p>
+            <p className="text-lg font-bold text-rose-600">{relatorio.canceladas}</p>
           </div>
           <div className="rounded-lg border bg-card p-3">
             <p className="text-xs text-muted-foreground">Faturado</p>

@@ -8,10 +8,10 @@ interface Props {
 
 function statusColor(status: string): string {
   switch (status) {
-    case 'FINALIZADO': return 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400'
-    case 'EM_EDICAO': return 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400'
-    case 'REALIZADO': return 'bg-violet-100 text-violet-700 dark:bg-violet-900/30 dark:text-violet-400'
-    case 'CANCELADO': return 'bg-rose-100 text-rose-600 dark:bg-rose-900/30 dark:text-rose-300'
+    case 'FINALIZADO': return 'bg-emerald-100 text-emerald-700'
+    case 'EM_EDICAO': return 'bg-amber-100 text-amber-700'
+    case 'REALIZADO': return 'bg-violet-100 text-violet-700'
+    case 'CANCELADO': return 'bg-rose-100 text-rose-600'
     default: return 'bg-muted text-muted-foreground'
   }
 }

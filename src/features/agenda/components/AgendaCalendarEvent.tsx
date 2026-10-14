@@ -27,16 +27,16 @@ export const statusColors: Record<string, string> = {
 }
 
 export const statusBgColors: Record<string, string> = {
-  PRE_RESERVA: 'bg-slate-50 border-dashed border-slate-300 hover:bg-slate-100 dark:bg-slate-900 dark:border-slate-700',
-  AGUARDANDO_APROVACAO: 'bg-indigo-50 border-indigo-200 hover:bg-indigo-100 dark:bg-indigo-950 dark:border-indigo-800',
-  PAGAMENTO_CONFIRMADO: 'bg-cyan-50 border-cyan-200 hover:bg-cyan-100 dark:bg-cyan-950 dark:border-cyan-800',
-  CONFIRMADO: 'bg-emerald-50 border-emerald-200 hover:bg-emerald-100 dark:bg-emerald-950 dark:border-emerald-800',
-  REALIZADO: 'bg-blue-50 border-blue-200 hover:bg-blue-100 dark:bg-blue-950 dark:border-blue-800',
-  AGUARDANDO_PAGAMENTO_FINAL: 'bg-amber-50 border-amber-200 hover:bg-amber-100 dark:bg-amber-950 dark:border-amber-800',
-  EM_EDICAO: 'bg-orange-50 border-orange-200 hover:bg-orange-100 dark:bg-orange-950 dark:border-orange-800',
-  FINALIZADO: 'bg-gray-50 border-gray-200 hover:bg-gray-100 dark:bg-gray-900 dark:border-gray-700',
-  CANCELADO: 'bg-rose-50 border-rose-200 hover:bg-rose-100 dark:bg-rose-950 dark:border-rose-800',
-  RASCUNHO: 'bg-slate-50 border-dashed border-slate-300 hover:bg-slate-100 dark:bg-slate-900 dark:border-slate-700',
+  PRE_RESERVA: 'bg-slate-50 border-dashed border-slate-300 hover:bg-slate-100',
+  AGUARDANDO_APROVACAO: 'bg-indigo-50 border-indigo-200 hover:bg-indigo-100',
+  PAGAMENTO_CONFIRMADO: 'bg-cyan-50 border-cyan-200 hover:bg-cyan-100',
+  CONFIRMADO: 'bg-emerald-50 border-emerald-200 hover:bg-emerald-100',
+  REALIZADO: 'bg-blue-50 border-blue-200 hover:bg-blue-100',
+  AGUARDANDO_PAGAMENTO_FINAL: 'bg-amber-50 border-amber-200 hover:bg-amber-100',
+  EM_EDICAO: 'bg-orange-50 border-orange-200 hover:bg-orange-100',
+  FINALIZADO: 'bg-gray-50 border-gray-200 hover:bg-gray-100',
+  CANCELADO: 'bg-rose-50 border-rose-200 hover:bg-rose-100',
+  RASCUNHO: 'bg-slate-50 border-dashed border-slate-300 hover:bg-slate-100',
 }
 
 export const statusLabels: Record<string, { label: string; variant: 'success' | 'info' | 'warning' | 'destructive' | 'default' | 'secondary' }> = {

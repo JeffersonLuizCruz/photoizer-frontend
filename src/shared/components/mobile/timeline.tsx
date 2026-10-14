@@ -18,8 +18,8 @@ interface TimelineProps {
 const dotTone: Record<NonNullable<TimelineItem['tone']>, string> = {
   default: 'bg-muted text-muted-foreground',
   primary: 'bg-primary/10 text-primary',
-  success: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300',
-  warning: 'bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-300',
+  success: 'bg-emerald-100 text-emerald-700',
+  warning: 'bg-amber-100 text-amber-700',
   destructive: 'bg-destructive/10 text-destructive',
 }
 

@@ -133,8 +133,8 @@ function TimelineDot({ status }: { status: TimelineEvent['status'] }) {
       <div
         className={cn(
           'flex h-8 w-8 items-center justify-center rounded-full border-2',
-          status === 'completed' && 'border-emerald-500 bg-emerald-100 text-emerald-600 dark:bg-emerald-900 dark:text-emerald-400',
-          status === 'current' && 'border-blue-500 bg-blue-100 text-blue-600 dark:bg-blue-900 dark:text-blue-400',
+          status === 'completed' && 'border-emerald-500 bg-emerald-100 text-emerald-600',
+          status === 'current' && 'border-blue-500 bg-blue-100 text-blue-600',
           status === 'pending' && 'border-muted-foreground/30 bg-muted text-muted-foreground',
           status === 'cancelled' && 'border-destructive bg-destructive/10 text-destructive',
         )}
@@ -165,7 +165,7 @@ export function AgendamentoTimeline({ agendamento, reatribuicoes = [] }: Agendam
                   className={cn(
                     'text-sm font-medium',
                     event.status === 'cancelled' && 'text-destructive line-through',
-                    event.status === 'current' && 'text-blue-600 dark:text-blue-400',
+                    event.status === 'current' && 'text-blue-600',
                   )}
                 >
                   {event.label}
