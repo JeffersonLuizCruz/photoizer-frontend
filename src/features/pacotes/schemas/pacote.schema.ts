@@ -5,9 +5,9 @@ export const pacoteSchema = z
   .object({
     nome: z.string().min(3, 'Nome deve ter pelo menos 3 caracteres'),
     descricao: z.string().min(5, 'Descrição deve ter pelo menos 5 caracteres'),
-    quantidadeFotos: z.coerce.number().int().min(0, 'Quantidade não pode ser negativa'),
+    quantidadeFotos: z.coerce.number().int().min(1, 'Informe ao menos 1 foto'),
     quantidadeVideos: z.coerce.number().int().min(0, 'Quantidade não pode ser negativa'),
-    valorBase: z.coerce.number().min(0, 'Valor não pode ser negativo'),
+    valorBase: z.coerce.number().min(0.01, 'Valor deve ser no mínimo R$ 0,01'),
     bloqueiaDiaInteiro: z.boolean().default(false),
     duracaoEstimada: z.string().min(1, 'Informe a duração estimada'),
     cor: z

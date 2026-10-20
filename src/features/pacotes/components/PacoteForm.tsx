@@ -26,7 +26,7 @@ export function PacoteForm({ onSubmit, defaultValues, isLoading, mode }: PacoteF
     defaultValues: {
       nome: '',
       descricao: '',
-      quantidadeFotos: 0,
+      quantidadeFotos: 1,
       quantidadeVideos: 0,
       valorBase: 0,
       bloqueiaDiaInteiro: false,
@@ -74,7 +74,7 @@ export function PacoteForm({ onSubmit, defaultValues, isLoading, mode }: PacoteF
 
         <div>
           <Label htmlFor="quantidadeFotos">Quantidade de Fotos *</Label>
-          <Input id="quantidadeFotos" type="number" min={0} onFocus={(e) => e.target.select()} {...register('quantidadeFotos')} placeholder="0" />
+          <Input id="quantidadeFotos" type="number" min={1} onFocus={(e) => e.target.select()} {...register('quantidadeFotos')} placeholder="1" />
           {errors.quantidadeFotos && <p className="mt-1 text-sm text-destructive">{errors.quantidadeFotos.message}</p>}
         </div>
 
@@ -90,7 +90,7 @@ export function PacoteForm({ onSubmit, defaultValues, isLoading, mode }: PacoteF
             id="valorBase"
             type="number"
             step="0.01"
-            min={0}
+            min={0.01}
             onFocus={(e) => e.target.select()}
             {...register('valorBase')}
             placeholder="0,00"
