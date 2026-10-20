@@ -30,6 +30,7 @@ export function ConflitoAgendaDialog({ open, onOpenChange, agendamento }: Confli
   )
 
   const conflitos = disponibilidade?.conflitos ?? []
+  const bloqueios = disponibilidade?.bloqueios ?? []
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -40,7 +41,7 @@ export function ConflitoAgendaDialog({ open, onOpenChange, agendamento }: Confli
             Conflito de agenda
           </DialogTitle>
           <DialogDescription>
-            Não foi possível aprovar: já existe um agendamento ocupando este horário.
+            Não foi possível aprovar: o horário está ocupado por um agendamento ou compromisso.
           </DialogDescription>
         </DialogHeader>
 
@@ -80,9 +81,20 @@ export function ConflitoAgendaDialog({ open, onOpenChange, agendamento }: Confli
             </div>
           )}
 
+          {bloqueios.length > 0 && (
+            <div className="rounded-lg border border-amber-500/50 bg-amber-500/5 p-3">
+              <p className="text-sm font-medium text-amber-700">Compromissos no período</p>
+              <ul className="mt-2 space-y-1 text-sm text-muted-foreground">
+                {bloqueios.map((b) => (
+                  <li key={b.bloqueioId}>{b.titulo}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+
           <p className="text-xs text-muted-foreground">
-            Ajuste o horário ou o fotógrafo responsável deste ensaio, ou edite o ensaio conflitante para liberar o
-            horário.
+            Ajuste o horário ou o fotógrafo responsável deste ensaio, edite o ensaio conflitante ou cancele o
+            compromisso que bloqueia o horário.
           </p>
         </div>
 

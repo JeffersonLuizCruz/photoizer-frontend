@@ -44,6 +44,7 @@ export const QUERY_KEYS = {
   FINANCEIRO: ['financeiro'],
   DASHBOARD: ['dashboard'],
   PROPOSTAS: ['propostas'],
+  BLOQUEIOS: ['bloqueios'],
 } as const
 
 export const AGENDAMENTO_STATUS = {

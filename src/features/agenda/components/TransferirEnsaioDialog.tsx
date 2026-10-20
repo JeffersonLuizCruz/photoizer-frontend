@@ -114,6 +114,9 @@ export function TransferirEnsaioDialog({ open, onOpenChange, agendamento }: Tran
                     {c.clienteNome} — {c.horario}
                   </li>
                 ))}
+                {disponibilidade.bloqueios.map((b) => (
+                  <li key={b.bloqueioId}>Compromisso: {b.titulo}</li>
+                ))}
               </ul>
               <p className="mt-2 text-xs text-muted-foreground">
                 Você pode confirmar mesmo assim.

@@ -341,6 +341,9 @@ export function PropostaFormPage({ mode }: PropostaFormPageProps) {
                         {c.clienteNome || 'Agendamento'} — {c.horario}
                       </li>
                     ))}
+                    {disponibilidade.bloqueios.map((b) => (
+                      <li key={b.bloqueioId}>Compromisso: {b.titulo}</li>
+                    ))}
                   </ul>
                 </div>
               )}

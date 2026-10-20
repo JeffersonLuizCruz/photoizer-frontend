@@ -15,6 +15,7 @@ import {
   isSameDay,
   isSameMonth,
   isToday,
+  startOfDay,
 } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
@@ -23,7 +24,8 @@ import { Button } from '@/shared/components/ui/button'
 import { Skeleton } from '@/shared/components/ui/skeleton'
 import { Popover, PopoverContent, PopoverTrigger } from '@/shared/components/ui/popover'
 import { AgendaCalendarEvent } from './AgendaCalendarEvent'
-import type { Agendamento } from '../types'
+import { BloqueioAgendaEvent } from './BloqueioAgendaEvent'
+import type { Agendamento, BloqueioAgenda } from '../types'
 
 type CalendarView = 'month' | 'week' | 'day'
 
@@ -36,6 +38,8 @@ interface AgendaCalendarProps {
   selectedDate: Date | undefined
   onSelectedDateChange: (date: Date | undefined) => void
   onEventClick: (id: string) => void
+  bloqueios?: BloqueioAgenda[]
+  onBloqueioClick?: (bloqueio: BloqueioAgenda) => void
   onDateSelect?: (date: Date) => void
   isLoading?: boolean
   variant?: 'default' | 'mobile'
@@ -50,6 +54,23 @@ function groupByDate(agendamentos: Agendamento[]): Record<string, Agendamento[]>
     const key = format(new Date(a.dataHoraEnsaio), 'yyyy-MM-dd')
     if (!groups[key]) groups[key] = []
     groups[key].push(a)
+  }
+  return groups
+}
+
+function groupBloqueiosByDate(bloqueios: BloqueioAgenda[]): Record<string, BloqueioAgenda[]> {
+  const groups: Record<string, BloqueioAgenda[]> = {}
+  for (const bloqueio of bloqueios) {
+    const inicio = new Date(bloqueio.inicio)
+    const fim = new Date(bloqueio.fim)
+    let cursor = startOfDay(inicio)
+    const ultimoDia = startOfDay(new Date(fim.getTime() - 1))
+    while (cursor <= ultimoDia) {
+      const key = format(cursor, 'yyyy-MM-dd')
+      if (!groups[key]) groups[key] = []
+      groups[key].push(bloqueio)
+      cursor = addDays(cursor, 1)
+    }
   }
   return groups
 }
@@ -95,14 +116,18 @@ function MonthView({
   currentDate,
   selectedDate,
   eventsByDate,
+  bloqueiosByDate,
   onDayClick,
   onEventClick,
+  onBloqueioClick,
 }: {
   currentDate: Date
   selectedDate?: Date
   eventsByDate: Record<string, Agendamento[]>
+  bloqueiosByDate: Record<string, BloqueioAgenda[]>
   onDayClick: (date: Date) => void
   onEventClick: (id: string) => void
+  onBloqueioClick?: (bloqueio: BloqueioAgenda) => void
 }) {
   const monthStart = startOfMonth(currentDate)
   const monthEnd = endOfMonth(currentDate)
@@ -125,6 +150,7 @@ function MonthView({
           {days.map((day) => {
             const key = format(day, 'yyyy-MM-dd')
             const dayEvents = eventsByDate[key] ?? []
+            const dayBloqueios = bloqueiosByDate[key] ?? []
             const isSelectedDate = selectedDate && isSameDay(day, selectedDate)
             const isCurrentMonth = isSameMonth(day, currentDate)
             const isTodayDate = isToday(day)
@@ -153,11 +179,22 @@ function MonthView({
                   </span>
                 </div>
                 <div className="space-y-0.5">
-                  {dayEvents.slice(0, 4).map((event) => (
+                  {dayBloqueios.slice(0, 2).map((bloqueio) => (
+                    <BloqueioAgendaEvent key={bloqueio.id} bloqueio={bloqueio} onClick={onBloqueioClick} compact />
+                  ))}
+                  {dayEvents.slice(0, dayBloqueios.length > 0 ? 2 : 4).map((event) => (
                     <AgendaCalendarEvent key={event.id} agendamento={event} onClick={onEventClick} compact />
                   ))}
-                  {dayEvents.length > 4 && (
-                    <MoreEventsPopover events={dayEvents.slice(4)} onEventClick={onEventClick} />
+                  {dayEvents.length > (dayBloqueios.length > 0 ? 2 : 4) && (
+                    <MoreEventsPopover
+                      events={dayEvents.slice(dayBloqueios.length > 0 ? 2 : 4)}
+                      onEventClick={onEventClick}
+                    />
+                  )}
+                  {dayBloqueios.length > 2 && (
+                    <p className="pt-0.5 text-center text-[10px] text-muted-foreground">
+                      +{dayBloqueios.length - 2} compromisso(s)
+                    </p>
                   )}
                 </div>
               </div>
@@ -177,15 +214,19 @@ function MonthViewMobile({
   currentDate,
   selectedDate,
   eventsByDate,
+  bloqueiosByDate,
   onDayClick,
   onEventClick,
+  onBloqueioClick,
   onNavigate,
 }: {
   currentDate: Date
   selectedDate?: Date
   eventsByDate: Record<string, Agendamento[]>
+  bloqueiosByDate: Record<string, BloqueioAgenda[]>
   onDayClick: (date: Date) => void
   onEventClick: (id: string) => void
+  onBloqueioClick?: (bloqueio: BloqueioAgenda) => void
   onNavigate: (direction: -1 | 1) => void
 }) {
   const monthStart = startOfMonth(currentDate)
@@ -240,6 +281,7 @@ function MonthViewMobile({
         {days.map((day) => {
           const key = format(day, 'yyyy-MM-dd')
           const dayEvents = eventsByDate[key] ?? []
+          const dayBloqueios = bloqueiosByDate[key] ?? []
           const isSelectedDate = selectedDate && isSameDay(day, selectedDate)
           const isCurrentMonth = isSameMonth(day, currentDate)
           const isTodayDate = isToday(day)
@@ -270,11 +312,17 @@ function MonthViewMobile({
                 </button>
               </div>
               <div className="space-y-0.5">
-                {dayEvents.slice(0, MOBILE_MAX_EVENTS).map((event) => (
+                {dayBloqueios.slice(0, 1).map((bloqueio) => (
+                  <BloqueioAgendaEvent key={bloqueio.id} bloqueio={bloqueio} onClick={onBloqueioClick} pill />
+                ))}
+                {dayEvents.slice(0, dayBloqueios.length > 0 ? MOBILE_MAX_EVENTS - 1 : MOBILE_MAX_EVENTS).map((event) => (
                   <AgendaCalendarEvent key={event.id} agendamento={event} onClick={onEventClick} pill />
                 ))}
-                {dayEvents.length > MOBILE_MAX_EVENTS && (
-                  <MoreEventsPopover events={dayEvents.slice(MOBILE_MAX_EVENTS)} onEventClick={onEventClick} />
+                {dayEvents.length > (dayBloqueios.length > 0 ? MOBILE_MAX_EVENTS - 1 : MOBILE_MAX_EVENTS) && (
+                  <MoreEventsPopover
+                    events={dayEvents.slice(dayBloqueios.length > 0 ? MOBILE_MAX_EVENTS - 1 : MOBILE_MAX_EVENTS)}
+                    onEventClick={onEventClick}
+                  />
                 )}
               </div>
             </div>
@@ -294,14 +342,18 @@ export function AgendaCalendar({
   selectedDate,
   onSelectedDateChange,
   onEventClick,
+  bloqueios = [],
+  onBloqueioClick,
   onDateSelect,
   isLoading,
   variant = 'default',
   showToolbar = true,
 }: AgendaCalendarProps) {
   const eventsByDate = useMemo(() => groupByDate(agendamentos), [agendamentos])
+  const bloqueiosByDate = useMemo(() => groupBloqueiosByDate(bloqueios), [bloqueios])
 
   const selectedDateEvents = selectedDate ? eventsByDate[format(selectedDate, 'yyyy-MM-dd')] ?? [] : []
+  const selectedDateBloqueios = selectedDate ? bloqueiosByDate[format(selectedDate, 'yyyy-MM-dd')] ?? [] : []
 
   const handleDayClick = (date: Date) => {
     onSelectedDateChange(date)
@@ -378,8 +430,10 @@ export function AgendaCalendar({
             currentDate={currentDate}
             selectedDate={selectedDate}
             eventsByDate={eventsByDate}
+            bloqueiosByDate={bloqueiosByDate}
             onDayClick={handleDayClick}
             onEventClick={onEventClick}
+            onBloqueioClick={onBloqueioClick}
             onNavigate={navigateBy}
           />
         ) : (
@@ -387,8 +441,10 @@ export function AgendaCalendar({
             currentDate={currentDate}
             selectedDate={selectedDate}
             eventsByDate={eventsByDate}
+            bloqueiosByDate={bloqueiosByDate}
             onDayClick={handleDayClick}
             onEventClick={onEventClick}
+            onBloqueioClick={onBloqueioClick}
           />
         ))}
 
@@ -403,6 +459,7 @@ export function AgendaCalendar({
               }).map((day) => {
                 const key = format(day, 'yyyy-MM-dd')
                 const dayEvents = eventsByDate[key] ?? []
+                const dayBloqueios = bloqueiosByDate[key] ?? []
                 const isSelected = selectedDate && isSameDay(day, selectedDate)
 
                 return (
@@ -424,11 +481,17 @@ export function AgendaCalendar({
                       {format(day, 'd')}
                     </div>
                     <div className="space-y-0.5">
-                      {dayEvents.slice(0, 4).map((event) => (
+                      {dayBloqueios.slice(0, 2).map((bloqueio) => (
+                        <BloqueioAgendaEvent key={bloqueio.id} bloqueio={bloqueio} onClick={onBloqueioClick} compact />
+                      ))}
+                      {dayEvents.slice(0, dayBloqueios.length > 0 ? 2 : 4).map((event) => (
                         <AgendaCalendarEvent key={event.id} agendamento={event} onClick={onEventClick} compact />
                       ))}
-                      {dayEvents.length > 4 && (
-                        <MoreEventsPopover events={dayEvents.slice(4)} onEventClick={onEventClick} />
+                      {dayEvents.length > (dayBloqueios.length > 0 ? 2 : 4) && (
+                        <MoreEventsPopover
+                          events={dayEvents.slice(dayBloqueios.length > 0 ? 2 : 4)}
+                          onEventClick={onEventClick}
+                        />
                       )}
                     </div>
                   </div>
@@ -442,10 +505,13 @@ export function AgendaCalendar({
       {view === 'day' && (
         <div className="rounded-lg border bg-card p-4">
           <h3 className="mb-4 text-sm font-medium text-muted-foreground">Eventos do dia</h3>
-          {selectedDateEvents.length === 0 ? (
-            <p className="py-8 text-center text-sm text-muted-foreground">Nenhum agendamento para este dia.</p>
+          {selectedDateEvents.length === 0 && selectedDateBloqueios.length === 0 ? (
+            <p className="py-8 text-center text-sm text-muted-foreground">Nenhum evento para este dia.</p>
           ) : (
             <div className="space-y-2">
+              {selectedDateBloqueios.map((bloqueio) => (
+                <BloqueioAgendaEvent key={bloqueio.id} bloqueio={bloqueio} onClick={onBloqueioClick} />
+              ))}
               {selectedDateEvents.map((event) => (
                 <AgendaCalendarEvent key={event.id} agendamento={event} onClick={onEventClick} />
               ))}
@@ -454,7 +520,7 @@ export function AgendaCalendar({
         </div>
       )}
 
-      {agendamentos.length === 0 && !isLoading && (
+      {agendamentos.length === 0 && bloqueios.length === 0 && !isLoading && (
         <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
           <p className="text-sm">Nenhum agendamento encontrado</p>
         </div>

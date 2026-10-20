@@ -100,6 +100,27 @@ export interface Agendamento {
   updatedAt: string
 }
 
+export interface BloqueioAgenda {
+  id: string
+  titulo: string
+  descricao: string | null
+  inicio: string
+  fim: string
+  profissionalId: string | null
+  criadoPorId: string
+  criadoEm: string
+  ativo: boolean
+  profissionalNome?: string | null
+}
+
+export interface BloqueioAgendaPayload {
+  titulo: string
+  descricao?: string | null
+  inicio: string
+  fim: string
+  profissionalId?: string | null
+}
+
 export interface Pagamento {
   id: string
   agendamentoId: string

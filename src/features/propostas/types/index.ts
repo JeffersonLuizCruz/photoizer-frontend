@@ -30,6 +30,12 @@ export interface DisponibilidadeResponse {
     horario: string
     clienteNome: string
   }>
+  bloqueios: Array<{
+    bloqueioId: string
+    titulo: string
+    inicio: string
+    fim: string
+  }>
 }
 
 export interface Proposta {

@@ -102,6 +102,11 @@ export function ReagendarDialog({ open, onOpenChange, agendamento }: ReagendarDi
                       {c.clienteNome || 'Agendamento'} — {c.horario}
                     </li>
                   ))}
+                  {disponibilidade.bloqueios.map((b) => (
+                    <li key={b.bloqueioId}>
+                      Compromisso: {b.titulo}
+                    </li>
+                  ))}
                 </ul>
               </div>
             )}

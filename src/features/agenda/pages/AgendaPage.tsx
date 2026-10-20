@@ -1,7 +1,16 @@
 import { useState, useMemo } from 'react'
 import { useNavigate, Navigate } from 'react-router-dom'
-import { CalendarDays, Table2, FilterX, Search, Clock, MapPin } from 'lucide-react'
-import { format } from 'date-fns'
+import { CalendarDays, Table2, FilterX, Search, Clock, MapPin, Lock } from 'lucide-react'
+import {
+  endOfDay,
+  endOfMonth,
+  endOfWeek,
+  format,
+  startOfDay,
+  startOfMonth,
+  startOfWeek,
+} from 'date-fns'
+import { toast } from 'sonner'
 import { Button } from '@/shared/components/ui/button'
 import { Badge } from '@/shared/components/ui/badge'
 import { PageTitle } from '@/shared/components/layout/PageTitle'
@@ -12,7 +21,9 @@ import { ROUTES, AGENDAMENTO_STATUS } from '@/shared/constants'
 import { useDebounce } from '@/shared/hooks/useDebounce'
 import { useIsMobile } from '@/shared/hooks/use-media-query'
 import { useAgendamentosList, usePacotesList, useUsuariosList } from '../api/queries'
+import { useBloqueios } from '../api/bloqueio.queries'
 import { AgendaCalendar, type CalendarView } from '../components/AgendaCalendar'
+import { BloqueioAgendaDialog } from '../components/BloqueioAgendaDialog'
 import { AgendamentoList } from '../components/AgendamentoList'
 import { AgendaMobileHeader } from '../components/AgendaMobileHeader'
 import { AgendaOptionsDrawer, type AgendaViewMode } from '../components/AgendaOptionsDrawer'
@@ -20,6 +31,7 @@ import { AgendaFab } from '../components/AgendaFab'
 import { statusLabels } from '../components/AgendaCalendarEvent'
 import { AGENDA_STATUS_OPTIONS } from '../constants'
 import type { AgendamentoStatus } from '@/shared/constants'
+import type { BloqueioAgenda } from '../types'
 import { useAuth } from '@/features/auth/AuthProvider'
 
 export function AgendaPage() {
@@ -34,6 +46,7 @@ export function AgendaPage() {
 
 function AgendaPageContent() {
   const navigate = useNavigate()
+  const { user } = useAuth()
   const isMobile = useIsMobile()
   const [viewMode, setViewMode] = useState<AgendaViewMode>('calendar')
   const [calendarView, setCalendarView] = useState<CalendarView>('month')
@@ -47,6 +60,9 @@ function AgendaPageContent() {
   const [clientSearch, setClientSearch] = useState('')
   const [filtrosOpen, setFiltrosOpen] = useState(false)
   const [optionsOpen, setOptionsOpen] = useState(false)
+  const [bloqueioDialogOpen, setBloqueioDialogOpen] = useState(false)
+  const [bloqueioEditando, setBloqueioEditando] = useState<BloqueioAgenda | null>(null)
+  const [bloqueioDataInicial, setBloqueioDataInicial] = useState<Date | undefined>()
 
   const debouncedClientSearch = useDebounce(clientSearch, 300)
 
@@ -73,6 +89,37 @@ function AgendaPageContent() {
   )
   const { data: pacotes } = usePacotesList()
   const { data: usuarios } = useUsuariosList()
+
+  const periodoBloqueios = useMemo(() => {
+    if (calendarView === 'month') {
+      return {
+        inicio: startOfWeek(startOfMonth(currentDate), { weekStartsOn: 0 }),
+        fim: endOfWeek(endOfMonth(currentDate), { weekStartsOn: 0 }),
+      }
+    }
+    if (calendarView === 'week') {
+      return {
+        inicio: startOfWeek(currentDate, { weekStartsOn: 0 }),
+        fim: endOfWeek(currentDate, { weekStartsOn: 0 }),
+      }
+    }
+    return { inicio: startOfDay(currentDate), fim: endOfDay(currentDate) }
+  }, [calendarView, currentDate])
+
+  const { data: bloqueios } = useBloqueios(
+    format(periodoBloqueios.inicio, "yyyy-MM-dd'T'HH:mm:ss"),
+    format(new Date(periodoBloqueios.fim.getTime() + 1), "yyyy-MM-dd'T'HH:mm:ss"),
+  )
+
+  const bloqueiosComNome = useMemo(() => {
+    const nomes = new Map((usuarios ?? []).map((u) => [u.id, u.nome]))
+    return (bloqueios ?? []).map((bloqueio) => ({
+      ...bloqueio,
+      profissionalNome: bloqueio.profissionalId
+        ? nomes.get(bloqueio.profissionalId) ?? 'Profissional'
+        : 'Toda a equipe',
+    }))
+  }, [bloqueios, usuarios])
 
   const filteredAgendamentos = useMemo(() => {
     const base = agendamentos ?? []
@@ -112,6 +159,31 @@ function AgendaPageContent() {
     const params = new URLSearchParams()
     params.set('data', format(selectedDate ?? new Date(), 'yyyy-MM-dd'))
     navigate(`${ROUTES.PROPOSTAS_NOVO}?${params.toString()}`)
+  }
+
+  const openNovoBloqueio = (data?: Date) => {
+    setBloqueioEditando(null)
+    setBloqueioDataInicial(data ?? selectedDate ?? new Date())
+    setBloqueioDialogOpen(true)
+  }
+
+  const openEditarBloqueio = (bloqueio: BloqueioAgenda) => {
+    setBloqueioEditando(bloqueio)
+    setBloqueioDataInicial(undefined)
+    setBloqueioDialogOpen(true)
+  }
+
+  const podeGerenciarBloqueio = (bloqueio: BloqueioAgenda) =>
+    user?.papel === 'ADMIN' || bloqueio.criadoPorId === user?.userId
+
+  const diaTotalmenteBloqueado = (date: Date) => {
+    const inicioDia = startOfDay(date)
+    const fimDia = endOfDay(date)
+    return bloqueiosComNome.some((bloqueio) =>
+      !bloqueio.profissionalId
+      && new Date(bloqueio.inicio) <= inicioDia
+      && new Date(bloqueio.fim) > fimDia,
+    )
   }
 
   const filtrosControles = (
@@ -201,13 +273,24 @@ function AgendaPageContent() {
       )}
 
       {isMobile && (
-        <AgendaMobileHeader
-          currentDate={currentDate}
-          onMonthChange={handleMonthChange}
-          onOpenOptions={() => setOptionsOpen(true)}
-          searchValue={clientSearch}
-          onSearchChange={setClientSearch}
-        />
+        <>
+          <AgendaMobileHeader
+            currentDate={currentDate}
+            onMonthChange={handleMonthChange}
+            onOpenOptions={() => setOptionsOpen(true)}
+            searchValue={clientSearch}
+            onSearchChange={setClientSearch}
+          />
+          <Button
+            variant="outline"
+            size="sm"
+            className="mb-2 w-full"
+            onClick={() => openNovoBloqueio()}
+          >
+            <Lock className="mr-2 h-4 w-4" aria-hidden="true" />
+            Novo compromisso
+          </Button>
+        </>
       )}
 
       {!isMobile && (
@@ -218,7 +301,16 @@ function AgendaPageContent() {
             searchPlaceholder="Buscar cliente..."
             onOpenFilters={() => setFiltrosOpen(true)}
             activeFilterCount={[statusFilter, editorFilter, pacoteFilter, dateRange?.from].filter(Boolean).length}
-            right={viewToggle}
+            right={
+              <div className="flex items-center gap-2">
+                <Button variant="outline" size="sm" onClick={() => openNovoBloqueio()}>
+                  <Lock className="mr-1 h-4 w-4" aria-hidden="true" />
+                  <span className="hidden sm:inline">Compromisso</span>
+                  <span className="sm:hidden">Bloquear</span>
+                </Button>
+                {viewToggle}
+              </div>
+            }
           />
 
           <div className="mb-4 hidden flex-wrap items-center gap-2 md:flex">
@@ -259,10 +351,22 @@ function AgendaPageContent() {
           selectedDate={selectedDate}
           onSelectedDateChange={setSelectedDate}
           onEventClick={(id) => navigate(ROUTES.AGENDA_DETALHES.replace(':id', id))}
+          bloqueios={bloqueiosComNome}
+          onBloqueioClick={(bloqueio) => {
+            if (podeGerenciarBloqueio(bloqueio)) {
+              openEditarBloqueio(bloqueio)
+              return
+            }
+            toast.info(`${bloqueio.titulo} — ${bloqueio.profissionalNome ?? 'Toda a equipe'}`)
+          }}
           onDateSelect={
             isMobile
               ? undefined
               : (date) => {
+                  if (diaTotalmenteBloqueado(date)) {
+                    toast.error('Este dia está bloqueado por um compromisso.')
+                    return
+                  }
                   const params = new URLSearchParams()
                   params.set('data', format(date, 'yyyy-MM-dd'))
                   navigate(`${ROUTES.PROPOSTAS_NOVO}?${params.toString()}`)
@@ -362,6 +466,15 @@ function AgendaPageContent() {
           <AgendaFab onClick={openNewProposta} />
         </>
       )}
+
+      <BloqueioAgendaDialog
+        open={bloqueioDialogOpen}
+        onOpenChange={setBloqueioDialogOpen}
+        bloqueio={bloqueioEditando}
+        dataInicial={bloqueioDataInicial}
+        usuarios={usuarios ?? []}
+        podeGerenciar={bloqueioEditando ? podeGerenciarBloqueio(bloqueioEditando) : false}
+      />
     </div>
   )
 }
