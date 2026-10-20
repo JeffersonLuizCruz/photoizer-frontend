@@ -418,3 +418,105 @@ test.describe('Agenda - visual Google Calendar (mobile)', () => {
     await expect(page).toHaveURL(/\/propostas\/nova/)
   })
 })
+
+test.describe('Seletor de horário', () => {
+  test('proposta abre sheet com horários dentro da viewport mobile', async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 })
+    await seedAdminAuth(page)
+    await mockApi(page)
+    await page.goto('/propostas/nova')
+
+    const trigger = page.getByRole('button', { name: 'Horário *' })
+    await expect(trigger).toBeVisible()
+    await trigger.click()
+
+    const sheet = page.getByRole('dialog', { name: 'Horário do ensaio' })
+    await expect(sheet).toBeVisible()
+
+    const box = await sheet.boundingBox()
+    expect(box).not.toBeNull()
+    expect(box!.y).toBeGreaterThanOrEqual(0)
+    expect(box!.y + box!.height).toBeLessThanOrEqual(844 + 1)
+
+    const chips = page.getByRole('radio')
+    const total = await chips.count()
+    expect(total).toBeGreaterThan(0)
+    for (let i = 0; i < total; i++) {
+      const chipBox = await chips.nth(i).boundingBox()
+      expect(chipBox?.height ?? 0).toBeGreaterThanOrEqual(44)
+    }
+
+    await chips.filter({ hasText: '09:00' }).click()
+    await expect(sheet).not.toBeVisible()
+    await expect(trigger).toContainText('09:00')
+    expect(await horizontalOverflow(page)).toBeLessThanOrEqual(1)
+  })
+
+  test('proposta mantém o popover dentro da viewport no desktop', async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 800 })
+    await seedAdminAuth(page)
+    await mockApi(page)
+    await page.goto('/propostas/nova')
+
+    await page.getByRole('button', { name: 'Horário *' }).click()
+    const popover = page.locator('[data-radix-popper-content-wrapper]')
+    await expect(popover).toBeVisible()
+
+    const box = await popover.boundingBox()
+    expect(box).not.toBeNull()
+    expect(box!.y).toBeGreaterThanOrEqual(0)
+    expect(box!.y + box!.height).toBeLessThanOrEqual(800 + 1)
+    expect(await horizontalOverflow(page)).toBeLessThanOrEqual(1)
+  })
+
+  test('edição de agendamento abre sheet com horários', async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 })
+    await seedAdminAuth(page)
+    await page.route('**/api/v1/**', async (route) => {
+      const url = route.request().url()
+      const path = url.split('/api/v1')[1]?.split('?')[0] ?? ''
+      const isGet = route.request().method() === 'GET'
+      const body = isGet && path === '/agendamentos/e2e-agenda-1'
+        ? AGENDAMENTO_HOJE
+        : isGet && path.includes('disponibilidade')
+          ? { disponivel: true, conflitos: [], bloqueios: [] }
+          : isGet
+            ? bodyFor(url)
+            : {}
+      await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(body) })
+    })
+    await page.goto('/agenda/e2e-agenda-1/editar')
+
+    const trigger = page.getByRole('button', { name: 'Horário *' })
+    await expect(trigger).toBeVisible()
+    await trigger.click()
+
+    const sheet = page.getByRole('dialog', { name: 'Horário do ensaio' })
+    await expect(sheet).toBeVisible()
+    await page.getByRole('radio', { name: '11:00' }).click()
+    await expect(sheet).not.toBeVisible()
+    await expect(trigger).toContainText('11:00')
+  })
+
+  test('compromisso aceita horário personalizado além dos chips', async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 })
+    await seedAdminAuth(page)
+    await mockAgendaApi(page, [])
+    await page.goto('/agenda')
+
+    await page.getByRole('button', { name: /Novo compromisso/ }).click()
+    await page.getByRole('button', { name: 'Hora de início' }).click()
+
+    const sheet = page.getByRole('dialog', { name: 'Hora de início' })
+    await expect(sheet).toBeVisible()
+    await page.getByLabel('Horário personalizado').fill('23:45')
+    await page.getByRole('button', { name: 'Aplicar' }).click()
+    await expect(sheet).not.toBeVisible()
+    await expect(page.getByRole('button', { name: 'Hora de início' })).toContainText('23:45')
+
+    await page.getByRole('button', { name: 'Hora de fim' }).click()
+    await expect(page.getByRole('dialog', { name: 'Hora de fim' })).toBeVisible()
+    await page.getByRole('radio', { name: '18:00' }).click()
+    await expect(page.getByRole('button', { name: 'Hora de fim' })).toContainText('18:00')
+  })
+})

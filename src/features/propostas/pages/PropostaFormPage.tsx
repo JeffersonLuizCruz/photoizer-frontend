@@ -12,6 +12,7 @@ import { Label } from '@/shared/components/ui/label'
 import { Textarea } from '@/shared/components/ui/textarea'
 import { Switch } from '@/shared/components/ui/switch'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/components/ui/select'
+import { TimeSlotPicker } from '@/shared/components/ui/time-slot-picker'
 import { Calendar } from '@/shared/components/ui/calendar'
 import { Popover, PopoverContent, PopoverTrigger } from '@/shared/components/ui/popover'
 import { CurrencyInput } from '@/shared/components/layout/CurrencyInput'
@@ -312,17 +313,21 @@ export function PropostaFormPage({ mode }: PropostaFormPageProps) {
             </div>
 
             <div>
-              <Label>Horário *</Label>
-              <Select value={horaValue ?? ''} onValueChange={(value) => setValue('hora', value, { shouldValidate: true })}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione um horário" />
-                </SelectTrigger>
-                <SelectContent>
-                  {HORARIOS.map((h) => (
-                    <SelectItem key={h} value={h}>{h}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <Label htmlFor="hora">Horário *</Label>
+              <TimeSlotPicker
+                id="hora"
+                value={horaValue ?? ''}
+                onChange={(value) => setValue('hora', value, { shouldValidate: true })}
+                slots={HORARIOS}
+                placeholder="Selecione um horário"
+                title="Horário do ensaio"
+                description={
+                  dataValue instanceof Date
+                    ? `Horário para ${format(dataValue, "dd 'de' MMMM", { locale: ptBR })}`
+                    : 'Selecione o horário de início do ensaio.'
+                }
+                invalid={!!errors.hora}
+              />
               {errors.hora && <p className="mt-1 text-sm text-destructive">{errors.hora.message}</p>}
               {verificandoDisponibilidade && (
                 <p className="mt-1 flex items-center gap-2 text-xs text-muted-foreground">

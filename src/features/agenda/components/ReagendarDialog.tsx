@@ -4,12 +4,13 @@ import { Button } from '@/shared/components/ui/button'
 import { Label } from '@/shared/components/ui/label'
 import { Calendar } from '@/shared/components/ui/calendar'
 import { Popover, PopoverContent, PopoverTrigger } from '@/shared/components/ui/popover'
-import { Input } from '@/shared/components/ui/input'
+import { TimeSlotPicker } from '@/shared/components/ui/time-slot-picker'
 import { AlertTriangle, CalendarDays } from 'lucide-react'
 import { format as formatDate } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import { cn } from '@/shared/lib/cn'
 import { usePacotesList, useDisponibilidade, useReagendarAgendamento } from '../api/queries'
+import { HORARIOS_ENSAIO } from '../constants'
 import type { Agendamento } from '../types'
 
 interface ReagendarDialogProps {
@@ -84,11 +85,15 @@ export function ReagendarDialog({ open, onOpenChange, agendamento }: ReagendarDi
           </div>
 
           <div className="space-y-2">
-            <Label>Novo Horário</Label>
-            <Input
-              type="time"
+            <Label htmlFor="reagendar-hora">Novo Horário</Label>
+            <TimeSlotPicker
+              id="reagendar-hora"
               value={hora}
-              onChange={(e) => setHora(e.target.value)}
+              onChange={setHora}
+              slots={HORARIOS_ENSAIO}
+              placeholder="Selecione o horário"
+              title="Novo horário"
+              description={data ? formatDate(data, "dd 'de' MMM 'de' yyyy", { locale: ptBR }) : undefined}
             />
             {conflito && disponibilidade && (
               <div className="rounded-lg border border-destructive/50 bg-destructive/5 p-3">

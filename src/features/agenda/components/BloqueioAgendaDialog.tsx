@@ -6,9 +6,11 @@ import { Input } from '@/shared/components/ui/input'
 import { Label } from '@/shared/components/ui/label'
 import { Textarea } from '@/shared/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/components/ui/select'
+import { TimeSlotPicker } from '@/shared/components/ui/time-slot-picker'
 import { Checkbox } from '@/shared/components/ui/checkbox'
 import { ConfirmDialog } from '@/shared/components/layout/ConfirmDialog'
 import { useAtualizarBloqueio, useCancelarBloqueio, useCriarBloqueio } from '../api/bloqueio.queries'
+import { HORARIOS_COMPROMISSO } from '../constants'
 import type { BloqueioAgenda, Usuario } from '../types'
 
 const GLOBAL = '__global__'
@@ -189,18 +191,23 @@ export function BloqueioAgendaDialog({
                   <Input
                     id="bloqueio-data-inicio"
                     type="date"
+                    className="min-w-0 flex-1"
                     value={dataInicio}
                     onChange={(e) => {
                       setDataInicio(e.target.value)
                       if (!dataFim || dataFim < e.target.value) setDataFim(e.target.value)
                     }}
                   />
-                  <Input
-                    type="time"
-                    aria-label="Hora de início"
+                  <TimeSlotPicker
                     value={horaInicio}
+                    onChange={setHoraInicio}
+                    slots={HORARIOS_COMPROMISSO}
+                    allowCustom
                     disabled={diaInteiro}
-                    onChange={(e) => setHoraInicio(e.target.value)}
+                    ariaLabel="Hora de início"
+                    title="Hora de início"
+                    description="Selecione o horário de início do compromisso."
+                    className="w-32 shrink-0"
                   />
                 </div>
               </div>
@@ -211,16 +218,21 @@ export function BloqueioAgendaDialog({
                   <Input
                     id="bloqueio-data-fim"
                     type="date"
+                    className="min-w-0 flex-1"
                     value={dataFim}
                     min={dataInicio || undefined}
                     onChange={(e) => setDataFim(e.target.value)}
                   />
-                  <Input
-                    type="time"
-                    aria-label="Hora de fim"
+                  <TimeSlotPicker
                     value={horaFim}
+                    onChange={setHoraFim}
+                    slots={HORARIOS_COMPROMISSO}
+                    allowCustom
                     disabled={diaInteiro}
-                    onChange={(e) => setHoraFim(e.target.value)}
+                    ariaLabel="Hora de fim"
+                    title="Hora de fim"
+                    description="Selecione o horário de fim do compromisso."
+                    className="w-32 shrink-0"
                   />
                 </div>
               </div>

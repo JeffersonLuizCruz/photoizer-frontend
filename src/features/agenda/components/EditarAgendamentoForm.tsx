@@ -6,6 +6,7 @@ import { Button } from '@/shared/components/ui/button'
 import { Input } from '@/shared/components/ui/input'
 import { Label } from '@/shared/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/components/ui/select'
+import { TimeSlotPicker } from '@/shared/components/ui/time-slot-picker'
 import { Switch } from '@/shared/components/ui/switch'
 import { Calendar } from '@/shared/components/ui/calendar'
 import { Popover, PopoverContent, PopoverTrigger } from '@/shared/components/ui/popover'
@@ -19,12 +20,7 @@ import type { Agendamento } from '../types'
 import { ROUTES } from '@/shared/constants'
 import { useNavigate } from 'react-router-dom'
 import { ParceirosRepasseList } from '@/shared/components/parceiros/ParceirosRepasseList'
-
-const HORARIOS = Array.from({ length: 19 }, (_, i) => {
-  const hora = Math.floor(i / 2) + 9
-  const minuto = i % 2 === 0 ? '00' : '30'
-  return `${String(hora).padStart(2, '0')}:${minuto}`
-})
+import { HORARIOS_ENSAIO } from '../constants'
 
 interface EditarAgendamentoFormProps {
   agendamento: Agendamento
@@ -198,18 +194,16 @@ export function EditarAgendamentoForm({ agendamento, onSubmit, isPending }: Edit
 
         <div>
           <Label htmlFor="hora">Horário *</Label>
-          <Select value={selectedDate ? format(selectedDate, 'HH:mm') : ''} onValueChange={handleHoraSelect}>
-            <SelectTrigger>
-              <SelectValue placeholder="Selecione o horário" />
-            </SelectTrigger>
-            <SelectContent>
-              {HORARIOS.map((h) => (
-                <SelectItem key={h} value={h}>
-                  {h}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <TimeSlotPicker
+            id="hora"
+            value={selectedDate ? format(selectedDate, 'HH:mm') : ''}
+            onChange={handleHoraSelect}
+            slots={HORARIOS_ENSAIO}
+            placeholder="Selecione o horário"
+            title="Horário do ensaio"
+            description={selectedDate ? format(selectedDate, 'dd/MM/yyyy') : 'Selecione o horário de início do ensaio.'}
+            invalid={!!errors.dataHoraEnsaio}
+          />
           {conflito && disponibilidade && (
             <div className="mt-2 rounded-lg border border-destructive/50 bg-destructive/5 p-3">
               <div className="flex items-center gap-2">
