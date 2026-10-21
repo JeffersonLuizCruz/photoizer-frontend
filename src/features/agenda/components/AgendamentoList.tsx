@@ -7,6 +7,7 @@ import type { ColumnDef } from '@tanstack/react-table'
 import { DataTable } from '@/shared/components/layout/DataTable'
 import { StatusBadge } from '@/shared/components/layout/StatusBadge'
 import { Button } from '@/shared/components/ui/button'
+import { Badge } from '@/shared/components/ui/badge'
 import { ROUTES, AGENDAMENTO_STATUS } from '@/shared/constants'
 import { normalizePackageColor } from '@/shared/lib/pacote-color'
 import type { Agendamento, Pacote, Usuario } from '../types'
@@ -107,7 +108,10 @@ export function AgendamentoList({ agendamentos, isLoading, pacotes, usuarios }: 
         accessorKey: 'status',
         header: 'Status',
         cell: ({ row }) => (
-          <StatusBadge status={row.original.status} customLabels={statusLabels} />
+          <div className="flex flex-wrap items-center gap-1.5">
+            <StatusBadge status={row.original.status} customLabels={statusLabels} />
+            {row.original.origem === 'AVULSO' && <Badge variant="secondary">Avulso</Badge>}
+          </div>
         ),
       },
       {
@@ -174,7 +178,10 @@ export function AgendamentoList({ agendamentos, isLoading, pacotes, usuarios }: 
                   <span className="min-w-0 truncate">{pacoteNome}</span>
                 </p>
               </div>
-              <StatusBadge status={a.status} customLabels={statusLabels} />
+              <div className="flex flex-wrap items-center justify-end gap-1.5">
+                <StatusBadge status={a.status} customLabels={statusLabels} />
+                {a.origem === 'AVULSO' && <Badge variant="secondary">Avulso</Badge>}
+              </div>
             </div>
             <div className="flex items-center justify-between gap-2 text-sm">
               <span className="text-muted-foreground">

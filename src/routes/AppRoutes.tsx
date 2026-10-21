@@ -9,6 +9,7 @@ import { LoginPage, ProtectedRoute } from '@/features/auth'
 // Papéis que NÃO incluem AGENDADOR (sem visibilidade financeira interna).
 const ROLES_SEM_AGENDADOR: Papel[] = ['ADMIN', 'FOTOGRAFO', 'EDITOR']
 const ROLES_ADMIN: Papel[] = ['ADMIN']
+const ROLES_AVULSO: Papel[] = ['ADMIN', 'AGENDADOR']
 // Alteração/remoção de proposta exige os mesmos papéis que decidem a proposta.
 const ROLES_DECISAO_PROPOSTA: Papel[] = ['ADMIN', 'FOTOGRAFO']
 
@@ -24,6 +25,7 @@ const CustomerProfilePage = lazy(() => import('@/features/auth/customer/Customer
 const AgendamentoDetalhesPage = lazy(() => import('@/features/agenda').then(m => ({ default: m.AgendamentoDetalhesPage })))
 const EditarAgendamentoPage = lazy(() => import('@/features/agenda').then(m => ({ default: m.EditarAgendamentoPage })))
 const AgendaPage = lazy(() => import('@/features/agenda').then(m => ({ default: m.AgendaPage })))
+const AgendamentoAvulsoPage = lazy(() => import('@/features/agenda').then(m => ({ default: m.AgendamentoAvulsoPage })))
 const AdminGaleriaPage = lazy(() => import('@/features/fotos').then(m => ({ default: m.AdminGaleriaPage })))
 const PacotesListPage = lazy(() => import('@/features/pacotes').then(m => ({ default: m.PacotesListPage })))
 const PacoteFormPage = lazy(() => import('@/features/pacotes').then(m => ({ default: m.PacoteFormPage })))
@@ -91,6 +93,7 @@ export function AppRoutes() {
             <Route path="/" element={<HomeRedirect />} />
             <Route path={ROUTES.DASHBOARD} element={<ProtectedRoute allowedRoles={ROLES_SEM_AGENDADOR}><DashboardPage /></ProtectedRoute>} />
             <Route path={ROUTES.AGENDA} element={<AgendaPage />} />
+            <Route path={ROUTES.AGENDA_AVULSO} element={<ProtectedRoute allowedRoles={ROLES_AVULSO}><AgendamentoAvulsoPage /></ProtectedRoute>} />
             <Route path={ROUTES.AGENDA_DETALHES} element={<AgendamentoDetalhesPage />} />
             <Route path={ROUTES.AGENDA_EDITAR} element={<ProtectedRoute allowedRoles={ROLES_SEM_AGENDADOR}><EditarAgendamentoPage /></ProtectedRoute>} />
             <Route path={ROUTES.PROPOSTAS} element={<PropostasPage />} />

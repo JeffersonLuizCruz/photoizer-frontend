@@ -1,6 +1,6 @@
 import { apiClient } from '@/shared/api'
 import { parseDuracao } from '@/shared/lib/duracao'
-import type { Agendamento, ExtraServicoResponse, Pacote, Pagamento, Usuario, FinanceiroTrabalho, Reatribuicao } from '../types'
+import type { Agendamento, CriarAgendamentoAvulsoPayload, ExtraServicoResponse, OpcoesAgendamentoAvulso, Pacote, Pagamento, Usuario, FinanceiroTrabalho, Reatribuicao } from '../types'
 import type { AgendamentoStatus, FormaPagamento } from '@/shared/constants'
 import type { EditarAgendamentoFormData } from '../schemas/agendamento.schema'
 
@@ -85,6 +85,20 @@ export const agendamentoService = {
   update: async (id: string, payload: EditarAgendamentoFormData): Promise<Agendamento> => {
     const { data } = await apiClient.put<Agendamento>(`/agendamentos/${id}`, payload)
     return data
+  },
+
+  criarAvulso: async (payload: CriarAgendamentoAvulsoPayload): Promise<Agendamento> => {
+    const { data } = await apiClient.post<Agendamento>('/agendamentos/avulso', payload)
+    return data
+  },
+
+  getOpcoesAvulso: async (): Promise<OpcoesAgendamentoAvulso> => {
+    const { data } = await apiClient.get<OpcoesAgendamentoAvulso>('/agendamentos/avulso/opcoes')
+    return {
+      ...data,
+      percentualEntrada: Number(data.percentualEntrada) || 30,
+      taxaDeslocamentoPadrao: Number(data.taxaDeslocamentoPadrao) || 0,
+    }
   },
 
   listarPagamentos: async (agendamentoId: string): Promise<Pagamento[]> => {

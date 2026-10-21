@@ -10,6 +10,7 @@ function gerarHorarios(horaInicio: number, horaFim: number): string[] {
 
 export const HORARIOS_ENSAIO = gerarHorarios(9, 18)
 export const HORARIOS_COMPROMISSO = gerarHorarios(6, 22)
+export const HORARIOS_AVULSO = gerarHorarios(5, 20)
 
 export const AGENDA_STATUS_OPTIONS: { value: string; label: string }[] = [
   { value: '', label: 'Todos os status' },

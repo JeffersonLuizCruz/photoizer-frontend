@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { agendamentoService } from '../services/agendamento.service'
 import type { EditarAgendamentoFormData } from '../schemas/agendamento.schema'
+import type { CriarAgendamentoAvulsoPayload } from '../types'
 import { QUERY_KEYS } from '@/shared/constants'
 import type { AgendamentoStatus, FormaPagamento } from '@/shared/constants'
 import { extractErrorMessage } from '@/shared/api'
@@ -92,6 +93,31 @@ export function useUpdateAgendamento(id: string) {
     },
     onError: (error: Error) => {
       toast.error(extractErrorMessage(error, 'Erro ao atualizar agendamento'))
+    },
+  })
+}
+
+export function useOpcoesAgendamentoAvulso() {
+  return useQuery({
+    queryKey: [...QUERY_KEYS.AGENDA, 'avulso', 'opcoes'],
+    queryFn: () => agendamentoService.getOpcoesAvulso(),
+    staleTime: 1000 * 60 * 5,
+  })
+}
+
+export function useCriarAgendamentoAvulso() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (payload: CriarAgendamentoAvulsoPayload) => agendamentoService.criarAvulso(payload),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.AGENDA })
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.FINANCEIRO })
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.DASHBOARD })
+      toast.success('Agendamento avulso criado com sucesso')
+    },
+    onError: (error: Error) => {
+      toast.error(extractErrorMessage(error, 'Erro ao criar agendamento avulso'))
     },
   })
 }

@@ -1,6 +1,7 @@
 export const ROUTES = {
   DASHBOARD: '/dashboard',
   AGENDA: '/agenda',
+  AGENDA_AVULSO: '/agenda/avulso',
   AGENDA_DETALHES: '/agenda/:id',
   AGENDA_EDITAR: '/agenda/:id/editar',
   PACOTES: '/pacotes',

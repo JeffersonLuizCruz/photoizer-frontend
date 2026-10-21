@@ -1,6 +1,7 @@
 import type { AgendamentoStatus, FormaPagamento } from '@/shared/constants'
 
 export type TipoRepasse = 'FIXO' | 'PERCENTUAL'
+export type OrigemAgendamento = 'PROPOSTA' | 'AVULSO' | 'IMPORTADO'
 export type RepasseStatus = 'PENDENTE' | 'PAGO' | 'CANCELADO'
 export type PapelParceiro = 'ADMIN' | 'FOTOGRAFO' | 'EDITOR' | 'AGENDADOR'
 
@@ -68,6 +69,7 @@ export interface Agendamento {
   saldoDevedor: number
 
   status: AgendamentoStatus
+  origem?: OrigemAgendamento
   dataConfirmacao: string | null
   dataRealizacao: string | null
   dataPagamentoFinal: string | null
@@ -129,6 +131,38 @@ export interface Pagamento {
   urlComprovante: string | null
   observacao: string | null
   compraExtraId: string | null
+  formaPagamento?: FormaPagamento | null
+  tipoPagamento?: 'ENTRADA' | 'FINAL' | 'EXTRA' | null
+}
+
+export interface OpcoesAgendamentoAvulso {
+  fotografos: Array<{ id: string; nome: string }>
+  percentualEntrada: number
+  taxaDeslocamentoPadrao: number
+}
+
+export interface CriarAgendamentoAvulsoPayload {
+  clienteNome: string
+  clienteTelefone: string
+  clienteEmail?: string
+  clienteCpf?: string
+  clienteCidade?: string
+  clienteEstado?: string
+  pacoteId: string
+  fotografoId: string
+  dataHoraEnsaio: string
+  duracaoMinutos: number
+  localEnsaio: string
+  valorTotal: number
+  valorEntradaExigido: number
+  valorPago: number
+  dataPagamento?: string
+  formaPagamento?: FormaPagamento
+  tipoPagamento?: 'ENTRADA' | 'FINAL'
+  custoDeslocamento?: number
+  repassarDeslocamento?: boolean
+  autorizaUsoImagem?: boolean
+  observacoes?: string
 }
 
 export interface ExtraServicoResponse {
