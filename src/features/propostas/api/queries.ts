@@ -96,6 +96,7 @@ function montarPayload(payload: NovaPropostaFormValues): NovaPropostaPayload {
     duracaoMinutos: payload.duracaoMinutos,
     localEnsaio: payload.localEnsaio,
     custoDeslocamento: payload.custoDeslocamento,
+    valorEntradaPago: payload.valorEntradaPago ?? 0,
     repassarDeslocamento: payload.repassarDeslocamento,
     observacoes: payload.observacoes || undefined,
     indicadorId: payload.indicadorId || undefined,

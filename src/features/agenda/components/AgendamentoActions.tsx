@@ -115,7 +115,14 @@ export function AgendamentoActions({ agendamento }: AgendamentoActionsProps) {
   const { mutate: confirmarPagamento, isPending: confirmarPending } = useConfirmarPagamentoAgendamento()
   const { mutate: aprovar, isPending: aprovarPending } = useAprovarAgendamento()
 
-  const actions = (statusActions[agendamento.status] ?? []).filter(
+  const entradaQuitada =
+    agendamento.valorEntradaPago > 0 &&
+    agendamento.valorEntradaPago >= agendamento.valorEntradaExigido
+  const acoesDoStatus: ActionType[] =
+    agendamento.status === AGENDAMENTO_STATUS.AGUARDANDO_APROVACAO && entradaQuitada
+      ? ['aprovar', 'cancelar']
+      : statusActions[agendamento.status] ?? []
+  const actions = acoesDoStatus.filter(
     (actionType) => isAdmin || (actionType !== 'reagendar' && actionType !== 'cancelar'),
   )
 

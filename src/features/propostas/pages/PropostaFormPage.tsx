@@ -58,6 +58,7 @@ export function PropostaFormPage({ mode }: PropostaFormPageProps) {
     fotografoId: '',
     fotografos: [],
     custoDeslocamento: 0,
+    valorEntradaPago: 0,
     repassarDeslocamento: true,
     observacoes: '',
   }
@@ -118,6 +119,7 @@ export function PropostaFormPage({ mode }: PropostaFormPageProps) {
         percentual: f.percentual ?? undefined,
       })),
       custoDeslocamento: detalhe.custoDeslocamento ?? 0,
+      valorEntradaPago: detalhe.valorEntradaPago ?? 0,
       repassarDeslocamento: detalhe.repassarDeslocamento ?? true,
       observacoes: detalhe.observacoes ?? '',
     })
@@ -125,6 +127,7 @@ export function PropostaFormPage({ mode }: PropostaFormPageProps) {
 
   const repassar = watch('repassarDeslocamento')
   const custoDeslocamento = Number(watch('custoDeslocamento')) || 0
+  const valorEntradaPago = Number(watch('valorEntradaPago')) || 0
   const dataValue = watch('data')
   const horaValue = watch('hora')
   const pacoteId = watch('pacoteId')
@@ -186,7 +189,7 @@ export function PropostaFormPage({ mode }: PropostaFormPageProps) {
 
   const camposPorPasso: FieldPath<NovaPropostaFormValues>[][] = [
     ['pacoteId', 'data', 'hora', 'localEnsaio', 'fotografoId'],
-    [],
+    ['valorEntradaPago'],
     [],
   ]
 
@@ -417,6 +420,19 @@ export function PropostaFormPage({ mode }: PropostaFormPageProps) {
                 </div>
                 <Switch checked={repassar} onCheckedChange={(checked) => setValue('repassarDeslocamento', checked)} activeClassName="!bg-emerald-500" />
               </div>
+            </div>
+
+            <div className="sm:col-span-2">
+              <Label htmlFor="valorEntradaPago">Valor de entrada já pago (R$)</Label>
+              <CurrencyInput
+                id="valorEntradaPago"
+                value={valorEntradaPago}
+                onChange={(value) => setValue('valorEntradaPago', value, { shouldValidate: true })}
+              />
+              <p className="mt-1 text-xs text-muted-foreground">
+                Se preenchido, substitui o percentual de entrada configurado e dispensa o comprovante do cliente.
+                Deixe zerado para manter o cálculo automático.
+              </p>
             </div>
 
             <div className="sm:col-span-2">

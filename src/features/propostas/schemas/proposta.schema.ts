@@ -17,6 +17,7 @@ export const novaPropostaSchema = z.object({
     }),
   ),
   custoDeslocamento: z.number().min(0).optional(),
+  valorEntradaPago: z.number().min(0).optional(),
   repassarDeslocamento: z.boolean().optional(),
   observacoes: z.string().optional(),
   indicadorId: z.string().optional(),

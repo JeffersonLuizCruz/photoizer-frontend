@@ -51,6 +51,7 @@ export interface Proposta {
   tokenProposta: string | null
   valorTotal: number
   valorEntradaExigido: number
+  valorEntradaPago: number
   valorRestante: number
   autorizaUsoImagem: boolean
   dataEnvioProposta: string | null
@@ -72,6 +73,7 @@ export interface PropostaDetalhe {
   duracaoMinutos: number
   localEnsaio: string
   custoDeslocamento: number | null
+  valorEntradaPago: number | null
   repassarDeslocamento: boolean | null
   clausulasPersonalizadas: string | null
   observacoes: string | null
@@ -93,6 +95,7 @@ export interface NovaPropostaPayload {
   duracaoMinutos?: number
   localEnsaio: string
   custoDeslocamento?: number
+  valorEntradaPago?: number
   repassarDeslocamento?: boolean
   clausulasPersonalizadas?: string
   observacoes?: string

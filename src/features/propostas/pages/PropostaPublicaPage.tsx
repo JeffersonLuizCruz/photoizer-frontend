@@ -13,6 +13,7 @@ import {
   Receipt,
 } from 'lucide-react'
 import { PageLoading } from '@/shared/components/layout/Loading'
+import { AGENDAMENTO_STATUS } from '@/shared/constants'
 import { Button } from '@/shared/components/ui/button'
 import { Input } from '@/shared/components/ui/input'
 import { Label } from '@/shared/components/ui/label'
@@ -129,9 +130,11 @@ export function PropostaPublicaPage() {
       <StatusScreen icon={CheckCircle2} iconClass="text-emerald-500" title="Contrato confirmado com sucesso!">
         <p>Recebemos sua confirmação para {proposta.contratadaNome}.</p>
         <p>
-          {exigeComprovante
-            ? 'Aguarde a confirmação do pagamento e a aprovação do agendamento.'
-            : 'Seu agendamento já está confirmado.'}
+          {proposta.status === AGENDAMENTO_STATUS.CONFIRMADO
+            ? 'Seu agendamento já está confirmado.'
+            : exigeComprovante
+              ? 'Aguarde a confirmação do pagamento e a aprovação do agendamento.'
+              : 'Recebemos sua confirmação. Aguarde a aprovação do agendamento.'}
         </p>
         <p className="text-xs">Você pode fechar esta página.</p>
       </StatusScreen>

@@ -96,6 +96,8 @@ export function PropostasPage() {
 
   const podeEditar = (p: Proposta) => p.status === AGENDAMENTO_STATUS.PRE_RESERVA
   const podeRemover = (p: Proposta) => p.status === AGENDAMENTO_STATUS.PRE_RESERVA
+  const entradaQuitada = (p: Proposta) =>
+    p.valorEntradaPago > 0 && p.valorEntradaPago >= p.valorEntradaExigido
 
   const abrirEdicao = (p: Proposta) => {
     setAcaoProposta(null)
@@ -231,13 +233,15 @@ export function PropostasPage() {
             </Button>
           </>
         )}
-        {podeDecidir && p.status === AGENDAMENTO_STATUS.AGUARDANDO_APROVACAO && (
+        {podeDecidir && p.status === AGENDAMENTO_STATUS.AGUARDANDO_APROVACAO && !entradaQuitada(p) && (
           <Button size="sm" onClick={() => confirmar.mutate(p.id)} disabled={confirmar.isPending}>
             <ThumbsUp className="mr-1 h-4 w-4" />
             Confirmar pagamento
           </Button>
         )}
-        {podeDecidir && p.status === AGENDAMENTO_STATUS.PAGAMENTO_CONFIRMADO && (
+        {podeDecidir &&
+          (p.status === AGENDAMENTO_STATUS.PAGAMENTO_CONFIRMADO ||
+            (p.status === AGENDAMENTO_STATUS.AGUARDANDO_APROVACAO && entradaQuitada(p))) && (
           <Button
             size="sm"
             onClick={() =>
@@ -559,26 +563,31 @@ export function PropostasPage() {
                     </Button>
                   </>
                 )}
-                {podeDecidir && acaoProposta.status === AGENDAMENTO_STATUS.AGUARDANDO_APROVACAO && (
-                  <Button
-                    className="justify-start"
-                    disabled={confirmar.isPending}
-                    onClick={() => concluirAcao(confirmar.mutate)}
-                  >
-                    <ThumbsUp className="mr-2 h-4 w-4" aria-hidden="true" />
-                    Confirmar pagamento
-                  </Button>
-                )}
-                {podeDecidir && acaoProposta.status === AGENDAMENTO_STATUS.PAGAMENTO_CONFIRMADO && (
-                  <Button
-                    className="justify-start"
-                    disabled={aprovar.isPending}
-                    onClick={() => concluirAcao(aprovar.mutate)}
-                  >
-                    <CheckCircle2 className="mr-2 h-4 w-4" aria-hidden="true" />
-                    Aprovar proposta
-                  </Button>
-                )}
+                {podeDecidir &&
+                  acaoProposta.status === AGENDAMENTO_STATUS.AGUARDANDO_APROVACAO &&
+                  !entradaQuitada(acaoProposta) && (
+                    <Button
+                      className="justify-start"
+                      disabled={confirmar.isPending}
+                      onClick={() => concluirAcao(confirmar.mutate)}
+                    >
+                      <ThumbsUp className="mr-2 h-4 w-4" aria-hidden="true" />
+                      Confirmar pagamento
+                    </Button>
+                  )}
+                {podeDecidir &&
+                  (acaoProposta.status === AGENDAMENTO_STATUS.PAGAMENTO_CONFIRMADO ||
+                    (acaoProposta.status === AGENDAMENTO_STATUS.AGUARDANDO_APROVACAO &&
+                      entradaQuitada(acaoProposta))) && (
+                    <Button
+                      className="justify-start"
+                      disabled={aprovar.isPending}
+                      onClick={() => concluirAcao(aprovar.mutate)}
+                    >
+                      <CheckCircle2 className="mr-2 h-4 w-4" aria-hidden="true" />
+                      Aprovar proposta
+                    </Button>
+                  )}
                 {podeDecidir &&
                   (acaoProposta.status === AGENDAMENTO_STATUS.AGUARDANDO_APROVACAO ||
                     acaoProposta.status === AGENDAMENTO_STATUS.PAGAMENTO_CONFIRMADO) && (

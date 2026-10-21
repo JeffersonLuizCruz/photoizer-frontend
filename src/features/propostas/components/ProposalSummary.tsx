@@ -39,7 +39,9 @@ function InfoCard({ icon: Icon, label, children, className }: InfoCardProps) {
 }
 
 export function ProposalSummary({ proposta }: ProposalSummaryProps) {
-  const reservaRecebida = (proposta.valorEntradaPago ?? 0) > 0
+  const reservaRecebida =
+    (proposta.valorEntradaPago ?? 0) > 0 &&
+    proposta.valorEntradaPago >= proposta.valorEntradaExigido
   const data = new Date(proposta.dataHoraEnsaio)
   const dataLabel = format(data, "EEEE, dd 'de' MMMM", { locale: ptBR })
   const horaLabel = format(data, 'HH:mm')
