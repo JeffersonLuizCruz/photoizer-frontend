@@ -1,10 +1,9 @@
 import { useEffect, useState } from 'react'
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
-import { ChevronDown, ChevronLeft, ChevronRight, Menu, Search, X } from 'lucide-react'
+import { ChevronDown, ChevronLeft, ChevronRight, Menu } from 'lucide-react'
 import { cn } from '@/shared/lib/cn'
 import { Button } from '@/shared/components/ui/button'
-import { Input } from '@/shared/components/ui/input'
 import { Avatar, AvatarFallback } from '@/shared/components/ui/avatar'
 import { Popover, PopoverContent, PopoverTrigger } from '@/shared/components/ui/popover'
 import { useAuth } from '@/features/auth/AuthProvider'
@@ -13,8 +12,6 @@ interface AgendaMobileHeaderProps {
   currentDate: Date
   onMonthChange: (date: Date) => void
   onOpenOptions: () => void
-  searchValue: string
-  onSearchChange: (value: string) => void
 }
 
 const MONTHS = [
@@ -30,11 +27,8 @@ export function AgendaMobileHeader({
   currentDate,
   onMonthChange,
   onOpenOptions,
-  searchValue,
-  onSearchChange,
 }: AgendaMobileHeaderProps) {
   const { user } = useAuth()
-  const [searchOpen, setSearchOpen] = useState(false)
   const [pickerOpen, setPickerOpen] = useState(false)
   const [pickerYear, setPickerYear] = useState(currentDate.getFullYear())
 
@@ -132,17 +126,6 @@ export function AgendaMobileHeader({
         </Popover>
 
         <div className="ml-auto flex items-center gap-0.5">
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-11 w-11"
-            onClick={() => setSearchOpen((open) => !open)}
-            aria-label={searchOpen ? 'Fechar busca' : 'Buscar cliente'}
-            aria-expanded={searchOpen}
-          >
-            <Search className="h-5 w-5" />
-          </Button>
-
           <button
             type="button"
             onClick={() => onMonthChange(new Date(today.getFullYear(), today.getMonth(), today.getDate()))}
@@ -165,34 +148,6 @@ export function AgendaMobileHeader({
         </div>
       </div>
 
-      {searchOpen && (
-        <div className="relative pb-2">
-          <Search
-            className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"
-            aria-hidden="true"
-          />
-          <Input
-            autoFocus
-            value={searchValue}
-            onChange={(e) => onSearchChange(e.target.value)}
-            placeholder="Buscar cliente..."
-            type="search"
-            enterKeyHint="search"
-            aria-label="Buscar cliente"
-            className="pl-9 pr-9"
-          />
-          {searchValue && (
-            <button
-              type="button"
-              onClick={() => onSearchChange('')}
-              aria-label="Limpar busca"
-              className="absolute right-1 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-md text-muted-foreground hover:text-foreground"
-            >
-              <X className="h-4 w-4" />
-            </button>
-          )}
-        </div>
-      )}
     </div>
   )
 }

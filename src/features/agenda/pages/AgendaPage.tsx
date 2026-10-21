@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react'
 import { useNavigate, Navigate } from 'react-router-dom'
-import { CalendarDays, Table2, FilterX, Search, Clock, MapPin, Lock } from 'lucide-react'
+import { CalendarDays, CalendarPlus, Table2, FilterX, Search, Clock, MapPin, Lock } from 'lucide-react'
 import {
   endOfDay,
   endOfMonth,
@@ -17,6 +17,7 @@ import { PageTitle } from '@/shared/components/layout/PageTitle'
 import { ListToolbar, FilterSheet } from '@/shared/components/mobile'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/components/ui/select'
 import { DateRangePicker, type DateRange } from '@/shared/components/layout/DateRangePicker'
+import { cn } from '@/shared/lib/cn'
 import { ROUTES, AGENDAMENTO_STATUS } from '@/shared/constants'
 import { useDebounce } from '@/shared/hooks/useDebounce'
 import { useIsMobile } from '@/shared/hooks/use-media-query'
@@ -46,7 +47,8 @@ export function AgendaPage() {
 
 function AgendaPageContent() {
   const navigate = useNavigate()
-  const { user } = useAuth()
+  const { user, papel } = useAuth()
+  const podeAvulso = papel === 'ADMIN' || papel === 'AGENDADOR'
   const isMobile = useIsMobile()
   const [viewMode, setViewMode] = useState<AgendaViewMode>('calendar')
   const [calendarView, setCalendarView] = useState<CalendarView>('month')
@@ -54,7 +56,6 @@ function AgendaPageContent() {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(() => new Date())
 
   const [statusFilter, setStatusFilter] = useState('')
-  const [editorFilter, setEditorFilter] = useState('')
   const [pacoteFilter, setPacoteFilter] = useState('')
   const [dateRange, setDateRange] = useState<DateRange | undefined>()
   const [clientSearch, setClientSearch] = useState('')
@@ -69,20 +70,18 @@ function AgendaPageContent() {
   const queryParams = useMemo(() => {
     const params: {
       status?: AgendamentoStatus
-      editorId?: string
       dataInicio?: string
       dataFim?: string
       search?: string
     } = {}
 
     if (statusFilter) params.status = statusFilter as AgendamentoStatus
-    if (editorFilter) params.editorId = editorFilter
     if (dateRange?.from) params.dataInicio = format(dateRange.from, 'yyyy-MM-dd')
     if (dateRange?.to) params.dataFim = format(dateRange.to, 'yyyy-MM-dd')
     if (debouncedClientSearch) params.search = debouncedClientSearch
 
     return params
-  }, [statusFilter, editorFilter, dateRange, debouncedClientSearch])
+  }, [statusFilter, dateRange, debouncedClientSearch])
 
   const { data: agendamentos, isLoading } = useAgendamentosList(
     Object.keys(queryParams).length > 0 ? queryParams : undefined,
@@ -134,11 +133,10 @@ function AgendaPageContent() {
     })
   }, [agendamentos, pacoteFilter, statusFilter])
 
-  const hasActiveFilters = Boolean(statusFilter || editorFilter || pacoteFilter || dateRange?.from || clientSearch)
+  const hasActiveFilters = Boolean(statusFilter || pacoteFilter || dateRange?.from || clientSearch)
 
   const clearFilters = () => {
     setStatusFilter('')
-    setEditorFilter('')
     setPacoteFilter('')
     setDateRange(undefined)
     setClientSearch('')
@@ -196,20 +194,6 @@ function AgendaPageContent() {
           {AGENDA_STATUS_OPTIONS.map((opt) => (
             <SelectItem key={opt.value} value={opt.value}>
               {opt.label}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
-
-      <Select value={editorFilter} onValueChange={setEditorFilter}>
-        <SelectTrigger className="w-full sm:w-44">
-          <SelectValue placeholder="Filtrar por editor" />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="">Todos os editores</SelectItem>
-          {usuarios?.map((u) => (
-            <SelectItem key={u.id} value={u.id}>
-              {u.nome}
             </SelectItem>
           ))}
         </SelectContent>
@@ -278,18 +262,28 @@ function AgendaPageContent() {
             currentDate={currentDate}
             onMonthChange={handleMonthChange}
             onOpenOptions={() => setOptionsOpen(true)}
-            searchValue={clientSearch}
-            onSearchChange={setClientSearch}
           />
-          <Button
-            variant="outline"
-            size="sm"
-            className="mb-2 w-full"
-            onClick={() => openNovoBloqueio()}
-          >
-            <Lock className="mr-2 h-4 w-4" aria-hidden="true" />
-            Novo compromisso
-          </Button>
+          <div className="mb-2 grid grid-cols-2 gap-2">
+            {podeAvulso && (
+              <Button
+                size="sm"
+                className="w-full"
+                onClick={() => navigate(ROUTES.AGENDA_AVULSO)}
+              >
+                <CalendarPlus className="mr-2 h-4 w-4" aria-hidden="true" />
+                Avulso
+              </Button>
+            )}
+            <Button
+              variant="outline"
+              size="sm"
+              className={cn('w-full', !podeAvulso && 'col-span-2')}
+              onClick={() => openNovoBloqueio()}
+            >
+              <Lock className="mr-2 h-4 w-4" aria-hidden="true" />
+              Novo compromisso
+            </Button>
+          </div>
         </>
       )}
 
@@ -300,9 +294,16 @@ function AgendaPageContent() {
             onSearchChange={setClientSearch}
             searchPlaceholder="Buscar cliente..."
             onOpenFilters={() => setFiltrosOpen(true)}
-            activeFilterCount={[statusFilter, editorFilter, pacoteFilter, dateRange?.from].filter(Boolean).length}
+            activeFilterCount={[statusFilter, pacoteFilter, dateRange?.from].filter(Boolean).length}
             right={
               <div className="flex items-center gap-2">
+                {podeAvulso && (
+                  <Button size="sm" onClick={() => navigate(ROUTES.AGENDA_AVULSO)}>
+                    <CalendarPlus className="mr-1 h-4 w-4" aria-hidden="true" />
+                    <span className="hidden sm:inline">Agendamento avulso</span>
+                    <span className="sm:hidden">Avulso</span>
+                  </Button>
+                )}
                 <Button variant="outline" size="sm" onClick={() => openNovoBloqueio()}>
                   <Lock className="mr-1 h-4 w-4" aria-hidden="true" />
                   <span className="hidden sm:inline">Compromisso</span>
@@ -385,7 +386,7 @@ function AgendaPageContent() {
         />
       )}
 
-      {viewMode === 'calendar' && debouncedClientSearch && (
+      {!isMobile && viewMode === 'calendar' && debouncedClientSearch && (
         <div className="mt-4 rounded-lg border bg-card">
           <div className="border-b px-4 py-3">
             <h3 className="text-sm font-semibold">
@@ -451,13 +452,10 @@ function AgendaPageContent() {
             onCalendarViewChange={setCalendarView}
             statusFilter={statusFilter}
             onStatusFilterChange={setStatusFilter}
-            editorFilter={editorFilter}
-            onEditorFilterChange={setEditorFilter}
             pacoteFilter={pacoteFilter}
             onPacoteFilterChange={setPacoteFilter}
             dateRange={dateRange}
             onDateRangeChange={setDateRange}
-            usuarios={usuarios}
             pacotes={pacotes}
             hasActiveFilters={hasActiveFilters}
             onClearFilters={clearFilters}

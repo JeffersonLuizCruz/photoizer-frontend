@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { DateRangePicker, type DateRange } from '@/shared/components/layout/DateRangePicker'
 import { AGENDA_STATUS_OPTIONS } from '../constants'
 import type { CalendarView } from './AgendaCalendar'
-import type { Pacote, Usuario } from '../types'
+import type { Pacote } from '../types'
 
 export type AgendaViewMode = 'calendar' | 'list'
 
@@ -20,13 +20,10 @@ interface AgendaOptionsDrawerProps {
   onCalendarViewChange: (view: CalendarView) => void
   statusFilter: string
   onStatusFilterChange: (value: string) => void
-  editorFilter: string
-  onEditorFilterChange: (value: string) => void
   pacoteFilter: string
   onPacoteFilterChange: (value: string) => void
   dateRange: DateRange | undefined
   onDateRangeChange: (range: DateRange | undefined) => void
-  usuarios?: Usuario[]
   pacotes?: Pacote[]
   hasActiveFilters: boolean
   onClearFilters: () => void
@@ -48,13 +45,10 @@ export function AgendaOptionsDrawer({
   onCalendarViewChange,
   statusFilter,
   onStatusFilterChange,
-  editorFilter,
-  onEditorFilterChange,
   pacoteFilter,
   onPacoteFilterChange,
   dateRange,
   onDateRangeChange,
-  usuarios,
   pacotes,
   hasActiveFilters,
   onClearFilters,
@@ -140,23 +134,6 @@ export function AgendaOptionsDrawer({
                     {AGENDA_STATUS_OPTIONS.map((opt) => (
                       <SelectItem key={opt.value} value={opt.value}>
                         {opt.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-1.5">
-                <span className="text-sm text-muted-foreground">Editor</span>
-                <Select value={editorFilter} onValueChange={onEditorFilterChange}>
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Todos os editores" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="">Todos os editores</SelectItem>
-                    {usuarios?.map((u) => (
-                      <SelectItem key={u.id} value={u.id}>
-                        {u.nome}
                       </SelectItem>
                     ))}
                   </SelectContent>
