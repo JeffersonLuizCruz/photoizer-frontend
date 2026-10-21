@@ -120,8 +120,7 @@ export const propostaService = {
     if (valores.cidade) formData.append('cidade', valores.cidade)
     if (valores.estado) formData.append('estado', valores.estado)
     formData.append('autorizaUsoImagem', valores.autorizaUsoImagem)
-    if (!comprovante) throw new Error('Comprovante de pagamento da reserva é obrigatório')
-    formData.append('comprovante', comprovante)
+    if (comprovante) formData.append('comprovante', comprovante)
 
     const dispositivo = coletarDadosDispositivo()
     formData.append('userAgent', dispositivo.userAgent)

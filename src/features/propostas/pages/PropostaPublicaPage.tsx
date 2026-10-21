@@ -19,7 +19,6 @@ import { Label } from '@/shared/components/ui/label'
 import { FileUpload } from '@/shared/components/layout/FileUpload'
 import { formatCurrency } from '@/shared/lib/format'
 import { cn } from '@/shared/lib/cn'
-import { AGENDAMENTO_STATUS } from '@/shared/constants'
 import { assinarPropostaSchema, type AssinarPropostaFormValues, formatCpf } from '../schemas/proposta.schema'
 import { usePropostaPublica, useAssinarProposta } from '../api/queries'
 import { BeachBackdrop } from '@/shared/components/beach/BeachBackdrop'
@@ -121,13 +120,19 @@ export function PropostaPublicaPage() {
 
   if (!proposta) return null
 
-  const jahAssinado = proposta.status !== AGENDAMENTO_STATUS.PRE_RESERVA
+  const podeAssinar = proposta.podeAssinar
+  const exigeComprovante = proposta.exigeComprovante !== false
+  const jahAssinado = !podeAssinar
 
   if (assinado) {
     return (
-      <StatusScreen icon={CheckCircle2} iconClass="text-emerald-500" title="Proposta confirmada com sucesso!">
+      <StatusScreen icon={CheckCircle2} iconClass="text-emerald-500" title="Contrato confirmado com sucesso!">
         <p>Recebemos sua confirmação para {proposta.contratadaNome}.</p>
-        <p>Aguarde a confirmação do pagamento e a aprovação do agendamento.</p>
+        <p>
+          {exigeComprovante
+            ? 'Aguarde a confirmação do pagamento e a aprovação do agendamento.'
+            : 'Seu agendamento já está confirmado.'}
+        </p>
         <p className="text-xs">Você pode fechar esta página.</p>
       </StatusScreen>
     )
@@ -135,22 +140,20 @@ export function PropostaPublicaPage() {
 
   if (jahAssinado) {
     return (
-      <StatusScreen icon={Sun} iconClass="text-amber-400" title="Proposta já confirmada">
-        <p>Esta proposta já foi confirmada. Você pode fechar esta página.</p>
+      <StatusScreen icon={Sun} iconClass="text-amber-400" title="Contrato já confirmado">
+        <p>Este contrato já foi confirmado. Você pode fechar esta página.</p>
       </StatusScreen>
     )
   }
 
-  const podeAssinar = proposta.podeAssinar
-
   const onSubmit = async (valores: AssinarPropostaFormValues) => {
     setErroEnvio(null)
-    if (!comprovante) {
+    if (exigeComprovante && !comprovante) {
       setErroEnvio('Anexe o comprovante de pagamento da reserva antes de confirmar.')
       return
     }
     try {
-      await assinar.mutateAsync({ valores, comprovante })
+      await assinar.mutateAsync({ valores, comprovante: exigeComprovante ? comprovante ?? undefined : undefined })
       setAssinado(true)
     } catch (e) {
       const msg = (e as { response?: { data?: { message?: string } }; message?: string })?.response?.data?.message || (e as Error)?.message || 'Erro ao confirmar proposta. Tente novamente.'
@@ -177,6 +180,15 @@ export function PropostaPublicaPage() {
         )}
 
         <ContractDocument html={proposta.clausulasHtml} />
+
+        {!exigeComprovante && podeAssinar && (
+          <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-900">
+            <p className="font-semibold">Reserva já recebida</p>
+            <p className="mt-0.5 text-emerald-800">
+              Não é necessário anexar comprovante. Confira seus dados, escolha a opção de uso de imagem e confirme o contrato.
+            </p>
+          </div>
+        )}
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
           {podeAssinar && (
@@ -275,7 +287,7 @@ export function PropostaPublicaPage() {
             </FormSection>
           )}
 
-          {podeAssinar && (
+          {podeAssinar && exigeComprovante && (
             <FormSection
               step={3}
               title="Comprovante da reserva"

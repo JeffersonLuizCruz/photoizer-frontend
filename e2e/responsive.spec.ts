@@ -61,6 +61,8 @@ const PROPOSTA_PUBLICA = {
   clausulasHtml: '<p>Contrato de teste.</p>',
   fotografoResponsavel: 'Jefferson Luiz',
   fotografos: [{ nome: 'Jefferson Luiz', papel: 'FOTOGRAFO' }],
+  exigeComprovante: true,
+  valorEntradaPago: 0,
 }
 
 function bodyFor(url: string): unknown {
@@ -761,7 +763,7 @@ test.describe('Agendamento avulso', () => {
     }
   }
 
-  test('admin cria agendamento avulso com cliente, valores e recebimento', async ({ page }) => {
+  test('admin cria agendamento avulso com reserva já recebida e gera o link do contrato', async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 })
     await seedAdminAuth(page)
     let payload: Record<string, unknown> | null = null
@@ -779,7 +781,7 @@ test.describe('Agendamento avulso', () => {
       }
       if (method === 'POST' && path === '/agendamentos/avulso') {
         payload = JSON.parse(route.request().postData() ?? '{}') as Record<string, unknown>
-        body = { id: 'avulso-1', status: 'CONFIRMADO', origem: 'AVULSO' }
+        body = { id: 'avulso-1', status: 'CONFIRMADO', origem: 'AVULSO', tokenProposta: 'token-avulso-1' }
       }
       await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(body) })
     })
@@ -789,10 +791,7 @@ test.describe('Agendamento avulso', () => {
     await expect(page.getByLabel('Editor responsável')).toHaveCount(0)
     await expect(page.getByLabel('Origem')).toHaveCount(0)
     await expect(page.getByLabel('Referência externa')).toHaveCount(0)
-
-    await page.getByLabel('Nome completo *').fill('Maria Souza')
-    await page.getByLabel('Telefone *').fill('11999999999')
-    await page.getByLabel('CPF').fill('12345678900')
+    await expect(page.getByLabel('Nome completo *')).toHaveCount(0)
 
     await page.getByLabel('Pacote *').click()
     await page.getByRole('option', { name: /Ensaio Praia/ }).click()
@@ -808,16 +807,22 @@ test.describe('Agendamento avulso', () => {
     await page.getByLabel('Fotógrafo responsável *').click()
     await page.getByRole('option', { name: 'Foto Teste' }).click()
 
-    await page.getByLabel('Valor recebido agora (R$)').fill('300,00')
+    await page.getByRole('button', { name: 'Valor já recebido' }).click()
+    await page.getByLabel('Valor já recebido (R$)').fill('300,00')
     await page.getByRole('button', { name: 'Salvar agendamento' }).click()
 
+    await expect(page.getByRole('dialog', { name: 'Agendamento criado' })).toBeVisible()
+    await expect(page.getByLabel('Link do contrato')).toHaveValue(/\/proposta\/token-avulso-1$/)
+    await page.getByRole('button', { name: 'Ver agendamento' }).click()
     await expect(page).toHaveURL(/\/agenda\/avulso-1/)
+
     expect(payload).not.toBeNull()
-    expect(payload!.clienteNome).toBe('Maria Souza')
-    expect(payload!.clienteTelefone).toBe('(11) 99999-9999')
+    expect(payload!.clienteNome).toBeUndefined()
+    expect(payload!.clienteTelefone).toBeUndefined()
     expect(payload!.pacoteId).toBe('pacote-avulso-1')
     expect(payload!.fotografoId).toBe('foto-1')
-    expect(payload!.valorPago).toBe(300)
+    expect(payload!.valorJaRecebido).toBe(300)
+    expect(payload!.percentualEntrada).toBeUndefined()
     expect(payload!.duracaoMinutos).toBe(60)
     expect(String(payload!.dataHoraEnsaio)).toMatch(/T09:00:00$/)
   })

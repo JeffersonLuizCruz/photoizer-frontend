@@ -245,7 +245,7 @@ export function ConfigPage() {
             <code className="rounded bg-muted px-1 py-0.5 text-xs">
               clienteNome, clienteCPF, clienteTelefone, clienteEmail, clienteCidade, clienteEstado,
               dataEnsaio, horarioEnsaio, duracaoEnsaio, localEnsaio, fotografoResponsavel, profissionaisEnsaio, pacoteNome, pacoteDescricao, precoFotoExtra,
-              valorTotal, valorEntrada, percentualEntrada, valorRestante, contratadaNome, contratadaCnpj,
+              valorTotal, valorEntrada, statusReserva, percentualEntrada, valorRestante, contratadaNome, contratadaCnpj,
               contratadaCidade, pixChave, pixTipoChave, autorizaUsoImagem, taxaDeslocamento
             </code>
           </p>

@@ -130,6 +130,8 @@ export interface PropostaPublica {
   clausulasHtml: string
   fotografoResponsavel: string | null
   fotografos: Array<{ nome: string; papel: string }>
+  exigeComprovante: boolean
+  valorEntradaPago: number
 }
 
 export interface PropostaStatusPublico {

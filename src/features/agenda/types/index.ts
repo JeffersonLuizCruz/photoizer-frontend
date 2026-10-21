@@ -142,26 +142,17 @@ export interface OpcoesAgendamentoAvulso {
 }
 
 export interface CriarAgendamentoAvulsoPayload {
-  clienteNome: string
-  clienteTelefone: string
-  clienteEmail?: string
-  clienteCpf?: string
-  clienteCidade?: string
-  clienteEstado?: string
   pacoteId: string
   fotografoId: string
   dataHoraEnsaio: string
   duracaoMinutos: number
   localEnsaio: string
-  valorTotal: number
-  valorEntradaExigido: number
-  valorPago: number
-  dataPagamento?: string
+  percentualEntrada?: number
+  valorJaRecebido?: number
+  dataRecebimento?: string
   formaPagamento?: FormaPagamento
-  tipoPagamento?: 'ENTRADA' | 'FINAL'
   custoDeslocamento?: number
   repassarDeslocamento?: boolean
-  autorizaUsoImagem?: boolean
   observacoes?: string
 }
 

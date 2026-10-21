@@ -39,6 +39,7 @@ function InfoCard({ icon: Icon, label, children, className }: InfoCardProps) {
 }
 
 export function ProposalSummary({ proposta }: ProposalSummaryProps) {
+  const reservaRecebida = (proposta.valorEntradaPago ?? 0) > 0
   const data = new Date(proposta.dataHoraEnsaio)
   const dataLabel = format(data, "EEEE, dd 'de' MMMM", { locale: ptBR })
   const horaLabel = format(data, 'HH:mm')
@@ -122,10 +123,10 @@ export function ProposalSummary({ proposta }: ProposalSummaryProps) {
 
           <div className="flex items-center justify-between rounded-2xl bg-gradient-to-r from-orange-100 to-rose-100 px-4 py-3">
             <span className="text-sm font-semibold text-orange-900">
-              Reserva ({proposta.percentualEntrada}%)
+              {reservaRecebida ? 'Reserva já recebida' : `Reserva (${proposta.percentualEntrada}%)`}
             </span>
             <span className="text-lg font-bold text-orange-900">
-              {formatCurrency(proposta.valorEntradaExigido)}
+              {formatCurrency(reservaRecebida ? proposta.valorEntradaPago : proposta.valorEntradaExigido)}
             </span>
           </div>
 
@@ -135,15 +136,17 @@ export function ProposalSummary({ proposta }: ProposalSummaryProps) {
           </div>
         </div>
 
-        <div className="flex items-start gap-3 border-t border-cyan-100 bg-cyan-50/60 px-5 py-4">
-          <QrCode className="mt-0.5 h-5 w-5 shrink-0 text-cyan-600" />
-          <div className="text-sm">
-            <p className="font-medium text-cyan-950">Pagamento via PIX</p>
-            <p className="text-slate-600">
-              {proposta.pixTipoChave || 'Chave'}: <span className="font-semibold">{proposta.pixChave || '(não informada)'}</span>
-            </p>
+        {!reservaRecebida && (
+          <div className="flex items-start gap-3 border-t border-cyan-100 bg-cyan-50/60 px-5 py-4">
+            <QrCode className="mt-0.5 h-5 w-5 shrink-0 text-cyan-600" />
+            <div className="text-sm">
+              <p className="font-medium text-cyan-950">Pagamento via PIX</p>
+              <p className="text-slate-600">
+                {proposta.pixTipoChave || 'Chave'}: <span className="font-semibold">{proposta.pixChave || '(não informada)'}</span>
+              </p>
+            </div>
           </div>
-        </div>
+        )}
       </section>
     </div>
   )

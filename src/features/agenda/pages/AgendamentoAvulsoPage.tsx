@@ -4,7 +4,8 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { useNavigate } from 'react-router-dom'
 import { format, startOfToday } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
-import { AlertTriangle, CalendarIcon, Loader2, Save, UserPlus } from 'lucide-react'
+import { toast } from 'sonner'
+import { AlertTriangle, CalendarIcon, Copy, ExternalLink, Link2, Loader2, Percent, Save, Wallet } from 'lucide-react'
 import { PageTitle } from '@/shared/components/layout/PageTitle'
 import { Button } from '@/shared/components/ui/button'
 import { Input } from '@/shared/components/ui/input'
@@ -12,6 +13,7 @@ import { Label } from '@/shared/components/ui/label'
 import { Textarea } from '@/shared/components/ui/textarea'
 import { Switch } from '@/shared/components/ui/switch'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/components/ui/select'
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/shared/components/ui/dialog'
 import { TimeSlotPicker } from '@/shared/components/ui/time-slot-picker'
 import { Calendar } from '@/shared/components/ui/calendar'
 import { Popover, PopoverContent, PopoverTrigger } from '@/shared/components/ui/popover'
@@ -25,20 +27,10 @@ import { HORARIOS_AVULSO } from '../constants'
 import { useCriarAgendamentoAvulso, useDisponibilidade, useOpcoesAgendamentoAvulso, usePacotesList } from '../api/queries'
 import type { CriarAgendamentoAvulsoPayload } from '../types'
 
-function formatCpf(value: string): string {
-  const digits = value.replace(/\D/g, '').slice(0, 11)
-  if (digits.length <= 3) return digits
-  if (digits.length <= 6) return digits.replace(/(\d{3})(\d+)/, '$1.$2')
-  if (digits.length <= 9) return digits.replace(/(\d{3})(\d{3})(\d+)/, '$1.$2.$3')
-  return digits.replace(/(\d{3})(\d{3})(\d{3})(\d{1,2})/, '$1.$2.$3-$4')
-}
-
-function formatTelefone(value: string): string {
-  const raw = value.replace(/\D/g, '').slice(0, 11)
-  if (raw.length <= 2) return raw
-  if (raw.length <= 6) return `(${raw.slice(0, 2)}) ${raw.slice(2)}`
-  if (raw.length <= 10) return `(${raw.slice(0, 2)}) ${raw.slice(2, 6)}-${raw.slice(6)}`
-  return `(${raw.slice(0, 2)}) ${raw.slice(2, 7)}-${raw.slice(7)}`
+interface ResultadoCriacao {
+  id: string
+  link: string | null
+  criarOutro: boolean
 }
 
 export function AgendamentoAvulsoPage() {
@@ -47,31 +39,23 @@ export function AgendamentoAvulsoPage() {
   const { data: pacotes = [] } = usePacotesList()
   const { data: opcoes } = useOpcoesAgendamentoAvulso()
   const [continuando, setContinuando] = useState(false)
-  const valoresEditados = useRef(false)
+  const [resultado, setResultado] = useState<ResultadoCriacao | null>(null)
   const custoInicializado = useRef(false)
 
   const defaultValues: AgendamentoAvulsoFormValues = {
-    clienteNome: '',
-    clienteTelefone: '',
-    clienteEmail: '',
-    clienteCpf: '',
-    clienteCidade: '',
-    clienteEstado: '',
     pacoteId: '',
     fotografoId: '',
     data: undefined as unknown as Date,
     hora: '',
     duracao: '1h',
     localEnsaio: '',
-    valorTotal: 0,
-    valorEntradaExigido: 0,
-    valorPago: 0,
-    dataPagamento: format(new Date(), 'yyyy-MM-dd'),
+    modoEntrada: 'PERCENTUAL',
+    percentualEntrada: 30,
+    valorJaRecebido: 0,
+    dataRecebimento: format(new Date(), 'yyyy-MM-dd'),
     formaPagamento: 'PIX',
-    tipoPagamento: 'ENTRADA',
     custoDeslocamento: 0,
     repassarDeslocamento: true,
-    autorizaUsoImagem: false,
     observacoes: '',
   }
 
@@ -79,6 +63,7 @@ export function AgendamentoAvulsoPage() {
     register,
     handleSubmit,
     setValue,
+    setError,
     watch,
     reset,
     formState: { errors },
@@ -91,8 +76,9 @@ export function AgendamentoAvulsoPage() {
   const fotografoId = watch('fotografoId')
   const dataValue = watch('data')
   const horaValue = watch('hora')
-  const valorTotal = Number(watch('valorTotal')) || 0
-  const valorPago = Number(watch('valorPago')) || 0
+  const modoEntrada = watch('modoEntrada')
+  const percentualEntrada = Number(watch('percentualEntrada')) || 0
+  const valorJaRecebido = Number(watch('valorJaRecebido')) || 0
   const repassarDeslocamento = watch('repassarDeslocamento')
   const custoDeslocamento = Number(watch('custoDeslocamento')) || 0
 
@@ -104,6 +90,17 @@ export function AgendamentoAvulsoPage() {
 
   const responsaveis = opcoes?.fotografos ?? []
   const semFotografo = responsaveis.length === 0
+
+  const valorTotal = useMemo(() => {
+    if (!pacoteEscolhido) return 0
+    const taxa = repassarDeslocamento ? custoDeslocamento : 0
+    return Number((pacoteEscolhido.valorBase + taxa).toFixed(2))
+  }, [custoDeslocamento, pacoteEscolhido, repassarDeslocamento])
+
+  const valorEntrada = modoEntrada === 'PERCENTUAL'
+    ? Number((valorTotal * percentualEntrada / 100).toFixed(2))
+    : valorJaRecebido
+  const saldoRestante = Math.max(valorTotal - (modoEntrada === 'RECEBIDO' ? valorJaRecebido : 0), 0)
 
   const { data: disponibilidade, isFetching: verificandoDisponibilidade } = useDisponibilidade(
     dataValue instanceof Date ? dataValue : undefined,
@@ -118,32 +115,22 @@ export function AgendamentoAvulsoPage() {
     if (!opcoes || custoInicializado.current) return
     custoInicializado.current = true
     setValue('custoDeslocamento', opcoes.taxaDeslocamentoPadrao, { shouldValidate: true })
+    setValue('percentualEntrada', Number(opcoes.percentualEntrada) || 30, { shouldValidate: true })
   }, [opcoes, setValue])
-
-  useEffect(() => {
-    if (!pacoteEscolhido || valoresEditados.current) return
-    const taxa = repassarDeslocamento ? custoDeslocamento : 0
-    const total = Number((pacoteEscolhido.valorBase + taxa).toFixed(2))
-    const percentual = Number(opcoes?.percentualEntrada ?? 30)
-    setValue('valorTotal', total, { shouldValidate: true })
-    setValue('valorEntradaExigido', Number((total * percentual / 100).toFixed(2)), { shouldValidate: true })
-  }, [custoDeslocamento, opcoes?.percentualEntrada, pacoteEscolhido, repassarDeslocamento, setValue])
 
   function handlePacoteChange(id: string) {
     setValue('pacoteId', id, { shouldValidate: true })
     const pacote = pacotes.find((p) => p.id === id)
     if (!pacote) return
-
-    valoresEditados.current = false
-    const taxa = repassarDeslocamento ? custoDeslocamento : 0
-    const total = Number((pacote.valorBase + taxa).toFixed(2))
-    const percentual = Number(opcoes?.percentualEntrada ?? 30)
-    setValue('valorTotal', total, { shouldValidate: true })
-    setValue('valorEntradaExigido', Number((total * percentual / 100).toFixed(2)), { shouldValidate: true })
     setValue('duracao', pacote.duracaoEstimada || '1h', { shouldValidate: true })
   }
 
   function handleSubmitAvulso(values: AgendamentoAvulsoFormValues, criarOutro: boolean) {
+    if (values.modoEntrada === 'RECEBIDO' && values.valorJaRecebido > valorTotal) {
+      setError('valorJaRecebido', { message: 'O valor recebido não pode ser maior que o valor total' })
+      return
+    }
+
     const [hora, minuto] = values.hora.split(':').map(Number)
     const dataHora = new Date(
       values.data.getFullYear(),
@@ -156,26 +143,17 @@ export function AgendamentoAvulsoPage() {
     )
 
     const payload: CriarAgendamentoAvulsoPayload = {
-      clienteNome: values.clienteNome.trim(),
-      clienteTelefone: values.clienteTelefone,
-      clienteEmail: values.clienteEmail || undefined,
-      clienteCpf: values.clienteCpf || undefined,
-      clienteCidade: values.clienteCidade || undefined,
-      clienteEstado: values.clienteEstado || undefined,
       pacoteId: values.pacoteId,
       fotografoId: values.fotografoId,
       dataHoraEnsaio: format(dataHora, "yyyy-MM-dd'T'HH:mm:ss"),
       duracaoMinutos: parseDuracao(values.duracao),
       localEnsaio: values.localEnsaio,
-      valorTotal: values.valorTotal,
-      valorEntradaExigido: values.valorEntradaExigido,
-      valorPago: values.valorPago,
-      dataPagamento: `${values.dataPagamento}T12:00:00`,
-      formaPagamento: values.formaPagamento,
-      tipoPagamento: values.tipoPagamento,
+      percentualEntrada: values.modoEntrada === 'PERCENTUAL' ? values.percentualEntrada : undefined,
+      valorJaRecebido: values.modoEntrada === 'RECEBIDO' ? values.valorJaRecebido : undefined,
+      dataRecebimento: values.modoEntrada === 'RECEBIDO' ? `${values.dataRecebimento}T12:00:00` : undefined,
+      formaPagamento: values.modoEntrada === 'RECEBIDO' ? values.formaPagamento : undefined,
       custoDeslocamento: values.custoDeslocamento,
       repassarDeslocamento: values.repassarDeslocamento,
-      autorizaUsoImagem: values.autorizaUsoImagem,
       observacoes: values.observacoes || undefined,
     }
 
@@ -183,24 +161,26 @@ export function AgendamentoAvulsoPage() {
     criar.mutate(payload, {
       onSuccess: (agendamento) => {
         setContinuando(false)
-        if (!criarOutro) {
-          navigate(ROUTES.AGENDA_DETALHES.replace(':id', agendamento.id))
-          return
+        const link = agendamento.tokenProposta
+          ? `${window.location.origin}${ROUTES.PROPOSTA_PUBLICA.replace(':token', agendamento.tokenProposta)}`
+          : null
+
+        if (criarOutro) {
+          reset({
+            ...defaultValues,
+            pacoteId: values.pacoteId,
+            fotografoId: values.fotografoId,
+            duracao: values.duracao,
+            modoEntrada: values.modoEntrada,
+            percentualEntrada: values.percentualEntrada,
+            valorJaRecebido: values.valorJaRecebido,
+            custoDeslocamento: values.custoDeslocamento,
+            repassarDeslocamento: values.repassarDeslocamento,
+            formaPagamento: values.formaPagamento,
+          })
         }
-        valoresEditados.current = false
-        reset({
-          ...defaultValues,
-          pacoteId: values.pacoteId,
-          fotografoId: values.fotografoId,
-          duracao: values.duracao,
-          valorTotal: values.valorTotal,
-          valorEntradaExigido: values.valorEntradaExigido,
-          custoDeslocamento: values.custoDeslocamento,
-          repassarDeslocamento: values.repassarDeslocamento,
-          formaPagamento: values.formaPagamento,
-          tipoPagamento: values.tipoPagamento,
-          autorizaUsoImagem: values.autorizaUsoImagem,
-        })
+
+        setResultado({ id: agendamento.id, link, criarOutro })
       },
       onError: () => setContinuando(false),
     })
@@ -210,88 +190,35 @@ export function AgendamentoAvulsoPage() {
     void handleSubmit((values) => handleSubmitAvulso(values, criarOutro))()
   }
 
+  const copiarLink = async () => {
+    if (!resultado?.link) return
+    await navigator.clipboard.writeText(resultado.link)
+    toast.success('Link copiado para a área de transferência')
+  }
+
+  const fecharResultado = () => {
+    const criado = resultado
+    setResultado(null)
+    if (criado && !criado.criarOutro) {
+      navigate(ROUTES.AGENDA_DETALHES.replace(':id', criado.id))
+    }
+  }
+
   return (
     <div>
       <PageTitle
         title="Agendamento Avulso"
-        description="Cadastre um ensaio já confirmado, com cliente, valores e recebimento registrados."
+        description="Cadastre um ensaio já confirmado e gere o link para o cliente preencher o contrato."
         breadcrumbs={[{ label: 'Agenda', href: ROUTES.AGENDA }, { label: 'Agendamento avulso' }]}
       />
 
       <form className="mx-auto max-w-3xl space-y-5">
         <section className="space-y-4 rounded-xl border bg-card p-4 sm:p-6">
-          <div className="flex items-start gap-3">
-            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
-              <UserPlus className="h-4 w-4" />
-            </span>
-            <div>
-              <h2 className="font-semibold">Dados do cliente</h2>
-              <p className="text-xs text-muted-foreground">O cliente é reutilizado pelo telefone ou CPF quando já existir.</p>
-            </div>
-          </div>
-
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div className="sm:col-span-2">
-              <Label htmlFor="clienteNome">Nome completo *</Label>
-              <Input id="clienteNome" {...register('clienteNome')} placeholder="Nome do cliente" />
-              {errors.clienteNome && <p className="mt-1 text-sm text-destructive">{errors.clienteNome.message}</p>}
-            </div>
-
-            <div>
-              <Label htmlFor="clienteTelefone">Telefone *</Label>
-              <Input
-                id="clienteTelefone"
-                type="tel"
-                inputMode="tel"
-                autoComplete="tel"
-                {...register('clienteTelefone')}
-                placeholder="(11) 99999-9999"
-                onChange={(e) => {
-                  e.target.value = formatTelefone(e.target.value)
-                  register('clienteTelefone').onChange(e)
-                }}
-              />
-              {errors.clienteTelefone && <p className="mt-1 text-sm text-destructive">{errors.clienteTelefone.message}</p>}
-            </div>
-
-            <div>
-              <Label htmlFor="clienteCpf">CPF</Label>
-              <Input
-                id="clienteCpf"
-                inputMode="numeric"
-                {...register('clienteCpf')}
-                placeholder="000.000.000-00"
-                onChange={(e) => {
-                  e.target.value = formatCpf(e.target.value)
-                  register('clienteCpf').onChange(e)
-                }}
-              />
-              {errors.clienteCpf && <p className="mt-1 text-sm text-destructive">{errors.clienteCpf.message}</p>}
-            </div>
-
-            <div>
-              <Label htmlFor="clienteEmail">E-mail</Label>
-              <Input id="clienteEmail" type="email" {...register('clienteEmail')} placeholder="email@exemplo.com" />
-              {errors.clienteEmail && <p className="mt-1 text-sm text-destructive">{errors.clienteEmail.message}</p>}
-            </div>
-
-            <div className="grid grid-cols-2 gap-3 sm:col-span-2">
-              <div>
-                <Label htmlFor="clienteCidade">Cidade</Label>
-                <Input id="clienteCidade" {...register('clienteCidade')} placeholder="Cidade" />
-              </div>
-              <div>
-                <Label htmlFor="clienteEstado">UF</Label>
-                <Input id="clienteEstado" {...register('clienteEstado')} placeholder="SP" maxLength={2} className="uppercase" />
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <section className="space-y-4 rounded-xl border bg-card p-4 sm:p-6">
           <div>
             <h2 className="font-semibold">Ensaio</h2>
-            <p className="text-xs text-muted-foreground">O agendamento entra na agenda como confirmado.</p>
+            <p className="text-xs text-muted-foreground">
+              O agendamento entra na agenda como confirmado. O cliente preenche os próprios dados pelo link.
+            </p>
           </div>
 
           <div className="grid gap-4 sm:grid-cols-2">
@@ -396,52 +323,81 @@ export function AgendamentoAvulsoPage() {
 
         <section className="space-y-4 rounded-xl border bg-card p-4 sm:p-6">
           <div>
-            <h2 className="font-semibold">Valores e recebimento</h2>
-            <p className="text-xs text-muted-foreground">O total e a entrada podem ser ajustados conforme o combinado.</p>
+            <h2 className="font-semibold">Valores da reserva</h2>
+            <p className="text-xs text-muted-foreground">
+              Escolha informar o percentual de entrada ou o valor que já foi recebido.
+            </p>
+          </div>
+
+          <div className="grid gap-2 sm:grid-cols-2">
+            <Button
+              type="button"
+              variant={modoEntrada === 'PERCENTUAL' ? 'default' : 'outline'}
+              className="justify-start"
+              onClick={() => setValue('modoEntrada', 'PERCENTUAL', { shouldValidate: true })}
+            >
+              <Percent className="mr-2 h-4 w-4" />
+              Percentual de entrada
+            </Button>
+            <Button
+              type="button"
+              variant={modoEntrada === 'RECEBIDO' ? 'default' : 'outline'}
+              className="justify-start"
+              onClick={() => setValue('modoEntrada', 'RECEBIDO', { shouldValidate: true })}
+            >
+              <Wallet className="mr-2 h-4 w-4" />
+              Valor já recebido
+            </Button>
           </div>
 
           <div className="grid gap-4 sm:grid-cols-2">
-            <div>
-              <Label htmlFor="valorTotal">Valor total (R$)</Label>
-              <CurrencyInput id="valorTotal" value={valorTotal} onChange={(value) => { valoresEditados.current = true; setValue('valorTotal', value, { shouldValidate: true }) }} />
-              {errors.valorTotal && <p className="mt-1 text-sm text-destructive">{errors.valorTotal.message}</p>}
-            </div>
-            <div>
-              <Label htmlFor="valorEntradaExigido">Entrada exigida (R$)</Label>
-              <CurrencyInput id="valorEntradaExigido" value={Number(watch('valorEntradaExigido')) || 0} onChange={(value) => { valoresEditados.current = true; setValue('valorEntradaExigido', value, { shouldValidate: true }) }} />
-              {errors.valorEntradaExigido && <p className="mt-1 text-sm text-destructive">{errors.valorEntradaExigido.message}</p>}
-            </div>
-            <div>
-              <Label htmlFor="valorPago">Valor recebido agora (R$)</Label>
-              <CurrencyInput id="valorPago" value={valorPago} onChange={(value) => setValue('valorPago', value, { shouldValidate: true })} />
-              {errors.valorPago && <p className="mt-1 text-sm text-destructive">{errors.valorPago.message}</p>}
-            </div>
-            <div>
-              <Label htmlFor="dataPagamento">Data do recebimento</Label>
-              <Input id="dataPagamento" type="date" {...register('dataPagamento')} />
-              {errors.dataPagamento && <p className="mt-1 text-sm text-destructive">{errors.dataPagamento.message}</p>}
-            </div>
-            <div>
-              <Label htmlFor="formaPagamento">Forma de pagamento</Label>
-              <Select value={watch('formaPagamento')} onValueChange={(value) => setValue('formaPagamento', value as AgendamentoAvulsoFormValues['formaPagamento'], { shouldValidate: true })}>
-                <SelectTrigger id="formaPagamento"><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  {Object.entries(FORMA_PAGAMENTO_LABELS).map(([value, label]) => (
-                    <SelectItem key={value} value={value}>{label}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
-              <Label htmlFor="tipoPagamento">Tipo do recebimento</Label>
-              <Select value={watch('tipoPagamento')} onValueChange={(value) => setValue('tipoPagamento', value as AgendamentoAvulsoFormValues['tipoPagamento'], { shouldValidate: true })}>
-                <SelectTrigger id="tipoPagamento"><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="ENTRADA">Entrada</SelectItem>
-                  <SelectItem value="FINAL">Pagamento final</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+            {modoEntrada === 'PERCENTUAL' ? (
+              <div>
+                <Label htmlFor="percentualEntrada">Percentual de entrada (%)</Label>
+                <Input
+                  id="percentualEntrada"
+                  type="number"
+                  min={0.01}
+                  max={100}
+                  step="0.01"
+                  inputMode="decimal"
+                  {...register('percentualEntrada', { valueAsNumber: true })}
+                />
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Entrada de {formatCurrency(valorEntrada)} sobre {formatCurrency(valorTotal)}.
+                </p>
+                {errors.percentualEntrada && <p className="mt-1 text-sm text-destructive">{errors.percentualEntrada.message}</p>}
+              </div>
+            ) : (
+              <>
+                <div>
+                  <Label htmlFor="valorJaRecebido">Valor já recebido (R$)</Label>
+                  <CurrencyInput
+                    id="valorJaRecebido"
+                    value={valorJaRecebido}
+                    onChange={(value) => setValue('valorJaRecebido', value, { shouldValidate: true })}
+                  />
+                  {errors.valorJaRecebido && <p className="mt-1 text-sm text-destructive">{errors.valorJaRecebido.message}</p>}
+                </div>
+                <div>
+                  <Label htmlFor="dataRecebimento">Data do recebimento</Label>
+                  <Input id="dataRecebimento" type="date" {...register('dataRecebimento')} />
+                  {errors.dataRecebimento && <p className="mt-1 text-sm text-destructive">{errors.dataRecebimento.message}</p>}
+                </div>
+                <div>
+                  <Label htmlFor="formaPagamento">Forma de pagamento</Label>
+                  <Select value={watch('formaPagamento')} onValueChange={(value) => setValue('formaPagamento', value as AgendamentoAvulsoFormValues['formaPagamento'], { shouldValidate: true })}>
+                    <SelectTrigger id="formaPagamento"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      {Object.entries(FORMA_PAGAMENTO_LABELS).map(([value, label]) => (
+                        <SelectItem key={value} value={value}>{label}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </>
+            )}
+
             <div>
               <Label htmlFor="custoDeslocamento">Custo de deslocamento (R$)</Label>
               <CurrencyInput id="custoDeslocamento" value={custoDeslocamento} onChange={(value) => setValue('custoDeslocamento', value, { shouldValidate: true })} />
@@ -455,13 +411,24 @@ export function AgendamentoAvulsoPage() {
                 <Switch checked={repassarDeslocamento} onCheckedChange={(checked) => setValue('repassarDeslocamento', checked)} activeClassName="!bg-emerald-500" />
               </div>
             </div>
-            <div className="sm:col-span-2">
-              <div className="flex items-center justify-between rounded-lg bg-muted/40 px-4 py-3 text-sm">
-                <span className="text-muted-foreground">Saldo restante</span>
-                <strong className={cn('tabular-nums', valorTotal - valorPago > 0 ? 'text-amber-600' : 'text-emerald-600')}>
-                  {formatCurrency(Math.max(valorTotal - valorPago, 0))}
-                </strong>
-              </div>
+          </div>
+
+          <div className="space-y-2 rounded-lg bg-muted/40 px-4 py-3 text-sm">
+            <div className="flex items-center justify-between">
+              <span className="text-muted-foreground">Valor total</span>
+              <strong className="tabular-nums">{formatCurrency(valorTotal)}</strong>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-muted-foreground">
+                {modoEntrada === 'RECEBIDO' ? 'Entrada recebida' : 'Entrada exigida'}
+              </span>
+              <strong className="tabular-nums text-amber-600">{formatCurrency(valorEntrada)}</strong>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-muted-foreground">Saldo restante</span>
+              <strong className={cn('tabular-nums', saldoRestante > 0 ? 'text-amber-600' : 'text-emerald-600')}>
+                {formatCurrency(saldoRestante)}
+              </strong>
             </div>
           </div>
         </section>
@@ -470,18 +437,9 @@ export function AgendamentoAvulsoPage() {
           <div>
             <h2 className="font-semibold">Observações</h2>
           </div>
-          <div className="space-y-4">
-            <div>
-              <Label htmlFor="observacoes">Observações internas</Label>
-              <Textarea id="observacoes" rows={3} {...register('observacoes')} placeholder="Anotações sobre o ensaio" />
-            </div>
-            <div className="flex items-center justify-between rounded-lg border p-3">
-              <div>
-                <span className="text-sm font-medium">Autoriza uso de imagem</span>
-                <p className="text-xs text-muted-foreground">Marque conforme o contrato/recibo em papel.</p>
-              </div>
-              <Switch checked={watch('autorizaUsoImagem')} onCheckedChange={(checked) => setValue('autorizaUsoImagem', checked)} activeClassName="!bg-emerald-500" />
-            </div>
+          <div>
+            <Label htmlFor="observacoes">Observações internas</Label>
+            <Textarea id="observacoes" rows={3} {...register('observacoes')} placeholder="Anotações sobre o ensaio" />
           </div>
         </section>
 
@@ -499,6 +457,50 @@ export function AgendamentoAvulsoPage() {
           </Button>
         </div>
       </form>
+
+      <Dialog open={!!resultado} onOpenChange={(open) => !open && fecharResultado()}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Agendamento criado</DialogTitle>
+            <DialogDescription>
+              Envie o link abaixo para o cliente preencher os dados e assinar o contrato.
+            </DialogDescription>
+          </DialogHeader>
+
+          {resultado?.link ? (
+            <div className="space-y-2">
+              <Label htmlFor="link-avulso">Link do contrato</Label>
+              <div className="flex flex-wrap items-center gap-2">
+                <Input id="link-avulso" readOnly value={resultado.link} className="min-w-0 flex-1 basis-full text-xs sm:basis-auto" />
+                <Button type="button" variant="outline" size="sm" onClick={() => void copiarLink()}>
+                  <Copy className="mr-1 h-4 w-4" />
+                  Copiar
+                </Button>
+                <Button type="button" variant="outline" size="sm" onClick={() => window.open(resultado.link!, '_blank', 'noopener')}>
+                  <ExternalLink className="mr-1 h-4 w-4" />
+                  Abrir
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <p className="text-sm text-muted-foreground">
+              O agendamento foi criado, mas o link não foi retornado. Consulte a aba Contrato nos detalhes.
+            </p>
+          )}
+
+          <DialogFooter>
+            {resultado?.criarOutro ? (
+              <Button type="button" variant="outline" onClick={() => setResultado(null)}>
+                <Link2 className="mr-1 h-4 w-4" />
+                Continuar criando
+              </Button>
+            ) : null}
+            <Button type="button" onClick={fecharResultado}>
+              Ver agendamento
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
