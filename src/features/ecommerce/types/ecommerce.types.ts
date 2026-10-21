@@ -30,6 +30,7 @@ export interface CompraExtraResponse {
   dataPagamento: string | null
   quantidadeFotos: number | null
   metodoPagamento: string | null
+  linkPagamentoCartao: string | null
   motivoRecusa: string | null
 }
 
@@ -77,7 +78,12 @@ export interface CalculoCarrinhoResponse {
   total: number
 }
 
-export type MetodoPagamento = 'PIX' | 'TRANSFERENCIA' | 'DINHEIRO'
+export type MetodoPagamento = 'PIX' | 'TRANSFERENCIA' | 'DINHEIRO' | 'CARTAO'
+
+export interface ConfiguracaoPagamentoResponse {
+  pixChave: string | null
+  pixTipoChave: string | null
+}
 
 export interface AdminCompraDetalheResponse extends CompraExtraResponse {
   fotos: FotoEnsaio[]

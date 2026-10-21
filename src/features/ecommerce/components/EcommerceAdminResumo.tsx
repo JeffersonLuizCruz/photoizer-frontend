@@ -6,6 +6,7 @@ import { ecommerceService } from '@/features/ecommerce/services/ecommerce.servic
 import { Button } from '@/shared/components/ui/button'
 import { StatusBadge } from '@/shared/components/layout/StatusBadge'
 import { ConfirmDialog } from '@/shared/components/layout/ConfirmDialog'
+import { AdminLinkPagamentoDialog } from './AdminLinkPagamentoDialog'
 import { AuthImage } from '@/shared/components/ui/AuthImage'
 import { openProtected, extractErrorMessage } from '@/shared/api'
 import { useState } from 'react'
@@ -22,6 +23,7 @@ export function EcommerceAdminResumo({ agendamentoId }: EcommerceAdminResumoProp
   const navigate = useNavigate()
   const queryClient = useQueryClient()
   const [showRegenConfirm, setShowRegenConfirm] = useState(false)
+  const [linkCompra, setLinkCompra] = useState<{ id: string; link: string | null } | null>(null)
 
   const { data, isLoading } = useQuery({
     queryKey: ['admin-ecommerce', agendamentoId],
@@ -255,6 +257,13 @@ export function EcommerceAdminResumo({ agendamentoId }: EcommerceAdminResumoProp
                     </td>
                     <td className="px-3 py-2 text-center">
                       <div className="flex items-center justify-center gap-1">
+                        {compra.status !== 'PAGA' && compra.status !== 'CANCELADA' && (
+                          <button onClick={() => setLinkCompra({ id: compra.id, link: compra.linkPagamentoCartao })}
+                            className="h-6 w-6 rounded hover:bg-cyan-100 hover:text-cyan-700 flex items-center justify-center"
+                            title="Definir link de pagamento por cartão">
+                            <Link2 className="h-3.5 w-3.5" />
+                          </button>
+                        )}
                         {(compra.status === 'AGUARDANDO_COMPROVANTE' || compra.status === 'AGUARDANDO_CONFIRMACAO') && (
                           <>
                             <button onClick={() => confirmarCompra(compra.id)} disabled={isConfirming}
@@ -309,6 +318,11 @@ export function EcommerceAdminResumo({ agendamentoId }: EcommerceAdminResumoProp
                     )}
                   </div>
                 </div>
+                {compra.status !== 'PAGA' && compra.status !== 'CANCELADA' && (
+                  <Button size="sm" variant="outline" onClick={() => setLinkCompra({ id: compra.id, link: compra.linkPagamentoCartao })} className="w-full">
+                    <Link2 className="mr-1 h-4 w-4" /> Link de pagamento
+                  </Button>
+                )}
                 {(compra.status === 'AGUARDANDO_COMPROVANTE' || compra.status === 'AGUARDANDO_CONFIRMACAO') && (
                   <div className="flex items-center gap-2 border-t pt-3">
                     <Button size="sm" onClick={() => confirmarCompra(compra.id)} disabled={isConfirming} className="flex-1">
@@ -334,6 +348,14 @@ export function EcommerceAdminResumo({ agendamentoId }: EcommerceAdminResumoProp
         description="O link atual da galeria deixará de funcionar. Um novo link será gerado. Tem certeza?"
         confirmText="Regenerar"
         variant="default"
+      />
+
+      <AdminLinkPagamentoDialog
+        compraId={linkCompra?.id ?? null}
+        linkAtual={linkCompra?.link}
+        open={linkCompra !== null}
+        onOpenChange={(open) => { if (!open) setLinkCompra(null) }}
+        onSaved={() => queryClient.invalidateQueries({ queryKey: ['admin-ecommerce', agendamentoId] })}
       />
 
       <ConfirmDialog

@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Check, X, Eye, AlertTriangle } from 'lucide-react'
+import { Check, X, Eye, AlertTriangle, Link2, Settings } from 'lucide-react'
 import { toast } from 'sonner'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { ecommerceService } from '../services/ecommerce.service'
@@ -9,9 +9,13 @@ import { DataTable } from '@/shared/components/layout/DataTable'
 import { StatusBadge } from '@/shared/components/layout/StatusBadge'
 import { ConfirmDialog } from '@/shared/components/layout/ConfirmDialog'
 import { AdminCompraDetalheDialog } from '../components/AdminCompraDetalheDialog'
+import { AdminLinkPagamentoDialog } from '../components/AdminLinkPagamentoDialog'
+import { AdminPagamentoConfigDialog } from '../components/AdminPagamentoConfigDialog'
 import type { ColumnDef } from '@tanstack/react-table'
 import { QUERY_KEYS, ROUTES } from '@/shared/constants'
 import { extractErrorMessage } from '@/shared/api'
+import { useAuth } from '@/features/auth/AuthProvider'
+import { Button } from '@/shared/components/ui/button'
 
 function formatCurrency(value: number): string {
   return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value)
@@ -27,12 +31,16 @@ function statusBadge(status: string) {
 
 export function AdminEcommercePage() {
   const queryClient = useQueryClient()
+  const { user } = useAuth()
+  const podeEditarPagamento = user?.papel === 'ADMIN' || user?.papel === 'FOTOGRAFO'
   const [page, setPage] = useState(0)
   const [perPage, setPerPage] = useState(20)
   const [statusFilter, setStatusFilter] = useState<string | undefined>()
   const [detailCompraId, setDetailCompraId] = useState<string | null>(null)
   const [confirmCancelId, setConfirmCancelId] = useState<string | null>(null)
   const [motivoRecusa, setMotivoRecusa] = useState('')
+  const [showConfigPagamento, setShowConfigPagamento] = useState(false)
+  const [linkCompra, setLinkCompra] = useState<CompraExtraResponse | null>(null)
 
   const { data: pageData, isLoading } = useQuery({
     queryKey: ['admin-compras', page, perPage, statusFilter],
@@ -87,6 +95,13 @@ export function AdminEcommercePage() {
         className="inline-flex h-9 w-9 items-center justify-center rounded hover:bg-accent" aria-label="Ver detalhes">
         <Eye className="h-4 w-4" />
       </button>
+      {podeEditarPagamento && compra.status !== 'PAGA' && compra.status !== 'CANCELADA' && (
+        <button onClick={() => setLinkCompra(compra)}
+          className="inline-flex h-9 w-9 items-center justify-center rounded hover:bg-accent"
+          aria-label="Definir link de pagamento por cartão">
+          <Link2 className="h-4 w-4" />
+        </button>
+      )}
       {(compra.status === 'AGUARDANDO_COMPROVANTE' || compra.status === 'AGUARDANDO_CONFIRMACAO') && (
         <button onClick={() => confirmar(compra.id)} disabled={isConfirming}
           className="inline-flex h-9 w-9 items-center justify-center rounded hover:bg-emerald-100 hover:text-emerald-700"
@@ -162,6 +177,12 @@ export function AdminEcommercePage() {
           { label: 'Dashboard', href: ROUTES.DASHBOARD },
           { label: 'Ecommerce' },
         ]}
+        actions={podeEditarPagamento ? (
+          <Button variant="outline" size="sm" onClick={() => setShowConfigPagamento(true)}>
+            <Settings className="mr-1 h-4 w-4" />
+            Configurar PIX
+          </Button>
+        ) : undefined}
       />
 
       {relatorio && (
@@ -258,6 +279,23 @@ export function AdminEcommercePage() {
         compraId={detailCompraId}
         open={detailCompraId !== null}
         onOpenChange={(open) => { if (!open) setDetailCompraId(null) }} />
+
+      <AdminPagamentoConfigDialog
+        open={showConfigPagamento}
+        onOpenChange={setShowConfigPagamento}
+        onSaved={() => queryClient.invalidateQueries({ queryKey: ['config-pagamento-ecommerce'] })}
+      />
+
+      <AdminLinkPagamentoDialog
+        compraId={linkCompra?.id ?? null}
+        linkAtual={linkCompra?.linkPagamentoCartao}
+        open={linkCompra !== null}
+        onOpenChange={(open) => { if (!open) setLinkCompra(null) }}
+        onSaved={() => {
+          queryClient.invalidateQueries({ queryKey: ['admin-compras'] })
+          queryClient.invalidateQueries({ queryKey: ['admin-compras-relatorio'] })
+        }}
+      />
 
       <ConfirmDialog
         open={confirmCancelId !== null}

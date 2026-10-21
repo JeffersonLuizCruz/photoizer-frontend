@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Download, Loader2, AlertTriangle } from 'lucide-react'
+import { Download, Loader2, AlertTriangle, ExternalLink } from 'lucide-react'
 import { ecommerceService } from '../services/ecommerce.service'
 import type { AdminCompraDetalheResponse } from '../types/ecommerce.types'
 import { AuthImage } from '@/shared/components/ui/AuthImage'
@@ -67,6 +67,18 @@ export function AdminCompraDetalheDialog({ compraId, open, onOpenChange }: Admin
                 <span className="text-muted-foreground text-xs">Comprovante</span>
                 {detalhe.urlComprovante ? (
                   <button onClick={() => openProtected(detalhe.urlComprovante!)} className="block text-primary underline text-sm mt-0.5">Ver comprovante</button>
+                ) : (
+                  <p className="text-sm mt-0.5">—</p>
+                )}
+              </div>
+              <div className="sm:col-span-2">
+                <span className="text-muted-foreground text-xs">Link de pagamento (cartão)</span>
+                {detalhe.linkPagamentoCartao ? (
+                  <a href={detalhe.linkPagamentoCartao} target="_blank" rel="noopener noreferrer"
+                    className="mt-0.5 flex items-center gap-1 text-sm text-primary underline">
+                    <ExternalLink className="h-3.5 w-3.5" />
+                    Abrir link
+                  </a>
                 ) : (
                   <p className="text-sm mt-0.5">—</p>
                 )}

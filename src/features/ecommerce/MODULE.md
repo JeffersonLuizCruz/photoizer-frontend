@@ -10,6 +10,8 @@ features/ecommerce/
 ├── services/ecommerce.service.ts     # HTTP: 30+ métodos (galeria, carrinho, checkout, admin, pedidos, cupons)
 ├── components/
 │   ├── AdminCompraDetalheDialog.tsx   # Detalhes da compra (admin)
+│   ├── AdminLinkPagamentoDialog.tsx  # Insere/remove link de cartão por compra
+│   ├── AdminPagamentoConfigDialog.tsx # Configura o PIX global do e-commerce
 │   ├── CartSummaryPanel.tsx          # Painel lateral do carrinho
 │   ├── CheckoutDialog.tsx            # Checkout multi-step (método pagamento, comprovante)
 │   ├── ComparadorFotos.tsx           # Comparação lado a lado de fotos
@@ -63,8 +65,8 @@ features/ecommerce/
 ### Fluxo 2: Checkout
 1. `CheckoutDialog` (galeria) ou `CheckoutPage` (pacote): 4-5 steps.
 2. Calcula valores via `ecommerceService.calcular()`.
-3. Seleciona método de pagamento (PIX/TRANSFERENCIA/DINHEIRO).
-4. Anexa comprovante de pagamento (upload).
+3. Seleciona método de pagamento (PIX/TRANSFERENCIA/CARTAO).
+4. PIX/transferência: anexa comprovante. Cartão: o staff insere um link por compra e o cliente paga pelo link.
 5. Confirma → `ecommerceService.checkout()`.
 
 ### Fluxo 3: Admin — Gerenciamento de Compras
@@ -79,7 +81,7 @@ features/ecommerce/
 ## 5. Regras Específicas
 1. **Session ID**: Usa `localStorage` para persistir um UUID de sessão anônima (`photoizer_cart_session`) enviado como header `X-Session-Id` para carrinho antes do login.
 2. **Padrão de fetch híbrido**: Alguns componentes usam React Query (páginas admin), outros usam `useState`/`useEffect` direto (galeria, checkout). Não há `api/queries.ts` centralizado.
-3. **Hardcoded values**: Chave PIX (`photoizer@email.com`), valores de entrega (`R$ 29,90` / `R$ 49,90`), métodos de pagamento (não inclui cartão de crédito no diálogo) estão hardcoded.
+3. **Hardcoded values**: valores de entrega (`R$ 29,90` / `R$ 49,90`) continuam fixos. O PIX agora vem de `GET /ecommerce/pagamento` (configurável pelo staff) e o cartão usa link por compra.
 4. **Sem `index.ts`**: Não há barrel file exportando páginas e hooks publicamente.
 
 ## 6. Testes

@@ -28,7 +28,7 @@ export function PurchaseConfirmation({ compra, onVoltar }: PurchaseConfirmationP
         </p>
         <p className="text-xs text-muted-foreground">
           Valor: <strong>R$ {compra.valorTotal.toFixed(2)}</strong>
-          {compra.metodoPagamento && ` · ${compra.metodoPagamento === 'PIX' ? 'PIX' : compra.metodoPagamento === 'TRANSFERENCIA' ? 'Transferência' : 'Dinheiro'}`}
+          {compra.metodoPagamento && ` · ${compra.metodoPagamento === 'PIX' ? 'PIX' : compra.metodoPagamento === 'TRANSFERENCIA' ? 'Transferência' : compra.metodoPagamento === 'CARTAO' ? 'Cartão' : 'Dinheiro'}`}
         </p>
         <button onClick={onVoltar}
           className="mt-2 rounded-lg bg-primary text-primary-foreground px-6 py-2 text-sm font-medium hover:bg-primary/90 transition-colors">

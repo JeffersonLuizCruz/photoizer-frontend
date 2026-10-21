@@ -1,6 +1,6 @@
 import { apiClient } from '@/shared/api'
 import { env } from '@/shared/config/env'
-import type { FotoEnsaio, CompraExtraResponse, AdminEcommerceResumoResponse, CarrinhoResponse, CalculoCarrinhoResponse, MetodoPagamento, AdminCompraDetalheResponse, AdminComprasRelatorioResponse, Avaliacao, Sessao, EcommerceAnalyticsResponse, DashboardEcommerceResponse, DashboardEcommerceMensalResponse, FotoComentario, ComentariosPorFotoResponse } from '../types/ecommerce.types'
+import type { FotoEnsaio, CompraExtraResponse, AdminEcommerceResumoResponse, CarrinhoResponse, CalculoCarrinhoResponse, MetodoPagamento, AdminCompraDetalheResponse, AdminComprasRelatorioResponse, Avaliacao, Sessao, EcommerceAnalyticsResponse, DashboardEcommerceResponse, DashboardEcommerceMensalResponse, FotoComentario, ComentariosPorFotoResponse, ConfiguracaoPagamentoResponse } from '../types/ecommerce.types'
 import type { PacoteResponse } from '@/features/pacotes/types/pacotes.types'
 import type { AgendamentoCliente } from '@/features/auth/customer/types'
 
@@ -78,6 +78,11 @@ export const ecommerceService = {
 
   galeria: async (token: string): Promise<GaleriaResponse> => {
     const { data } = await apiClient.get<GaleriaResponse>(`/ecommerce/galeria/${token}`)
+    return data
+  },
+
+  obterPagamento: async (): Promise<ConfiguracaoPagamentoResponse> => {
+    const { data } = await apiClient.get<ConfiguracaoPagamentoResponse>('/ecommerce/pagamento')
     return data
   },
 
@@ -246,6 +251,27 @@ export const ecommerceService = {
 
   adminRelatorioCompras: async (): Promise<AdminComprasRelatorioResponse> => {
     const { data } = await apiClient.get<AdminComprasRelatorioResponse>('/admin/ecommerce/compras/relatorio')
+    return data
+  },
+
+  adminAtualizarLinkPagamento: async (id: string, linkPagamentoCartao: string | null): Promise<CompraExtraResponse> => {
+    const { data } = await apiClient.patch<CompraExtraResponse>(
+      `/admin/ecommerce/compras/${id}/link-pagamento`,
+      { linkPagamentoCartao },
+    )
+    return data
+  },
+
+  adminObterPagamento: async (): Promise<ConfiguracaoPagamentoResponse> => {
+    const { data } = await apiClient.get<ConfiguracaoPagamentoResponse>('/admin/ecommerce/pagamento')
+    return data
+  },
+
+  adminAtualizarPagamento: async (payload: {
+    pixChave: string | null
+    pixTipoChave: string | null
+  }): Promise<ConfiguracaoPagamentoResponse> => {
+    const { data } = await apiClient.put<ConfiguracaoPagamentoResponse>('/admin/ecommerce/pagamento', payload)
     return data
   },
 

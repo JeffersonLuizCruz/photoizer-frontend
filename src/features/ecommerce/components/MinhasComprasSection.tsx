@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react'
-import { ChevronDown, ChevronRight, Check, Clock, Upload, Download, Loader2, X, AlertTriangle } from 'lucide-react'
+import { useState, useEffect, useCallback } from 'react'
+import { ChevronDown, ChevronRight, Check, Clock, Upload, Download, Loader2, X, AlertTriangle, CreditCard, ExternalLink, RefreshCw } from 'lucide-react'
 import { toast } from 'sonner'
 import { ecommerceService } from '../services/ecommerce.service'
 import type { CompraExtraResponse, AdminCompraDetalheResponse } from '../types/ecommerce.types'
@@ -20,12 +20,27 @@ export function MinhasComprasSection({ token }: MinhasComprasSectionProps) {
   const [detalheMap, setDetalheMap] = useState<Record<string, AdminCompraDetalheResponse>>({})
   const [comprovanteFiles, setComprovanteFiles] = useState<Record<string, File | null>>({})
   const [sendingIds, setSendingIds] = useState<Set<string>>(new Set())
-  useEffect(() => {
+
+  const carregarCompras = useCallback(() => {
     ecommerceService.listarCompras(token)
       .then(setCompras)
       .catch(() => {})
       .finally(() => setIsLoading(false))
   }, [token])
+
+  useEffect(() => {
+    carregarCompras()
+  }, [carregarCompras])
+
+  useEffect(() => {
+    const temCartaoPendente = compras.some((c) =>
+      c.metodoPagamento === 'CARTAO'
+      && c.status !== 'PAGA'
+      && c.status !== 'CANCELADA')
+    if (!temCartaoPendente) return
+    const interval = setInterval(carregarCompras, 20000)
+    return () => clearInterval(interval)
+  }, [carregarCompras, compras])
 
   const toggleExpand = async (compraId: string) => {
     if (expandedId === compraId) {
@@ -91,7 +106,15 @@ export function MinhasComprasSection({ token }: MinhasComprasSectionProps) {
 
   return (
     <div className="mt-6 border-t border-cyan-100 pt-6">
-      <h2 className="mb-4 font-display text-lg font-semibold text-cyan-950">Minhas Compras ({compras.length})</h2>
+      <div className="mb-4 flex items-center justify-between gap-2">
+        <h2 className="font-display text-lg font-semibold text-cyan-950">Minhas Compras ({compras.length})</h2>
+        <button onClick={carregarCompras}
+          className="flex items-center gap-1 rounded-lg border border-cyan-200 px-2.5 py-1.5 text-xs font-medium text-cyan-700 transition-colors hover:bg-cyan-50"
+          title="Atualizar compras">
+          <RefreshCw className="h-3 w-3" />
+          Atualizar
+        </button>
+      </div>
       <div className="space-y-2">
         {compras.map((compra) => {
           const isExpanded = expandedId === compra.id
@@ -128,7 +151,27 @@ export function MinhasComprasSection({ token }: MinhasComprasSectionProps) {
                     </div>
                   )}
 
-                  {compra.status === 'AGUARDANDO_COMPROVANTE' && (
+                  {(compra.metodoPagamento === 'CARTAO' || compra.linkPagamentoCartao) && compra.status !== 'PAGA' && compra.status !== 'CANCELADA' && (
+                    <div className="space-y-2 rounded-2xl border border-cyan-100 bg-cyan-50/40 p-3">
+                      <div className="flex items-center gap-1.5 text-xs font-medium text-cyan-800">
+                        <CreditCard className="h-3.5 w-3.5" />
+                        Pagamento com cartão
+                      </div>
+                      {compra.linkPagamentoCartao ? (
+                        <a href={compra.linkPagamentoCartao} target="_blank" rel="noopener noreferrer"
+                          className="flex items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r from-orange-400 to-rose-400 px-3 py-2 text-xs font-semibold text-white transition-colors hover:from-orange-500 hover:to-rose-500">
+                          <ExternalLink className="h-3.5 w-3.5" />
+                          Pagar com cartão de crédito
+                        </a>
+                      ) : (
+                        <p className="text-[11px] text-slate-500">
+                          Aguardando o estúdio gerar o link de pagamento. Use &quot;Atualizar&quot; para verificar.
+                        </p>
+                      )}
+                    </div>
+                  )}
+
+                  {compra.status === 'AGUARDANDO_COMPROVANTE' && compra.metodoPagamento !== 'CARTAO' && (
                     <div className="flex items-center gap-2">
                       <input type="file" accept="image/*,.pdf" capture="environment" className="text-xs flex-1"
                         onChange={(e) => setComprovanteFiles((prev) => ({ ...prev, [compra.id]: e.target.files?.[0] ?? null }))} />
@@ -141,7 +184,7 @@ export function MinhasComprasSection({ token }: MinhasComprasSectionProps) {
                     </div>
                   )}
 
-                  {compra.status === 'AGUARDANDO_CONFIRMACAO' && (
+                  {compra.status === 'AGUARDANDO_CONFIRMACAO' && compra.metodoPagamento !== 'CARTAO' && (
                     <div className="flex items-center gap-2">
                       <input type="file" accept="image/*,.pdf" capture="environment" className="text-xs flex-1"
                         onChange={(e) => setComprovanteFiles((prev) => ({ ...prev, [compra.id]: e.target.files?.[0] ?? null }))} />
