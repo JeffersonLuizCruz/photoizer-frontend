@@ -16,12 +16,12 @@ export function AppLayout() {
       </a>
 
       <Sidebar />
-      <div className="flex flex-1 flex-col">
+      <div className="flex min-w-0 flex-1 flex-col">
         <Header />
         <main
           id="main-content"
           tabIndex={-1}
-          className="flex-1 overflow-auto px-4 pt-4 pb-[calc(var(--nav-h)+1rem+env(safe-area-inset-bottom))] focus:outline-none sm:px-6 sm:pt-6 lg:pb-6"
+          className="min-w-0 flex-1 overflow-auto px-4 pt-4 pb-[calc(var(--nav-h)+1rem+env(safe-area-inset-bottom))] focus:outline-none sm:px-6 sm:pt-6 lg:pb-6"
         >
           <Outlet />
         </main>

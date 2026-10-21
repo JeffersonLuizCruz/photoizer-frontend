@@ -159,7 +159,7 @@ export function ParceirosRepasseList({ base }: ParceirosRepasseListProps) {
       </div>
 
       {fields.length > 0 && (
-        <div className="flex items-center justify-between rounded-md bg-muted px-3 py-2 text-sm">
+        <div className="flex flex-col gap-1 rounded-md bg-muted px-3 py-2 text-sm sm:flex-row sm:items-center sm:justify-between">
           <span className="text-muted-foreground">
             Base de cálculo (pacote + deslocamento): {formatCurrency(base)}
             {rows?.some((r) => r?.tipoValor === 'PERCENTUAL') && (

@@ -12,6 +12,7 @@ import { ROUTES } from '@/shared/constants'
 
 interface ClienteFormProps {
   onSubmit: (data: ClienteFormData) => void
+  onCancel?: () => void
   defaultValues?: Partial<ClienteFormData>
   isLoading?: boolean
   mode: 'create' | 'edit'
@@ -23,7 +24,7 @@ const ORIGEM_OPTIONS = [
   { value: 'OUTROS', label: 'Outros' },
 ] as const
 
-export function ClienteForm({ onSubmit, defaultValues, isLoading, mode }: ClienteFormProps) {
+export function ClienteForm({ onSubmit, onCancel, defaultValues, isLoading, mode }: ClienteFormProps) {
   const navigate = useNavigate()
 
   const {
@@ -154,11 +155,11 @@ export function ClienteForm({ onSubmit, defaultValues, isLoading, mode }: Client
         </div>
       </div>
 
-      <div className="sticky bottom-0 z-10 -mx-1 mt-4 flex items-center justify-end gap-2 border-t bg-background/95 px-1 py-3 backdrop-blur">
-        <Button type="button" variant="outline" onClick={() => navigate(ROUTES.AGENDA)}>
+      <div className="sticky bottom-0 z-10 -mx-5 -mb-5 mt-4 flex flex-col-reverse gap-2 border-t bg-background px-5 py-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] sm:-mx-0 sm:mb-0 sm:flex-row sm:justify-end sm:px-0 sm:pb-3">
+        <Button type="button" variant="outline" onClick={onCancel ?? (() => navigate(ROUTES.AGENDA))} className="w-full sm:w-auto">
           Cancelar
         </Button>
-        <Button type="submit" disabled={isLoading}>
+        <Button type="submit" disabled={isLoading} className="w-full sm:w-auto">
           {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
           {mode === 'create' ? 'Cadastrar' : 'Salvar alterações'}
         </Button>

@@ -36,7 +36,7 @@ export function DetailHeader({
 
   return (
     <div className={cn('space-y-4', className)}>
-      <div className="flex items-start gap-3">
+      <div className="flex flex-wrap items-start gap-3">
         {backTo !== undefined && (
           <button
             type="button"
@@ -55,15 +55,15 @@ export function DetailHeader({
           </AvatarFallback>
         </Avatar>
 
-        <div className="min-w-0 flex-1">
+        <div className="min-w-0 flex-1 basis-56">
           <div className="flex min-w-0 flex-wrap items-center gap-2">
-            <h1 className="min-w-0 truncate text-xl font-bold tracking-tight">{title}</h1>
-            {status && <span className="shrink-0">{status}</span>}
+            <h1 className="min-w-0 break-words text-lg font-bold tracking-tight sm:truncate sm:text-xl">{title}</h1>
+            {status && <span className="min-w-0">{status}</span>}
           </div>
-          {subtitle && <p className="mt-0.5 truncate text-sm text-muted-foreground">{subtitle}</p>}
+          {subtitle && <p className="mt-0.5 break-words text-sm text-muted-foreground sm:truncate">{subtitle}</p>}
         </div>
 
-        {actions && <div className="flex shrink-0 items-center gap-1">{actions}</div>}
+        {actions && <div className="ml-auto flex shrink-0 items-center gap-1">{actions}</div>}
       </div>
 
       {contato && (

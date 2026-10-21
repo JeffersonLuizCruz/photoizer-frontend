@@ -3,6 +3,7 @@ import { toast } from 'sonner'
 import { clienteService } from '../services/cliente.service'
 import type { ClienteFormData } from '../schemas/cliente.schema'
 import { extractErrorMessage } from '@/shared/api'
+import { QUERY_KEYS } from '@/shared/constants'
 
 export function useCliente(id: string | undefined) {
   return useQuery({
@@ -19,6 +20,7 @@ export function useUpdateCliente(id: string) {
     mutationFn: (payload: ClienteFormData) => clienteService.update(id, payload),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['clientes'] })
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.AGENDA })
       toast.success('Cliente atualizado com sucesso')
     },
     onError: (error: Error) => {

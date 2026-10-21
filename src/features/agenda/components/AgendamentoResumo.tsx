@@ -14,9 +14,9 @@ interface AgendamentoResumoProps {
   agendamento: Agendamento
 }
 
-function InfoCard({ icon: Icon, title, children }: { icon: React.ComponentType<{ className?: string }>; title: string; children: React.ReactNode }) {
+function InfoCard({ icon: Icon, title, children, className }: { icon: React.ComponentType<{ className?: string }>; title: string; children: React.ReactNode; className?: string }) {
   return (
-    <div className="min-w-0 rounded-lg border bg-card p-4">
+    <div className={cn('min-w-0 rounded-lg border bg-card p-4', className)}>
       <div className="mb-3 flex items-center gap-2 text-sm font-semibold text-muted-foreground">
         <Icon className="h-4 w-4 shrink-0" />
         {title}
@@ -29,12 +29,12 @@ function InfoCard({ icon: Icon, title, children }: { icon: React.ComponentType<{
 function InfoRow({ label, value, emphasis }: { label: string; value: React.ReactNode; emphasis?: boolean }) {
   if (value === null || value === undefined || value === '') return null
   return (
-    <dl className="flex flex-col gap-0.5 sm:flex-row sm:items-center sm:justify-between sm:gap-2">
-      <dt className="text-xs font-medium uppercase tracking-wide text-muted-foreground sm:text-sm sm:font-normal sm:normal-case sm:tracking-normal">
+    <dl className="flex min-w-0 flex-col gap-0.5 lg:flex-row lg:items-center lg:justify-between lg:gap-2">
+      <dt className="text-xs font-medium uppercase tracking-wide text-muted-foreground lg:text-sm lg:font-normal lg:normal-case lg:tracking-normal">
         {label}
-        <span className="hidden sm:inline">:</span>
+        <span className="hidden lg:inline">:</span>
       </dt>
-      <dd className={cn('min-w-0 break-words font-medium sm:text-right', emphasis && 'font-semibold tabular-nums')}>{value}</dd>
+      <dd className={cn('min-w-0 break-words font-medium lg:text-right', emphasis && 'font-semibold tabular-nums')}>{value}</dd>
     </dl>
   )
 }
@@ -52,7 +52,7 @@ export function AgendamentoResumo({ agendamento }: AgendamentoResumoProps) {
     : '-'
 
   return (
-    <div className="grid min-w-0 gap-4 md:grid-cols-3">
+    <div className="grid min-w-0 gap-4 md:grid-cols-2 xl:grid-cols-3">
       <InfoCard icon={User} title="Dados do Cliente">
         <InfoRow label="Nome" value={agendamento.clienteNome} />
         <InfoRow label="Telefone" value={agendamento.clienteTelefone} />
@@ -91,7 +91,7 @@ export function AgendamentoResumo({ agendamento }: AgendamentoResumoProps) {
         </div>
         <InfoRow
           label="Pacote"
-          value={<PacoteColorChip nome={agendamento.pacoteNome} cor={agendamento.pacoteCor} className="sm:ml-auto" />}
+          value={<PacoteColorChip nome={agendamento.pacoteNome} cor={agendamento.pacoteCor} className="lg:ml-auto" />}
         />
         <InfoRow label="Fotógrafo responsável" value={agendamento.fotografoNome} />
         <InfoRow label="Editor" value={agendamento.editorNome} />
@@ -101,7 +101,7 @@ export function AgendamentoResumo({ agendamento }: AgendamentoResumoProps) {
             <ul className="mt-1 space-y-1">
               {agendamento.fotografos.map((f) => (
                 <li key={f.fotografoId} className="flex min-w-0 items-start justify-between gap-2">
-                  <span className="min-w-0 break-words font-medium sm:text-right">{f.fotografoNome}</span>
+                  <span className="min-w-0 break-words font-medium lg:text-right">{f.fotografoNome}</span>
                   {f.papelParceiro && (
                     <Badge variant="secondary" className="text-[10px] px-1.5 py-0">{f.papelParceiro}</Badge>
                   )}
@@ -129,14 +129,14 @@ export function AgendamentoResumo({ agendamento }: AgendamentoResumoProps) {
         />
       </InfoCard>
 
-      <InfoCard icon={DollarSign} title="Resumo Financeiro">
+      <InfoCard icon={DollarSign} title="Resumo Financeiro" className="md:col-span-2 xl:col-span-1">
         <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/60 mb-1">Receita</p>
         <InfoRow label="Valor do Pacote" value={`R$ ${agendamento.valorPacote.toFixed(2)}`} />
         {podeVerMetricasInternas && (
           <InfoRow
             label="Custo Deslocamento"
             value={
-              <span className="flex flex-wrap items-center gap-1.5 sm:justify-end">
+              <span className="flex flex-wrap items-center gap-1.5 lg:justify-end">
                 <span>R$ {(agendamento.custoDeslocamento ?? 0).toFixed(2)}</span>
                 {agendamento.repassarDeslocamento ? (
                   <span className="text-[10px] font-normal text-muted-foreground">(repassado)</span>
@@ -158,7 +158,7 @@ export function AgendamentoResumo({ agendamento }: AgendamentoResumoProps) {
             <InfoRow
               label={`Comissão (${agendamento.indicadorNome})`}
               value={
-                <span className="flex flex-wrap items-center gap-1.5 sm:justify-end">
+                <span className="flex flex-wrap items-center gap-1.5 lg:justify-end">
                   <span>R$ {agendamento.valorComissao.toFixed(2)}</span>
                   <Badge
                     variant={agendamento.statusComissao === 'PAGA' ? 'success' : 'warning'}
@@ -176,7 +176,7 @@ export function AgendamentoResumo({ agendamento }: AgendamentoResumoProps) {
         <InfoRow
           label={`Entrada (${agendamento.percentualEntrada}%)`}
           value={
-            <span className="flex flex-wrap items-center gap-1.5 sm:justify-end">
+            <span className="flex flex-wrap items-center gap-1.5 lg:justify-end">
               <span>R$ {agendamento.valorEntradaExigido.toFixed(2)}</span>
               {agendamento.valorEntradaPago > 0 && (
                 <Badge variant="success" className="text-[10px] px-1.5 py-0">Pago</Badge>
@@ -194,7 +194,7 @@ export function AgendamentoResumo({ agendamento }: AgendamentoResumoProps) {
       </InfoCard>
 
       {agendamento.observacoes && (
-        <div className="min-w-0 rounded-lg border bg-card p-4 md:col-span-3">
+        <div className="min-w-0 rounded-lg border bg-card p-4 md:col-span-2 xl:col-span-3">
           <div className="mb-2 flex items-center gap-2 text-sm font-semibold text-muted-foreground">
             <FileText className="h-4 w-4 shrink-0" />
             Observações

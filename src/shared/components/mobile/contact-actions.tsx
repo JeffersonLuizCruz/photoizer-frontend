@@ -18,7 +18,7 @@ export function ContactActions({ telefone, email, nome, whatsappMessage, classNa
   if (!tel && !mail && !zap) return null
 
   return (
-    <div className={cn('flex items-center gap-2', className)}>
+    <div className={cn('flex flex-wrap items-center gap-2', className)}>
       {tel && (
         <a
           href={tel}

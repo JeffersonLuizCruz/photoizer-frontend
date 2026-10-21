@@ -20,31 +20,31 @@ export function PageTitle({ title, description, breadcrumbs, actions, className 
   return (
     <div className={cn('mb-6', className)}>
       {breadcrumbs && breadcrumbs.length > 0 && (
-        <nav className="mb-2 flex items-center gap-1 text-sm text-muted-foreground">
-          <Link to="/" aria-label="Início" className="hover:text-foreground transition-colors">
+        <nav className="mb-2 flex flex-wrap items-center gap-1 text-xs text-muted-foreground sm:text-sm">
+          <Link to="/" aria-label="Início" className="shrink-0 hover:text-foreground transition-colors">
             <Home className="h-4 w-4" />
           </Link>
           {breadcrumbs.map((item, index) => (
-            <span key={index} className="flex items-center gap-1">
-              <ChevronRight className="h-4 w-4" />
+            <span key={index} className="flex min-w-0 max-w-full items-center gap-1">
+              <ChevronRight className="h-4 w-4 shrink-0" />
               {item.href ? (
-                <Link to={item.href} className="hover:text-foreground transition-colors">
+                <Link to={item.href} className="max-w-[12rem] truncate hover:text-foreground transition-colors sm:max-w-none">
                   {item.label}
                 </Link>
               ) : (
-                <span className="text-foreground font-medium">{item.label}</span>
+                <span className="max-w-[12rem] truncate text-foreground font-medium sm:max-w-none">{item.label}</span>
               )}
             </span>
           ))}
         </nav>
       )}
 
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">{title}</h1>
-          {description && <p className="mt-1 text-sm text-muted-foreground">{description}</p>}
+      <div className="flex min-w-0 flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <div className="min-w-0">
+          <h1 className="break-words text-xl font-bold tracking-tight sm:text-2xl">{title}</h1>
+          {description && <p className="mt-1 break-words text-sm text-muted-foreground">{description}</p>}
         </div>
-        {actions && <div className="flex flex-wrap items-center gap-2 shrink-0">{actions}</div>}
+        {actions && <div className="flex flex-wrap items-center gap-2 sm:shrink-0">{actions}</div>}
       </div>
     </div>
   )

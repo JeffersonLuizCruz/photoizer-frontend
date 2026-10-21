@@ -97,9 +97,9 @@ export function AgendamentoContrato({ agendamento, onUpdateClausulas }: Agendame
   return (
     <div className="space-y-6">
       <div className="rounded-lg border bg-card p-4">
-        <div className="mb-4 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <FileText className="h-5 w-5 text-muted-foreground" />
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
+          <div className="flex min-w-0 items-center gap-2">
+            <FileText className="h-5 w-5 shrink-0 text-muted-foreground" />
             <h3 className="text-sm font-semibold">Resumo para WhatsApp</h3>
           </div>
           <Button variant="outline" size="sm" onClick={handleCopy}>
@@ -111,14 +111,14 @@ export function AgendamentoContrato({ agendamento, onUpdateClausulas }: Agendame
           </Button>
         </div>
 
-        <pre className="whitespace-pre-wrap rounded-md bg-muted p-3 text-xs leading-relaxed">
+        <pre className="break-words whitespace-pre-wrap rounded-md bg-muted p-3 text-xs leading-relaxed">
           {montarResumoWhatsApp(agendamento)}
         </pre>
       </div>
 
       <div className="rounded-lg border bg-card p-4">
-        <div className="mb-4 flex items-center gap-2">
-          <Link2 className="h-5 w-5 text-muted-foreground" />
+        <div className="mb-4 flex flex-wrap items-center gap-2">
+          <Link2 className="h-5 w-5 shrink-0 text-muted-foreground" />
           <h3 className="text-sm font-semibold">Link da Proposta</h3>
         </div>
 
@@ -142,8 +142,8 @@ export function AgendamentoContrato({ agendamento, onUpdateClausulas }: Agendame
       </div>
 
       <div className="rounded-lg border bg-card p-4">
-        <div className="mb-4 flex items-center gap-2">
-          <FileText className="h-5 w-5 text-muted-foreground" />
+        <div className="mb-4 flex flex-wrap items-center gap-2">
+          <FileText className="h-5 w-5 shrink-0 text-muted-foreground" />
           <h3 className="text-sm font-semibold">Termo de aceite</h3>
           {agendamento.dataAssinatura && <Badge variant="success">Confirmado</Badge>}
         </div>

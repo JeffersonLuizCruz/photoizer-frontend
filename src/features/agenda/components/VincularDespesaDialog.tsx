@@ -78,7 +78,7 @@ export function VincularDespesaDialog({ open, onOpenChange, agendamentoId }: Vin
               <Checkbox checked={selecionadas.includes(d.id)} onCheckedChange={() => toggle(d.id)} className="mt-0.5" />
               <div className="min-w-0 flex-1">
                 <div className="flex items-center justify-between gap-2">
-                  <p className="truncate text-sm font-medium">{d.descricao}</p>
+                  <p className="min-w-0 break-words text-sm font-medium">{d.descricao}</p>
                   <span className="text-sm font-semibold tabular-nums">{formatCurrency(d.valor)}</span>
                 </div>
                 <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">

@@ -22,7 +22,7 @@ export function EditarClienteDialog({ clienteId, open, onOpenChange }: EditarCli
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl">
+      <DialogContent className="sm:max-w-2xl">
         <DialogHeader>
           <DialogTitle>Editar Cliente</DialogTitle>
         </DialogHeader>
@@ -32,6 +32,7 @@ export function EditarClienteDialog({ clienteId, open, onOpenChange }: EditarCli
         ) : (
           <ClienteForm
             onSubmit={handleSubmit}
+            onCancel={() => onOpenChange(false)}
             defaultValues={
               cliente
                 ? {

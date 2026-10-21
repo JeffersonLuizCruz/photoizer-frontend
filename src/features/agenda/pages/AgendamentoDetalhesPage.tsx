@@ -6,10 +6,12 @@ import { FileText, ClipboardList, DollarSign, ListTodo, Pencil, Camera, Shopping
 import { Button } from '@/shared/components/ui/button'
 import { PageLoading } from '@/shared/components/layout/Loading'
 import { StatusBadge } from '@/shared/components/layout/StatusBadge'
+import { Badge } from '@/shared/components/ui/badge'
 import { PacoteColorChip } from '@/shared/components/ui/pacote-color-chip'
 import { DetailHeader } from '@/shared/components/mobile'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/shared/components/ui/tabs'
 import { ROUTES, AGENDAMENTO_STATUS } from '@/shared/constants'
+import { useIsTablet } from '@/shared/hooks/use-media-query'
 import { useAuth } from '@/features/auth/AuthProvider'
 import { useAgendamento, useReatribuicoes } from '../api/queries'
 import { AgendamentoActions } from '../components/AgendamentoActions'
@@ -40,6 +42,8 @@ export function AgendamentoDetalhesPage() {
   const { user } = useAuth()
   const podeEditar = user?.papel === 'ADMIN' || user?.papel === 'EDITOR'
   const isAdmin = user?.papel === 'ADMIN'
+  const isMobileLayout = useIsTablet()
+  const showTimeline = !isMobileLayout
   const [activeTab, setActiveTab] = useState('resumo')
   const tabsListRef = useRef<HTMLDivElement>(null)
 
@@ -53,6 +57,12 @@ export function AgendamentoDetalhesPage() {
     const left = list.scrollLeft + (activeRect.left - listRect.left) - (list.clientWidth - activeRect.width) / 2
     list.scrollTo({ left, behavior: reduceMotion ? 'auto' : 'smooth' })
   }, [activeTab, agendamento?.id])
+
+  useEffect(() => {
+    if (!showTimeline && activeTab === 'timeline') {
+      setActiveTab('resumo')
+    }
+  }, [showTimeline, activeTab])
 
   if (isLoading) return <PageLoading />
   if (error || !agendamento) {
@@ -89,6 +99,7 @@ export function AgendamentoDetalhesPage() {
         status={
           <span className="inline-flex flex-wrap items-center gap-2">
             <StatusBadge status={agendamento.status} customLabels={statusCustomLabels} />
+            {agendamento.origem === 'AVULSO' && <Badge variant="secondary">Avulso</Badge>}
             <PacoteColorChip nome={agendamento.pacoteNome} cor={agendamento.pacoteCor} />
           </span>
         }
@@ -123,17 +134,19 @@ export function AgendamentoDetalhesPage() {
         }
       />
 
-      <div className="mt-5">
+      <div className="mt-5 min-w-0">
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           <TabsList ref={tabsListRef} scrollable aria-label="Seções do agendamento">
             <TabsTrigger value="resumo">
               <ClipboardList className="mr-1.5 h-4 w-4" />
               Resumo
             </TabsTrigger>
-            <TabsTrigger value="timeline">
-              <ListTodo className="mr-1.5 h-4 w-4" />
-              Linha do Tempo
-            </TabsTrigger>
+            {showTimeline && (
+              <TabsTrigger value="timeline">
+                <ListTodo className="mr-1.5 h-4 w-4" />
+                Linha do Tempo
+              </TabsTrigger>
+            )}
             {isAdmin && (
               <TabsTrigger value="financeiro">
                 <DollarSign className="mr-1.5 h-4 w-4" />
@@ -156,9 +169,11 @@ export function AgendamentoDetalhesPage() {
             <AgendamentoResumo agendamento={agendamento} />
           </TabsContent>
 
-          <TabsContent value="timeline">
-            <AgendamentoTimeline agendamento={agendamento} reatribuicoes={reatribuicoes} />
-          </TabsContent>
+          {showTimeline && (
+            <TabsContent value="timeline">
+              <AgendamentoTimeline agendamento={agendamento} reatribuicoes={reatribuicoes} />
+            </TabsContent>
+          )}
 
           {isAdmin && (
             <TabsContent value="financeiro">

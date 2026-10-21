@@ -117,7 +117,8 @@ export function EditarAgendamentoForm({ agendamento, onSubmit, isPending }: Edit
               type="button"
               variant="outline"
               size="sm"
-                onClick={() => navigate(`${ROUTES.AGENDA}/${agendamento.id}`)}
+              className="w-full sm:w-auto"
+              onClick={() => navigate(`${ROUTES.AGENDA}/${agendamento.id}`)}
             >
               Editar Cliente
             </Button>
@@ -266,11 +267,11 @@ export function EditarAgendamentoForm({ agendamento, onSubmit, isPending }: Edit
         </div>
       </div>
 
-      <div className="sticky bottom-[calc(4rem+env(safe-area-inset-bottom))] z-20 mt-4 flex items-center justify-end gap-2 border-t bg-background/95 py-3 backdrop-blur lg:bottom-0">
-        <Button type="button" variant="outline" onClick={() => navigate(`/agenda/${agendamento.id}`)}>
+      <div className="sticky bottom-[calc(var(--nav-h)+env(safe-area-inset-bottom))] z-20 -mx-4 mt-4 flex flex-col-reverse gap-2 border-t bg-background px-4 py-3 sm:-mx-6 sm:flex-row sm:justify-end sm:px-6 lg:bottom-0">
+        <Button type="button" variant="outline" onClick={() => navigate(`/agenda/${agendamento.id}`)} className="w-full sm:w-auto">
           Cancelar
         </Button>
-        <Button type="submit" disabled={isPending || !!conflito}>
+        <Button type="submit" disabled={isPending || !!conflito} className="w-full sm:w-auto">
           {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
           Salvar alterações
         </Button>

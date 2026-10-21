@@ -61,8 +61,8 @@ export function ConflitoAgendaDialog({ open, onOpenChange, agendamento }: Confli
               <p className="text-sm font-medium text-destructive">Agendamentos em conflito</p>
               <ul className="mt-2 space-y-2">
                 {conflitos.map((c) => (
-                  <li key={c.agendamentoId} className="flex items-center justify-between gap-2 text-sm">
-                    <span className="text-muted-foreground">
+                  <li key={c.agendamentoId} className="flex flex-wrap items-center justify-between gap-2 text-sm">
+                    <span className="min-w-0 break-words text-muted-foreground">
                       {c.clienteNome || 'Agendamento'} — {c.horario}
                     </span>
                     <Button

@@ -160,10 +160,10 @@ export function AgendamentoTimeline({ agendamento, reatribuicoes = [] }: Agendam
                 <TimelineDot status={event.status} />
               </div>
 
-              <div className="flex-1 pb-1">
+              <div className="min-w-0 flex-1 pb-1">
                 <p
                   className={cn(
-                    'text-sm font-medium',
+                    'break-words text-sm font-medium',
                     event.status === 'cancelled' && 'text-destructive line-through',
                     event.status === 'current' && 'text-blue-600',
                   )}
@@ -171,7 +171,7 @@ export function AgendamentoTimeline({ agendamento, reatribuicoes = [] }: Agendam
                   {event.label}
                 </p>
                 {event.data && (
-                  <p className="text-xs text-muted-foreground">
+                  <p className="break-words text-xs text-muted-foreground">
                     {format(new Date(event.data), "dd 'de' MMM 'de' yyyy 'às' HH:mm", { locale: ptBR })}
                     {event.status === 'completed' && event.data && agendamento.createdAt && index > 0 && (
                       <span className="ml-2">
@@ -181,7 +181,7 @@ export function AgendamentoTimeline({ agendamento, reatribuicoes = [] }: Agendam
                   </p>
                 )}
                 {event.description && (
-                  <p className="mt-0.5 text-xs text-muted-foreground">{event.description}</p>
+                  <p className="mt-0.5 break-words text-xs text-muted-foreground">{event.description}</p>
                 )}
               </div>
             </div>

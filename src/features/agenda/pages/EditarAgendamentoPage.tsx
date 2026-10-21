@@ -46,7 +46,7 @@ export function EditarAgendamentoPage() {
         ]}
       />
 
-      <div className="max-w-2xl rounded-lg border bg-card p-6">
+      <div className="max-w-2xl rounded-lg border bg-card p-4 sm:p-6">
         <EditarAgendamentoForm
           agendamento={agendamento}
           onSubmit={handleSubmit}

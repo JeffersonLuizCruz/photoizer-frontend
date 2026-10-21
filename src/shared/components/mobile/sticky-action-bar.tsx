@@ -8,13 +8,17 @@ interface StickyActionBarProps {
 
 export function StickyActionBar({ children, className }: StickyActionBarProps) {
   return (
-    <div
-      className={cn(
-        'sticky bottom-[calc(var(--nav-h)+env(safe-area-inset-bottom))] z-20 -mx-4 mt-6 border-t bg-background/95 px-4 py-3 backdrop-blur supports-[backdrop-filter]:bg-background/80 lg:bottom-0 sm:-mx-6 sm:px-6',
-        className,
-      )}
-    >
-      <div className="flex items-center gap-2">{children}</div>
-    </div>
+    <>
+      <div aria-hidden="true" className="mt-6 h-16 lg:hidden" />
+      <div
+        data-testid="sticky-action-bar"
+        className={cn(
+          'fixed inset-x-0 bottom-[calc(var(--nav-h)+env(safe-area-inset-bottom))] z-40 border-t bg-background px-4 py-3 lg:sticky lg:inset-x-auto lg:bottom-0 lg:z-20 lg:-mx-6 lg:mt-6 lg:px-6',
+          className,
+        )}
+      >
+        <div className="flex w-full min-w-0 items-center gap-2">{children}</div>
+      </div>
+    </>
   )
 }

@@ -164,8 +164,8 @@ export function AdicionarExtrasDialog({ open, onOpenChange, agendamento }: Adici
                 <div ref={searchRef} className="relative">
                   <Label>Indicador</Label>
                   {selectedIndicador ? (
-                    <div className="flex items-center justify-between rounded-md border px-3 py-2 text-sm">
-                      <span>{selectedIndicador.nome} — {selectedIndicador.telefone}</span>
+                    <div className="flex flex-wrap items-center justify-between gap-2 rounded-md border px-3 py-2 text-sm">
+                      <span className="min-w-0 break-words">{selectedIndicador.nome} — {selectedIndicador.telefone}</span>
                       <Button variant="ghost" size="sm" onClick={() => { setSelectedIndicador(null); setIndicadorSearch('') }}>
                         Trocar
                       </Button>
