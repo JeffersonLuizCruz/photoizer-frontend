@@ -73,7 +73,7 @@ export function FinanceiroTabela({ agendamentos, dateRange, isLoading }: Finance
   return (
     <>
       <div className="hidden rounded-md border overflow-x-auto md:block">
-      <Table className="min-w-[820px]">
+      <Table className="min-w-[960px]">
         <TableHeader>
           <TableRow>
             <TableHead>Data</TableHead>
@@ -81,7 +81,8 @@ export function FinanceiroTabela({ agendamentos, dateRange, isLoading }: Finance
             <TableHead>Pacote</TableHead>
             <TableHead>Status</TableHead>
             <TableHead className="text-right">Valor Total</TableHead>
-            <TableHead className="text-right">Entrada</TableHead>
+            <TableHead className="text-right">Entrada exigida</TableHead>
+            <TableHead className="text-right">Entrada recebida</TableHead>
             <TableHead className="text-right">Restante</TableHead>
             <TableHead className="text-right">Extras</TableHead>
             <TableHead className="text-right">Total Final</TableHead>
@@ -107,6 +108,9 @@ export function FinanceiroTabela({ agendamentos, dateRange, isLoading }: Finance
                   <Badge variant={config.variant}>{config.label}</Badge>
                 </TableCell>
                 <TableCell className="text-right tabular-nums">R$ {agendamento.valorTotal.toFixed(2)}</TableCell>
+                <TableCell className="text-right tabular-nums text-amber-600">
+                  R$ {agendamento.valorEntradaExigido.toFixed(2)}
+                </TableCell>
                 <TableCell className="text-right tabular-nums">
                   <span className={agendamento.valorEntradaPago > 0 ? 'text-emerald-600' : 'text-muted-foreground'}>
                     R$ {agendamento.valorEntradaPago > 0 ? agendamento.valorEntradaPago.toFixed(2) : '0,00'}
@@ -167,7 +171,11 @@ export function FinanceiroTabela({ agendamentos, dateRange, isLoading }: Finance
                   <span className="tabular-nums">R$ {agendamento.valorTotal.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between gap-2">
-                  <span className="text-muted-foreground">Entrada</span>
+                  <span className="text-muted-foreground">Entrada exigida</span>
+                  <span className="tabular-nums text-amber-600">R$ {agendamento.valorEntradaExigido.toFixed(2)}</span>
+                </div>
+                <div className="flex justify-between gap-2">
+                  <span className="text-muted-foreground">Entrada recebida</span>
                   <span className={agendamento.valorEntradaPago > 0 ? 'tabular-nums text-emerald-600' : 'tabular-nums text-muted-foreground'}>
                     R$ {agendamento.valorEntradaPago > 0 ? agendamento.valorEntradaPago.toFixed(2) : '0,00'}
                   </span>

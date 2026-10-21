@@ -26,6 +26,7 @@ export interface FinanceiroResumo {
 export interface RelatoriosTotais {
   total: number
   entrada: number
+  entradaExigida: number
   restante: number
   extras: number
   totalFinal: number
@@ -38,6 +39,7 @@ export interface RelatorioAgendamentoItem {
   clienteNome: string
   pacoteNome: string | null
   valorTotal: number
+  valorEntradaExigido: number
   valorEntradaPago: number
   valorRestante: number
   valorExtras: number

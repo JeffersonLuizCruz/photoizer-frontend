@@ -78,6 +78,11 @@ export function ReceitasPage() {
         breadcrumbs={[{ label: 'Financeiro' }, { label: 'Receitas' }]}
       />
 
+      <div className="mb-4 rounded-lg border bg-muted/30 p-3 text-sm text-muted-foreground">
+        Esta tela lista apenas receitas manuais. Recebimentos de ensaios e agendamentos avulsos aparecem no
+        Dashboard e no relatório <strong>Ensaios e Avulsos</strong>.
+      </div>
+
       <div className="mb-4 flex flex-wrap gap-2 text-sm">
         <Badge variant="outline">Bruto: {formatCurrency(totais.bruto)}</Badge>
         <Badge variant="outline">Final: {formatCurrency(totais.final)}</Badge>

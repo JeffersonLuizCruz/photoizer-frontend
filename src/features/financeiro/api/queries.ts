@@ -14,10 +14,11 @@ export function useFinanceiroResumo(dataInicio?: string, dataFim?: string) {
   })
 }
 
-export function useFinanceiroRelatorios(dataInicio?: string, dataFim?: string) {
+export function useFinanceiroRelatorios(dataInicio?: string, dataFim?: string, enabled = true) {
   return useQuery({
     queryKey: [...QUERY_KEYS.FINANCEIRO, 'relatorios', dataInicio, dataFim],
     queryFn: () => financeiroService.relatorios(dataInicio, dataFim),
+    enabled,
   })
 }
 

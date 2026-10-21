@@ -287,6 +287,34 @@ export function useAddVideoExtra() {
   })
 }
 
+export function useRegistrarRecebimento() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: ({
+      id,
+      ...payload
+    }: {
+      id: string
+      valor: number
+      dataPagamento?: string
+      formaPagamento?: FormaPagamento
+      tipoPagamento?: 'ENTRADA' | 'FINAL' | 'EXTRA'
+      comprovante?: File
+      observacao?: string
+    }) => agendamentoService.registrarRecebimento(id, payload),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.AGENDA })
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.FINANCEIRO })
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.DASHBOARD })
+      toast.success('Recebimento registrado')
+    },
+    onError: (error: Error) => {
+      toast.error(extractErrorMessage(error, 'Erro ao registrar recebimento'))
+    },
+  })
+}
+
 export function useRegistrarPagamentoFinal() {
   const queryClient = useQueryClient()
 

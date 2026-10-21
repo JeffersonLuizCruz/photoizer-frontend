@@ -34,8 +34,8 @@ function DetalhamentoBreakdown({ detalhamento }: { detalhamento: Detalhamento })
       </div>
       <div className="grid gap-x-8 gap-y-1 md:grid-cols-2 xl:grid-cols-4">
         <div>
-          <DetalhamentoRow label="Entrada (30%) — Ensaios" value={detalhamento.entradaEnsaios} />
-          <DetalhamentoRow label="Restante (70%) — Ensaios" value={detalhamento.restanteEnsaios} />
+          <DetalhamentoRow label="Recebido — Ensaios" value={detalhamento.entradaEnsaios} />
+          <DetalhamentoRow label="A receber — Ensaios" value={detalhamento.restanteEnsaios} />
           <DetalhamentoRow label="Receitas Avulsas" value={detalhamento.receitasAvulsas} />
         </div>
         <div>

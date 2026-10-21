@@ -184,6 +184,28 @@ export const agendamentoService = {
     return data
   },
 
+  registrarRecebimento: async (
+    id: string,
+    payload: {
+      valor: number
+      dataPagamento?: string
+      formaPagamento?: FormaPagamento
+      tipoPagamento?: 'ENTRADA' | 'FINAL' | 'EXTRA'
+      comprovante?: File
+      observacao?: string
+    },
+  ): Promise<Pagamento> => {
+    const formData = new FormData()
+    formData.append('valor', String(payload.valor))
+    if (payload.dataPagamento) formData.append('dataPagamento', payload.dataPagamento)
+    if (payload.formaPagamento) formData.append('formaPagamento', payload.formaPagamento)
+    if (payload.tipoPagamento) formData.append('tipoPagamento', payload.tipoPagamento)
+    if (payload.comprovante) formData.append('comprovante', payload.comprovante)
+    if (payload.observacao) formData.append('observacao', payload.observacao)
+    const { data } = await apiClient.post<Pagamento>(`/financeiro/agendamentos/${id}/recebimentos`, formData)
+    return data
+  },
+
   registrarPagamentoFinal: async (
     id: string,
     comprovante?: File,

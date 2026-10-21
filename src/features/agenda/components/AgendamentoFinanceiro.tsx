@@ -10,12 +10,14 @@ import { formatCurrency } from '@/shared/lib/format'
 import { exportarCSV, exportarXLS } from '@/shared/lib/export'
 import { DespesaFormDialog } from '@/features/despesas/components/DespesaFormDialog'
 import { RegistrarPagamentoDialog } from './RegistrarPagamentoDialog'
+import { RegistrarRecebimentoDialog } from './RegistrarRecebimentoDialog'
 import { AdicionarExtrasDialog } from './AdicionarExtrasDialog'
 import { VincularDespesaDialog } from './VincularDespesaDialog'
 import { usePagamentosList, useResumoFinanceiroTrabalho, useUpdateAgendamentoStatus, useVincularDespesaTrabalho } from '../api/queries'
 import { usePagarRepasse, useAtualizarRepasse } from '@/features/fotografos/api/queries'
 import { RepasseInlineEditor } from '@/features/fotografos/components/RepasseInlineEditor'
 import { useAuth } from '@/features/auth/AuthProvider'
+import { openProtected } from '@/shared/api/protectedResource'
 import { montarReciboPagamento } from '../utils/recibo'
 import type { Agendamento } from '../types'
 import { AGENDAMENTO_STATUS, FORMA_PAGAMENTO, FORMA_PAGAMENTO_LABELS } from '@/shared/constants'
@@ -35,6 +37,12 @@ interface FinanceiroRow {
   formaPagamento?: FormaPagamento | null
 }
 
+const tipoPagamentoLabel: Record<string, string> = {
+  ENTRADA: 'Entrada',
+  FINAL: 'Final',
+  EXTRA: 'Extra',
+}
+
 const statusPagamentoMap: Record<string, { label: string; variant: 'success' | 'warning' | 'destructive' }> = {
   PAGO: { label: 'Pago', variant: 'success' },
   PARCIAL: { label: 'Parcial', variant: 'warning' },
@@ -43,6 +51,7 @@ const statusPagamentoMap: Record<string, { label: string; variant: 'success' | '
 
 export function AgendamentoFinanceiro({ agendamento }: AgendamentoFinanceiroProps) {
   const [showPagamento, setShowPagamento] = useState(false)
+  const [showRecebimento, setShowRecebimento] = useState(false)
   const [showExtras, setShowExtras] = useState(false)
   const [showVincular, setShowVincular] = useState(false)
   const [showNovaDespesa, setShowNovaDespesa] = useState(false)
@@ -67,6 +76,12 @@ export function AgendamentoFinanceiro({ agendamento }: AgendamentoFinanceiroProp
   const podeEnviarParaEdicao = statusPermitePagamentoFinal && agendamento.valorRestante <= 0
 
   const podeAdicionarExtras =
+    agendamento.status !== AGENDAMENTO_STATUS.FINALIZADO &&
+    agendamento.status !== AGENDAMENTO_STATUS.CANCELADO &&
+    agendamento.status !== AGENDAMENTO_STATUS.NO_SHOW
+
+  const podeRegistrarRecebimento =
+    agendamento.valorRestante > 0 &&
     agendamento.status !== AGENDAMENTO_STATUS.FINALIZADO &&
     agendamento.status !== AGENDAMENTO_STATUS.CANCELADO &&
     agendamento.status !== AGENDAMENTO_STATUS.NO_SHOW
@@ -184,6 +199,12 @@ export function AgendamentoFinanceiro({ agendamento }: AgendamentoFinanceiroProp
             <Button variant="outline" size="sm" onClick={() => setShowExtras(true)}>
               <Plus className="mr-1 h-4 w-4" />
               Fotos Extras
+            </Button>
+          )}
+          {podeRegistrarRecebimento && (
+            <Button variant="outline" size="sm" onClick={() => setShowRecebimento(true)}>
+              <HandCoins className="mr-1 h-4 w-4" />
+              Registrar Recebimento
             </Button>
           )}
           {podePagarFinal && (
@@ -746,6 +767,8 @@ export function AgendamentoFinanceiro({ agendamento }: AgendamentoFinanceiroProp
                 <TableRow>
                   <TableHead>Data</TableHead>
                   <TableHead>Valor</TableHead>
+                  <TableHead>Tipo</TableHead>
+                  <TableHead>Forma</TableHead>
                   <TableHead>Comprovante</TableHead>
                 </TableRow>
               </TableHeader>
@@ -758,16 +781,21 @@ export function AgendamentoFinanceiro({ agendamento }: AgendamentoFinanceiroProp
                     <TableCell className="font-medium tabular-nums">
                       R$ {pag.valor.toFixed(2)}
                     </TableCell>
+                    <TableCell className="text-sm text-muted-foreground">
+                      {pag.tipoPagamento ? (tipoPagamentoLabel[pag.tipoPagamento] ?? pag.tipoPagamento) : '—'}
+                    </TableCell>
+                    <TableCell className="text-sm text-muted-foreground">
+                      {pag.formaPagamento ? (FORMA_PAGAMENTO_LABELS[pag.formaPagamento] ?? pag.formaPagamento) : '—'}
+                    </TableCell>
                     <TableCell>
                       {pag.urlComprovante ? (
-                        <a
-                          href={pag.urlComprovante}
-                          target="_blank"
-                          rel="noopener noreferrer"
+                        <button
+                          type="button"
+                          onClick={() => void openProtected(`/financeiro/pagamentos/${pag.id}/comprovante`)}
                           className="text-primary underline text-sm"
                         >
                           Visualizar
-                        </a>
+                        </button>
                       ) : (
                         <span className="text-muted-foreground text-sm">—</span>
                       )}
@@ -786,16 +814,19 @@ export function AgendamentoFinanceiro({ agendamento }: AgendamentoFinanceiroProp
                     {format(new Date(pag.dataPagamento), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
                   </p>
                   <p className="text-sm font-medium tabular-nums">R$ {pag.valor.toFixed(2)}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {pag.tipoPagamento ? (tipoPagamentoLabel[pag.tipoPagamento] ?? pag.tipoPagamento) : '—'}
+                    {pag.formaPagamento ? ` · ${FORMA_PAGAMENTO_LABELS[pag.formaPagamento] ?? pag.formaPagamento}` : ''}
+                  </p>
                 </div>
                 {pag.urlComprovante ? (
-                  <a
-                    href={pag.urlComprovante}
-                    target="_blank"
-                    rel="noopener noreferrer"
+                  <button
+                    type="button"
+                    onClick={() => void openProtected(`/financeiro/pagamentos/${pag.id}/comprovante`)}
                     className="shrink-0 text-sm text-primary underline"
                   >
                     Visualizar
-                  </a>
+                  </button>
                 ) : (
                   <span className="shrink-0 text-sm text-muted-foreground">—</span>
                 )}
@@ -804,6 +835,12 @@ export function AgendamentoFinanceiro({ agendamento }: AgendamentoFinanceiroProp
           </div>
         </div>
       )}
+
+      <RegistrarRecebimentoDialog
+        open={showRecebimento}
+        onOpenChange={setShowRecebimento}
+        agendamento={agendamento}
+      />
 
       <RegistrarPagamentoDialog
         open={showPagamento}

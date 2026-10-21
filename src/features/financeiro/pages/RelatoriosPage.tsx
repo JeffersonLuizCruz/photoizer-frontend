@@ -9,8 +9,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { formatCurrency, formatPercent } from '@/shared/lib/format'
 import { exportarCSV, exportarXLS } from '@/shared/lib/export'
 import { FiltroPeriodo } from '../components/FiltroPeriodo'
+import { FinanceiroTabela } from '../components/FinanceiroTabela'
 import type { DateRange } from '@/shared/components/layout/DateRangePicker'
 import {
+  useFinanceiroRelatorios,
   useRelatorioResumoMensal,
   useRelatorioDespesasCategoria,
   useRelatorioInadimplencia,
@@ -120,6 +122,7 @@ export function RelatoriosPage() {
   const dataInicio = dateRange?.from ? format(dateRange.from, 'yyyy-MM-dd') : format(anoInicio, 'yyyy-MM-dd')
   const dataFim = dateRange?.to ? format(dateRange.to, 'yyyy-MM-dd') : format(hoje, 'yyyy-MM-dd')
 
+  const ensaios = useFinanceiroRelatorios(dataInicio, dataFim, tipo === 'ensaios')
   const resumo = useRelatorioResumoMensal(dataInicio, dataFim, tipo === 'resumo-mensal')
   const despesasCategoria = useRelatorioDespesasCategoria(dataInicio, dataFim, tipo === 'despesas-categoria')
   const inadimplencia = useRelatorioInadimplencia(dateRange ? dataInicio : undefined, dateRange ? dataFim : undefined, tipo === 'inadimplencia')
@@ -134,6 +137,28 @@ export function RelatoriosPage() {
     if (!tipo) return
     const base = `relatorio-${tipo}`
     const periodo = `${dataInicio}-${dataFim}`
+
+    if (tipo === 'ensaios' && ensaios.data) {
+      const rows = ensaios.data.agendamentos.map((a) => [
+        a.dataHoraEnsaio ? format(new Date(a.dataHoraEnsaio), 'dd/MM/yyyy') : '',
+        a.clienteNome,
+        a.pacoteNome ?? '',
+        a.status,
+        a.valorTotal,
+        a.valorEntradaExigido,
+        a.valorEntradaPago,
+        a.valorRestante,
+        a.valorTotalFinal,
+      ])
+      exportCommon(
+        ext,
+        base,
+        periodo,
+        ['Data', 'Cliente', 'Pacote', 'Status', 'Valor total', 'Entrada exigida', 'Entrada recebida', 'Restante', 'Total final'],
+        rows,
+      )
+      return
+    }
 
     if (tipo === 'resumo-mensal' && resumo.data) {
       const r = resumo.data
@@ -286,6 +311,26 @@ export function RelatoriosPage() {
 
       {ativo && (
         <p className="mb-4 text-sm text-muted-foreground">{ativo.descricao}</p>
+      )}
+
+      {tipo === 'ensaios' && (
+        <div className="space-y-4">
+          <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
+            <Card label="Total" value={formatCurrency(ensaios.data?.totais.total)} isLoading={ensaios.isLoading} />
+            <Card label="Entrada exigida" value={formatCurrency(ensaios.data?.totais.entradaExigida)} accent="text-amber-600" isLoading={ensaios.isLoading} />
+            <Card label="Entrada recebida" value={formatCurrency(ensaios.data?.totais.entrada)} accent="text-emerald-600" isLoading={ensaios.isLoading} />
+            <Card label="Restante" value={formatCurrency(ensaios.data?.totais.restante)} accent="text-amber-600" isLoading={ensaios.isLoading} />
+            <Card label="Extras" value={formatCurrency(ensaios.data?.totais.extras)} isLoading={ensaios.isLoading} />
+            <Card label="Total final" value={formatCurrency(ensaios.data?.totais.totalFinal)} isLoading={ensaios.isLoading} />
+            <Card label="Repasses" value={formatCurrency(ensaios.data?.totais.repasses)} accent="text-rose-500" isLoading={ensaios.isLoading} />
+            <Card label="Comissões" value={formatCurrency(ensaios.data?.totais.comissao)} accent="text-rose-500" isLoading={ensaios.isLoading} />
+          </div>
+          <FinanceiroTabela
+            agendamentos={ensaios.data?.agendamentos ?? []}
+            dateRange={dateRange}
+            isLoading={ensaios.isLoading}
+          />
+        </div>
       )}
 
       {tipo === 'resumo-mensal' && (

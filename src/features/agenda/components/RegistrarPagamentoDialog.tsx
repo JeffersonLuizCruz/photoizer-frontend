@@ -38,7 +38,7 @@ export function RegistrarPagamentoDialog({ open, onOpenChange, agendamento }: Re
         <DialogHeader>
           <DialogTitle>Registrar Pagamento Final</DialogTitle>
           <DialogDescription>
-            Registrar o pagamento dos 70% restantes no valor de{' '}
+            Registrar o pagamento do valor restante de{' '}
             <strong>R$ {agendamento.valorRestante.toFixed(2)}</strong>.
           </DialogDescription>
         </DialogHeader>
@@ -46,7 +46,7 @@ export function RegistrarPagamentoDialog({ open, onOpenChange, agendamento }: Re
         <div className="space-y-4">
           <div className="rounded-lg bg-muted p-3">
             <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground">Valor Restante (70%)</span>
+              <span className="text-muted-foreground">Valor restante</span>
               <span className="font-medium">R$ {agendamento.valorRestante.toFixed(2)}</span>
             </div>
           </div>

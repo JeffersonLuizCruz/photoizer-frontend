@@ -13,13 +13,13 @@ export function FinanceiroResumo({ data, isLoading }: FinanceiroResumoProps) {
   const cards = [
     {
       icon: PiggyBank,
-      label: 'Total de Entradas (30%)',
+      label: 'Total recebido (ensaios)',
       value: data?.totalEntradas ?? 0,
       variant: 'text-emerald-600' as const,
     },
     {
       icon: CreditCard,
-      label: 'Total Pagamentos Finais (70%)',
+      label: 'Total a receber (ensaios)',
       value: data?.totalFinal ?? 0,
       variant: 'text-blue-600' as const,
     },

@@ -98,6 +98,7 @@ export interface RelatorioFiscal {
 }
 
 export const RELATORIOS_DISPONIVEIS = [
+  { valor: 'ensaios', label: 'Ensaios e Avulsos', descricao: 'Agendamentos, entradas, restantes e totais' },
   { valor: 'resumo-mensal', label: 'Resumo mensal', descricao: 'Receitas, despesas e lucro do período' },
   { valor: 'despesas-categoria', label: 'Despesas por categoria', descricao: 'Totais e percentuais por categoria' },
   { valor: 'inadimplencia', label: 'Inadimplência', descricao: 'Valores a receber vencidos' },
