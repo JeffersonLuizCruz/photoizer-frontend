@@ -25,7 +25,7 @@ interface AgendamentoActionsProps {
   agendamento: Agendamento
 }
 
-type ActionType = 'realizar' | 'reagendar' | 'cancelar' | 'noShow' | 'pagarFinal' | 'finalizar' | 'confirmarPagamento' | 'aprovar'
+type ActionType = 'realizar' | 'reagendar' | 'cancelar' | 'noShow' | 'pagarFinal' | 'finalizar' | 'confirmarPagamento' | 'aprovar' | 'enviarEdicao'
 
 const statusActions: Record<string, ActionType[]> = {
   [AGENDAMENTO_STATUS.AGUARDANDO_APROVACAO]: ['confirmarPagamento', 'cancelar'],
@@ -93,6 +93,14 @@ const actionConfig: Record<ActionType, { label: string; icon: React.ComponentTyp
     variant: 'default',
     status: AGENDAMENTO_STATUS.CONFIRMADO,
   },
+  enviarEdicao: {
+    label: 'Enviar para edição',
+    icon: CheckCircle2,
+    variant: 'default',
+    confirmTitle: 'Enviar para edição',
+    confirmDescription: 'O pagamento já está quitado. Deseja iniciar a edição sem registrar novo pagamento?',
+    status: AGENDAMENTO_STATUS.EM_EDICAO,
+  },
 }
 
 export function AgendamentoActions({ agendamento }: AgendamentoActionsProps) {
@@ -110,6 +118,14 @@ export function AgendamentoActions({ agendamento }: AgendamentoActionsProps) {
   const actions = (statusActions[agendamento.status] ?? []).filter(
     (actionType) => isAdmin || (actionType !== 'reagendar' && actionType !== 'cancelar'),
   )
+
+  if (agendamento.valorRestante <= 0
+    && (agendamento.status === AGENDAMENTO_STATUS.REALIZADO
+      || agendamento.status === AGENDAMENTO_STATUS.AGUARDANDO_PAGAMENTO_FINAL)) {
+    const indice = actions.indexOf('pagarFinal')
+    if (indice >= 0) actions.splice(indice, 1)
+    if (!actions.includes('enviarEdicao')) actions.unshift('enviarEdicao')
+  }
 
   const handleAction = (actionType: ActionType) => {
     const config = actionConfig[actionType]

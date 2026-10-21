@@ -12,7 +12,7 @@ import { DespesaFormDialog } from '@/features/despesas/components/DespesaFormDia
 import { RegistrarPagamentoDialog } from './RegistrarPagamentoDialog'
 import { AdicionarExtrasDialog } from './AdicionarExtrasDialog'
 import { VincularDespesaDialog } from './VincularDespesaDialog'
-import { usePagamentosList, useResumoFinanceiroTrabalho, useVincularDespesaTrabalho } from '../api/queries'
+import { usePagamentosList, useResumoFinanceiroTrabalho, useUpdateAgendamentoStatus, useVincularDespesaTrabalho } from '../api/queries'
 import { usePagarRepasse, useAtualizarRepasse } from '@/features/fotografos/api/queries'
 import { RepasseInlineEditor } from '@/features/fotografos/components/RepasseInlineEditor'
 import { useAuth } from '@/features/auth/AuthProvider'
@@ -55,13 +55,16 @@ export function AgendamentoFinanceiro({ agendamento }: AgendamentoFinanceiroProp
   const { isAdmin } = useAuth()
   const pagarRepasse = usePagarRepasse()
   const atualizarRepasse = useAtualizarRepasse()
+  const atualizarStatus = useUpdateAgendamentoStatus()
 
   const statusPagamento = resumo?.statusPagamento ?? 'PENDENTE'
   const statusInfo = statusPagamentoMap[statusPagamento] ?? statusPagamentoMap.PENDENTE
 
-  const podePagarFinal =
+  const statusPermitePagamentoFinal =
     agendamento.status === AGENDAMENTO_STATUS.AGUARDANDO_PAGAMENTO_FINAL ||
     agendamento.status === AGENDAMENTO_STATUS.REALIZADO
+  const podePagarFinal = statusPermitePagamentoFinal && agendamento.valorRestante > 0
+  const podeEnviarParaEdicao = statusPermitePagamentoFinal && agendamento.valorRestante <= 0
 
   const podeAdicionarExtras =
     agendamento.status !== AGENDAMENTO_STATUS.FINALIZADO &&
@@ -166,9 +169,9 @@ export function AgendamentoFinanceiro({ agendamento }: AgendamentoFinanceiroProp
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-center justify-between gap-2">
+      <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
         <h3 className="text-sm font-semibold text-muted-foreground">Detalhamento Financeiro</h3>
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-col gap-2 [&>button]:w-full sm:flex-row sm:flex-wrap sm:[&>button]:w-auto">
           <Button variant="outline" size="sm" onClick={() => handleExport('csv')} disabled={isLoading}>
             <Download className="mr-1 h-4 w-4" />
             CSV
@@ -187,6 +190,16 @@ export function AgendamentoFinanceiro({ agendamento }: AgendamentoFinanceiroProp
             <Button size="sm" onClick={() => setShowPagamento(true)}>
               <CreditCard className="mr-1 h-4 w-4" />
               Registrar Pagamento Final
+            </Button>
+          )}
+          {podeEnviarParaEdicao && (
+            <Button
+              size="sm"
+              onClick={() => atualizarStatus.mutate({ id: agendamento.id, status: AGENDAMENTO_STATUS.EM_EDICAO })}
+              disabled={atualizarStatus.isPending}
+            >
+              <Check className="mr-1 h-4 w-4" />
+              Enviar para edição
             </Button>
           )}
           {pagamentoFinalRealizado && (
@@ -372,7 +385,7 @@ export function AgendamentoFinanceiro({ agendamento }: AgendamentoFinanceiroProp
 
       {resumo?.fotografos && resumo.fotografos.length > 0 && (
         <>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <h4 className="text-sm font-semibold text-muted-foreground">
               Partilha dos Parceiros
             </h4>
@@ -605,7 +618,7 @@ export function AgendamentoFinanceiro({ agendamento }: AgendamentoFinanceiroProp
                 {resumo.custosFotografo.map((d) => (
                   <div key={d.id} className="flex items-center justify-between gap-3 rounded-lg border bg-card p-3">
                     <div className="min-w-0">
-                      <p className="truncate text-sm font-medium">{d.descricao}</p>
+                      <p className="break-words text-sm font-medium">{d.descricao}</p>
                       <Badge variant="outline" className="mt-1 gap-1">
                         <span className="h-2 w-2 rounded-full" style={{ backgroundColor: d.cor ?? '#888' }} />
                         {d.categoria}
@@ -626,7 +639,7 @@ export function AgendamentoFinanceiro({ agendamento }: AgendamentoFinanceiroProp
             <Link2 className="h-4 w-4" />
             Despesas Vinculadas
           </h4>
-          <div className="flex gap-2">
+          <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
             <Button variant="outline" size="sm" onClick={() => setShowVincular(true)}>
               <Link2 className="mr-1 h-4 w-4" />
               Vincular existente
@@ -692,7 +705,7 @@ export function AgendamentoFinanceiro({ agendamento }: AgendamentoFinanceiroProp
             <div key={d.id} className="space-y-2 rounded-lg border bg-card p-3">
               <div className="flex items-start justify-between gap-2">
                 <div className="min-w-0">
-                  <p className="truncate text-sm font-medium">{d.descricao}</p>
+                  <p className="break-words text-sm font-medium">{d.descricao}</p>
                   <Badge variant="outline" className="mt-1 gap-1">
                     <span className="h-2 w-2 rounded-full" style={{ backgroundColor: d.cor ?? '#888' }} />
                     {d.categoria}
