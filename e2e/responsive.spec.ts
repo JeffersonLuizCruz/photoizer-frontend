@@ -631,6 +631,42 @@ test.describe('Agendamento detalhes responsivo', () => {
   })
 })
 
+test.describe('Barra de ações da proposta', () => {
+  test('fica fixa acima da navegação inferior no mobile, sem flutuar', async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 })
+    await seedAdminAuth(page)
+    await mockApi(page)
+    await page.goto('/propostas/nova')
+
+    const bar = page.getByTestId('sticky-action-bar')
+    const nav = page.getByRole('navigation', { name: 'Navegação principal' })
+    await expect(bar).toBeVisible()
+    await expect(nav).toBeVisible()
+
+    expect(await bar.evaluate((el) => getComputedStyle(el).position)).toBe('fixed')
+
+    const barBox = await bar.boundingBox()
+    const navBox = await nav.boundingBox()
+    expect(barBox).not.toBeNull()
+    expect(navBox).not.toBeNull()
+    // Encostada na navegação inferior: sem sobreposição nem faixa vazia entre as duas.
+    expect(barBox!.y + barBox!.height).toBeLessThanOrEqual(navBox!.y + 1)
+    expect(barBox!.y + barBox!.height).toBeGreaterThanOrEqual(navBox!.y - 2)
+  })
+
+  test('no desktop é um rodapé do formulário, não uma barra flutuante', async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 800 })
+    await seedAdminAuth(page)
+    await mockApi(page)
+    await page.goto('/propostas/nova')
+
+    const bar = page.getByTestId('sticky-action-bar')
+    await expect(bar).toContainText('Cancelar')
+    await expect(bar).toContainText('Continuar')
+    expect(await bar.evaluate((el) => getComputedStyle(el).position)).toBe('static')
+  })
+})
+
 test.describe('Seletor de horário', () => {
   test('proposta abre sheet com horários dentro da viewport mobile', async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 })

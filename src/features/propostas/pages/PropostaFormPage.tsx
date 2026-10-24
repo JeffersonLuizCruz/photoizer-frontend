@@ -20,6 +20,7 @@ import { ROUTES, AGENDAMENTO_STATUS } from '@/shared/constants'
 import { formatCurrency } from '@/shared/lib/format'
 import { parseDuracao } from '@/shared/lib/duracao'
 import { cn } from '@/shared/lib/cn'
+import { StickyActionBar } from '@/shared/components/mobile'
 import { ParceirosRepasseList } from '@/shared/components/parceiros/ParceirosRepasseList'
 import { novaPropostaSchema, type NovaPropostaFormValues } from '../schemas/proposta.schema'
 import {
@@ -558,21 +559,23 @@ export function PropostaFormPage({ mode }: PropostaFormPageProps) {
           </div>
           )}
 
-          <div className="sticky bottom-[calc(4rem+env(safe-area-inset-bottom))] z-20 -mx-4 flex items-center justify-end gap-2 border-t bg-background/95 px-4 py-3 backdrop-blur sm:-mx-6 sm:px-6 lg:bottom-0">
-            {step > 0 ? (
-              <Button type="button" variant="outline" onClick={() => setStep((s) => s - 1)}>Voltar</Button>
-            ) : (
-              <Button type="button" variant="outline" onClick={() => navigate(ROUTES.PROPOSTAS)}>Cancelar</Button>
-            )}
-            {step < passos.length - 1 ? (
-              <Button type="button" onClick={proximoPasso}>Continuar</Button>
-            ) : (
-              <Button type="submit" disabled={salvando || !!conflito || verificandoDisponibilidade || semFotografo}>
-                {salvando && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                {isEdit ? 'Salvar alterações' : 'Criar proposta'}
-              </Button>
-            )}
-          </div>
+          <StickyActionBar className="lg:static lg:mx-0 lg:px-0">
+            <div className="ml-auto flex items-center gap-2">
+              {step > 0 ? (
+                <Button type="button" variant="outline" onClick={() => setStep((s) => s - 1)}>Voltar</Button>
+              ) : (
+                <Button type="button" variant="outline" onClick={() => navigate(ROUTES.PROPOSTAS)}>Cancelar</Button>
+              )}
+              {step < passos.length - 1 ? (
+                <Button type="button" onClick={proximoPasso}>Continuar</Button>
+              ) : (
+                <Button type="submit" disabled={salvando || !!conflito || verificandoDisponibilidade || semFotografo}>
+                  {salvando && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  {isEdit ? 'Salvar alterações' : 'Criar proposta'}
+                </Button>
+              )}
+            </div>
+          </StickyActionBar>
         </form>
       </FormProvider>
     </div>
