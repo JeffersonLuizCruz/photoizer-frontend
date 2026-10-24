@@ -15,7 +15,11 @@ import { ConfirmDialog } from '@/shared/components/layout/ConfirmDialog'
 import { ROUTES, AGENDAMENTO_STATUS, type AgendamentoStatus } from '@/shared/constants'
 import { useAgendamento, useFotosList, useUploadFotos, usePublicarFotos, useDeletarFoto, useUpdateFotoMetadata, useAlterarVisibilidade, useAlterarStatus, useSubstituirImagem, useComentariosAdmin } from '../api/queries'
 import { ComentariosDialog } from '../components/ComentariosDialog'
+import { UploadLoteError, type UploadProgress } from '../services/foto.service'
 import type { FotoEnsaio } from '@/features/ecommerce/types/ecommerce.types'
+
+/** Limite por imagem aceito pelo backend (FileValidator, contexto "image"). */
+const LIMITE_ARQUIVO_BYTES = 100 * 1024 * 1024
 
 const CATEGORIAS = [
   'Casamento',
@@ -128,6 +132,7 @@ export function AdminGaleriaPage() {
   const inputRef = useRef<HTMLInputElement>(null)
   const replaceInputRef = useRef<HTMLInputElement>(null)
   const [selectedFiles, setSelectedFiles] = useState<File[]>([])
+  const [uploadProgress, setUploadProgress] = useState<UploadProgress | null>(null)
   const [galeriaLink, setGaleriaLink] = useState<string | null>(null)
   const [editFoto, setEditFoto] = useState<FotoEnsaio | null>(null)
   const [replaceFotoId, setReplaceFotoId] = useState<string | null>(null)
@@ -148,6 +153,16 @@ export function AdminGaleriaPage() {
     () => new Map(comentariosAdmin.map((item) => [item.foto.id, item])),
     [comentariosAdmin]
   )
+
+  // Previews em state + effect: o progresso do upload re-renderiza a tela
+  // várias vezes e recriar os object URLs a cada render vazaria memória.
+  const [previews, setPreviews] = useState<{ file: File; url: string }[]>([])
+
+  useEffect(() => {
+    const novas = selectedFiles.map((file) => ({ file, url: URL.createObjectURL(file) }))
+    setPreviews(novas)
+    return () => novas.forEach((preview) => URL.revokeObjectURL(preview.url))
+  }, [selectedFiles])
 
   useEffect(() => {
     if (agendamento?.tokenGaleria) {
@@ -171,13 +186,43 @@ export function AdminGaleriaPage() {
   const destaques = fotos.filter((f) => f.destaque).length
 
   const handleUpload = () => {
-    if (selectedFiles.length === 0) return
-    uploadFotos(selectedFiles, {
-      onSuccess: () => setSelectedFiles([]),
-    })
+    if (selectedFiles.length === 0 || isUploading) return
+
+    const acimaDoLimite = selectedFiles.filter((file) => file.size > LIMITE_ARQUIVO_BYTES)
+    if (acimaDoLimite.length > 0) {
+      toast.error(
+        `Arquivo(s) acima de ${LIMITE_ARQUIVO_BYTES / (1024 * 1024)} MB: ${acimaDoLimite.map((f) => f.name).join(', ')}`
+      )
+      return
+    }
+
+    setUploadProgress(null)
+    uploadFotos(
+      { arquivos: selectedFiles, onProgress: setUploadProgress },
+      {
+        onSuccess: () => {
+          setSelectedFiles([])
+          setUploadProgress(null)
+        },
+        onError: (error) => {
+          setUploadProgress(null)
+          // Mantém selecionados apenas os arquivos que ainda não foram enviados.
+          if (error instanceof UploadLoteError) {
+            setSelectedFiles(error.restantes)
+          }
+        },
+      }
+    )
   }
 
   const allPublished = fotos.length > 0 && fotos.every((f) => f.status === 'PUBLICADA')
+
+  const percentualUpload = uploadProgress && uploadProgress.totalArquivos > 0
+    ? Math.min(100, Math.round(
+        ((uploadProgress.arquivosConcluidos + uploadProgress.percentualLote * uploadProgress.arquivosNoLote) /
+          uploadProgress.totalArquivos) * 100
+      ))
+    : 0
 
   const copiarLink = () => {
     if (galeriaLink) {
@@ -243,8 +288,10 @@ export function AdminGaleriaPage() {
         {uploadLiberado ? (
           <div className="rounded-xl border bg-card p-6">
             <div
-              onClick={() => inputRef.current?.click()}
-              className="flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed p-8 transition-colors hover:border-primary/50 hover:bg-muted/50"
+              onClick={() => { if (!isUploading) inputRef.current?.click() }}
+              className={`flex flex-col items-center justify-center rounded-lg border-2 border-dashed p-8 transition-colors ${
+                isUploading ? 'cursor-not-allowed opacity-60' : 'cursor-pointer hover:border-primary/50 hover:bg-muted/50'
+              }`}
             >
               <ImagePlus className="mb-2 h-10 w-10 text-muted-foreground" />
               <p className="text-sm font-medium">Toque para tirar fotos ou selecionar da galeria</p>
@@ -268,35 +315,51 @@ export function AdminGaleriaPage() {
             {selectedFiles.length > 0 && (
               <div className="mt-4 space-y-3">
                 <div className="flex flex-wrap gap-2">
-                  {selectedFiles.map((file, i) => (
-                    <div key={i} className="relative group">
+                  {previews.map(({ file, url }, i) => (
+                    <div key={`${file.name}-${file.size}-${i}`} className="relative group">
                       <img
-                        src={URL.createObjectURL(file)}
+                        src={url}
                         alt={file.name}
                         className="h-16 w-16 rounded-md object-cover border"
                       />
                       <button
                         type="button"
+                        disabled={isUploading}
                         onClick={() => setSelectedFiles((prev) => prev.filter((_, j) => j !== i))}
                         aria-label={`Remover ${file.name}`}
-                        className="absolute -top-1.5 -right-1.5 h-9 w-9 rounded-full bg-destructive text-destructive-foreground flex items-center justify-center opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity"
+                        className="absolute -top-1.5 -right-1.5 h-9 w-9 rounded-full bg-destructive text-destructive-foreground flex items-center justify-center opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity disabled:pointer-events-none disabled:opacity-40"
                       >
                         <X className="h-3 w-3" />
                       </button>
                     </div>
                   ))}
                 </div>
-                <div className="flex items-center gap-2">
-                  <p className="text-sm text-muted-foreground">{selectedFiles.length} arquivo(s) selecionado(s)</p>
-                  <Button size="sm" onClick={handleUpload} disabled={isUploading}>
-                    {isUploading ? (
-                      <Loader2 className="mr-1 h-4 w-4 animate-spin" />
-                    ) : (
+                {isUploading ? (
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between gap-2 text-sm">
+                      <span className="text-muted-foreground">
+                        {uploadProgress
+                          ? `Enviando lote ${uploadProgress.loteAtual}/${uploadProgress.totalLotes} — ${uploadProgress.arquivosConcluidos} de ${uploadProgress.totalArquivos} foto(s) concluída(s)`
+                          : 'Preparando envio…'}
+                      </span>
+                      <span className="font-medium tabular-nums">{percentualUpload}%</span>
+                    </div>
+                    <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
+                      <div
+                        className="h-full rounded-full bg-primary transition-all"
+                        style={{ width: `${percentualUpload}%` }}
+                      />
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2">
+                    <p className="text-sm text-muted-foreground">{selectedFiles.length} arquivo(s) selecionado(s)</p>
+                    <Button size="sm" onClick={handleUpload}>
                       <Upload className="mr-1 h-4 w-4" />
-                    )}
-                    Enviar
-                  </Button>
-                </div>
+                      Enviar
+                    </Button>
+                  </div>
+                )}
               </div>
             )}
           </div>

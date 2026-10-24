@@ -39,8 +39,10 @@ features/fotos/
 1. Admin acessa `/agenda/:agendamentoId/fotos` → `AdminGaleriaPage`.
 2. Carrega agendamento (`useAgendamento`) e lista de fotos (`useFotosList`).
 3. Upload e publicação liberados após o pagamento final, quando o status do agendamento for `EM_EDICAO` ou `FINALIZADO`.
-4. Grid de fotos com thumbnail, status badge, visibilidade, categoria, destaque.
-5. Ações por foto: editar metadados (diálogo inline), publicar/despublicar, toggle visibilidade, substituir imagem, deletar.
+4. Upload em **lotes de ~50MB/5 arquivos** (`fotoService.upload`), enviados em sequência com timeout próprio (`VITE_UPLOAD_TIMEOUT`, default 10 min). A tela mostra progresso por lote.
+5. Em falha no meio, os lotes já enviados permanecem salvos e a seleção mantém **apenas os arquivos restantes** (evita duplicar no retry).
+6. Grid de fotos com thumbnail, status badge, visibilidade, categoria, destaque.
+7. Ações por foto: editar metadados (diálogo inline), publicar/despublicar, toggle visibilidade, substituir imagem, deletar.
 
 ### Fluxo 2: Edição de Metadados
 1. `FotoMetadataDialog` (inline) permite editar: título, tags, categoria, destaque.

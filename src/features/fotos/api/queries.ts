@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
-import { fotoService } from '../services/foto.service'
+import { fotoService, UploadLoteError, type UploadProgress } from '../services/foto.service'
 import { extractErrorMessage } from '@/shared/api'
 
 export function useAgendamento(agendamentoId: string | undefined) {
@@ -19,15 +19,34 @@ export function useFotosList(agendamentoId: string | undefined) {
   })
 }
 
+export interface UploadFotosVariables {
+  arquivos: File[]
+  onProgress?: (progress: UploadProgress) => void
+}
+
 export function useUploadFotos(agendamentoId: string) {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: (arquivos: File[]) => fotoService.upload(agendamentoId, arquivos),
-    onSuccess: () => {
+    mutationFn: ({ arquivos, onProgress }: UploadFotosVariables) =>
+      fotoService.upload(agendamentoId, arquivos, onProgress),
+    onSuccess: (fotos) => {
       queryClient.invalidateQueries({ queryKey: ['fotos', agendamentoId] })
-      toast.success('Fotos enviadas com sucesso')
+      toast.success(`${fotos.length} foto(s) enviada(s) com sucesso`)
     },
-    onError: (error: Error) => toast.error(extractErrorMessage(error, 'Erro ao enviar fotos')),
+    onError: (error: Error) => {
+      if (error instanceof UploadLoteError) {
+        // Lotes anteriores já foram persistidos: atualiza a grade e avisa
+        // quantas fotos entraram antes da falha.
+        queryClient.invalidateQueries({ queryKey: ['fotos', agendamentoId] })
+        const detalhe = extractErrorMessage(error.causa, '')
+        const parcial = error.enviadas.length > 0
+          ? `${error.enviadas.length} foto(s) enviada(s); falhou no lote ${error.lote}/${error.totalLotes}. `
+          : ''
+        toast.error(`${parcial}${detalhe || 'Erro ao enviar fotos'}`)
+        return
+      }
+      toast.error(extractErrorMessage(error, 'Erro ao enviar fotos'))
+    },
   })
 }
 
