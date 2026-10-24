@@ -3,6 +3,7 @@ import { env } from '@/shared/config/env'
 import type { FotoEnsaio, CompraExtraResponse, AdminEcommerceResumoResponse, CarrinhoResponse, CalculoCarrinhoResponse, MetodoPagamento, AdminCompraDetalheResponse, AdminComprasRelatorioResponse, Avaliacao, Sessao, EcommerceAnalyticsResponse, DashboardEcommerceResponse, DashboardEcommerceMensalResponse, FotoComentario, ComentariosPorFotoResponse, ConfiguracaoPagamentoResponse } from '../types/ecommerce.types'
 import type { PacoteResponse } from '@/features/pacotes/types/pacotes.types'
 import type { AgendamentoCliente } from '@/features/auth/customer/types'
+import type { PaginatedResponse } from '@/shared/types'
 
 export interface GaleriaResponse {
   fotos: FotoEnsaio[]
@@ -231,7 +232,7 @@ export const ecommerceService = {
     dataFim?: string
     page?: number
     perPage?: number
-  }): Promise<any> => {
+  }): Promise<PaginatedResponse<CompraExtraResponse>> => {
     const { data } = await apiClient.get('/admin/ecommerce/compras', { params })
     return data
   },

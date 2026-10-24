@@ -1,4 +1,5 @@
 import { apiClient } from '@/shared/api'
+import type { PaginatedResponse } from '@/shared/types'
 
 export interface Notificacao {
   id: string
@@ -11,7 +12,7 @@ export interface Notificacao {
 }
 
 export const notificacaoService = {
-  listar: async (page = 0, size = 50): Promise<{ content: Notificacao[]; totalElements: number; totalPages: number }> => {
+  listar: async (page = 1, size = 50): Promise<PaginatedResponse<Notificacao>> => {
     const { data } = await apiClient.get('/notificacoes', { params: { page, size } })
     return data
   },

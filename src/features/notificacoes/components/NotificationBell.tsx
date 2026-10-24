@@ -24,7 +24,7 @@ export function NotificationBell() {
   const navigate = useNavigate()
 
   const { data: notificacoesData } = useNotificacoes()
-  const notificacoes = notificacoesData?.content ?? []
+  const notificacoes = notificacoesData?.data ?? []
   const { data: naoLidas = 0 } = useNotificacoesNaoLidas()
   const marcarLida = useMarcarComoLida()
   const marcarTodas = useMarcarTodasComoLidas()

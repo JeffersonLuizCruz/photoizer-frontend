@@ -44,20 +44,11 @@ export function AdminEcommercePage() {
 
   const { data: pageData, isLoading } = useQuery({
     queryKey: ['admin-compras', page, perPage, statusFilter],
-    queryFn: async () => {
-      const response = await ecommerceService.adminListarCompras({
-        status: statusFilter,
-        page: page + 1,
-        perPage,
-      })
-      return response as {
-        content: CompraExtraResponse[]
-        totalElements: number
-        totalPages: number
-        number: number
-        size: number
-      }
-    },
+    queryFn: () => ecommerceService.adminListarCompras({
+      status: statusFilter,
+      page: page + 1,
+      perPage,
+    }),
   })
 
   const { data: relatorio } = useQuery({
@@ -233,7 +224,7 @@ export function AdminEcommercePage() {
         </div>
         <DataTable
           columns={columns}
-          data={pageData?.content ?? []}
+          data={pageData?.data ?? []}
           isLoading={isLoading}
           pageCount={pageData?.totalPages ?? 0}
           pageIndex={page}
