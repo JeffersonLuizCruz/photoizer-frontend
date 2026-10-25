@@ -76,8 +76,9 @@ function AgendaPageContent() {
     } = {}
 
     if (statusFilter) params.status = statusFilter as AgendamentoStatus
-    if (dateRange?.from) params.dataInicio = format(dateRange.from, 'yyyy-MM-dd')
-    if (dateRange?.to) params.dataFim = format(dateRange.to, 'yyyy-MM-dd')
+    // O backend espera LocalDateTime (ISO date-time), não data pura.
+    if (dateRange?.from) params.dataInicio = format(startOfDay(dateRange.from), "yyyy-MM-dd'T'HH:mm:ss")
+    if (dateRange?.to) params.dataFim = format(endOfDay(dateRange.to), "yyyy-MM-dd'T'HH:mm:ss")
     if (debouncedClientSearch) params.search = debouncedClientSearch
 
     return params

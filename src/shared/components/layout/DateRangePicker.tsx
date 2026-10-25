@@ -59,7 +59,7 @@ export function DateRangePicker({
       <div className={cn('grid gap-2', className)}>
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>{trigger}</DialogTrigger>
-          <DialogContent className="w-full max-w-md">
+          <DialogContent className="z-[60] w-full max-w-md">
             <DialogTitle className="sr-only">Selecionar período</DialogTitle>
             <Calendar
               mode="range"

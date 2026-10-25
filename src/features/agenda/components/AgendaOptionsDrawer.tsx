@@ -57,10 +57,10 @@ export function AgendaOptionsDrawer({
   return (
     <DialogPrimitive.Root open={open} onOpenChange={onOpenChange}>
       <DialogPrimitive.Portal>
-        <DialogPrimitive.Overlay className="fixed inset-0 z-[60] bg-black/40 data-[state=closed]:opacity-0 data-[state=open]:opacity-100 transition-opacity" />
+        <DialogPrimitive.Overlay className="fixed inset-0 z-50 bg-black/40 data-[state=closed]:opacity-0 data-[state=open]:opacity-100 transition-opacity" />
         <DialogPrimitive.Content
           className={cn(
-            'fixed inset-y-0 left-0 z-[60] flex w-[85%] max-w-sm flex-col bg-background shadow-xl',
+            'fixed inset-y-0 left-0 z-50 flex w-[85%] max-w-sm flex-col bg-background shadow-xl',
             'pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)]',
             'data-[state=closed]:-translate-x-full data-[state=open]:translate-x-0 transition-transform duration-300 ease-in-out focus:outline-none',
           )}

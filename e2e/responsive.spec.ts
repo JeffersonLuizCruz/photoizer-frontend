@@ -467,6 +467,52 @@ test.describe('Agenda - visual Google Calendar (mobile)', () => {
     await expect(drawer).toBeVisible()
     await expect(drawer.getByText('Editor', { exact: true })).toHaveCount(0)
   })
+
+  test('filtros de status e período aplicam no drawer mobile', async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 })
+    await seedAdminAuth(page)
+    await mockAgendaApi(page, [AGENDAMENTO_HOJE])
+    await page.goto('/agenda')
+    await page.waitForTimeout(1200)
+
+    await page.getByRole('button', { name: 'Abrir opções da agenda' }).click()
+    const drawer = page.getByRole('dialog', { name: 'Opções da agenda' })
+    await expect(drawer).toBeVisible()
+
+    // O dropdown do Radix é portalizado para o body; se ficar atrás do overlay
+    // do drawer o clique é interceptado e o Playwright falha ao selecionar.
+    const statusRequest = page.waitForRequest(
+      (req) => req.url().includes('/agendamentos?') && req.url().includes('status=PRE_RESERVA'),
+    )
+    await drawer.getByRole('combobox').first().click()
+    await page.getByRole('option', { name: 'Pré-reserva' }).click()
+    await statusRequest
+    await expect(drawer.getByRole('combobox').first()).toContainText('Pré-reserva')
+
+    // O seletor de período abre um Dialog aninhado, que também precisa ficar
+    // acima do drawer para receber os cliques.
+    const periodRequest = page.waitForRequest(
+      (req) =>
+        req.url().includes('/agendamentos?') &&
+        req.url().includes('dataInicio=') &&
+        req.url().includes('dataFim='),
+    )
+    await drawer.getByRole('button', { name: 'Filtrar por período' }).click()
+    const calendar = page.getByRole('dialog', { name: 'Selecionar período' })
+    await expect(calendar).toBeVisible()
+
+    const days = calendar.locator('[role="gridcell"] button')
+    // O range do react-day-picker já fecha com o mesmo dia como início/fim
+    // quando `min` não é informado; um clique basta para disparar o filtro.
+    await days.nth(10).click()
+
+    const url = new URL((await periodRequest).url())
+    const dataInicio = url.searchParams.get('dataInicio')
+    const dataFim = url.searchParams.get('dataFim')
+    expect(dataInicio).toMatch(/T00:00:00$/)
+    expect(dataFim).toMatch(/T23:59:59$/)
+    expect(dataInicio?.slice(0, 10)).toBe(dataFim?.slice(0, 10))
+  })
 })
 
 test.describe('Agendamento detalhes responsivo', () => {
@@ -834,7 +880,7 @@ test.describe('Agendamento avulso', () => {
 
     await page.getByRole('button', { name: /Selecione a data/ }).click()
     const { dia } = futuro()
-    await page.locator('[role="gridcell"] button').filter({ hasText: new RegExp(`^${dia}$`) }).first().click()
+    await page.locator('[role="gridcell"] button:not([disabled])').filter({ hasText: new RegExp(`^${dia}$`) }).first().click()
 
     await page.getByRole('button', { name: 'Horário *' }).click()
     await page.getByRole('radio', { name: '09:00' }).click()
