@@ -8,6 +8,7 @@ import { Input } from '@/shared/components/ui/input'
 import { Badge } from '@/shared/components/ui/badge'
 import { openProtected } from '@/shared/api/protectedResource'
 import { ROUTES } from '@/shared/constants'
+import { copyToClipboard } from '@/shared/lib/clipboard'
 import type { Agendamento } from '../types'
 
 interface AgendamentoContratoProps {
@@ -70,15 +71,23 @@ export function AgendamentoContrato({ agendamento, onUpdateClausulas }: Agendame
 
   const handleCopy = async () => {
     const texto = montarResumoWhatsApp(agendamento)
-    await navigator.clipboard.writeText(texto)
-    setCopied(true)
-    setTimeout(() => setCopied(false), 2000)
+    try {
+      await copyToClipboard(texto)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    } catch {
+      toast.error('Não foi possível copiar o resumo')
+    }
   }
 
-  const handleCopiarLink = () => {
+  const handleCopiarLink = async () => {
     if (!linkProposta) return
-    navigator.clipboard.writeText(linkProposta)
-    toast.success('Link da proposta copiado')
+    try {
+      await copyToClipboard(linkProposta)
+      toast.success('Link da proposta copiado')
+    } catch {
+      toast.error('Não foi possível copiar o link')
+    }
   }
 
   const handleClausulasChange = (value: string) => {

@@ -13,6 +13,7 @@ import { Checkbox } from '@/shared/components/ui/checkbox'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/components/ui/select'
 import { ConfirmDialog } from '@/shared/components/layout/ConfirmDialog'
 import { ROUTES, AGENDAMENTO_STATUS, type AgendamentoStatus } from '@/shared/constants'
+import { copyToClipboard } from '@/shared/lib/clipboard'
 import { useAgendamento, useFotosList, useUploadFotos, usePublicarFotos, useDeletarFoto, useDeletarFotosEmLote, useUpdateFotoMetadata, useAlterarVisibilidade, useAlterarStatus, useSubstituirImagem, useComentariosAdmin } from '../api/queries'
 import { ComentariosDialog } from '../components/ComentariosDialog'
 import { UploadLoteError, type UploadProgress } from '../services/foto.service'
@@ -271,10 +272,16 @@ export function AdminGaleriaPage() {
       ))
     : 0
 
-  const copiarLink = () => {
-    if (galeriaLink) {
-      navigator.clipboard.writeText(galeriaLink)
+  const copiarLink = async () => {
+    if (!galeriaLink) {
+      toast.error('Link da galeria não disponível')
+      return
+    }
+    try {
+      await copyToClipboard(galeriaLink)
       toast.success('Link da galeria copiado!')
+    } catch {
+      toast.error('Não foi possível copiar o link')
     }
   }
 

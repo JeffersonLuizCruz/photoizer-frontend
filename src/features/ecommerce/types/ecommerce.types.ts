@@ -45,8 +45,8 @@ export interface AdminEcommerceResumoResponse {
   valorTotalExtras: number
   favoritosPorFoto: Record<string, number>
   fotosFavoritas: number
-  linkGaleria: string
-  tokenGaleria: string
+  linkGaleria: string | null
+  tokenGaleria: string | null
 }
 
 export interface CarrinhoItemResponse {

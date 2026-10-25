@@ -46,6 +46,7 @@ import { openProtected } from '@/shared/api/protectedResource'
 import { ROUTES, AGENDAMENTO_STATUS } from '@/shared/constants'
 import { formatCurrency } from '@/shared/lib/format'
 import { cn } from '@/shared/lib/cn'
+import { copyToClipboard } from '@/shared/lib/clipboard'
 import { useAuth } from '@/features/auth/AuthProvider'
 import {
   usePropostasList,
@@ -127,8 +128,12 @@ export function PropostasPage() {
       toast.error('Esta proposta não possui link ativo')
       return
     }
-    await navigator.clipboard.writeText(link)
-    toast.success('Link copiado para a área de transferência')
+    try {
+      await copyToClipboard(link)
+      toast.success('Link copiado para a área de transferência')
+    } catch {
+      toast.error('Não foi possível copiar o link')
+    }
   }
 
   const abrirComprovante = (p: Proposta) =>

@@ -4,15 +4,27 @@ import { toast } from 'sonner'
 import { useNavigate } from 'react-router-dom'
 import { ecommerceService } from '@/features/ecommerce/services/ecommerce.service'
 import { Button } from '@/shared/components/ui/button'
+import { Input } from '@/shared/components/ui/input'
 import { StatusBadge } from '@/shared/components/layout/StatusBadge'
 import { ConfirmDialog } from '@/shared/components/layout/ConfirmDialog'
 import { AdminLinkPagamentoDialog } from './AdminLinkPagamentoDialog'
 import { AuthImage } from '@/shared/components/ui/AuthImage'
 import { openProtected, extractErrorMessage } from '@/shared/api'
+import { copyToClipboard } from '@/shared/lib/clipboard'
 import { useState } from 'react'
 
 function formatCurrency(value: number): string {
   return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value)
+}
+
+function resolverLinkGaleria(linkGaleria: string | null, tokenGaleria: string | null): string | null {
+  const candidato = linkGaleria?.trim() || (tokenGaleria ? `/g/${tokenGaleria}` : null)
+  if (!candidato) return null
+  try {
+    return new URL(candidato, window.location.origin).toString()
+  } catch {
+    return null
+  }
 }
 
 interface EcommerceAdminResumoProps {
@@ -91,15 +103,19 @@ export function EcommerceAdminResumo({ agendamentoId }: EcommerceAdminResumoProp
     )
   }
 
-  const copiarLink = () => {
-    const path = data.linkGaleria || (data.tokenGaleria ? `/g/${data.tokenGaleria}` : null)
-    if (!path) {
+  const linkGaleria = resolverLinkGaleria(data.linkGaleria, data.tokenGaleria)
+
+  const copiarLink = async () => {
+    if (!linkGaleria) {
       toast.error('Link da galeria não disponível')
       return
     }
-    const link = `${window.location.origin}${path}`
-    navigator.clipboard.writeText(link)
-    toast.success('Link da galeria copiado!')
+    try {
+      await copyToClipboard(linkGaleria)
+      toast.success('Link da galeria copiado!')
+    } catch {
+      toast.error('Não foi possível copiar o link. Copie manualmente o endereço exibido.')
+    }
   }
 
   const totalCurtidas = Object.values(data.favoritosPorFoto ?? {}).reduce((acc, n) => acc + n, 0)
@@ -126,6 +142,19 @@ export function EcommerceAdminResumo({ agendamentoId }: EcommerceAdminResumoProp
           </Button>
         </div>
       </div>
+
+      {linkGaleria && (
+        <div className="flex flex-wrap items-center gap-2 rounded-lg border bg-muted/30 p-2">
+          <Link2 className="ml-1 h-4 w-4 shrink-0 text-muted-foreground" />
+          <Input
+            value={linkGaleria}
+            readOnly
+            aria-label="Link público da galeria"
+            className="min-w-0 flex-1 basis-full bg-background text-xs sm:basis-auto"
+            onFocus={(event) => event.currentTarget.select()}
+          />
+        </div>
+      )}
 
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7 gap-3">
         <div className="rounded-lg border bg-card p-3">
