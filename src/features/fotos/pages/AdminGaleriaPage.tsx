@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useMemo } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { Upload, Trash2, Send, ImagePlus, X, Loader2, Link2, Star, Pencil, Eye, EyeOff, RefreshCw, MessageCircle } from 'lucide-react'
+import { Upload, Trash2, Send, ImagePlus, X, Loader2, Link2, Star, Pencil, Eye, EyeOff, RefreshCw, MessageCircle, Check, Lock } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/shared/components/ui/button'
 import { PageTitle } from '@/shared/components/layout/PageTitle'
@@ -13,7 +13,7 @@ import { Checkbox } from '@/shared/components/ui/checkbox'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/components/ui/select'
 import { ConfirmDialog } from '@/shared/components/layout/ConfirmDialog'
 import { ROUTES, AGENDAMENTO_STATUS, type AgendamentoStatus } from '@/shared/constants'
-import { useAgendamento, useFotosList, useUploadFotos, usePublicarFotos, useDeletarFoto, useUpdateFotoMetadata, useAlterarVisibilidade, useAlterarStatus, useSubstituirImagem, useComentariosAdmin } from '../api/queries'
+import { useAgendamento, useFotosList, useUploadFotos, usePublicarFotos, useDeletarFoto, useDeletarFotosEmLote, useUpdateFotoMetadata, useAlterarVisibilidade, useAlterarStatus, useSubstituirImagem, useComentariosAdmin } from '../api/queries'
 import { ComentariosDialog } from '../components/ComentariosDialog'
 import { UploadLoteError, type UploadProgress } from '../services/foto.service'
 import type { FotoEnsaio } from '@/features/ecommerce/types/ecommerce.types'
@@ -33,6 +33,20 @@ const CATEGORIAS = [
   'Retrato',
   'Outros',
 ]
+
+/**
+ * Fotos já entregues (pacote) ou vinculadas a uma compra pendente/paga não
+ * podem ser removidas para não quebrar download e carrinho do cliente.
+ */
+function fotoProtegida(foto: FotoEnsaio): boolean {
+  return (
+    foto.compraExtraId !== null ||
+    foto.selecionadaPacote ||
+    foto.status === 'PAGA' ||
+    foto.status === 'AGUARDANDO_COMPROVANTE' ||
+    foto.status === 'AGUARDANDO_CONFIRMACAO'
+  )
+}
 
 function FotoMetadataDialog({ agendamentoId, foto, open, onOpenChange }: {
   agendamentoId: string
@@ -138,12 +152,16 @@ export function AdminGaleriaPage() {
   const [replaceFotoId, setReplaceFotoId] = useState<string | null>(null)
   const [confirmDeleteFotoId, setConfirmDeleteFotoId] = useState<string | null>(null)
   const [comentariosFoto, setComentariosFoto] = useState<FotoEnsaio | null>(null)
+  const [modoSelecao, setModoSelecao] = useState(false)
+  const [selecionadas, setSelecionadas] = useState<Set<string>>(new Set())
+  const [confirmDeleteLote, setConfirmDeleteLote] = useState(false)
 
   const { data: fotos = [], isLoading } = useFotosList(id)
   const { data: comentariosAdmin = [] } = useComentariosAdmin(id)
   const { mutate: uploadFotos, isPending: isUploading } = useUploadFotos(id ?? '')
   const { mutate: publicar, isPending: isPublishing } = usePublicarFotos(id ?? '')
   const { mutate: deletar } = useDeletarFoto(id ?? '')
+  const { mutate: deletarEmLote, isPending: isDeletingLote } = useDeletarFotosEmLote(id ?? '')
   const { mutate: alterarVisibilidade } = useAlterarVisibilidade(id ?? '')
   const { mutate: alterarStatus } = useAlterarStatus(id ?? '')
   const { mutate: substituirImagem, isPending: isReplacing } = useSubstituirImagem(id ?? '')
@@ -184,6 +202,35 @@ export function AdminGaleriaPage() {
   const publicadas = fotos.filter((f) => f.status === 'PUBLICADA').length
   const ocultas = fotos.filter((f) => !f.visivel).length
   const destaques = fotos.filter((f) => f.destaque).length
+
+  const fotosSelecionaveis = fotos.filter((f) => !fotoProtegida(f))
+  const totalProtegidas = fotos.length - fotosSelecionaveis.length
+  const todasSelecionadas =
+    fotosSelecionaveis.length > 0 && fotosSelecionaveis.every((f) => selecionadas.has(f.id))
+
+  const cancelarSelecao = () => {
+    setModoSelecao(false)
+    setSelecionadas(new Set())
+  }
+
+  const toggleSelecao = (foto: FotoEnsaio) => {
+    if (fotoProtegida(foto)) return
+    setSelecionadas((prev) => {
+      const next = new Set(prev)
+      if (next.has(foto.id)) {
+        next.delete(foto.id)
+      } else {
+        next.add(foto.id)
+      }
+      return next
+    })
+  }
+
+  const toggleTodas = () => {
+    setSelecionadas(
+      todasSelecionadas ? new Set() : new Set(fotosSelecionaveis.map((f) => f.id)),
+    )
+  }
 
   const handleUpload = () => {
     if (selectedFiles.length === 0 || isUploading) return
@@ -264,7 +311,20 @@ export function AdminGaleriaPage() {
           { label: 'Fotos' },
         ]}
         actions={
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
+            {fotos.length > 0 && (
+              modoSelecao ? (
+                <Button variant="outline" size="sm" onClick={cancelarSelecao}>
+                  <X className="mr-1 h-4 w-4" />
+                  Cancelar seleção
+                </Button>
+              ) : (
+                <Button variant="outline" size="sm" onClick={() => setModoSelecao(true)}>
+                  <Check className="mr-1 h-4 w-4" />
+                  Selecionar fotos
+                </Button>
+              )
+            )}
             {galeriaLink && (
               <Button variant="outline" size="sm" onClick={copiarLink}>
                 <Link2 className="mr-1 h-4 w-4" />
@@ -389,6 +449,38 @@ export function AdminGaleriaPage() {
           <span>Destaque: <strong className="text-amber-500">{destaques}</strong></span>
         </div>
 
+        {modoSelecao && (
+          <div className="flex flex-wrap items-center gap-2 rounded-lg border bg-card p-3">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={toggleTodas}
+              disabled={fotosSelecionaveis.length === 0 || isDeletingLote}
+            >
+              {todasSelecionadas ? 'Desmarcar todas' : `Selecionar todas (${fotosSelecionaveis.length})`}
+            </Button>
+            <span className="text-sm text-muted-foreground">
+              {selecionadas.size} selecionada(s)
+              {totalProtegidas > 0 ? ` · ${totalProtegidas} protegida(s)` : ''}
+            </span>
+            <div className="ml-auto">
+              <Button
+                variant="destructive"
+                size="sm"
+                onClick={() => setConfirmDeleteLote(true)}
+                disabled={selecionadas.size === 0 || isDeletingLote}
+              >
+                {isDeletingLote ? (
+                  <Loader2 className="mr-1 h-4 w-4 animate-spin" />
+                ) : (
+                  <Trash2 className="mr-1 h-4 w-4" />
+                )}
+                Remover selecionadas ({selecionadas.size})
+              </Button>
+            </div>
+          </div>
+        )}
+
         {isLoading ? (
           <div className="grid grid-cols-4 md:grid-cols-6 gap-3">
             {Array.from({ length: 8 }).map((_, i) => (
@@ -404,7 +496,7 @@ export function AdminGaleriaPage() {
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
             {fotos.map((foto) => (
-              <div key={foto.id} className={`group relative rounded-lg border bg-card overflow-hidden ${!foto.visivel ? 'opacity-50' : ''}`}>
+              <div key={foto.id} className={`group relative rounded-lg border bg-card overflow-hidden ${!foto.visivel ? 'opacity-50' : ''} ${modoSelecao && selecionadas.has(foto.id) ? 'ring-2 ring-primary ring-offset-2 ring-offset-background' : ''} ${modoSelecao && fotoProtegida(foto) ? 'opacity-60' : ''}`}>
                 <div className="aspect-[3/2] relative">
                   {foto.destaque && (
                     <div className="absolute top-1 left-1 z-10">
@@ -438,7 +530,35 @@ export function AdminGaleriaPage() {
                     alt={foto.fileName}
                     className="h-full w-full object-cover"
                   />
-                  <div className="absolute inset-0 bg-black/20 md:bg-black/0 transition-colors flex items-center justify-center gap-1.5 flex-wrap px-1.5 opacity-100 md:opacity-0 md:group-hover:bg-black/30 md:group-hover:opacity-100">
+                  {modoSelecao && (
+                    <button
+                      type="button"
+                      onClick={() => toggleSelecao(foto)}
+                      disabled={fotoProtegida(foto)}
+                      aria-pressed={selecionadas.has(foto.id)}
+                      aria-label={
+                        fotoProtegida(foto)
+                          ? `Foto protegida: ${foto.fileName}`
+                          : `${selecionadas.has(foto.id) ? 'Desmarcar' : 'Selecionar'} ${foto.fileName}`
+                      }
+                      title={fotoProtegida(foto) ? 'Vinculada a compra/pacote — não pode ser removida' : undefined}
+                      className="absolute inset-0 z-20 flex items-start justify-start p-2 disabled:cursor-not-allowed"
+                    >
+                      <span
+                        className={`flex h-6 w-6 items-center justify-center rounded-md border-2 shadow-sm ${
+                          fotoProtegida(foto)
+                            ? 'border-muted-foreground/60 bg-background/90 text-muted-foreground'
+                            : selecionadas.has(foto.id)
+                              ? 'border-primary bg-primary text-primary-foreground'
+                              : 'border-white bg-black/30 text-transparent'
+                        }`}
+                      >
+                        {fotoProtegida(foto) ? <Lock className="h-3.5 w-3.5" /> : <Check className="h-3.5 w-3.5" />}
+                      </span>
+                    </button>
+                  )}
+                  {!modoSelecao && (
+                    <div className="absolute inset-0 bg-black/20 md:bg-black/0 transition-colors flex items-center justify-center gap-1.5 flex-wrap px-1.5 opacity-100 md:opacity-0 md:group-hover:bg-black/30 md:group-hover:opacity-100">
                     <button
                       type="button"
                       onClick={() => setEditFoto(foto)}
@@ -496,15 +616,27 @@ export function AdminGaleriaPage() {
                     >
                       <RefreshCw className="h-4 w-4" />
                     </button>
-                    <button
-                      type="button"
-                      onClick={() => setConfirmDeleteFotoId(foto.id)}
-                      className="h-10 w-10 rounded-full bg-destructive text-destructive-foreground flex items-center justify-center"
-                      title="Remover permanentemente"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </button>
-                  </div>
+                    {fotoProtegida(foto) ? (
+                      <button
+                        type="button"
+                        disabled
+                        className="h-10 w-10 rounded-full bg-muted text-muted-foreground flex items-center justify-center cursor-not-allowed"
+                        title="Vinculada a compra/pacote — não pode ser removida"
+                      >
+                        <Lock className="h-4 w-4" />
+                      </button>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => setConfirmDeleteFotoId(foto.id)}
+                        className="h-10 w-10 rounded-full bg-destructive text-destructive-foreground flex items-center justify-center"
+                        title="Remover permanentemente"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    )}
+                    </div>
+                  )}
                 </div>
                 <div className="p-2">
                   <p className="text-xs truncate text-muted-foreground">{foto.titulo || foto.fileName}</p>
@@ -519,6 +651,11 @@ export function AdminGaleriaPage() {
                     {!foto.visivel && (
                       <span className="text-[10px] text-muted-foreground bg-muted px-1.5 py-0.5 rounded-sm flex items-center gap-0.5">
                         <EyeOff className="h-3 w-3" /> Oculta
+                      </span>
+                    )}
+                    {fotoProtegida(foto) && (
+                      <span className="text-[10px] text-muted-foreground bg-muted px-1.5 py-0.5 rounded-sm flex items-center gap-0.5">
+                        <Lock className="h-3 w-3" /> Protegida
                       </span>
                     )}
                     {foto.categoria && (
@@ -544,6 +681,26 @@ export function AdminGaleriaPage() {
         title="Remover foto?"
         description="Esta ação irá deletar permanentemente a foto e seus arquivos. Esta operação não pode ser desfeita."
         confirmText="Remover"
+        variant="destructive"
+      />
+
+      <ConfirmDialog
+        open={confirmDeleteLote}
+        onOpenChange={(open) => { if (!open) setConfirmDeleteLote(false) }}
+        onConfirm={() => {
+          deletarEmLote(Array.from(selecionadas), {
+            onSuccess: () => {
+              setConfirmDeleteLote(false)
+              setModoSelecao(false)
+              setSelecionadas(new Set())
+            },
+            onError: () => setConfirmDeleteLote(false),
+          })
+        }}
+        isLoading={isDeletingLote}
+        title={`Remover ${selecionadas.size} foto(s)?`}
+        description="Esta ação irá deletar permanentemente as fotos selecionadas e seus arquivos. Esta operação não pode ser desfeita."
+        confirmText="Remover selecionadas"
         variant="destructive"
       />
 

@@ -8,8 +8,8 @@ Gerencia as fotos de um agendamento no contexto administrativo — upload, publi
 features/fotos/
 ├── index.ts                          # Barrel: AdminGaleriaPage
 ├── types/foto.types.ts               # Re-exporta FotoEnsaio de @/features/ecommerce/types
-├── services/foto.service.ts          # HTTP: 9 métodos (CRUD fotos + metadados)
-├── api/queries.ts                    # 9 hooks: 2 queries + 7 mutations
+├── services/foto.service.ts          # HTTP: 13 métodos (CRUD fotos + metadados + lote + comentários)
+├── api/queries.ts                    # 13 hooks: 2 queries + 11 mutations
 ├── pages/
 │   └── AdminGaleriaPage.tsx          # Galeria admin com grid, upload, edição de metadados
 └── components/                       # (vazio — FotoMetadataDialog é inline na page)
@@ -43,6 +43,8 @@ features/fotos/
 5. Em falha no meio, os lotes já enviados permanecem salvos e a seleção mantém **apenas os arquivos restantes** (evita duplicar no retry).
 6. Grid de fotos com thumbnail, status badge, visibilidade, categoria, destaque.
 7. Ações por foto: editar metadados (diálogo inline), publicar/despublicar, toggle visibilidade, substituir imagem, deletar.
+8. **Seleção em lote**: botão "Selecionar fotos" ativa checkboxes nos cards; a barra de ações permite selecionar todas, limpar e remover as selecionadas com confirmação. A remoção é atômica via `POST /agendamentos/{id}/fotos/remover-lote`.
+9. **Fotos protegidas**: fotos com `compraExtraId`, `selecionadaPacote` ou status `PAGA`/`AGUARDANDO_*` não podem ser selecionadas nem removidas (ícone de cadeado), para preservar download e carrinho do cliente.
 
 ### Fluxo 2: Edição de Metadados
 1. `FotoMetadataDialog` (inline) permite editar: título, tags, categoria, destaque.

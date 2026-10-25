@@ -160,6 +160,14 @@ export const fotoService = {
     await apiClient.delete(`/agendamentos/${agendamentoId}/fotos/${fotoId}`)
   },
 
+  removerEmLote: async (agendamentoId: string, fotoIds: string[]): Promise<{ removidas: number }> => {
+    const { data } = await apiClient.post<{ removidas: number }>(
+      `/agendamentos/${agendamentoId}/fotos/remover-lote`,
+      { fotoIds },
+    )
+    return data
+  },
+
   alterarVisibilidade: async (agendamentoId: string, fotoId: string, visivel: boolean): Promise<FotoEnsaio> => {
     const { data } = await apiClient.patch<FotoEnsaio>(
       `/agendamentos/${agendamentoId}/fotos/${fotoId}/visibilidade`,

@@ -81,9 +81,23 @@ export function useDeletarFoto(agendamentoId: string) {
     mutationFn: (fotoId: string) => fotoService.deletar(agendamentoId, fotoId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['fotos', agendamentoId] })
+      queryClient.invalidateQueries({ queryKey: ['comentarios-fotos', agendamentoId] })
       toast.success('Foto removida')
     },
     onError: (error: Error) => toast.error(extractErrorMessage(error, 'Erro ao remover foto')),
+  })
+}
+
+export function useDeletarFotosEmLote(agendamentoId: string) {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (fotoIds: string[]) => fotoService.removerEmLote(agendamentoId, fotoIds),
+    onSuccess: ({ removidas }) => {
+      queryClient.invalidateQueries({ queryKey: ['fotos', agendamentoId] })
+      queryClient.invalidateQueries({ queryKey: ['comentarios-fotos', agendamentoId] })
+      toast.success(`${removidas} foto(s) removida(s)`)
+    },
+    onError: (error: Error) => toast.error(extractErrorMessage(error, 'Erro ao remover fotos')),
   })
 }
 
