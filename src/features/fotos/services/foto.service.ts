@@ -3,10 +3,14 @@ import { env } from '@/shared/config/env'
 import type { FotoEnsaio, FotoComentario, ComentariosPorFotoResponse } from '../types/foto.types'
 import type { AgendamentoStatus } from '@/shared/constants'
 
-interface AgendamentoRef {
+export interface AgendamentoRef {
   id: string
   tokenGaleria: string
   status: AgendamentoStatus
+  clienteNome?: string | null
+  pacoteNome?: string | null
+  dataHoraEnsaio?: string | null
+  localEnsaio?: string | null
 }
 
 /**
@@ -156,6 +160,11 @@ export const fotoService = {
     return data
   },
 
+  renumerar: async (agendamentoId: string): Promise<FotoEnsaio[]> => {
+    const { data } = await apiClient.post<FotoEnsaio[]>(`/agendamentos/${agendamentoId}/fotos/renumerar`)
+    return data
+  },
+
   deletar: async (agendamentoId: string, fotoId: string): Promise<void> => {
     await apiClient.delete(`/agendamentos/${agendamentoId}/fotos/${fotoId}`)
   },
@@ -182,6 +191,17 @@ export const fotoService = {
       `/agendamentos/${agendamentoId}/fotos/${fotoId}/status`,
       null,
       { params: { status } }
+    )
+    return data
+  },
+
+  uploadEditada: async (agendamentoId: string, fotoId: string, arquivo: File): Promise<FotoEnsaio> => {
+    const formData = new FormData()
+    formData.append('arquivo', arquivo)
+    const { data } = await apiClient.put<FotoEnsaio>(
+      `/agendamentos/${agendamentoId}/fotos/${fotoId}/editada`,
+      formData,
+      { timeout: env.VITE_UPLOAD_TIMEOUT },
     )
     return data
   },

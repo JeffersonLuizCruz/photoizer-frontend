@@ -5,16 +5,43 @@ import { cn } from '@/shared/lib/cn'
 interface AuthImageProps extends React.ImgHTMLAttributes<HTMLImageElement> {
   src: string
   fallback?: string
+  /** Carrega imediatamente, sem esperar o IntersectionObserver (ex.: capa). */
+  priority?: boolean
 }
 
-export function AuthImage({ src, fallback, className, alt, ...props }: AuthImageProps) {
+export function AuthImage({ src, fallback, className, alt, priority = false, ...props }: AuthImageProps) {
   const [blobUrl, setBlobUrl] = useState<string | null>(null)
   const [error, setError] = useState(false)
   const [loading, setLoading] = useState(true)
+  const [shouldLoad, setShouldLoad] = useState(priority)
   const abortRef = useRef<AbortController | null>(null)
   const objectUrlRef = useRef<string | null>(null)
+  const containerRef = useRef<HTMLDivElement | null>(null)
+
+  // Galerias grandes têm centenas de miniaturas: só busca a imagem quando ela
+  // se aproxima da viewport. `priority` mantém capa/hero imediatos.
+  useEffect(() => {
+    if (shouldLoad) return
+    const elemento = containerRef.current
+    if (!elemento || typeof IntersectionObserver === 'undefined') {
+      setShouldLoad(true)
+      return
+    }
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((entry) => entry.isIntersecting)) {
+          setShouldLoad(true)
+          observer.disconnect()
+        }
+      },
+      { rootMargin: '300px' },
+    )
+    observer.observe(elemento)
+    return () => observer.disconnect()
+  }, [shouldLoad])
 
   useEffect(() => {
+    if (!shouldLoad) return
     if (!src) {
       setLoading(false)
       setError(true)
@@ -50,12 +77,17 @@ export function AuthImage({ src, fallback, className, alt, ...props }: AuthImage
       controller.abort()
       if (objectUrlRef.current) {
         URL.revokeObjectURL(objectUrlRef.current)
+        objectUrlRef.current = null
       }
     }
-  }, [src])
+  }, [src, shouldLoad])
+
+  if (!shouldLoad) {
+    return <div ref={containerRef} className={cn('animate-pulse rounded-md bg-muted', className)} />
+  }
 
   if (loading) {
-    return <div className={cn('animate-pulse rounded-md bg-muted', className)} />
+    return <div ref={containerRef} className={cn('animate-pulse rounded-md bg-muted', className)} />
   }
 
   if (error || !blobUrl) {
@@ -83,6 +115,7 @@ export function AuthImage({ src, fallback, className, alt, ...props }: AuthImage
       src={blobUrl}
       alt={alt ?? ''}
       className={className}
+      loading={priority ? 'eager' : 'lazy'}
       {...props}
     />
   )

@@ -1,6 +1,6 @@
 import { apiClient } from '@/shared/api'
 import { env } from '@/shared/config/env'
-import type { FotoEnsaio, CompraExtraResponse, AdminEcommerceResumoResponse, CarrinhoResponse, CalculoCarrinhoResponse, MetodoPagamento, AdminCompraDetalheResponse, AdminComprasRelatorioResponse, Avaliacao, Sessao, EcommerceAnalyticsResponse, DashboardEcommerceResponse, DashboardEcommerceMensalResponse, FotoComentario, ComentariosPorFotoResponse, ConfiguracaoPagamentoResponse } from '../types/ecommerce.types'
+import type { FotoEnsaio, CompraExtraResponse, AdminEcommerceResumoResponse, CarrinhoResponse, CalculoCarrinhoResponse, MetodoPagamento, AdminCompraDetalheResponse, AdminComprasRelatorioResponse, Avaliacao, Sessao, EcommerceAnalyticsResponse, DashboardEcommerceResponse, DashboardEcommerceMensalResponse, FotoComentario, ComentariosPorFotoResponse, ConfiguracaoPagamentoResponse, SelecaoEnsaioResponse, SelecaoPendenteResponse, GaleriaEnsaioResponse, ModoGaleria, FaseGaleria } from '../types/ecommerce.types'
 import type { PacoteResponse } from '@/features/pacotes/types/pacotes.types'
 import type { AgendamentoCliente } from '@/features/auth/customer/types'
 import type { PaginatedResponse } from '@/shared/types'
@@ -11,6 +11,18 @@ export interface GaleriaResponse {
   valorUnitarioFotoExtra: number
   pacoteNome: string
   localEnsaio: string
+  clienteNome: string | null
+  dataHoraEnsaio: string
+  capaFotoId: string | null
+  capaVersao: 'ORIGINAL' | 'EDITADA' | null
+  capaUrl: string | null
+  modoGaleria: ModoGaleria
+  faseGaleria: FaseGaleria
+  podeSelecionar: boolean
+  podeComprar: boolean
+  podeBaixar: boolean
+  selecaoAtual: SelecaoEnsaioResponse | null
+  valoresExtras: Record<string, number>
 }
 
 const SESSION_STORAGE_KEY = 'photoizer_cart_session'
@@ -59,14 +71,20 @@ async function obterSessao(): Promise<string> {
  * Se o servidor rejeitar a sessão (400/401/422 "Sessão inválida"), reemite uma
  * nova e tenta uma única vez. A detecção é feita pelo código de erro
  * (`SESSAO_INVALIDA`) ou pela mensagem, para não depender do status exato.
+ *
+ * `permitirNovaSessao = false` é usado no envio da seleção: recriar a sessão
+ * ali descartaria os extras do carrinho silenciosamente.
  */
-async function comSessao<T>(fn: (sessionId: string) => Promise<T>): Promise<T> {
+async function comSessao<T>(
+  fn: (sessionId: string) => Promise<T>,
+  permitirNovaSessao = true,
+): Promise<T> {
   try {
     return await fn(await obterSessao())
   } catch (err) {
     const data = (err as { response?: { data?: { code?: string; message?: string } } })?.response?.data
     const sessaoInvalida = data?.code === 'SESSAO_INVALIDA' || /sess/.test(String(data?.message).toLowerCase())
-    if (sessaoInvalida) {
+    if (sessaoInvalida && permitirNovaSessao) {
       invalidarSessao()
       return await fn(await obterSessao())
     }
@@ -97,6 +115,30 @@ export const ecommerceService = {
     // não regredir a marcação visual de quem consome o retorno diretamente.
     const ids = new Set(fotoIds)
     return data.map((foto) => (ids.has(foto.id) ? { ...foto, selecionadaPacote: selecionada } : foto))
+  },
+
+  enviarSelecao: async (
+    token: string,
+    fotoIdsPacote: string[],
+    observacao?: string,
+  ): Promise<SelecaoEnsaioResponse> => {
+    // Não recria a sessão aqui: uma sessão nova nasce com carrinho vazio e
+    // enviaria a seleção sem os extras, silenciosamente. É melhor falhar e
+    // pedir para o cliente recarregar/refazer o carrinho.
+    return comSessao((sessionId) =>
+      apiClient.post<SelecaoEnsaioResponse>(
+        `/ecommerce/galeria/${token}/selecao`,
+        { fotoIdsPacote, observacao: observacao?.trim() || undefined },
+        { headers: { 'X-Session-Id': sessionId } },
+      ).then(({ data }) => data), false)
+  },
+
+  selecaoAtiva: async (token: string): Promise<SelecaoEnsaioResponse | null> => {
+    const { data, status } = await apiClient.get<SelecaoEnsaioResponse>(
+      `/ecommerce/galeria/${token}/selecao`,
+      { validateStatus: (s) => s === 200 || s === 204 },
+    )
+    return status === 204 ? null : data
   },
 
   adicionarAoCarrinho: async (token: string): Promise<void> => {
@@ -208,6 +250,81 @@ export const ecommerceService = {
 
   adminRegenToken: async (agendamentoId: string): Promise<void> => {
     await apiClient.post(`/admin/agendamentos/${agendamentoId}/ecommerce/regen-token`)
+  },
+
+  adminGaleria: async (agendamentoId: string): Promise<GaleriaEnsaioResponse> => {
+    const { data } = await apiClient.get<GaleriaEnsaioResponse>(
+      `/admin/agendamentos/${agendamentoId}/galeria`)
+    return data
+  },
+
+  adminAlterarModoGaleria: async (
+    agendamentoId: string,
+    modo: ModoGaleria,
+  ): Promise<GaleriaEnsaioResponse> => {
+    const { data } = await apiClient.put<GaleriaEnsaioResponse>(
+      `/admin/agendamentos/${agendamentoId}/galeria/modo`, { modo })
+    return data
+  },
+
+  adminDefinirCapaGaleria: async (
+    agendamentoId: string,
+    fotoId: string | null,
+  ): Promise<GaleriaEnsaioResponse> => {
+    const { data } = await apiClient.put<GaleriaEnsaioResponse>(
+      `/admin/agendamentos/${agendamentoId}/galeria/capa`, { fotoId })
+    return data
+  },
+
+  adminSelecoesPendentes: async (): Promise<SelecaoPendenteResponse[]> => {
+    const { data } = await apiClient.get<SelecaoPendenteResponse[]>('/admin/selecoes/pendentes')
+    return data
+  },
+
+  adminSelecoesDoAgendamento: async (agendamentoId: string): Promise<SelecaoEnsaioResponse[]> => {
+    const { data } = await apiClient.get<SelecaoEnsaioResponse[]>(
+      `/admin/agendamentos/${agendamentoId}/selecoes`)
+    return data
+  },
+
+  adminSelecaoDetalhe: async (
+    agendamentoId: string,
+    selecaoId: string,
+  ): Promise<SelecaoEnsaioResponse> => {
+    const { data } = await apiClient.get<SelecaoEnsaioResponse>(
+      `/admin/agendamentos/${agendamentoId}/selecoes/${selecaoId}`)
+    return data
+  },
+
+  adminIniciarSelecao: async (
+    agendamentoId: string,
+    selecaoId: string,
+  ): Promise<SelecaoEnsaioResponse> => {
+    const { data } = await apiClient.post<SelecaoEnsaioResponse>(
+      `/admin/agendamentos/${agendamentoId}/selecoes/${selecaoId}/iniciar`)
+    return data
+  },
+
+  adminReabrirSelecao: async (
+    agendamentoId: string,
+    selecaoId: string,
+  ): Promise<SelecaoEnsaioResponse> => {
+    const { data } = await apiClient.post<SelecaoEnsaioResponse>(
+      `/admin/agendamentos/${agendamentoId}/selecoes/${selecaoId}/reabrir`)
+    return data
+  },
+
+  adminPublicarSelecao: async (
+    agendamentoId: string,
+    selecaoId: string,
+  ): Promise<SelecaoEnsaioResponse> => {
+    const { data } = await apiClient.post<SelecaoEnsaioResponse>(
+      `/admin/agendamentos/${agendamentoId}/selecoes/${selecaoId}/publicar`)
+    return data
+  },
+
+  adminSelecaoZipUrl: (agendamentoId: string, selecaoId: string): string => {
+    return `${getBaseUrl()}/admin/agendamentos/${agendamentoId}/selecoes/${selecaoId}/download-zip`
   },
 
   // Admin comentários

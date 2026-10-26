@@ -41,6 +41,7 @@ export function AgendamentoDetalhesPage() {
   const { data: reatribuicoes = [] } = useReatribuicoes(id ?? '')
   const { user } = useAuth()
   const podeEditar = user?.papel === 'ADMIN' || user?.papel === 'EDITOR'
+  const podeAcessarGaleria = user?.papel !== 'AGENDADOR'
   const isAdmin = user?.papel === 'ADMIN'
   const isMobileLayout = useIsTablet()
   const showTimeline = !isMobileLayout
@@ -120,7 +121,7 @@ export function AgendamentoDetalhesPage() {
                 <Pencil className="h-5 w-5" aria-hidden="true" />
               </Button>
             )}
-            {podeEditar && (
+            {podeAcessarGaleria && (
               <Button
                 variant="outline"
                 size="icon"

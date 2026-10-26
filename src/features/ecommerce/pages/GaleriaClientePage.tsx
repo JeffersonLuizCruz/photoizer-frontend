@@ -1,19 +1,37 @@
-import { useState, useEffect, useCallback, useMemo } from 'react'
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import { useParams } from 'react-router-dom'
-import { ShieldAlert, Camera, ShoppingCart, Download, Search, Filter, X, Heart, Columns2 } from 'lucide-react'
+import { Camera, Columns2, Search, ShieldAlert, X } from 'lucide-react'
 import { toast } from 'sonner'
 import { ecommerceService } from '../services/ecommerce.service'
 import type { FotoEnsaio, CompraExtraResponse, MetodoPagamento } from '../types/ecommerce.types'
 import type { GaleriaResponse } from '../services/ecommerce.service'
 import { FotoViewer } from '../components/FotoViewer'
-import { PhotoGrid } from '../components/PhotoGrid'
 import { CheckoutDialog } from '../components/CheckoutDialog'
 import { MinhasComprasSection } from '../components/MinhasComprasSection'
 import { ComparadorFotos } from '../components/ComparadorFotos'
 import { CartSummaryPanel } from '../components/CartSummaryPanel'
 import { FavoritosPanel } from '../components/FavoritosPanel'
+import { GaleriaHero } from '../components/galeria/GaleriaHero'
+import { GaleriaNav } from '../components/galeria/GaleriaNav'
+import { GaleriaIntro } from '../components/galeria/GaleriaIntro'
+import { GaleriaMasonry } from '../components/galeria/GaleriaMasonry'
+import { GaleriaDock } from '../components/galeria/GaleriaDock'
+import { GaleriaExtraDialog } from '../components/galeria/GaleriaExtraDialog'
+import { GaleriaConfirmarSelecao } from '../components/galeria/GaleriaConfirmarSelecao'
+import { GaleriaTimeline } from '../components/galeria/GaleriaTimeline'
+import { extractErrorMessage } from '@/shared/api'
 import { cn } from '@/shared/lib/cn'
+import { humanizarNome } from '@/shared/lib/foto'
 
+type FiltroGaleria = 'todas' | 'favoritas' | 'selecionadas' | 'extras'
+
+function scrollSuavePara(id: string) {
+  const elemento = document.getElementById(id)
+  if (!elemento) return
+  const topo = elemento.getBoundingClientRect().top + window.scrollY - 64
+  const reduzir = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+  window.scrollTo({ top: Math.max(0, topo), behavior: reduzir ? 'auto' : 'smooth' })
+}
 
 export function GaleriaClientePage() {
   const { token } = useParams<{ token: string }>()
@@ -36,16 +54,50 @@ export function GaleriaClientePage() {
   const [showCart, setShowCart] = useState(false)
   const [showComparador, setShowComparador] = useState(false)
   const [showFavoritos, setShowFavoritos] = useState(false)
+  const [showConfirmarSelecao, setShowConfirmarSelecao] = useState(false)
+  const [isEnviandoSelecao, setIsEnviandoSelecao] = useState(false)
+  const [fotoExtraPendente, setFotoExtraPendente] = useState<FotoEnsaio | null>(null)
+  const [observacao, setObservacao] = useState('')
 
   // Filtros
+  const [filtro, setFiltro] = useState<FiltroGaleria>('todas')
   const [searchTerm, setSearchTerm] = useState('')
+  const [searchAberto, setSearchAberto] = useState(false)
   const [categoriaFilter, setCategoriaFilter] = useState<string>('')
 
   const fotos = galeria?.fotos ?? []
   const pacoteLimit = galeria?.pacoteQuantidadeFotos ?? 0
   const valorUnitario = galeria?.valorUnitarioFotoExtra ?? 15
-  const isDownloadable = (foto: FotoEnsaio) => foto.selecionadaPacote || foto.status === 'PAGA'
+  const modoGaleria = galeria?.modoGaleria ?? 'DIRETO'
+  const faseGaleria = galeria?.faseGaleria ?? 'COMERCIALIZACAO'
+  const podeSelecionar = galeria?.podeSelecionar ?? true
+  const podeComprar = galeria?.podeComprar ?? true
+  const podeBaixar = galeria?.podeBaixar ?? true
+  const podeEscolherExtras = podeSelecionar || podeComprar
+  const selecaoAtual = galeria?.selecaoAtual ?? null
+  const valoresExtras = galeria?.valoresExtras ?? {}
+  const extrasEmSelecao = modoGaleria === 'COM_EDICAO' && faseGaleria === 'SELECAO'
+  const valorUnitarioFoto = useCallback(
+    (fotoId: string) => valoresExtras[fotoId] ?? valorUnitario,
+    [valoresExtras, valorUnitario],
+  )
+  const isDownloadable = (foto: FotoEnsaio) =>
+    podeBaixar && (foto.selecionadaPacote || foto.status === 'PAGA')
   const downloadableFotos = fotos.filter(isDownloadable)
+
+  const capa = useMemo(
+    () => fotos.find((f) => f.destaque) ?? fotos[0] ?? null,
+    [fotos],
+  )
+  const capaUrl = galeria?.capaUrl ?? null
+  const selectedFotos = useMemo(
+    () => fotos.filter((f) => selectedIds.has(f.id)),
+    [fotos, selectedIds],
+  )
+  const extrasFotos = useMemo(
+    () => fotos.filter((f) => carrinhoIds.has(f.id)),
+    [fotos, carrinhoIds],
+  )
 
   // Categorias disponíveis para filtro
   const categorias = useMemo(() => {
@@ -57,6 +109,13 @@ export function GaleriaClientePage() {
   // Fotos filtradas
   const filteredFotos = useMemo(() => {
     let result = fotos
+    if (filtro === 'favoritas') {
+      result = result.filter((f) => favoritoIds.has(f.id))
+    } else if (filtro === 'selecionadas') {
+      result = result.filter((f) => selectedIds.has(f.id))
+    } else if (filtro === 'extras') {
+      result = result.filter((f) => carrinhoIds.has(f.id))
+    }
     if (categoriaFilter) {
       result = result.filter((f) => f.categoria === categoriaFilter)
     }
@@ -69,26 +128,70 @@ export function GaleriaClientePage() {
       )
     }
     return result
-  }, [fotos, categoriaFilter, searchTerm])
+  }, [fotos, filtro, favoritoIds, selectedIds, carrinhoIds, categoriaFilter, searchTerm])
+
+  const carregandoRef = useRef(false)
+  const carregarGaleria = useCallback(async (mostrarLoading = true, sincronizarSelecao = true) => {
+    if (!token) return
+    if (carregandoRef.current) return
+    carregandoRef.current = true
+    if (mostrarLoading) setIsLoading(true)
+    try {
+      const data = await ecommerceService.galeria(token)
+      setGaleria(data)
+      if (sincronizarSelecao) {
+        setSelectedIds(new Set(data.fotos.filter((f) => f.selecionadaPacote).map((f) => f.id)))
+      }
+      setError(null)
+    } catch (err: unknown) {
+      const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message || ''
+      if (msg.includes('expirou')) {
+        setError(msg)
+      } else {
+        setError('Galeria não encontrada ou não publicada')
+      }
+    } finally {
+      carregandoRef.current = false
+      if (mostrarLoading) setIsLoading(false)
+    }
+  }, [token])
 
   useEffect(() => {
+    void carregarGaleria()
+  }, [carregarGaleria])
+
+  // Revalida ao voltar para a aba (inclusive bfcache) e a cada minuto. Isso
+  // mantém capa, fase e seleção em dia sem exigir recarregar a página e sem
+  // apagar uma seleção local em andamento.
+  useEffect(() => {
     if (!token) return
-    setIsLoading(true)
-    ecommerceService.galeria(token)
-      .then((data) => {
-        setGaleria(data)
-        setSelectedIds(new Set(data.fotos.filter((f) => f.selecionadaPacote).map((f) => f.id)))
-      })
-      .catch((err) => {
-        const msg = err?.response?.data?.message || ''
-        if (msg.includes('expirou')) {
-          setError(msg)
-        } else {
-          setError('Galeria não encontrada ou não publicada')
-        }
-      })
-      .finally(() => setIsLoading(false))
-  }, [token])
+    const atualizar = () => {
+      if (document.visibilityState !== 'visible' || viewerIndex !== null) return
+      void carregarGaleria(false, false)
+    }
+    const aoRetornar = (event: PageTransitionEvent) => {
+      if (event.persisted) atualizar()
+    }
+    document.addEventListener('visibilitychange', atualizar)
+    window.addEventListener('pageshow', aoRetornar)
+    const intervalo = window.setInterval(atualizar, 60_000)
+    return () => {
+      document.removeEventListener('visibilitychange', atualizar)
+      window.removeEventListener('pageshow', aoRetornar)
+      window.clearInterval(intervalo)
+    }
+  }, [token, viewerIndex, carregarGaleria])
+
+  useEffect(() => {
+    if (viewerIndex === null) return
+    if (fotos.length === 0) {
+      setViewerIndex(null)
+      return
+    }
+    if (viewerIndex >= fotos.length) {
+      setViewerIndex(fotos.length - 1)
+    }
+  }, [fotos.length, viewerIndex])
 
   useEffect(() => {
     if (!token || isLoading || error) return
@@ -102,6 +205,29 @@ export function GaleriaClientePage() {
       .then((ids) => setFavoritoIds(new Set(ids)))
       .catch(() => {})
   }, [token, isLoading, error])
+
+  useEffect(() => {
+    if (!galeria) return
+    const anterior = document.title
+    const nome = humanizarNome(galeria.clienteNome)
+    document.title = nome ? `${nome} · Galeria` : 'Galeria · Photoizer'
+    return () => { document.title = anterior }
+  }, [galeria])
+
+  useEffect(() => {
+    if (filtro === 'extras' && carrinhoCount === 0) setFiltro('todas')
+  }, [filtro, carrinhoCount])
+
+  useEffect(() => {
+    const url = capaUrl
+    if (!url) return
+    const link = document.createElement('link')
+    link.rel = 'preload'
+    link.as = 'image'
+    link.href = url
+    document.head.appendChild(link)
+    return () => { link.remove() }
+  }, [capaUrl])
 
   const toggleFavorito = useCallback(async (fotoId: string) => {
     if (!token) return
@@ -146,6 +272,10 @@ export function GaleriaClientePage() {
 
   const toggleCarrinho = useCallback(async (fotoId: string) => {
     if (!token) return
+    if (!podeEscolherExtras) {
+      toast.error('As fotos estão em edição. Aguarde a publicação para alterar o carrinho.')
+      return
+    }
     setCartLoadingIds((prev) => new Set(prev).add(fotoId))
     try {
       if (carrinhoIds.has(fotoId)) {
@@ -170,12 +300,18 @@ export function GaleriaClientePage() {
         return next
       })
     }
-  }, [token, carrinhoIds])
+  }, [token, carrinhoIds, podeEscolherExtras])
 
-  const toggleSelect = useCallback((fotoId: string) => {
+  const toggleSelect = useCallback(async (fotoId: string) => {
+    if (!podeSelecionar) {
+      toast.error('A seleção já foi enviada e está bloqueada para edição.')
+      return
+    }
+    const foto = fotos.find((f) => f.id === fotoId)
+    if (!foto) return
+
     if (selectedIds.has(fotoId)) {
-      const foto = fotos.find((f) => f.id === fotoId)
-      if (foto?.downloadada) {
+      if (foto.downloadada) {
         toast.error('Foto já baixada não pode ser removida do pacote')
         return
       }
@@ -184,19 +320,55 @@ export function GaleriaClientePage() {
         next.delete(fotoId)
         return next
       })
-    } else if (selectedIds.size < pacoteLimit) {
+      return
+    }
+
+    if (selectedIds.size < pacoteLimit) {
       setSelectedIds((prev) => {
         const next = new Set(prev)
         next.add(fotoId)
         return next
       })
-    } else {
-      toggleCarrinho(fotoId)
+      // Uma foto no pacote não pode continuar no carrinho: ela seria cobrada
+      // novamente e o checkout recusaria a compra inteira.
+      if (carrinhoIds.has(fotoId)) {
+        await toggleCarrinho(fotoId)
+      }
+      return
     }
-  }, [selectedIds, pacoteLimit, toggleCarrinho])
+
+    if (carrinhoIds.has(fotoId)) {
+      await toggleCarrinho(fotoId)
+      return
+    }
+
+    // Pacote cheio: confirma com o cliente antes de transformar a foto em extra.
+    setFotoExtraPendente(foto)
+  }, [selectedIds, pacoteLimit, toggleCarrinho, podeSelecionar, fotos, carrinhoIds])
+
+  const confirmarExtra = async () => {
+    if (!fotoExtraPendente) return
+    const fotoId = fotoExtraPendente.id
+    // Fecha antes do request para evitar duplo clique no botão do diálogo.
+    setFotoExtraPendente(null)
+    await toggleCarrinho(fotoId)
+  }
+
+  // A sacola do grid so aparece depois que o pacote esta cheio (ou quando a
+  // selecao ja foi fechada). Remover continua direto; incluir abre o dialogo
+  // com o preco da foto para o cliente confirmar.
+  const toggleExtra = useCallback((fotoId: string) => {
+    if (!token || !podeEscolherExtras) return
+    if (carrinhoIds.has(fotoId)) {
+      void toggleCarrinho(fotoId)
+      return
+    }
+    const foto = fotos.find((f) => f.id === fotoId)
+    if (foto) setFotoExtraPendente(foto)
+  }, [token, podeEscolherExtras, carrinhoIds, toggleCarrinho, fotos])
 
   const handleSaveSelection = async () => {
-    if (!token) return
+    if (!token || !podeSelecionar) return
     setIsSaving(true)
     try {
       const selected = Array.from(selectedIds)
@@ -227,8 +399,34 @@ export function GaleriaClientePage() {
     }
   }
 
+  const handleEnviarSelecao = async () => {
+    if (!token || selectedIds.size === 0 || isEnviandoSelecao) return
+    setIsEnviandoSelecao(true)
+    const extrasEsperados = carrinhoIds.size
+    try {
+      const selecao = await ecommerceService.enviarSelecao(token, Array.from(selectedIds), observacao)
+      setShowConfirmarSelecao(false)
+      setShowCheckout(false)
+      setShowCart(false)
+      setObservacao('')
+      if (selecao.quantidadeExtras !== extrasEsperados) {
+        toast.warning(
+          `A seleção foi enviada com ${selecao.quantidadeExtras} extra(s), mas ${extrasEsperados} estavam no carrinho. Confirme com o estúdio.`,
+        )
+      } else {
+        toast.success('Seleção enviada! O estúdio vai preparar as fotos para edição.')
+      }
+      await carregarGaleria(false)
+    } catch (err: unknown) {
+      toast.error(extractErrorMessage(err, 'Erro ao enviar a seleção. Recarregue a galeria e tente novamente.'))
+    } finally {
+      setIsEnviandoSelecao(false)
+    }
+  }
+
   const handleCheckout = async (metodoPagamento: MetodoPagamento): Promise<CompraExtraResponse> => {
     if (!token || carrinhoCount === 0) throw new Error('Carrinho vazio')
+    if (!podeComprar) throw new Error('A compra será liberada após a publicação da edição')
     const compra = await ecommerceService.checkout(token, metodoPagamento)
     setGaleria((prev) => prev ? {
       ...prev,
@@ -250,21 +448,43 @@ export function GaleriaClientePage() {
   }
 
   const hasSelectionChanges = fotos.some((f) => f.selecionadaPacote !== selectedIds.has(f.id))
-  const totalExtras = carrinhoCount * valorUnitario
+  const totalExtras = Array.from(carrinhoIds)
+    .reduce((total, fotoId) => total + valorUnitarioFoto(fotoId), 0)
+  const modalAberto = viewerIndex !== null
+    || showComparador
+    || showCart
+    || showFavoritos
+    || showCheckout
+    || showConfirmarSelecao
+    || fotoExtraPendente !== null
+  const mostrarDock = !modalAberto && (
+    (modoGaleria === 'COM_EDICAO' && faseGaleria === 'SELECAO')
+    || (modoGaleria === 'COM_EDICAO' && faseGaleria === 'COMERCIALIZACAO' && (downloadableFotos.length > 0 || (podeComprar && carrinhoCount > 0)))
+    || (modoGaleria === 'DIRETO' && (hasSelectionChanges || downloadableFotos.length > 0 || (podeComprar && carrinhoCount > 0)))
+  )
+  const mostrarTimeline = modoGaleria === 'COM_EDICAO' && faseGaleria !== 'SELECAO'
+  const mostrarZonaEdicao = modoGaleria === 'COM_EDICAO' && (faseGaleria === 'SELECAO_ENVIADA' || faseGaleria === 'EM_EDICAO')
+
+  const limparFiltros = () => {
+    setFiltro('todas')
+    setSearchTerm('')
+    setCategoriaFilter('')
+    setSearchAberto(false)
+  }
 
   if (isLoading) {
     return (
-      <div className="min-h-dvh bg-gradient-to-b from-sky-100 via-cyan-50 to-amber-50">
-        <div className="sticky top-0 z-40 border-b border-cyan-100 bg-white/80 px-4 py-3 backdrop-blur md:px-6">
-          <div className="h-4 w-48 animate-pulse rounded bg-cyan-100" />
-          <div className="mt-2 h-3 w-72 max-w-full animate-pulse rounded bg-cyan-50" />
+      <div className="min-h-dvh bg-gallery-bg">
+        <div className="h-[68dvh] min-h-[460px] animate-pulse bg-gallery-line/50 sm:h-[78dvh]" />
+        <div className="mx-auto mt-10 max-w-xl px-4 text-center">
+          <div className="mx-auto h-3 w-24 animate-pulse rounded bg-gallery-line/60" />
+          <div className="mx-auto mt-4 h-8 w-72 max-w-full animate-pulse rounded bg-gallery-line/60" />
+          <div className="mx-auto mt-3 h-3 w-full max-w-md animate-pulse rounded bg-gallery-line/40" />
         </div>
-        <div className="px-4 py-6 md:px-6">
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
-            {Array.from({ length: 12 }).map((_, i) => (
-              <div key={i} className="aspect-[3/2] animate-pulse rounded-xl bg-white/70 ring-1 ring-cyan-100" />
-            ))}
-          </div>
+        <div className="mx-auto mt-10 columns-2 gap-2 px-4 sm:columns-3 sm:px-6 lg:columns-4">
+          {Array.from({ length: 10 }).map((_, i) => (
+            <div key={i} className="mb-2 aspect-[3/4] animate-pulse break-inside-avoid bg-gallery-line/40 sm:mb-3" />
+          ))}
         </div>
       </div>
     )
@@ -273,11 +493,19 @@ export function GaleriaClientePage() {
   if (error) {
     const isExpired = error.includes('expirou')
     return (
-      <div className="flex min-h-dvh items-center justify-center bg-gradient-to-b from-sky-200 via-cyan-100 to-amber-50">
-        <div className="flex max-w-sm flex-col items-center gap-3 rounded-3xl bg-white/95 p-8 text-center shadow-sm ring-1 ring-cyan-100 backdrop-blur">
-          <ShieldAlert className={`h-12 w-12 ${isExpired ? 'text-amber-500' : 'text-cyan-500'}`} />
-          <h1 className="font-display text-lg font-semibold text-cyan-950">{isExpired ? 'Link Expirado' : 'Galeria não disponível'}</h1>
-          <p className="text-sm text-slate-500">{error}</p>
+      <div className="flex min-h-dvh items-center justify-center bg-gallery-bg px-4">
+        <div className="max-w-sm text-center">
+          <ShieldAlert className="mx-auto h-10 w-10 text-gallery-accent" />
+          <h1 className="mt-4 text-balance font-display text-2xl text-gallery-ink">
+            {isExpired ? 'Este link expirou' : 'Não conseguimos abrir sua galeria'}
+          </h1>
+          <p className="mt-2 text-sm leading-relaxed text-gallery-muted">{error}</p>
+          <button
+            onClick={() => void carregarGaleria()}
+            className="mt-6 min-h-11 rounded-full bg-gallery-ink px-6 text-xs font-semibold text-gallery-bg transition-opacity hover:opacity-90"
+          >
+            Tentar novamente
+          </button>
         </div>
       </div>
     )
@@ -285,188 +513,271 @@ export function GaleriaClientePage() {
 
   if (fotos.length === 0) {
     return (
-      <div className="flex min-h-dvh items-center justify-center bg-gradient-to-b from-sky-200 via-cyan-100 to-amber-50">
-        <div className="flex max-w-sm flex-col items-center gap-3 rounded-3xl bg-white/95 p-8 text-center shadow-sm ring-1 ring-cyan-100 backdrop-blur">
-          <Camera className="h-12 w-12 text-cyan-400" />
-          <h1 className="font-display text-lg font-semibold text-cyan-950">Nenhuma foto publicada</h1>
-          <p className="text-sm text-slate-500">As fotos ainda não foram publicadas. Volte mais tarde.</p>
+      <div className="flex min-h-dvh items-center justify-center bg-gallery-bg px-4">
+        <div className="max-w-sm text-center">
+          <Camera className="mx-auto h-10 w-10 text-gallery-accent" />
+          <h1 className="mt-4 text-balance font-display text-2xl text-gallery-ink">
+            As fotos ainda não chegaram
+          </h1>
+          <p className="mt-2 text-sm leading-relaxed text-gallery-muted">
+            Assim que o estúdio publicar sua galeria, elas aparecerão aqui.
+          </p>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-dvh bg-gradient-to-b from-sky-50 via-amber-50/40 to-amber-50" onContextMenu={(e) => e.preventDefault()}>
-      <header className="sticky top-0 z-40 border-b border-cyan-100 bg-white/85 backdrop-blur">
-        <div className="flex flex-col gap-2 bg-gradient-to-r from-cyan-500 via-sky-500 to-teal-400 px-4 py-3 text-white md:h-14 md:flex-row md:items-center md:justify-between md:px-6">
-          <div className="min-w-0">
-            <h1 className="truncate font-display text-sm font-semibold">{galeria?.pacoteNome || 'Sua Galeria de Fotos'}</h1>
-            <p className="truncate text-[11px] text-white/85">
-              {selectedIds.size} de {pacoteLimit} no pacote
-              {carrinhoCount > 0 && ` · ${carrinhoCount} extra(s): R$ ${totalExtras.toFixed(2)}`}
-              {filteredFotos.length < fotos.length && ` · ${filteredFotos.length} exibidas`}
-              {galeria?.localEnsaio && ` · ${galeria.localEnsaio}`}
-            </p>
-          </div>
-          <div className="flex items-center gap-2 overflow-x-auto md:flex-nowrap md:overflow-x-auto">
-            <button onClick={() => setShowFavoritos(true)}
-              className="flex shrink-0 items-center gap-1.5 rounded-xl border border-white/30 bg-white/10 px-3 py-2.5 text-xs font-medium transition-colors hover:bg-white/20"
-              title="Fotos que você marcou como Gostei">
-              <Heart className={cn('h-3.5 w-3.5', favoritoIds.size > 0 ? 'text-rose-300' : 'text-white/90')} fill={favoritoIds.size > 0 ? 'currentColor' : 'none'} />
-              Gostei{favoritoIds.size > 0 ? ` (${favoritoIds.size})` : ''}
-            </button>
-            <button onClick={() => setCompareMode((prev) => !prev)}
-              className={`flex shrink-0 items-center gap-1.5 rounded-xl border px-3 py-2.5 text-xs font-medium transition-colors ${
-                compareMode ? 'border-white bg-white text-cyan-700 hover:bg-white/90' : 'border-white/30 bg-white/10 hover:bg-white/20'
-              }`}>
-              <Columns2 className="h-3.5 w-3.5" />
-              Comparar
-            </button>
-            {compareMode && compareIds.size >= 2 && (
-              <button onClick={() => setShowComparador(true)}
-                className="shrink-0 rounded-xl bg-white px-3 py-2.5 text-xs font-medium text-cyan-700 transition-colors hover:bg-white/90">
-                Ver comparação ({compareIds.size})
-              </button>
-            )}
-            <button onClick={() => setShowCart(true)}
-              className="relative flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-white/30 bg-white/10 transition-colors hover:bg-white/20" title="Meu carrinho">
-              <ShoppingCart className="h-4 w-4" />
-              {carrinhoCount > 0 && (
-                <span className="absolute -right-1.5 -top-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-orange-400 px-0.5 text-[10px] font-medium text-white">
-                  {carrinhoCount}
-                </span>
-              )}
-            </button>
-            {hasSelectionChanges && (
-              <button onClick={handleSaveSelection} disabled={isSaving}
-                className="shrink-0 rounded-xl bg-white px-3 py-2.5 text-xs font-medium text-cyan-700 transition-colors hover:bg-white/90 disabled:opacity-50">
-                {isSaving ? 'Salvando...' : 'Salvar Seleção'}
-              </button>
-            )}
-            {downloadableFotos.length > 0 && (
-              <a href={ecommerceService.downloadZipUrl(token ?? '')}
-                className="flex shrink-0 items-center gap-1.5 rounded-xl border border-white/30 bg-white/10 px-3 py-2.5 text-xs font-medium transition-colors hover:bg-white/20">
-                <Download className="h-3.5 w-3.5" />
-                ZIP ({downloadableFotos.length})
-              </a>
-            )}
-            {carrinhoCount > 0 && (
-              <button onClick={() => setShowCheckout(true)}
-                className="flex shrink-0 items-center gap-1.5 rounded-xl bg-gradient-to-r from-orange-400 to-rose-400 px-3 py-2.5 text-xs font-semibold text-white shadow transition-colors hover:from-orange-500 hover:to-rose-500">
-                <ShoppingCart className="h-3.5 w-3.5" />
-                Finalizar ({carrinhoCount})
-              </button>
-            )}
-          </div>
-        </div>
-        {/* Barra de filtros */}
-        <div className="flex flex-wrap items-center gap-2 px-4 pb-3 pt-3 md:px-6">
-          <div className="relative max-w-xs flex-1">
-            <Search className="absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-cyan-400" />
-            <input value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder="Buscar por tags ou nome..."
-              className="w-full rounded-xl border border-cyan-100 bg-white py-2.5 pl-8 pr-3 text-xs outline-none focus:ring-2 focus:ring-cyan-200" />
-            {searchTerm && (
-              <button onClick={() => setSearchTerm('')}
-                className="absolute right-2 top-1/2 -translate-y-1/2">
-                <X className="h-3 w-3 text-slate-400" />
-              </button>
-            )}
-          </div>
-          {categorias.length > 0 && (
-            <select value={categoriaFilter} onChange={(e) => setCategoriaFilter(e.target.value)}
-              className="rounded-xl border border-cyan-100 bg-white px-3 py-2.5 text-xs font-medium text-slate-700 outline-none focus:ring-2 focus:ring-cyan-200">
-              <option value="">Todas as categorias</option>
-              {categorias.map((cat) => (
-                <option key={cat} value={cat}>{cat}</option>
-              ))}
-            </select>
-          )}
-          {(categoriaFilter || searchTerm) && (
-            <button onClick={() => { setCategoriaFilter(''); setSearchTerm('') }}
-              className="flex items-center gap-1 text-xs text-slate-500 hover:text-cyan-700">
-              <Filter className="h-3 w-3" /> Limpar
-            </button>
-          )}
-        </div>
-      </header>
+    <div className={cn(
+      'min-h-dvh bg-gallery-bg text-gallery-ink',
+      mostrarDock && 'pb-[calc(6rem+env(safe-area-inset-bottom))]',
+    )}>
+      <GaleriaNav
+        favoritos={favoritoIds.size}
+        carrinho={carrinhoCount}
+        onFavoritos={() => setShowFavoritos(true)}
+        onCarrinho={() => setShowCart(true)}
+      />
 
-      {/* Barra de progresso do pacote */}
-      <div className="px-4 pb-1 pt-4 md:px-6">
-        <div className="rounded-2xl bg-white/95 p-4 shadow-sm ring-1 ring-cyan-100 backdrop-blur">
-          <div className="mb-2 flex items-center justify-between">
-            <div>
-              <p className="text-xs font-semibold text-cyan-950">
-                Fotos no pacote: {selectedIds.size} de {pacoteLimit}
+      <GaleriaHero
+        foto={capa}
+        capaUrl={capaUrl}
+        clienteNome={galeria?.clienteNome ?? null}
+        dataHoraEnsaio={galeria?.dataHoraEnsaio ?? ''}
+        localEnsaio={galeria?.localEnsaio ?? null}
+        onExplore={() => scrollSuavePara('galeria-conteudo')}
+      />
+
+      <main className="mx-auto w-full max-w-[1500px]">
+        <GaleriaIntro
+          modo={modoGaleria}
+          fase={faseGaleria}
+          pacoteNome={galeria?.pacoteNome ?? ''}
+          pacoteLimit={pacoteLimit}
+          selectedCount={selectedIds.size}
+          favoritosCount={favoritoIds.size}
+          carrinhoCount={carrinhoCount}
+        />
+
+        {mostrarTimeline && (
+          <GaleriaTimeline fase={faseGaleria} selecao={selecaoAtual} />
+        )}
+
+        {mostrarZonaEdicao && (
+          <div className="mx-auto mt-8 max-w-lg px-4">
+            <div className="rounded-sm border border-gallery-line bg-gallery-surface px-5 py-4 text-center">
+              <p className="text-sm font-medium text-gallery-ink">
+                {faseGaleria === 'SELECAO_ENVIADA' ? 'Sua seleção está em boas mãos.' : 'Estamos preparando suas fotos.'}
               </p>
-              <p className="mt-0.5 text-[11px] text-slate-500">
-                {selectedIds.size >= pacoteLimit
-                  ? 'Limite do pacote atingido'
-                  : `Você pode selecionar mais ${pacoteLimit - selectedIds.size} foto(s)`}
-                {carrinhoCount > 0 && ` · Carrinho: ${carrinhoCount} extra(s) · R$ ${(carrinhoCount * valorUnitario).toFixed(2)}`}
+              <p className="mt-1 text-xs leading-relaxed text-gallery-muted">
+                Você pode continuar olhando a galeria e favoritando outras fotos enquanto isso.
               </p>
             </div>
-            <span className="text-xs font-medium text-cyan-700">
-              {pacoteLimit > 0 ? Math.round((selectedIds.size / pacoteLimit) * 100) : 0}%
-            </span>
           </div>
-          <div className="h-2 overflow-hidden rounded-full bg-cyan-100">
-            <div
-              className={`h-full rounded-full transition-all duration-500 ${
-                selectedIds.size >= pacoteLimit
-                  ? 'bg-gradient-to-r from-orange-400 to-rose-400'
-                  : 'bg-gradient-to-r from-cyan-400 to-teal-400'
-              }`}
-              style={{ width: `${Math.min((selectedIds.size / pacoteLimit) * 100, 100)}%` }}
-            />
+        )}
+
+        {/* Filtros e busca */}
+        <div className="mx-auto mt-8 w-full max-w-[1500px] border-y border-gallery-line">
+          <div className="flex items-center gap-2 px-3 py-3 sm:px-6">
+          <div className="flex min-w-0 flex-1 items-center gap-2 overflow-x-auto">
+            {([
+              { id: 'todas' as const, label: 'Todas', count: fotos.length },
+              { id: 'favoritas' as const, label: 'Favoritas', count: favoritoIds.size },
+              { id: 'selecionadas' as const, label: 'Pacote', count: selectedIds.size },
+              ...(carrinhoCount > 0
+                ? [{ id: 'extras' as const, label: 'Extras', count: carrinhoCount }]
+                : []),
+            ]).map((item) => (
+              <button
+                key={item.id}
+                onClick={() => setFiltro(item.id)}
+                className={cn(
+                  'shrink-0 rounded-full border px-2.5 py-1.5 text-[10px] font-medium uppercase tracking-[0.1em] transition-colors',
+                  filtro === item.id
+                    ? 'border-gallery-ink bg-gallery-ink text-gallery-bg'
+                    : 'border-gallery-line text-gallery-muted hover:text-gallery-ink',
+                )}
+              >
+                {item.label}
+                <span className={cn('ml-1.5 tabular-nums', filtro === item.id ? 'text-gallery-bg/70' : 'text-gallery-muted')}>
+                  {item.count}
+                </span>
+              </button>
+            ))}
+          </div>
+
+          <div className="flex shrink-0 items-center gap-1.5">
+            <button
+              onClick={() => setCompareMode((prev) => !prev)}
+              className={cn(
+                'flex h-9 w-9 items-center justify-center rounded-full border transition-colors',
+                compareMode
+                  ? 'border-gallery-ink bg-gallery-ink text-gallery-bg'
+                  : 'border-gallery-line text-gallery-muted hover:text-gallery-ink',
+              )}
+              aria-pressed={compareMode}
+              aria-label={compareMode ? 'Desativar comparação' : 'Ativar comparação'}
+              title="Comparar fotos"
+            >
+              <Columns2 className="h-4 w-4" />
+            </button>
+            <button
+              onClick={() => setSearchAberto((prev) => !prev)}
+              className={cn(
+                'flex h-9 w-9 items-center justify-center rounded-full border transition-colors',
+                searchAberto
+                  ? 'border-gallery-ink bg-gallery-ink text-gallery-bg'
+                  : 'border-gallery-line text-gallery-muted hover:text-gallery-ink',
+              )}
+              aria-pressed={searchAberto}
+              aria-label={searchAberto ? 'Fechar busca' : 'Buscar fotos'}
+              title="Buscar fotos"
+            >
+              <Search className="h-4 w-4" />
+            </button>
           </div>
         </div>
-      </div>
 
-      <div className="px-4 md:px-6 py-6">
-        <PhotoGrid
-          fotos={filteredFotos}
-          token={token ?? ''}
-          selectedIds={selectedIds}
-          carrinhoIds={carrinhoIds}
-          cartLoadingIds={cartLoadingIds}
+          {(searchAberto || categoriaFilter || searchTerm) && (
+            <div className="flex flex-col gap-2 border-t border-gallery-line px-3 pb-3 pt-3 sm:flex-row sm:items-center sm:px-6">
+              <div className="relative w-full sm:max-w-xs">
+                <Search className="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-gallery-muted" />
+                <input
+                  autoFocus
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  placeholder="Buscar por nome, título ou tag..."
+                  className="w-full rounded-full border border-gallery-line bg-gallery-surface py-2.5 pl-9 pr-9 text-xs text-gallery-ink outline-none placeholder:text-gallery-muted/70 focus:ring-2 focus:ring-gallery-accent/40"
+                />
+                {searchTerm && (
+                  <button
+                    onClick={() => setSearchTerm('')}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full p-1 text-gallery-muted hover:text-gallery-ink"
+                    aria-label="Limpar busca"
+                  >
+                    <X className="h-3.5 w-3.5" />
+                  </button>
+                )}
+              </div>
+              {categorias.length > 0 && (
+                <select
+                  value={categoriaFilter}
+                  onChange={(e) => setCategoriaFilter(e.target.value)}
+                  className="w-full rounded-full border border-gallery-line bg-gallery-surface px-3 py-2.5 text-xs text-gallery-ink outline-none focus:ring-2 focus:ring-gallery-accent/40 sm:w-auto"
+                >
+                  <option value="">Todas as categorias</option>
+                  {categorias.map((cat) => (
+                    <option key={cat} value={cat}>{cat}</option>
+                  ))}
+                </select>
+              )}
+              {(filtro !== 'todas' || categoriaFilter || searchTerm) && (
+                <button
+                  onClick={limparFiltros}
+                  className="self-start text-[11px] font-medium text-gallery-muted underline-offset-4 hover:text-gallery-ink hover:underline sm:self-auto"
+                >
+                  Limpar filtros
+                </button>
+              )}
+            </div>
+          )}
+        </div>
+
+        <div className="px-3 pb-14 pt-4 sm:px-6">
+          {filteredFotos.length === 0 ? (
+            <div className="py-16 text-center">
+              <p className="font-display text-xl text-gallery-ink">Nenhuma foto encontrada</p>
+              <p className="mt-2 text-sm text-gallery-muted">
+                Tente outro filtro ou limpe a busca.
+              </p>
+              <button
+                onClick={limparFiltros}
+                className="mt-5 min-h-11 rounded-full border border-gallery-line bg-gallery-surface px-5 text-xs font-medium text-gallery-ink transition-colors hover:bg-gallery-line/40"
+              >
+                Limpar filtros
+              </button>
+            </div>
+          ) : (
+            <GaleriaMasonry
+              fotos={filteredFotos}
+              token={token ?? ''}
+              selectedIds={selectedIds}
+              carrinhoIds={carrinhoIds}
+              pacoteLimit={pacoteLimit}
+              cartLoadingIds={cartLoadingIds}
+              favoritoIds={favoritoIds}
+              compareIds={compareIds}
+              compareMode={compareMode}
+              podeSelecionar={podeSelecionar}
+              podeComprar={podeEscolherExtras}
+              podeBaixar={podeBaixar}
+              extrasEmSelecao={extrasEmSelecao}
+              onSelect={toggleSelect}
+              onToggleCarrinho={toggleExtra}
+              onToggleFavorito={toggleFavorito}
+              onToggleCompare={toggleCompare}
+              onView={(index) => {
+                const originalIndex = fotos.findIndex((f) => f.id === filteredFotos[index]?.id)
+                if (originalIndex >= 0) {
+                  setCommentsOpen(false)
+                  setViewerIndex(originalIndex)
+                }
+              }}
+            />
+          )}
+        </div>
+      </main>
+
+      {mostrarDock && (
+        <GaleriaDock
+          modo={modoGaleria}
+          fase={faseGaleria}
+          selectedCount={selectedIds.size}
           pacoteLimit={pacoteLimit}
-          valorUnitario={valorUnitario}
-          favoritoIds={favoritoIds}
-          compareIds={compareIds}
-          compareMode={compareMode}
-          onSelect={toggleSelect}
-          onToggleCarrinho={toggleCarrinho}
-          onToggleFavorito={toggleFavorito}
-          onToggleCompare={toggleCompare}
-          onView={(index) => {
-            // Find the index in the original fotos array for the viewer
-            const originalIndex = fotos.findIndex((f) => f.id === filteredFotos[index]?.id)
-            if (originalIndex >= 0) {
-              setCommentsOpen(false)
-              setViewerIndex(originalIndex)
-            }
+          favoritosCount={favoritoIds.size}
+          carrinhoCount={carrinhoCount}
+          totalExtras={totalExtras}
+          selectedFotos={selectedFotos}
+          downloadableCount={downloadableFotos.length}
+          hasSelectionChanges={hasSelectionChanges}
+          podeComprar={podeComprar}
+          isSaving={isSaving}
+          isSending={isEnviandoSelecao}
+          onSave={handleSaveSelection}
+          onEnviar={() => setShowConfirmarSelecao(true)}
+          onOpenCart={() => setShowCart(true)}
+          onCheckout={() => { setShowCart(false); setShowCheckout(true) }}
+          onDownloadZip={() => {
+            if (token) window.location.assign(ecommerceService.downloadZipUrl(token))
           }}
-          onOpenComments={(index) => {
-            const originalIndex = fotos.findIndex((f) => f.id === filteredFotos[index]?.id)
-            if (originalIndex >= 0) {
-              setViewerIndex(originalIndex)
-              setCommentsOpen(true)
-            }
-          }} />
-
-        {token && <MinhasComprasSection token={token} />}
-      </div>
+        />
+      )}
 
       {viewerIndex !== null && (
-        <FotoViewer fotos={fotos} currentIndex={viewerIndex}
-          onClose={() => setViewerIndex(null)} onToggleSelect={toggleSelect}
-          onNavigate={(i) => { setCommentsOpen(false); setViewerIndex(i) }} selectedIds={selectedIds}
-          carrinhoIds={carrinhoIds} pacoteLimit={pacoteLimit}
-          selectedCount={selectedIds.size} onToggleCarrinho={toggleCarrinho}
-          valorUnitario={valorUnitario} cartLoadingIds={cartLoadingIds}
-          token={token ?? ''} commentsOpen={commentsOpen} onCommentsOpenChange={setCommentsOpen}
-          favoritoIds={favoritoIds} onToggleFavorito={toggleFavorito} />
+        <FotoViewer
+          fotos={fotos}
+          currentIndex={viewerIndex}
+          onClose={() => setViewerIndex(null)}
+          onToggleSelect={toggleSelect}
+          onNavigate={(i) => { setCommentsOpen(false); setViewerIndex(i) }}
+          selectedIds={selectedIds}
+          carrinhoIds={carrinhoIds}
+          pacoteLimit={pacoteLimit}
+          selectedCount={selectedIds.size}
+          onToggleCarrinho={toggleCarrinho}
+          valorUnitario={valorUnitario}
+          cartLoadingIds={cartLoadingIds}
+          token={token ?? ''}
+          commentsOpen={commentsOpen}
+          onCommentsOpenChange={setCommentsOpen}
+          favoritoIds={favoritoIds}
+          onToggleFavorito={toggleFavorito}
+          podeSelecionar={podeSelecionar}
+          podeComprar={podeEscolherExtras}
+          podeBaixar={podeBaixar}
+          extrasEmSelecao={extrasEmSelecao}
+          valoresExtras={valoresExtras}
+        />
       )}
 
       {showComparador && (
@@ -475,7 +786,9 @@ export function GaleriaClientePage() {
           onClose={() => setShowComparador(false)}
           selectedIds={selectedIds}
           pacoteLimit={pacoteLimit}
-          onToggleSelect={toggleSelect} />
+          podeSelecionar={podeSelecionar}
+          onToggleSelect={toggleSelect}
+        />
       )}
 
       <CartSummaryPanel
@@ -486,8 +799,13 @@ export function GaleriaClientePage() {
         carrinhoIds={carrinhoIds}
         pacoteLimit={pacoteLimit}
         valorUnitario={valorUnitario}
+        valoresExtras={valoresExtras}
+        extrasEmSelecao={extrasEmSelecao}
         onRemoveFromCart={toggleCarrinho}
-        onCheckout={() => { setShowCart(false); setShowCheckout(true) }} />
+        podeComprar={podeComprar}
+        podeEditarCarrinho={podeEscolherExtras}
+        onCheckout={() => { setShowCart(false); setShowCheckout(true) }}
+      />
 
       <FavoritosPanel
         open={showFavoritos}
@@ -498,17 +816,49 @@ export function GaleriaClientePage() {
         carrinhoIds={carrinhoIds}
         pacoteLimit={pacoteLimit}
         valorUnitario={valorUnitario}
+        valoresExtras={valoresExtras}
+        extrasEmSelecao={extrasEmSelecao}
+        podeSelecionar={podeSelecionar}
+        podeComprar={podeEscolherExtras}
         onToggleSelect={toggleSelect}
         onToggleCarrinho={toggleCarrinho}
-        onToggleFavorito={toggleFavorito} />
+        onToggleFavorito={toggleFavorito}
+      />
 
       <CheckoutDialog
         token={token ?? ''}
         open={showCheckout}
         onClose={() => setShowCheckout(false)}
         onCheckout={handleCheckout}
+        onEnviarComprovante={handleEnviarComprovante}
+      />
 
-        onEnviarComprovante={handleEnviarComprovante} />
+      <GaleriaExtraDialog
+        foto={fotoExtraPendente}
+        open={fotoExtraPendente !== null}
+        valor={fotoExtraPendente ? valorUnitarioFoto(fotoExtraPendente.id) : valorUnitario}
+        extrasEmSelecao={extrasEmSelecao}
+        onOpenChange={(open) => { if (!open) setFotoExtraPendente(null) }}
+        onConfirm={confirmarExtra}
+      />
+
+      <GaleriaConfirmarSelecao
+        open={showConfirmarSelecao}
+        onOpenChange={setShowConfirmarSelecao}
+        pacoteFotos={selectedFotos}
+        extrasFotos={extrasFotos}
+        observacao={observacao}
+        onObservacaoChange={setObservacao}
+        totalExtras={totalExtras}
+        onConfirm={handleEnviarSelecao}
+        isLoading={isEnviandoSelecao}
+      />
+
+      {token && (
+        <div className="mx-auto w-full max-w-[1500px] px-3 pb-16 sm:px-6">
+          <MinhasComprasSection token={token} />
+        </div>
+      )}
     </div>
   )
 }

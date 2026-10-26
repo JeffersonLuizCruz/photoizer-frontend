@@ -5,6 +5,7 @@ import type { AdminCompraDetalheResponse } from '../types/ecommerce.types'
 import { AuthImage } from '@/shared/components/ui/AuthImage'
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/shared/components/ui/sheet'
 import { downloadProtected, openProtected } from '@/shared/api'
+import { numeroGaleriaLabel, rotuloFoto } from '@/shared/lib/foto'
 
 interface AdminCompraDetalheDialogProps {
   compraId: string | null
@@ -100,7 +101,17 @@ export function AdminCompraDetalheDialog({ compraId, open, onOpenChange }: Admin
                 <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
                   {detalhe.fotos.map((foto) => (
                     <div key={foto.id} className="rounded-lg border bg-card overflow-hidden">
-                      <AuthImage src={foto.thumbUrl} alt={foto.fileName} className="aspect-[3/2] w-full object-cover" />
+                      <div className="relative">
+                        <AuthImage src={foto.thumbUrl} alt={rotuloFoto(foto)} className="aspect-[3/2] w-full object-cover" />
+                        {foto.numeroGaleria != null && (
+                          <span className="absolute left-1 top-1 rounded bg-slate-950/70 px-1 py-0.5 text-[9px] font-semibold tabular-nums text-white backdrop-blur">
+                            {numeroGaleriaLabel(foto.numeroGaleria)}
+                          </span>
+                        )}
+                      </div>
+                      <p className="truncate px-1 pt-1 text-[10px] text-muted-foreground" title={foto.fileName}>
+                        {foto.fileName}
+                      </p>
                       <div className="p-1 flex justify-center">
                         {foto.originalUrl ? (
                           <button onClick={() => downloadProtected(foto.originalUrl!, foto.fileName)}

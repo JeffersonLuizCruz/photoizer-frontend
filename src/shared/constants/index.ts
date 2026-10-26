@@ -15,6 +15,8 @@ export const ROUTES = {
   CONFIG: '/config',
   COMISSOES: '/comissoes',
   AGENDA_GALERIA: '/agenda/:id/fotos',
+  AGENDA_SELECAO: '/agenda/:id/selecoes',
+  ADMIN_SELECOES: '/admin/selecoes',
   ADMIN_ECOMMERCE: '/admin/ecommerce',
   ADMIN_CUPONS: '/admin/cupons',
   ADMIN_ANALYTICS: '/admin/analytics',

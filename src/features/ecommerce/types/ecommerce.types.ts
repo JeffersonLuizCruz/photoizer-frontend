@@ -9,7 +9,13 @@ export interface FotoEnsaio {
   watermarkedUrl: string
   thumbUrl: string
   ordem: number
+  numeroGaleria: number | null
   status: 'INEDITA' | 'PUBLICADA' | 'AGUARDANDO_COMPROVANTE' | 'AGUARDANDO_CONFIRMACAO' | 'PAGA'
+  versaoAtual?: 'ORIGINAL' | 'EDITADA'
+  temVersaoEditada?: boolean
+  emSelecaoEdicao?: boolean
+  editadaFileName?: string | null
+  editadaEm?: string | null
   selecionadaPacote: boolean
   downloadada: boolean
   compraExtraId: string | null
@@ -19,6 +25,61 @@ export interface FotoEnsaio {
   titulo: string | null
   fotoEdicaoId: string | null
   visivel: boolean
+}
+
+export type ModoGaleria = 'DIRETO' | 'COM_EDICAO'
+export type FaseGaleria = 'SELECAO' | 'SELECAO_ENVIADA' | 'EM_EDICAO' | 'COMERCIALIZACAO'
+export type StatusSelecao = 'ENVIADA' | 'EM_EDICAO' | 'CONCLUIDA' | 'PUBLICADA' | 'CANCELADA'
+
+export interface SelecaoEnsaioItemResponse {
+  fotoId: string
+  numeroGaleria: number
+  nomeArquivo: string | null
+  tipo: 'PACOTE' | 'EXTRA'
+  ordem: number
+  valorUnitario: number | null
+  editada: boolean
+  editadaEm: string | null
+  foto: FotoEnsaio | null
+}
+
+export interface SelecaoEnsaioResponse {
+  id: string
+  agendamentoId: string
+  numero: number
+  status: StatusSelecao
+  observacaoCliente: string | null
+  enviadaEm: string
+  iniciadaEm: string | null
+  concluidaEm: string | null
+  publicadaEm: string | null
+  originaisBaixadosEm: string | null
+  quantidadePacote: number
+  quantidadeExtras: number
+  itens: SelecaoEnsaioItemResponse[]
+}
+
+export interface SelecaoPendenteResponse {
+  agendamentoId: string
+  selecaoId: string
+  numero: number
+  status: StatusSelecao
+  clienteNome: string
+  pacoteNome: string
+  quantidadePacote: number
+  quantidadeExtras: number
+  enviadaEm: string
+  diasAguardando: number
+}
+
+export interface GaleriaEnsaioResponse {
+  agendamentoId: string
+  modo: ModoGaleria
+  fase: FaseGaleria
+  selecaoAtualId: string | null
+  capaFotoId: string | null
+  capaVersao: 'ORIGINAL' | 'EDITADA' | null
+  podeAlterarModo: boolean
 }
 
 export interface CompraExtraResponse {
@@ -38,6 +99,7 @@ export interface AdminEcommerceResumoResponse {
   totalFotos: number
   fotosPublicadas: number
   fotosSelecionadasPacote: number
+  pacoteQuantidadeFotos: number
   fotosPagas: number
   fotosAguardando: number
   fotos: FotoEnsaio[]

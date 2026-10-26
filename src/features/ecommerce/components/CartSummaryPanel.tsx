@@ -1,6 +1,7 @@
 import { X, Trash2, ShoppingCart } from 'lucide-react'
 import { Sheet, SheetContent, SheetTitle } from '@/shared/components/ui/sheet'
 import type { FotoEnsaio } from '../types/ecommerce.types'
+import { numeroGaleriaLabel, rotuloFoto } from '@/shared/lib/foto'
 
 interface CartSummaryPanelProps {
   open: boolean
@@ -10,6 +11,10 @@ interface CartSummaryPanelProps {
   carrinhoIds: Set<string>
   pacoteLimit: number
   valorUnitario: number
+  valoresExtras: Record<string, number>
+  extrasEmSelecao: boolean
+  podeComprar: boolean
+  podeEditarCarrinho: boolean
   onRemoveFromCart: (fotoId: string) => void
   onCheckout: () => void
 }
@@ -19,20 +24,22 @@ const formatBRL = (value: number) =>
 
 export function CartSummaryPanel({
   open, onClose, fotos, selectedIds, carrinhoIds,
-  pacoteLimit, valorUnitario, onRemoveFromCart, onCheckout,
+  pacoteLimit, valorUnitario, valoresExtras, extrasEmSelecao,
+  podeComprar, podeEditarCarrinho, onRemoveFromCart, onCheckout,
 }: CartSummaryPanelProps) {
   const pacoteFotos = fotos.filter((f) => selectedIds.has(f.id))
   const cartFotos = fotos.filter((f) => carrinhoIds.has(f.id))
-  const subtotalExtras = cartFotos.length * valorUnitario
+  const valorFoto = (fotoId: string) => valoresExtras[fotoId] ?? valorUnitario
+  const subtotalExtras = cartFotos.reduce((total, foto) => total + valorFoto(foto.id), 0)
 
   return (
     <Sheet open={open} onOpenChange={(o) => { if (!o) onClose() }}>
-      <SheetContent hideClose className="h-dvh max-h-none w-full max-w-md gap-0 overflow-hidden border-l border-cyan-100 bg-white p-0 sm:h-full">
+      <SheetContent hideClose className="h-dvh max-h-none w-full max-w-md gap-0 overflow-hidden border-l border-gallery-line bg-gallery-surface p-0 sm:h-full">
         {/* Header */}
-        <div className="flex h-14 shrink-0 items-center justify-between bg-gradient-to-r from-cyan-500 via-sky-500 to-teal-400 px-4 pb-2 pt-[env(safe-area-inset-top)] text-white">
+        <div className="flex min-h-14 shrink-0 items-center justify-between bg-gradient-to-r from-gallery-ink via-gallery-ink to-gallery-ink px-4 pb-2 pt-[calc(0.5rem+env(safe-area-inset-top))] text-white">
           <SheetTitle className="flex items-center gap-2 font-display text-sm font-semibold">
             <ShoppingCart className="h-4 w-4" />
-            Meu Carrinho
+            {extrasEmSelecao ? 'Extras da seleção' : 'Meu Carrinho'}
           </SheetTitle>
           <button onClick={onClose} className="rounded-lg flex h-11 w-11 items-center justify-center transition-colors hover:bg-white/20" title="Fechar">
             <X className="h-4 w-4" />
@@ -51,14 +58,19 @@ export function CartSummaryPanel({
             ) : (
               <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
                 {pacoteFotos.map((foto) => (
-                  <div key={foto.id} className="relative aspect-[3/2] overflow-hidden rounded-lg border border-cyan-100 bg-muted">
+                  <div key={foto.id} className="relative aspect-[3/2] overflow-hidden rounded-lg border border-gallery-line bg-muted">
                     <img
                       src={foto.thumbUrl}
-                      alt={foto.fileName}
+                      alt={rotuloFoto(foto)}
                       loading="lazy"
                       decoding="async"
                       className="h-full w-full object-cover" />
-                    <span className="absolute bottom-0.5 left-0.5 rounded-sm bg-teal-500/90 px-1 py-px text-[9px] font-medium text-white">
+                    {foto.numeroGaleria != null && (
+                      <span className="absolute left-0.5 top-0.5 rounded-sm bg-gallery-ink/70 px-1 py-px text-[9px] font-semibold tabular-nums text-white backdrop-blur">
+                        {numeroGaleriaLabel(foto.numeroGaleria)}
+                      </span>
+                    )}
+                    <span className="absolute bottom-0.5 left-0.5 rounded-sm bg-gallery-accent/90 px-1 py-px text-[9px] font-medium text-white">
                       Incluída
                     </span>
                   </div>
@@ -69,28 +81,37 @@ export function CartSummaryPanel({
 
           {/* Fotos Extras */}
           <section>
-            <h3 className="text-xs font-semibold mb-2">Fotos Extras ({cartFotos.length})</h3>
+            <h3 className="text-xs font-semibold mb-2">
+              {extrasEmSelecao ? 'Extras da seleção' : 'Fotos Extras'} ({cartFotos.length})
+            </h3>
             {cartFotos.length === 0 ? (
-              <p className="text-xs text-muted-foreground">Nenhuma foto extra no carrinho.</p>
+              <p className="text-xs text-muted-foreground">
+                {extrasEmSelecao
+                  ? 'Nenhuma foto extra marcada para edição.'
+                  : 'Nenhuma foto extra no carrinho.'}
+              </p>
             ) : (
               <ul className="space-y-2">
                 {cartFotos.map((foto) => (
-                  <li key={foto.id} className="flex items-center gap-3 rounded-xl border border-cyan-100 p-2">
+                  <li key={foto.id} className="flex items-center gap-3 rounded-xl border border-gallery-line p-2">
                     <div className="h-12 w-16 shrink-0 overflow-hidden rounded-lg bg-muted">
                       <img
                         src={foto.thumbUrl}
-                        alt={foto.fileName}
+                        alt={rotuloFoto(foto)}
                         loading="lazy"
                         decoding="async"
                         className="h-full w-full object-cover" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-xs font-medium truncate">{foto.fileName}</p>
-                      <p className="text-[11px] text-muted-foreground">{formatBRL(valorUnitario)}</p>
+                      <p className="truncate text-xs font-medium">
+                        {foto.numeroGaleria != null ? numeroGaleriaLabel(foto.numeroGaleria) : 'Foto extra'}
+                      </p>
+                      <p className="text-[11px] text-muted-foreground">{formatBRL(valorFoto(foto.id))}</p>
                     </div>
                     <button
                       onClick={() => onRemoveFromCart(foto.id)}
-                      className="rounded-lg flex h-11 w-11 items-center justify-center text-slate-400 transition-colors hover:bg-rose-50 hover:text-rose-500"
+                      disabled={!podeEditarCarrinho}
+                      className="rounded-lg flex h-11 w-11 items-center justify-center text-gallery-muted transition-colors hover:bg-gallery-line/40 hover:text-gallery-accent disabled:cursor-not-allowed disabled:opacity-40"
                       aria-label={`Remover ${foto.fileName} do carrinho`}>
                       <Trash2 className="h-3.5 w-3.5" />
                     </button>
@@ -101,19 +122,19 @@ export function CartSummaryPanel({
           </section>
 
           {/* Resumo */}
-          <section className="space-y-1.5 rounded-2xl bg-cyan-50/60 p-3 ring-1 ring-cyan-100">
+          <section className="space-y-1.5 rounded-2xl bg-gallery-bg p-3 ring-1 ring-gallery-line">
             <div className="flex items-center justify-between text-xs">
-              <span className="text-slate-500">
-                Subtotal extras: {cartFotos.length} × {formatBRL(valorUnitario)}
+              <span className="text-gallery-muted">
+                {extrasEmSelecao ? 'Valor estimado dos extras' : 'Subtotal extras'}: {cartFotos.length} foto(s)
               </span>
-              <span className="font-medium text-slate-800">{formatBRL(subtotalExtras)}</span>
+              <span className="font-medium text-gallery-ink">{formatBRL(subtotalExtras)}</span>
             </div>
-            <div className="flex items-center justify-between border-t border-cyan-100 pt-1.5 text-sm font-semibold text-cyan-950">
+            <div className="flex items-center justify-between border-t border-gallery-line pt-1.5 text-sm font-semibold text-gallery-ink">
               <span>Total</span>
               <span>{formatBRL(subtotalExtras)}</span>
             </div>
             {selectedIds.size === pacoteLimit && pacoteLimit > 0 && (
-              <p className="text-[11px] font-medium text-teal-600">
+              <p className="text-[11px] font-medium text-gallery-accent">
                 Você aproveitou 100% do seu pacote!
               </p>
             )}
@@ -121,11 +142,18 @@ export function CartSummaryPanel({
         </div>
 
         {/* Footer */}
-        <div className="shrink-0 border-t border-cyan-100 p-4 pb-[calc(1rem+env(safe-area-inset-bottom))]">
+        <div className="shrink-0 border-t border-gallery-line p-4 pb-[calc(1rem+env(safe-area-inset-bottom))]">
+          {!podeComprar && (
+            <p className="mb-2 text-center text-[11px] font-medium text-gallery-accent">
+              {podeEditarCarrinho
+                ? 'Envie a seleção para que o estúdio edite as fotos antes da compra.'
+                : 'A compra será liberada após a publicação da edição.'}
+            </p>
+          )}
           <button
             onClick={onCheckout}
-            disabled={cartFotos.length === 0}
-            className="w-full rounded-2xl border-0 bg-gradient-to-r from-orange-400 to-rose-400 py-2.5 text-sm font-semibold text-white shadow-lg shadow-orange-200/70 transition hover:from-orange-500 hover:to-rose-500 disabled:cursor-not-allowed disabled:opacity-50">
+            disabled={cartFotos.length === 0 || !podeComprar}
+            className="w-full rounded-full border-0 bg-gallery-ink py-2.5 text-sm font-semibold text-gallery-bg shadow-lg transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50">
             Finalizar Compra ({formatBRL(subtotalExtras)})
           </button>
         </div>

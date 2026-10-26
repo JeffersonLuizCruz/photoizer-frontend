@@ -26,7 +26,9 @@ const AgendamentoDetalhesPage = lazy(() => import('@/features/agenda').then(m =>
 const EditarAgendamentoPage = lazy(() => import('@/features/agenda').then(m => ({ default: m.EditarAgendamentoPage })))
 const AgendaPage = lazy(() => import('@/features/agenda').then(m => ({ default: m.AgendaPage })))
 const AgendamentoAvulsoPage = lazy(() => import('@/features/agenda').then(m => ({ default: m.AgendamentoAvulsoPage })))
-const AdminGaleriaPage = lazy(() => import('@/features/fotos').then(m => ({ default: m.AdminGaleriaPage })))
+const AdminGaleriaWorkspacePage = lazy(() => import('@/features/fotos/pages/AdminGaleriaWorkspacePage').then(m => ({ default: m.AdminGaleriaWorkspacePage })))
+const SelecaoRedirect = lazy(() => import('@/features/fotos/pages/AdminGaleriaWorkspacePage').then(m => ({ default: m.SelecaoRedirect })))
+const AdminSelecoesPage = lazy(() => import('@/features/fotos/pages/AdminSelecoesPage').then(m => ({ default: m.AdminSelecoesPage })))
 const PacotesListPage = lazy(() => import('@/features/pacotes').then(m => ({ default: m.PacotesListPage })))
 const PacoteFormPage = lazy(() => import('@/features/pacotes').then(m => ({ default: m.PacoteFormPage })))
 const DashboardPage = lazy(() => import('@/features/dashboard').then(m => ({ default: m.DashboardPage })))
@@ -109,7 +111,9 @@ export function AppRoutes() {
             <Route path={ROUTES.FINANCEIRO_RELATORIOS} element={<ProtectedRoute allowedRoles={ROLES_ADMIN}><RelatoriosPage /></ProtectedRoute>} />
             <Route path={ROUTES.CONFIG} element={<ProtectedRoute allowedRoles={ROLES_ADMIN}><ConfigPage /></ProtectedRoute>} />
             <Route path={ROUTES.COMISSOES} element={<ProtectedRoute allowedRoles={ROLES_SEM_AGENDADOR}><ComissoesConsultaPage /></ProtectedRoute>} />
-            <Route path={ROUTES.AGENDA_GALERIA} element={<AdminGaleriaPage />} />
+            <Route path={ROUTES.AGENDA_GALERIA} element={<ProtectedRoute allowedRoles={ROLES_SEM_AGENDADOR}><AdminGaleriaWorkspacePage /></ProtectedRoute>} />
+            <Route path={ROUTES.AGENDA_SELECAO} element={<ProtectedRoute allowedRoles={ROLES_SEM_AGENDADOR}><SelecaoRedirect /></ProtectedRoute>} />
+            <Route path={ROUTES.ADMIN_SELECOES} element={<ProtectedRoute allowedRoles={ROLES_SEM_AGENDADOR}><AdminSelecoesPage /></ProtectedRoute>} />
             <Route path={ROUTES.ADMIN_ECOMMERCE} element={<ProtectedRoute allowedRoles={ROLES_SEM_AGENDADOR}><AdminEcommercePage /></ProtectedRoute>} />
             <Route path={ROUTES.ADMIN_ANALYTICS} element={<ProtectedRoute allowedRoles={ROLES_SEM_AGENDADOR}><AdminAnalyticsPage /></ProtectedRoute>} />
             <Route path={ROUTES.FOTOGRAFOS} element={<ProtectedRoute allowedRoles={ROLES_SEM_AGENDADOR}><FotografosListPage /></ProtectedRoute>} />

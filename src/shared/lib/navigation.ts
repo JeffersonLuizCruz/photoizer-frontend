@@ -9,6 +9,7 @@ import {
   FileSignature,
   HandCoins,
   LayoutDashboard,
+  ListChecks,
   Package,
   Percent,
   ReceiptText,
@@ -61,6 +62,7 @@ const navEntries: NavEntry[] = [
   { to: ROUTES.AGENDA, label: 'Agenda', icon: Calendar },
   { to: ROUTES.PACOTES, label: 'Pacotes', icon: Package },
   { to: ROUTES.ADMIN_ECOMMERCE, label: 'Ecommerce', icon: ShoppingCart },
+  { to: ROUTES.ADMIN_SELECOES, label: 'Seleções', icon: ListChecks },
   { to: ROUTES.ADMIN_ANALYTICS, label: 'Analytics', icon: BarChart3 },
   { to: ROUTES.PROPOSTAS, label: 'Propostas', icon: FileSignature },
   { to: ROUTES.COMISSOES, label: 'Comissões', icon: Percent },
@@ -72,6 +74,7 @@ const navEntries: NavEntry[] = [
 const fotografoEntries: NavEntry[] = [
   { to: ROUTES.MEU_PAINEL, label: 'Meu Painel', icon: LayoutDashboard, end: true },
   { to: ROUTES.MINHA_AGENDA, label: 'Minha Agenda', icon: Calendar },
+  { to: ROUTES.ADMIN_SELECOES, label: 'Seleções', icon: ListChecks },
   { to: ROUTES.MINHAS_FINANCAS, label: 'Minhas Finanças', icon: DollarSign },
 ]
 

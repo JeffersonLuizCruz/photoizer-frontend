@@ -56,6 +56,13 @@
   --safe-bottom: env(safe-area-inset-bottom);
   --safe-left: env(safe-area-inset-left);
   --safe-right: env(safe-area-inset-right);
+  /* Galeria pública do cliente: microsite editorial, sempre no tema claro. */
+  --color-gallery-bg: #f7f2ea;
+  --color-gallery-surface: #fffdf9;
+  --color-gallery-ink: #211d19;
+  --color-gallery-muted: #8a8178;
+  --color-gallery-accent: #b07a52;
+  --color-gallery-line: #e7ded1;
 }
 
 @layer base {
@@ -99,5 +106,37 @@
 @media (max-width: 1023px) {
   .tsqd-parent-container {
     display: none !important;
+  }
+}
+
+@keyframes gallery-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes gallery-hero-in {
+  from {
+    opacity: 0;
+    transform: scale(1.04);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes gallery-heart-pulse {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.08);
   }
 }

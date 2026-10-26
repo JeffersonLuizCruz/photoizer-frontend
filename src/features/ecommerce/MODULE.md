@@ -19,7 +19,16 @@ features/ecommerce/
 │   ├── EcommerceAdminResumo.tsx      # Resumo e-commerce por agendamento (admin)
 │   ├── FotoViewer.tsx                # Visualizador fullscreen de fotos
 │   ├── MinhasComprasSection.tsx      # Histórico de compras do cliente
-│   ├── PhotoGrid.tsx                 # Grid responsivo de fotos
+│   ├── PhotoGrid.tsx                 # Grid responsivo de fotos (legado)
+│   ├── galeria/                      # Experiência editorial da galeria pública
+│   │   ├── GaleriaHero.tsx           # Capa, nome, data e local
+│   │   ├── GaleriaNav.tsx            # Navegação mínima com favoritos/carrinho
+│   │   ├── GaleriaIntro.tsx          # Copy por fase e progresso do pacote
+│   │   ├── GaleriaMasonry.tsx        # Grid masonry com favoritos/seleção
+│   │   ├── GaleriaDock.tsx           # Barra fixa de ações
+│   │   ├── GaleriaTimeline.tsx       # Linha do tempo da seleção/edição
+│   │   ├── GaleriaExtraDialog.tsx    # Confirmação ao exceder o pacote
+│   │   └── GaleriaConfirmarSelecao.tsx # Envio com pacote, extras e recado
 │   └── PurchaseConfirmation.tsx      # Tela de sucesso pós-compra
 ├── pages/
 │   ├── AdminAnalyticsPage.tsx        # Analytics e-commerce (admin)
@@ -73,6 +82,7 @@ features/ecommerce/
 1. `AdminEcommercePage` lista compras com filtro de status.
 2. Ações: ver detalhes (`AdminCompraDetalheDialog`), confirmar pagamento, cancelar.
 3. Relatório de compras com cards de totais.
+4. A aba **Ecommerce** do agendamento (`EcommerceAdminResumo`) é um **resumo com CTAs** para o workspace da galeria (fotos, seleção e compras). A grade de fotos, o override de seleção e a gestão de compras foram movidos para `/agenda/:id/fotos` (abas Fotos e Compras).
 
 ### Fluxo 4: Admin — Analytics
 1. `AdminAnalyticsPage` com queries React Query (`['admin-analytics']`, `['dashboard-ecommerce']`).
@@ -87,11 +97,35 @@ features/ecommerce/
 ## 6. Testes
 Não existem testes para este módulo.
 
-## 7. Pontos de Atenção
+## 7. Galeria com seleção e edição
+
+- `GaleriaClientePage` passou a respeitar `modoGaleria`, `faseGaleria`, `podeSelecionar`, `podeComprar` e `podeBaixar`.
+- No modo `COM_EDICAO`, o cliente seleciona fotos do pacote (e extras no carrinho), envia a seleção e fica em modo leitura até a publicação da edição.
+- `PhotoGrid`, `FotoViewer`, `CartSummaryPanel` e `FavoritosPanel` recebem os flags de fase.
+- Cada foto exibe `#número` e o nome do arquivo; a busca aceita ambos.
+- `ecommerce.service.ts` expõe `enviarSelecao`, `selecaoAtiva` e os endpoints administrativos de seleção/galeria.
+- Em `COM_EDICAO/SELECAO`, extras são marcados com "Incluir extra" e o painel vira "Extras da seleção"; a compra só aparece em `COMERCIALIZACAO`.
+- A seleção pode ser salva como rascunho antes do envio; após o envio, fica bloqueada.
+- O envio da seleção **não recria** a sessão do carrinho quando o servidor a considera inválida: isso perderia os extras silenciosamente. O erro é mostrado e o cliente precisa recarregar/refazer o carrinho. Se a resposta vier com `quantidadeExtras` diferente do carrinho local, a UI avisa o cliente.
+- `valoresExtras` (preço congelado por foto) é usado no grid, viewer, favoritos e resumo do carrinho.
+- O botão “Baixar pacote” do `GaleriaDock` aparece sempre que `downloadableFotos.length > 0`, inclusive no fluxo `DIRETO` (o dock também é exibido nesse caso).
+- Favoritos e comparador respeitam `podeSelecionar`/`podeComprar`; não oferecem ações em fases bloqueadas.
+- A galeria pública é mobile-first: header compacto com ícones, filtros fora do sticky, barra de ações fixa com safe-area no rodapé, grid de 2 colunas e rodapé fixo no visualizador.
+- O `FotoViewer` suporta swipe horizontal (além de setas e teclado) e bloqueia o scroll do fundo enquanto está aberto; o comparador também bloqueia o scroll.
+- A experiência editorial usa `GaleriaHero` (capa + nome + data + local), `GaleriaMasonry` (masonry, sem nome de arquivo/preço por foto), `GaleriaDock` e `GaleriaIntro` com copy por fase.
+- O endpoint público expõe `clienteNome` e `dataHoraEnsaio` para personalizar o hero; a capa é manual (definida pelo staff) com fallback para `destaque` ou primeira foto.
+- Quando o pacote está cheio, o check do grid dá lugar à sacola de extra; o clique abre o `GaleriaExtraDialog` para confirmar a inclusão, em vez de adicionar silenciosamente ao carrinho. Extras só ficam disponíveis depois que o pacote atinge o limite (ou quando a fase de seleção já foi fechada).
+- O envio da seleção usa `GaleriaConfirmarSelecao`, que agrupa pacote/extras e aceita o campo `observacao` (já suportado pelo backend).
+- O hero usa `capaUrl` (capa manual ou fallback) e faz preload com prioridade alta. A capa é escolhida em `AdminGaleriaPage` no modo “Escolher capa”; o backend congela a versão (`capaVersao`) e devolve a URL já versionada (`?v={fotoId}-{versao}`).
+- A galeria pública revalida ao voltar para a aba (`visibilitychange`/`pageshow`) e a cada 60s, sem recarregar a página e sem apagar a seleção local em andamento.
+- As prévias públicas usam o endpoint de watermark em baixa resolução (**800px**, JPEG ~0.60), com marca d'água da contratada. A UI bloqueia menu de contexto, arraste, seleção e callout de toque longo; o visualizador usa `background-image` com overlay para dificultar salvar a imagem.
+- Arquivos editados finais e downloads permanecem em alta qualidade e sem marca d'água.
+
+## 8. Pontos de Atenção
 - **Maior módulo do frontend**: 19 arquivos, 7 páginas, 10 componentes, service com 30+ métodos.
 - **Violações de isolamento**: Importa `PacoteResponse` de `@/features/pacotes` (3 arquivos) e `useCustomerAuth` + `AgendamentoCliente` de `@/features/auth` (2 arquivos).
 - **Sem `api/queries.ts`**: Hooks espalhados entre páginas e componentes — difícil de manter e reusar.
 - **`CheckoutPage` com `any`**: `PedidoRequest` e `CupomFormState` têm cast `as any` — brecha de type safety.
-- **`GaleriaClientePage` (485 linhas)**: Maior arquivo do módulo — mistura dados, UI e lógica de negócio. Forte candidato a refatoração.
+- **`GaleriaClientePage` (805 linhas)**: Maior arquivo do módulo — mistura dados, UI e lógica de negócio. Forte candidato a refatoração.
 - **`ecommerce.service.ts` (282 linhas)**: Segundo maior service do frontend. Agrupa métodos de cliente e admin — poderia ser dividido.
 - **Dead code potencial**: `DashboardEcommerceResponse` e `DashboardEcommerceMensalResponse` parecem duplicados do dashboard.

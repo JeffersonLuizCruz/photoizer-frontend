@@ -1,6 +1,14 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { fotoService, UploadLoteError, type UploadProgress } from '../services/foto.service'
+import { ecommerceService } from '@/features/ecommerce/services/ecommerce.service'
+import type {
+  AdminEcommerceResumoResponse,
+  FotoEnsaio,
+  GaleriaEnsaioResponse,
+  ModoGaleria,
+  SelecaoEnsaioResponse,
+} from '@/features/ecommerce/types/ecommerce.types'
 import { extractErrorMessage } from '@/shared/api'
 
 export function useAgendamento(agendamentoId: string | undefined) {
@@ -16,6 +24,9 @@ export function useFotosList(agendamentoId: string | undefined) {
     queryKey: ['fotos', agendamentoId],
     queryFn: () => fotoService.listar(agendamentoId!),
     enabled: !!agendamentoId,
+    // O cliente pode enviar a seleção/comprar enquanto o staff está no
+    // workspace; um polling curto evita dados defasados sem WebSocket.
+    refetchInterval: 60_000,
   })
 }
 
@@ -59,6 +70,55 @@ export function usePublicarFotos(agendamentoId: string) {
       toast.success('Galeria publicada com sucesso')
     },
     onError: (error: Error) => toast.error(extractErrorMessage(error, 'Erro ao publicar galeria')),
+  })
+}
+
+export function useGaleriaEnsaio(agendamentoId: string | undefined) {
+  return useQuery({
+    queryKey: ['galeria-ensaio', agendamentoId],
+    queryFn: () => ecommerceService.adminGaleria(agendamentoId!),
+    enabled: !!agendamentoId,
+    refetchInterval: 60_000,
+  })
+}
+
+export function useAlterarModoGaleria(agendamentoId: string) {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (modo: ModoGaleria) => ecommerceService.adminAlterarModoGaleria(agendamentoId, modo),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['galeria-ensaio', agendamentoId] })
+      queryClient.invalidateQueries({ queryKey: ['fotos', agendamentoId] })
+      toast.success('Modo da galeria atualizado')
+    },
+    onError: (error: Error) => toast.error(extractErrorMessage(error, 'Erro ao alterar o modo da galeria')),
+  })
+}
+
+export function useDefinirCapaGaleria(agendamentoId: string) {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (fotoId: string | null) =>
+      ecommerceService.adminDefinirCapaGaleria(agendamentoId, fotoId),
+    onSuccess: (data) => {
+      queryClient.setQueryData(['galeria-ensaio', agendamentoId], data)
+      queryClient.invalidateQueries({ queryKey: ['galeria-ensaio', agendamentoId] })
+      queryClient.invalidateQueries({ queryKey: ['fotos', agendamentoId] })
+      toast.success('Capa da galeria atualizada')
+    },
+    onError: (error: Error) => toast.error(extractErrorMessage(error, 'Erro ao atualizar a capa')),
+  })
+}
+
+export function useRenumerarGaleria(agendamentoId: string) {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: () => fotoService.renumerar(agendamentoId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['fotos', agendamentoId] })
+      toast.success('Galeria renumerada sequencialmente')
+    },
+    onError: (error: Error) => toast.error(extractErrorMessage(error, 'Erro ao renumerar galeria')),
   })
 }
 
@@ -170,4 +230,136 @@ export function useMarcarComentariosLidos(agendamentoId: string) {
       queryClient.invalidateQueries({ queryKey: ['comentarios-fotos', agendamentoId] })
     },
   })
+}
+
+export function useSelecoesDoAgendamento(agendamentoId: string | undefined) {
+  return useQuery({
+    queryKey: ['selecoes-ensaio', agendamentoId],
+    queryFn: () => ecommerceService.adminSelecoesDoAgendamento(agendamentoId!),
+    enabled: !!agendamentoId,
+    refetchInterval: 60_000,
+  })
+}
+
+export function useAdminResumo(agendamentoId: string | undefined, enabled = true) {
+  return useQuery({
+    queryKey: ['admin-ecommerce', agendamentoId],
+    queryFn: () => ecommerceService.adminResumo(agendamentoId!),
+    enabled: enabled && !!agendamentoId,
+    refetchInterval: enabled ? 60_000 : false,
+  })
+}
+
+export function useOverrideSelecao(agendamentoId: string) {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ({ fotoId, selecionada }: { fotoId: string; selecionada: boolean }) =>
+      ecommerceService.adminOverrideSelecao(agendamentoId, fotoId, selecionada),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-ecommerce', agendamentoId] })
+      queryClient.invalidateQueries({ queryKey: ['fotos', agendamentoId] })
+      queryClient.invalidateQueries({ queryKey: ['selecoes-ensaio', agendamentoId] })
+      toast.success('Seleção atualizada')
+    },
+    onError: (error: Error) => toast.error(extractErrorMessage(error, 'Erro ao atualizar seleção')),
+  })
+}
+
+export interface GaleriaWorkspaceCounts {
+  total: number
+  publicadas: number
+  pendentesPublicacao: number
+  pacote: number
+  extras: number
+  aguardandoEdicao: number
+  comprasPendentes: number
+  valorExtras: number
+}
+
+export interface GaleriaWorkspace {
+  fotos: FotoEnsaio[]
+  galeria: GaleriaEnsaioResponse | undefined
+  selecoes: SelecaoEnsaioResponse[]
+  selecaoAtiva: SelecaoEnsaioResponse | null
+  selecaoPublicada: SelecaoEnsaioResponse | null
+  selecaoAtual: SelecaoEnsaioResponse | null
+  resumo: AdminEcommerceResumoResponse | undefined
+  tipoPorFoto: Map<string, 'PACOTE' | 'EXTRA'>
+  counts: GaleriaWorkspaceCounts
+  isLoading: boolean
+  error: unknown
+  refetch: () => Promise<void>
+}
+
+/**
+ * Agrega os dados do workspace administrativo da galeria.
+ *
+ * Reaproveita as queries já existentes (fotos, configuração, seleções e
+ * resumo do e-commerce) para que as abas não disparem chamadas duplicadas.
+ */
+export function useGaleriaWorkspace(
+  agendamentoId: string | undefined,
+  options: { incluirResumo?: boolean } = {},
+): GaleriaWorkspace {
+  const fotosQuery = useFotosList(agendamentoId)
+  const galeriaQuery = useGaleriaEnsaio(agendamentoId)
+  const selecoesQuery = useSelecoesDoAgendamento(agendamentoId)
+  const resumoQuery = useAdminResumo(agendamentoId, options.incluirResumo ?? false)
+
+  const fotos = fotosQuery.data ?? []
+  const selecoes = selecoesQuery.data ?? []
+  const selecaoAtiva = selecoes.find(
+    (selecao) => selecao.status === 'ENVIADA' || selecao.status === 'EM_EDICAO' || selecao.status === 'CONCLUIDA',
+  ) ?? null
+  const selecaoPublicada = selecoes.find((selecao) => selecao.status === 'PUBLICADA') ?? null
+  const selecaoAtual = selecaoAtiva ?? selecaoPublicada
+  const itens = selecaoAtual?.itens ?? []
+  const resumo = resumoQuery.data
+  const compras = resumo?.comprasExtras ?? []
+  const tipoPorFoto = new Map<string, 'PACOTE' | 'EXTRA'>(
+    itens.map((item) => [item.fotoId, item.tipo]),
+  )
+  const extrasItens = itens.filter((item) => item.tipo === 'EXTRA')
+
+  const counts: GaleriaWorkspaceCounts = {
+    total: fotos.length,
+    publicadas: fotos.filter((foto) => foto.status === 'PUBLICADA').length,
+    // Fotos PAGA/AGUARDANDO já saíram de INEDITA e não precisam de nova
+    // publicação; só as inéditas ficam pendentes.
+    pendentesPublicacao: fotos.filter((foto) => foto.status === 'INEDITA').length,
+    pacote: selecaoAtual?.quantidadePacote ?? fotos.filter((foto) => foto.selecionadaPacote).length,
+    extras: selecaoAtual?.quantidadeExtras ?? extrasItens.length,
+    aguardandoEdicao: itens.filter((item) => !item.editada).length,
+    comprasPendentes: compras.filter(
+      (compra) => compra.status === 'AGUARDANDO_COMPROVANTE' || compra.status === 'AGUARDANDO_CONFIRMACAO',
+    ).length,
+    valorExtras: extrasItens.reduce((total, item) => total + (item.valorUnitario ?? 0), 0),
+  }
+
+  const refetch = async () => {
+    const tarefas: Promise<unknown>[] = [
+      fotosQuery.refetch(),
+      galeriaQuery.refetch(),
+      selecoesQuery.refetch(),
+    ]
+    if (options.incluirResumo) {
+      tarefas.push(resumoQuery.refetch())
+    }
+    await Promise.all(tarefas)
+  }
+
+  return {
+    fotos,
+    galeria: galeriaQuery.data,
+    selecoes,
+    selecaoAtiva,
+    selecaoPublicada,
+    selecaoAtual,
+    resumo,
+    tipoPorFoto,
+    counts,
+    isLoading: fotosQuery.isLoading || galeriaQuery.isLoading || selecoesQuery.isLoading,
+    error: fotosQuery.error ?? galeriaQuery.error ?? selecoesQuery.error,
+    refetch,
+  }
 }
