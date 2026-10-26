@@ -16,7 +16,7 @@ features/fotos/
 │   └── AdminSelecoesPage.tsx         # Aba Seleção + fila /admin/selecoes
 └── components/
     └── galeria-admin/
-        ├── GaleriaVisaoGeral.tsx     # Cards, stepper, próxima ação
+        ├── GaleriaVisaoGeral.tsx     # Cards e stepper da galeria
         └── GaleriaComprasPanel.tsx   # Compras de extras e confirmações
 ```
 
@@ -65,7 +65,7 @@ Não existes testes para este módulo.
 
 ## 7. Seleção, numeração e edição
 
-- `AdminGaleriaPage` exibe `#número` + nome do arquivo, permite renumerar a galeria e alternar o modo (`DIRETO`/`COM_EDICAO`).
+- `AdminGaleriaPage` exibe `#número` + nome do arquivo e permite renumerar a galeria. O seletor de modo (`DIRETO`/`COM_EDICAO`) foi removido: o fluxo novo (`COM_EDICAO`) é o único disponível.
 - `AdminSelecoesPage` (`/agenda/:id/selecoes` e `/admin/selecoes`) lista a fila de seleções, mostra número/nome das fotos, baixa o ZIP de originais e envia versões editadas (individual ou em lote).
 - O upload editado usa `fotoService.uploadEditada` e mantém o número/nome original.
 - A publicação exige 100% dos itens editados.
@@ -85,7 +85,8 @@ Não existes testes para este módulo.
 
 - `/agenda/:id/fotos` agora renderiza `AdminGaleriaWorkspacePage`, com as abas **Visão geral**, **Fotos**, **Seleção** e **Compras**.
 - `/agenda/:id/selecoes` redireciona para `/agenda/:id/fotos?tab=selecao`, preservando links antigos. `/admin/selecoes` continua como fila de seleções pendentes.
-- A aba **Visão geral** mostra cliente/pacote, link da galeria, stepper da fase (`COM_EDICAO`), cards de total/publicadas/**no pacote**/**extras**/aguardando edição/compras pendentes e a próxima ação recomendada.
+- A aba **Visão geral** mostra cliente/pacote, link da galeria, stepper da fase (`COM_EDICAO`), cards de total/publicadas/**no pacote**/**extras**/aguardando edição/compras pendentes e os atalhos para as abas Fotos, Seleção e Compras. O antigo card de "próxima ação" foi removido para não duplicar esses atalhos.
+- A Visão geral também exibe o card **Pagamento PIX** (`GaleriaPagamentoPixCard`): chave/tipo atuais, aviso de que a chave é global para todas as galerias e botão **Editar PIX** apenas para `ADMIN` (reutiliza `AdminPagamentoConfigDialog`). Os demais papéis veem a chave em modo leitura.
 - A aba **Fotos** renderiza `AdminGaleriaPage` diretamente, sem `PageTitle` duplicado, com barra de ações (selecionar, capa, renumerar, publicar) e upload compacto.
 - A aba **Seleção** renderiza `AdminSelecoesPage` diretamente: mostra pacote e extras com o selo `Extra`, permite baixar originais, enviar editadas, reabrir e publicar.
 - A aba **Compras** (`GaleriaComprasPanel`) lista compras de extras, permite confirmar/recusar pagamento e definir link de cartão. Visível para `ADMIN` e `FOTOGRAFO`. É o único lugar de gestão de compras; a aba Ecommerce do agendamento virou resumo com CTAs.

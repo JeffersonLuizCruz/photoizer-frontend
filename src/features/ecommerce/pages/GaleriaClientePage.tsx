@@ -68,7 +68,7 @@ export function GaleriaClientePage() {
   const fotos = galeria?.fotos ?? []
   const pacoteLimit = galeria?.pacoteQuantidadeFotos ?? 0
   const valorUnitario = galeria?.valorUnitarioFotoExtra ?? 15
-  const modoGaleria = galeria?.modoGaleria ?? 'DIRETO'
+  const modoGaleria = galeria?.modoGaleria ?? 'COM_EDICAO'
   const faseGaleria = galeria?.faseGaleria ?? 'COMERCIALIZACAO'
   const podeSelecionar = galeria?.podeSelecionar ?? true
   const podeComprar = galeria?.podeComprar ?? true

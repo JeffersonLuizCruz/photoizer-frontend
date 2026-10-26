@@ -16,7 +16,7 @@ import { ConfirmDialog } from '@/shared/components/layout/ConfirmDialog'
 import { cn } from '@/shared/lib/cn'
 import { AGENDAMENTO_STATUS, type AgendamentoStatus } from '@/shared/constants'
 import { fotoThumbUrl, numeroGaleriaLabel, rotuloFoto } from '@/shared/lib/foto'
-import { useAgendamento, useFotosList, useUploadFotos, usePublicarFotos, useRenumerarGaleria, useGaleriaEnsaio, useAlterarModoGaleria, useDefinirCapaGaleria, useDeletarFoto, useDeletarFotosEmLote, useUpdateFotoMetadata, useAlterarVisibilidade, useAlterarStatus, useSubstituirImagem, useComentariosAdmin, useOverrideSelecao } from '../api/queries'
+import { useAgendamento, useFotosList, useUploadFotos, usePublicarFotos, useRenumerarGaleria, useGaleriaEnsaio, useDefinirCapaGaleria, useDeletarFoto, useDeletarFotosEmLote, useUpdateFotoMetadata, useAlterarVisibilidade, useAlterarStatus, useSubstituirImagem, useComentariosAdmin, useOverrideSelecao } from '../api/queries'
 import { useAuth } from '@/features/auth/AuthProvider'
 import { ComentariosDialog } from '../components/ComentariosDialog'
 import { UploadLoteError, type UploadProgress } from '../services/foto.service'
@@ -259,7 +259,6 @@ export function AdminGaleriaPage({
   const { data: agendamento } = useAgendamento(id)
   const { papel } = useAuth()
   const { data: galeriaEnsaio } = useGaleriaEnsaio(id)
-  const { mutate: alterarModoGaleria, isPending: isAlterandoModo } = useAlterarModoGaleria(id ?? '')
   const { mutate: definirCapa, isPending: isDefinindoCapa } = useDefinirCapaGaleria(id ?? '')
   const { mutate: overrideSelecao, isPending: isOverridingSelecao } = useOverrideSelecao(id ?? '')
 
@@ -521,44 +520,6 @@ export function AdminGaleriaPage({
             </Button>
           )}
       </div>
-
-      {papel === 'ADMIN' && (
-        <div className="mb-4 flex flex-wrap items-center justify-between gap-2 rounded-xl border bg-card px-4 py-3">
-          <div className="flex items-center gap-2 text-sm">
-            <span className="font-medium">Fluxo da galeria:</span>
-          <span className={`rounded-full px-2 py-0.5 text-xs font-semibold ${
-            galeriaEnsaio?.modo === 'COM_EDICAO'
-              ? 'bg-cyan-100 text-cyan-800'
-              : 'bg-slate-100 text-slate-600'
-          }`}>
-            {galeriaEnsaio?.modo === 'COM_EDICAO' ? 'Seleção + edição' : 'Direto'}
-          </span>
-          {galeriaEnsaio?.modo === 'COM_EDICAO' && (
-            <span className="text-xs text-muted-foreground">
-              {galeriaEnsaio.fase === 'SELECAO' && 'Cliente pode selecionar'}
-              {galeriaEnsaio.fase === 'SELECAO_ENVIADA' && 'Seleção recebida'}
-              {galeriaEnsaio.fase === 'EM_EDICAO' && 'Fotos em edição'}
-              {galeriaEnsaio.fase === 'COMERCIALIZACAO' && 'Edição publicada'}
-            </span>
-          )}
-        </div>
-        {papel === 'ADMIN' && galeriaEnsaio && (
-          <Button
-            variant="outline"
-            size="sm"
-            disabled={isAlterandoModo || !galeriaEnsaio.podeAlterarModo}
-            title={!galeriaEnsaio.podeAlterarModo
-              ? 'Não é possível alterar o modo após seleção/publicação, venda ou download.'
-              : undefined}
-            onClick={() => alterarModoGaleria(
-              galeriaEnsaio.modo === 'COM_EDICAO' ? 'DIRETO' : 'COM_EDICAO')}
-          >
-            {isAlterandoModo && <Loader2 className="mr-1 h-4 w-4 animate-spin" />}
-            {galeriaEnsaio.modo === 'COM_EDICAO' ? 'Voltar para fluxo direto' : 'Ativar seleção + edição'}
-          </Button>
-        )}
-        </div>
-      )}
 
       {modoSelecaoCapa && (
         <div className="mb-4 flex flex-wrap items-center gap-2 rounded-lg border border-primary/30 bg-primary/5 p-3 text-sm">

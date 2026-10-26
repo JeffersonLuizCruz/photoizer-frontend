@@ -82,7 +82,7 @@ features/ecommerce/
 1. `AdminEcommercePage` lista compras com filtro de status.
 2. Ações: ver detalhes (`AdminCompraDetalheDialog`), confirmar pagamento, cancelar.
 3. Relatório de compras com cards de totais.
-4. A aba **Ecommerce** do agendamento (`EcommerceAdminResumo`) é um **resumo com CTAs** para o workspace da galeria (fotos, seleção e compras). A grade de fotos, o override de seleção e a gestão de compras foram movidos para `/agenda/:id/fotos` (abas Fotos e Compras).
+4. A aba **Ecommerce** do agendamento (`EcommerceAdminResumo`) é um resumo de contadores e compras de extras, com atalhos para o workspace da galeria (fotos, seleção e compras). A grade de fotos, o override de seleção e a gestão de compras ficam em `/agenda/:id/fotos` (abas Fotos e Compras); o card "Seleção e edição" foi removido por duplicar a navegação por abas.
 
 ### Fluxo 4: Admin — Analytics
 1. `AdminAnalyticsPage` com queries React Query (`['admin-analytics']`, `['dashboard-ecommerce']`).
@@ -99,6 +99,9 @@ Não existem testes para este módulo.
 
 ## 7. Galeria com seleção e edição
 
+- O fluxo legado `DIRETO` foi desativado. Galerias novas e migradas usam
+  `COM_EDICAO`; a página mantém fallback de leitura para `DIRETO` apenas para
+  linhas antigas não migradas.
 - `GaleriaClientePage` passou a respeitar `modoGaleria`, `faseGaleria`, `podeSelecionar`, `podeComprar` e `podeBaixar`.
 - No modo `COM_EDICAO`, o cliente seleciona fotos do pacote (e extras no carrinho), envia a seleção e fica em modo leitura até a publicação da edição.
 - `PhotoGrid`, `FotoViewer`, `CartSummaryPanel` e `FavoritosPanel` recebem os flags de fase.
@@ -122,6 +125,7 @@ Não existem testes para este módulo.
 - **Extras após a publicação**: fotos restantes aparecem com o selo **“A editar”** e podem ser compradas. Após o pagamento, `MinhasComprasSection` mostra **“Aguardando edição”** até o estúdio liberar a versão editada; o download só aparece com `versaoAtual = EDITADA`.
 - `isDownloadable`/`podeBaixarEsta` exigem `versaoAtual = EDITADA` no modo `COM_EDICAO`, evitando liberar download de extra ainda não editado.
 - O `CartSummaryPanel` mostra “Extras da seleção” durante a edição e “Meu Carrinho” na comercialização, com aviso de quando a compra será liberada.
+- **PIX do e-commerce**: a chave é global e somente `ADMIN` altera. O controle fica no workspace da galeria (aba Visão geral, `GaleriaPagamentoPixCard`) e em Pedidos → Ecommerce. `MinhasComprasSection` exibe a chave atual para compras PIX pendentes, com botão de copiar; a chave não é congelada na compra, então correções do staff aparecem no polling/“Atualizar”.
 - As prévias públicas usam o endpoint de watermark em baixa resolução (**800px**, JPEG ~0.60), com marca d'água da contratada. A UI bloqueia menu de contexto, arraste, seleção e callout de toque longo; o visualizador usa `background-image` com overlay para dificultar salvar a imagem.
 - Arquivos editados finais e downloads permanecem em alta qualidade e sem marca d'água.
 

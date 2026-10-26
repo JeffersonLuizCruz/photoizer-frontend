@@ -258,15 +258,6 @@ export const ecommerceService = {
     return data
   },
 
-  adminAlterarModoGaleria: async (
-    agendamentoId: string,
-    modo: ModoGaleria,
-  ): Promise<GaleriaEnsaioResponse> => {
-    const { data } = await apiClient.put<GaleriaEnsaioResponse>(
-      `/admin/agendamentos/${agendamentoId}/galeria/modo`, { modo })
-    return data
-  },
-
   adminDefinirCapaGaleria: async (
     agendamentoId: string,
     fotoId: string | null,

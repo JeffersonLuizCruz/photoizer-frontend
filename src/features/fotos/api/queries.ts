@@ -6,7 +6,6 @@ import type {
   AdminEcommerceResumoResponse,
   FotoEnsaio,
   GaleriaEnsaioResponse,
-  ModoGaleria,
   SelecaoEnsaioResponse,
 } from '@/features/ecommerce/types/ecommerce.types'
 import { extractErrorMessage } from '@/shared/api'
@@ -79,19 +78,6 @@ export function useGaleriaEnsaio(agendamentoId: string | undefined) {
     queryFn: () => ecommerceService.adminGaleria(agendamentoId!),
     enabled: !!agendamentoId,
     refetchInterval: 60_000,
-  })
-}
-
-export function useAlterarModoGaleria(agendamentoId: string) {
-  const queryClient = useQueryClient()
-  return useMutation({
-    mutationFn: (modo: ModoGaleria) => ecommerceService.adminAlterarModoGaleria(agendamentoId, modo),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['galeria-ensaio', agendamentoId] })
-      queryClient.invalidateQueries({ queryKey: ['fotos', agendamentoId] })
-      toast.success('Modo da galeria atualizado')
-    },
-    onError: (error: Error) => toast.error(extractErrorMessage(error, 'Erro ao alterar o modo da galeria')),
   })
 }
 
