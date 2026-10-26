@@ -12,6 +12,7 @@ export interface ConfigValues {
   enderecoContratada?: string
   pixChave?: string
   pixTipoChave?: string
+  logoContratada?: string
 }
 
 export const configService = {
@@ -22,6 +23,17 @@ export const configService = {
 
   update: async (valores: Record<string, string>): Promise<void> => {
     await apiClient.put('/config', valores)
+  },
+
+  uploadLogo: async (arquivo: File): Promise<string> => {
+    const formData = new FormData()
+    formData.append('arquivo', arquivo)
+    const { data } = await apiClient.post<{ logoContratada: string }>('/config/logo', formData)
+    return data.logoContratada
+  },
+
+  removerLogo: async (): Promise<void> => {
+    await apiClient.delete('/config/logo')
   },
 
   getTemplate: async (): Promise<string> => {

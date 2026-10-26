@@ -13,6 +13,7 @@ import {
 } from 'lucide-react'
 import { formatCurrency } from '@/shared/lib/format'
 import { cn } from '@/shared/lib/cn'
+import { PropostaMarca } from './PropostaMarca'
 import type { PropostaPublica } from '../types'
 
 interface ProposalSummaryProps {
@@ -55,6 +56,7 @@ export function ProposalSummary({ proposta }: ProposalSummaryProps) {
       <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-cyan-500 via-sky-500 to-teal-400 p-6 text-white shadow-lg shadow-cyan-200/60 sm:p-9">
         <div className="absolute -top-10 -right-6 h-40 w-40 rounded-full bg-white/20 blur-2xl" />
         <div className="relative">
+          <PropostaMarca nome={proposta.contratadaNome} className="mb-5" />
           <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em] text-white/80">
             <Palmtree className="h-4 w-4" />
             Proposta de Ensaio Fotográfico

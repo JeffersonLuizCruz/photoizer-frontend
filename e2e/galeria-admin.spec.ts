@@ -167,6 +167,9 @@ test.describe('Galeria administrativa - workspace mobile', () => {
     await expect(page.getByText('No pacote', { exact: true })).toBeVisible()
     await expect(page.getByText('Extras', { exact: true }).first()).toBeVisible()
     await expect(page.getByRole('heading', { name: 'Cliente E2E', exact: true })).toBeVisible()
+    await expect(page.getByRole('button', { name: 'Gerenciar fotos' })).toHaveCount(0)
+    await expect(page.getByRole('button', { name: 'Seleção do cliente' })).toHaveCount(0)
+    await expect(page.getByRole('button', { name: 'Compras' })).toHaveCount(0)
     expect(await horizontalOverflow(page)).toBeLessThanOrEqual(1)
   })
 

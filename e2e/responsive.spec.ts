@@ -9,6 +9,12 @@ const ADMIN_USER = {
 
 const PUBLIC_ROUTES = ['/login', '/acesso-cliente']
 
+// PNG 1x1 transparente usado para o endpoint público da logo nos mocks.
+const LOGO_PNG = Buffer.from(
+  'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=',
+  'base64',
+)
+
 const ADMIN_ROUTES = [
   '/dashboard',
   '/agenda',
@@ -94,6 +100,11 @@ function bodyFor(url: string): unknown {
 
 async function mockApi(page: Page) {
   await page.route('**/api/v1/**', async (route) => {
+    const path = route.request().url().split('/api/v1')[1]?.split('?')[0] ?? ''
+    if (path === '/config/logo') {
+      await route.fulfill({ status: 200, contentType: 'image/png', body: LOGO_PNG })
+      return
+    }
     const method = route.request().method()
     const body = method === 'GET' ? bodyFor(route.request().url()) : {}
     await route.fulfill({
@@ -233,6 +244,16 @@ test.describe('Página pública da proposta (/proposta/:token)', () => {
     await expect(page.getByRole('button', { name: 'Confirmar e enviar' })).toBeVisible()
     await expect(page.getByText('Assinatura digital')).toHaveCount(0)
     await expect(page.getByText('Confirmação (digite seu nome completo)')).toHaveCount(0)
+  })
+
+  test('exibe a logo da contratada no topo da proposta', async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 900 })
+    await mockApi(page)
+    await page.goto('/proposta/test-token')
+    await page.waitForTimeout(800)
+
+    await expect(page.getByRole('img', { name: 'Logo de Estúdio Photoizer' })).toBeVisible()
+    expect(await horizontalOverflow(page)).toBeLessThanOrEqual(1)
   })
 })
 
@@ -709,6 +730,43 @@ test.describe('Barra de ações da proposta', () => {
     const bar = page.getByTestId('sticky-action-bar')
     await expect(bar).toContainText('Cancelar')
     await expect(bar).toContainText('Continuar')
+    expect(await bar.evaluate((el) => getComputedStyle(el).position)).toBe('static')
+  })
+})
+
+test.describe('Barra de ações do pacote', () => {
+  test('fica fixa acima da navegação inferior no mobile, sem flutuar sobre os campos', async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 })
+    await seedAdminAuth(page)
+    await mockApi(page)
+    await page.goto('/pacotes/novo')
+
+    const bar = page.getByTestId('sticky-action-bar')
+    const nav = page.getByRole('navigation', { name: 'Navegação principal' })
+    await expect(bar).toBeVisible()
+    await expect(nav).toBeVisible()
+    await expect(page.getByLabel('Nome do Pacote *')).toBeVisible()
+
+    expect(await bar.evaluate((el) => getComputedStyle(el).position)).toBe('fixed')
+
+    const barBox = await bar.boundingBox()
+    const navBox = await nav.boundingBox()
+    expect(barBox).not.toBeNull()
+    expect(navBox).not.toBeNull()
+    expect(barBox!.y + barBox!.height).toBeLessThanOrEqual(navBox!.y + 1)
+    expect(barBox!.y + barBox!.height).toBeGreaterThanOrEqual(navBox!.y - 2)
+    expect(await horizontalOverflow(page)).toBeLessThanOrEqual(1)
+  })
+
+  test('no desktop volta a ser rodapé do formulário', async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 800 })
+    await seedAdminAuth(page)
+    await mockApi(page)
+    await page.goto('/pacotes/novo')
+
+    const bar = page.getByTestId('sticky-action-bar')
+    await expect(bar).toContainText('Cancelar')
+    await expect(bar).toContainText('Criar Pacote')
     expect(await bar.evaluate((el) => getComputedStyle(el).position)).toBe('static')
   })
 })

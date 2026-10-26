@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
-import { Save, Loader2, FileUp, RotateCcw, FileSignature } from 'lucide-react'
+import { Save, Loader2, FileUp, RotateCcw, FileSignature, Trash2 } from 'lucide-react'
 import { useState, useEffect, useRef } from 'react'
 import { PageTitle } from '@/shared/components/layout/PageTitle'
 import { Button } from '@/shared/components/ui/button'
@@ -34,6 +34,8 @@ export function ConfigPage() {
   const [template, setTemplate] = useState('')
   const [lastSavedAt, setLastSavedAt] = useState<Date | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const logoInputRef = useRef<HTMLInputElement>(null)
+  const [logoVersion, setLogoVersion] = useState(0)
 
   const { data, isLoading } = useQuery({
     queryKey: ['config'],
@@ -106,6 +108,37 @@ export function ConfigPage() {
     },
   })
 
+  const { mutate: enviarLogo, isPending: logoEnviando } = useMutation({
+    mutationFn: (arquivo: File) => configService.uploadLogo(arquivo),
+    onSuccess: () => {
+      setLogoVersion((valor) => valor + 1)
+      queryClient.invalidateQueries({ queryKey: ['config'] })
+      toast.success('Logo atualizada com sucesso')
+    },
+    onError: (error: Error) => {
+      toast.error(extractErrorMessage(error, 'Erro ao enviar logo'))
+    },
+  })
+
+  const { mutate: removerLogo, isPending: logoRemovendo } = useMutation({
+    mutationFn: () => configService.removerLogo(),
+    onSuccess: () => {
+      setLogoVersion((valor) => valor + 1)
+      queryClient.invalidateQueries({ queryKey: ['config'] })
+      toast.success('Logo removida. A proposta voltará a usar a arte padrão')
+    },
+    onError: (error: Error) => {
+      toast.error(extractErrorMessage(error, 'Erro ao remover logo'))
+    },
+  })
+
+  const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    enviarLogo(file)
+    e.target.value = ''
+  }
+
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
@@ -142,6 +175,58 @@ export function ConfigPage() {
           )}
           <div className="space-y-4">
             <h2 className="text-lg font-semibold">Dados da Contratada</h2>
+
+            <div className="rounded-xl border bg-card p-4">
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
+                <div className="flex min-h-[76px] w-full items-center justify-center rounded-2xl bg-white p-3 shadow-sm ring-1 ring-cyan-100 sm:w-auto sm:min-w-[160px]">
+                  <img
+                    key={logoVersion}
+                    src={`/api/v1/config/logo?v=${logoVersion}`}
+                    alt="Logo da contratada"
+                    className="h-12 w-auto max-w-[200px] object-contain"
+                  />
+                </div>
+                <div className="flex flex-1 flex-wrap items-center gap-2">
+                  <input
+                    ref={logoInputRef}
+                    type="file"
+                    accept="image/png,image/jpeg,image/webp"
+                    onChange={handleLogoUpload}
+                    className="hidden"
+                  />
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => logoInputRef.current?.click()}
+                    disabled={logoEnviando || logoRemovendo}
+                  >
+                    {logoEnviando ? <Loader2 className="mr-1 h-4 w-4 animate-spin" /> : <FileUp className="mr-1 h-4 w-4" />}
+                    Enviar logo
+                  </Button>
+                  {data?.logoContratada ? (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => removerLogo()}
+                      disabled={logoEnviando || logoRemovendo}
+                      className="text-destructive hover:text-destructive"
+                    >
+                      {logoRemovendo ? <Loader2 className="mr-1 h-4 w-4 animate-spin" /> : <Trash2 className="mr-1 h-4 w-4" />}
+                      Remover
+                    </Button>
+                  ) : (
+                    <span className="rounded-full bg-cyan-50 px-2.5 py-1 text-[11px] font-medium text-cyan-700 ring-1 ring-cyan-100">
+                      Usando a arte padrão
+                    </span>
+                  )}
+                </div>
+              </div>
+              <p className="mt-3 text-xs text-muted-foreground">
+                PNG com fundo transparente, até 3 MB. A imagem é exibida na proposta pública do
+                cliente, harmonizada com as cores da proposta. Formatos aceitos: PNG, JPG ou WEBP.
+              </p>
+            </div>
+
             {CONTRATADA_FIELDS.map(({ key, label, placeholder }) => (
               <div key={key} className="space-y-2">
                 <Label htmlFor={key}>{label}</Label>

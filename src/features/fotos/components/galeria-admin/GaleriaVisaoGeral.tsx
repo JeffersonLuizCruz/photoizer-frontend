@@ -5,8 +5,6 @@ import {
   ChevronRight,
   Clock,
   Image as ImageIcon,
-  Images,
-  ListChecks,
   Loader2,
   ShoppingBag,
 } from 'lucide-react'
@@ -20,8 +18,6 @@ import type { GaleriaEnsaioResponse, FotoEnsaio, SelecaoEnsaioResponse } from '@
 import type { AgendamentoRef } from '../../services/foto.service'
 import type { GaleriaWorkspaceCounts } from '../../api/queries'
 
-type GaleriaAdminTab = 'fotos' | 'selecao' | 'compras'
-
 interface GaleriaVisaoGeralProps {
   agendamento: AgendamentoRef | undefined
   galeria: GaleriaEnsaioResponse | undefined
@@ -32,7 +28,6 @@ interface GaleriaVisaoGeralProps {
   error?: unknown
   onRetry?: () => void
   podeVerCompras: boolean
-  onNavigateTab: (tab: GaleriaAdminTab) => void
 }
 
 const FASES = [
@@ -90,7 +85,6 @@ export function GaleriaVisaoGeral({
   error,
   onRetry,
   podeVerCompras,
-  onNavigateTab,
 }: GaleriaVisaoGeralProps) {
   if (isLoading) {
     return (
@@ -244,23 +238,6 @@ export function GaleriaVisaoGeral({
             </p>
           </div>
         </div>
-      </section>
-
-      <section className="flex flex-wrap gap-2">
-        <Button variant="outline" size="sm" onClick={() => onNavigateTab('fotos')}>
-          <Images className="mr-1 h-4 w-4" />
-          Gerenciar fotos
-        </Button>
-        <Button variant="outline" size="sm" onClick={() => onNavigateTab('selecao')}>
-          <ListChecks className="mr-1 h-4 w-4" />
-          Seleção do cliente
-        </Button>
-        {podeVerCompras && (
-          <Button variant="outline" size="sm" onClick={() => onNavigateTab('compras')}>
-            <ShoppingBag className="mr-1 h-4 w-4" />
-            Compras
-          </Button>
-        )}
       </section>
     </div>
   )

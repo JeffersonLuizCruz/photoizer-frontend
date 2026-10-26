@@ -158,7 +158,6 @@ export function AdminGaleriaWorkspacePage() {
               error={workspace.error}
               onRetry={() => void workspace.refetch()}
               podeVerCompras={podeVerCompras}
-              onNavigateTab={mudarTab}
             />
             <GaleriaPagamentoPixCard podeEditar={user?.papel === 'ADMIN'} />
           </div>

@@ -10,6 +10,7 @@ import { Input } from '@/shared/components/ui/input'
 import { Label } from '@/shared/components/ui/label'
 import { ROUTES } from '@/shared/constants'
 import { DEFAULT_PACKAGE_COLOR } from '@/shared/lib/pacote-color'
+import { StickyActionBar } from '@/shared/components/mobile'
 
 interface PacoteFormProps {
   onSubmit: (data: PacoteFormData) => void
@@ -152,15 +153,17 @@ export function PacoteForm({ onSubmit, defaultValues, isLoading, mode }: PacoteF
         </div>
       </div>
 
-      <div className="sticky bottom-[calc(4rem+env(safe-area-inset-bottom))] z-20 mt-4 flex items-center justify-end gap-2 border-t bg-card py-3 lg:bottom-0">
-        <Button type="button" variant="outline" onClick={() => navigate(ROUTES.PACOTES)}>
-          Cancelar
-        </Button>
-        <Button type="submit" disabled={isLoading}>
-          {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-          {mode === 'create' ? 'Criar Pacote' : 'Salvar alterações'}
-        </Button>
-      </div>
+      <StickyActionBar className="shadow-[0_-10px_30px_-18px_rgba(0,0,0,0.35)] lg:static lg:shadow-none">
+        <div className="ml-auto flex items-center gap-2">
+          <Button type="button" variant="outline" onClick={() => navigate(ROUTES.PACOTES)}>
+            Cancelar
+          </Button>
+          <Button type="submit" disabled={isLoading}>
+            {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            {mode === 'create' ? 'Criar Pacote' : 'Salvar alterações'}
+          </Button>
+        </div>
+      </StickyActionBar>
     </form>
   )
 }

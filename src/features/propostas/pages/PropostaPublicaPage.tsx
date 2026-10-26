@@ -25,6 +25,7 @@ import { usePropostaPublica, useAssinarProposta } from '../api/queries'
 import { BeachBackdrop } from '@/shared/components/beach/BeachBackdrop'
 import { ProposalSummary } from '../components/ProposalSummary'
 import { ContractDocument } from '../components/ContractDocument'
+import { PropostaMarca } from '../components/PropostaMarca'
 
 interface FormSectionProps {
   step: number
@@ -57,17 +58,22 @@ function StatusScreen({
   icon: Icon,
   iconClass,
   title,
+  nome,
   children,
 }: {
   icon: ComponentType<{ className?: string }>
   iconClass: string
   title: string
+  nome?: string | null
   children: ReactNode
 }) {
   return (
     <div className="relative flex min-h-dvh items-center justify-center p-4">
       <BeachBackdrop />
       <div className="w-full max-w-md rounded-3xl bg-white/95 p-8 text-center shadow-sm ring-1 ring-cyan-100 backdrop-blur">
+        <div className="mb-6 flex justify-center">
+          <PropostaMarca nome={nome} />
+        </div>
         <Icon className={cn('mx-auto h-16 w-16', iconClass)} />
         <h1 className="mt-4 font-display text-xl font-bold text-cyan-950">{title}</h1>
         <div className="mt-2 space-y-1 text-sm text-slate-500">{children}</div>
@@ -127,7 +133,7 @@ export function PropostaPublicaPage() {
 
   if (assinado) {
     return (
-      <StatusScreen icon={CheckCircle2} iconClass="text-emerald-500" title="Contrato confirmado com sucesso!">
+      <StatusScreen icon={CheckCircle2} iconClass="text-emerald-500" title="Contrato confirmado com sucesso!" nome={proposta.contratadaNome}>
         <p>Recebemos sua confirmação para {proposta.contratadaNome}.</p>
         <p>
           {proposta.status === AGENDAMENTO_STATUS.CONFIRMADO
@@ -143,7 +149,7 @@ export function PropostaPublicaPage() {
 
   if (jahAssinado) {
     return (
-      <StatusScreen icon={Sun} iconClass="text-amber-400" title="Contrato já confirmado">
+      <StatusScreen icon={Sun} iconClass="text-amber-400" title="Contrato já confirmado" nome={proposta.contratadaNome}>
         <p>Este contrato já foi confirmado. Você pode fechar esta página.</p>
       </StatusScreen>
     )
