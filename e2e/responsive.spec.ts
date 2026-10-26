@@ -155,7 +155,7 @@ test.describe('Shell de navegação mobile', () => {
     await expect(page.getByRole('navigation', { name: 'Navegação principal' })).toBeVisible()
   })
 
-  test('abre o menu (launcher) pelo rodapé e expõe todos os módulos', async ({ page }) => {
+  test('abre o menu (launcher) pelo rodapé e expõe os módulos principais', async ({ page }) => {
     await seedAdminAuth(page)
     await mockApi(page)
     await page.goto('/dashboard')
@@ -163,12 +163,12 @@ test.describe('Shell de navegação mobile', () => {
 
     await page.getByRole('button', { name: 'Abrir menu completo' }).click()
 
-    await expect(page.getByRole('dialog', { name: 'Menu de navegação' })).toBeVisible()
+    const menu = page.getByRole('dialog', { name: 'Menu de navegação' })
+    await expect(menu).toBeVisible()
 
     for (const label of [
       'Pacotes',
       'Comissões',
-      'Analytics',
       'Configurações',
       'Receitas',
       'Despesas',
@@ -176,11 +176,28 @@ test.describe('Shell de navegação mobile', () => {
       'Relatórios',
       'Repasses Pendentes',
     ]) {
-      await expect(page.getByRole('link', { name: label, exact: true })).toBeVisible()
+      await expect(menu.getByRole('link', { name: label, exact: true })).toBeVisible()
     }
 
+    await expect(menu.getByRole('link', { name: 'Seleções', exact: true })).toHaveCount(0)
+    await expect(menu.getByRole('link', { name: 'Analytics', exact: true })).toHaveCount(0)
+
     await page.waitForTimeout(400)
-    await expect(page.getByRole('dialog', { name: 'Menu de navegação' })).toBeVisible()
+    await expect(menu).toBeVisible()
+  })
+
+  test('sidebar desktop não exibe Seleções nem Analytics', async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 800 })
+    await seedAdminAuth(page)
+    await mockApi(page)
+    await page.goto('/dashboard')
+    await page.waitForTimeout(1200)
+
+    const sidebar = page.locator('#app-sidebar')
+    await expect(sidebar).toBeVisible()
+    await expect(sidebar.getByRole('link', { name: 'Ecommerce', exact: true })).toBeVisible()
+    await expect(sidebar.getByRole('link', { name: 'Seleções', exact: true })).toHaveCount(0)
+    await expect(sidebar.getByRole('link', { name: 'Analytics', exact: true })).toHaveCount(0)
   })
 
   test('abre o menu pelo botão do cabeçalho (topo)', async ({ page }) => {
