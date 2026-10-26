@@ -34,6 +34,7 @@ interface FotoViewerProps {
   valoresExtras: Record<string, number>
   modoGaleria: ModoGaleria
   faseGaleria: FaseGaleria
+  requerEdicao: boolean
 }
 
 function formatComentarioData(iso: string): string {
@@ -74,7 +75,7 @@ export function FotoViewer({
   selectedIds, carrinhoIds, pacoteLimit, selectedCount, onToggleCarrinho, valorUnitario, cartLoadingIds,
   token, commentsOpen, onCommentsOpenChange, favoritoIds, onToggleFavorito,
   podeSelecionar, podeComprar, podeBaixar, extrasEmSelecao, valoresExtras,
-  modoGaleria, faseGaleria,
+  modoGaleria, faseGaleria, requerEdicao,
 }: FotoViewerProps) {
   const foto = fotos[currentIndex]
   const isSelected = selectedIds.has(foto.id)
@@ -346,7 +347,7 @@ export function FotoViewer({
             </button>
           ) : (
             <span className="flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl bg-gallery-line px-5 py-3 text-sm font-medium text-gallery-muted shadow-md">
-              Aguardando edição
+              {requerEdicao ? 'Aguardando edição' : 'Aguardando aprovação'}
             </span>
           )}
         </div>

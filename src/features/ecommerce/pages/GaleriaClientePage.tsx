@@ -70,29 +70,33 @@ export function GaleriaClientePage() {
   const valorUnitario = galeria?.valorUnitarioFotoExtra ?? 15
   const modoGaleria = galeria?.modoGaleria ?? 'COM_EDICAO'
   const faseGaleria = galeria?.faseGaleria ?? 'COMERCIALIZACAO'
+  const requerEdicao = galeria?.requerEdicao ?? (modoGaleria === 'COM_EDICAO')
   const podeSelecionar = galeria?.podeSelecionar ?? true
   const podeComprar = galeria?.podeComprar ?? true
   const podeBaixar = galeria?.podeBaixar ?? true
   // Durante a edição o cliente ainda pode marcar extras: eles entram na
-  // seleção ativa para serem editados junto com o pacote. A compra em si só é
-  // liberada quando a edição é publicada.
-  const emEdicaoGaleria = modoGaleria === 'COM_EDICAO'
+  // seleção ativa para serem editados junto com o pacote. No fluxo sem edição
+  // o cliente também pode anexar extras enquanto aguarda a aprovação.
+  const emEdicaoGaleria = requerEdicao
     && (faseGaleria === 'SELECAO_ENVIADA' || faseGaleria === 'EM_EDICAO')
-  const podeAdicionarExtras = podeSelecionar || podeComprar || emEdicaoGaleria
+  const emAprovacaoGaleria = !requerEdicao
+    && modoGaleria !== 'DIRETO'
+    && faseGaleria === 'SELECAO_ENVIADA'
+  const podeAdicionarExtras = podeSelecionar || podeComprar || emEdicaoGaleria || emAprovacaoGaleria
   const selecaoAtual = galeria?.selecaoAtual ?? null
   const valoresExtras = galeria?.valoresExtras ?? {}
-  const extrasEmSelecao = modoGaleria === 'COM_EDICAO'
-    && (faseGaleria === 'SELECAO' || emEdicaoGaleria)
+  const extrasEmSelecao = modoGaleria !== 'DIRETO'
+    && (faseGaleria === 'SELECAO' || emEdicaoGaleria || emAprovacaoGaleria)
   const valorUnitarioFoto = useCallback(
     (fotoId: string) => valoresExtras[fotoId] ?? valorUnitario,
     [valoresExtras, valorUnitario],
   )
-  // No modo COM_EDICAO só há arquivo final depois de EDITADA. Fotos compradas
-  // como extra pós-publicação esperam a edição sob demanda antes do download.
+  // No modo COM_EDICAO só há arquivo final depois de EDITADA. Nos modos
+  // SEM_EDICAO/DIRETO o próprio original é o entregável.
   const isDownloadable = (foto: FotoEnsaio) =>
     podeBaixar
     && (foto.selecionadaPacote || foto.status === 'PAGA')
-    && (modoGaleria !== 'COM_EDICAO' || foto.versaoAtual === 'EDITADA')
+    && (!requerEdicao || foto.versaoAtual === 'EDITADA')
   const downloadableFotos = fotos.filter(isDownloadable)
 
   const capa = useMemo(
@@ -424,7 +428,9 @@ export function GaleriaClientePage() {
           `A seleção foi enviada com ${selecao.quantidadeExtras} extra(s), mas ${extrasEsperados} estavam no carrinho. Confirme com o estúdio.`,
         )
       } else {
-        toast.success('Seleção enviada! O estúdio vai preparar as fotos para edição.')
+        toast.success(requerEdicao
+          ? 'Seleção enviada! O estúdio vai preparar as fotos para edição.'
+          : 'Seleção enviada! O estúdio vai revisar e liberar suas fotos.')
       }
       await carregarGaleria(false)
     } catch (err: unknown) {
@@ -436,7 +442,11 @@ export function GaleriaClientePage() {
 
   const handleCheckout = async (metodoPagamento: MetodoPagamento): Promise<CompraExtraResponse> => {
     if (!token || carrinhoCount === 0) throw new Error('Carrinho vazio')
-    if (!podeComprar) throw new Error('A compra será liberada após a publicação da edição')
+    if (!podeComprar) {
+      throw new Error(requerEdicao
+        ? 'A compra será liberada após a publicação da edição'
+        : 'A compra será liberada após a aprovação da seleção')
+    }
     const compra = await ecommerceService.checkout(token, metodoPagamento)
     setGaleria((prev) => prev ? {
       ...prev,
@@ -467,14 +477,18 @@ export function GaleriaClientePage() {
     || showCheckout
     || showConfirmarSelecao
     || fotoExtraPendente !== null
+  const selecionando = modoGaleria !== 'DIRETO' && faseGaleria === 'SELECAO'
+  const emComercializacao = modoGaleria !== 'DIRETO' && faseGaleria === 'COMERCIALIZACAO'
   const mostrarDock = !modalAberto && (
-    (modoGaleria === 'COM_EDICAO' && faseGaleria === 'SELECAO')
+    selecionando
     || (emEdicaoGaleria && carrinhoCount > 0)
-    || (modoGaleria === 'COM_EDICAO' && faseGaleria === 'COMERCIALIZACAO' && (downloadableFotos.length > 0 || (podeComprar && carrinhoCount > 0)))
+    || (emAprovacaoGaleria && carrinhoCount > 0)
+    || (emComercializacao && (downloadableFotos.length > 0 || (podeComprar && carrinhoCount > 0)))
     || (modoGaleria === 'DIRETO' && (hasSelectionChanges || downloadableFotos.length > 0 || (podeComprar && carrinhoCount > 0)))
   )
-  const mostrarTimeline = modoGaleria === 'COM_EDICAO' && faseGaleria !== 'SELECAO'
-  const mostrarZonaEdicao = modoGaleria === 'COM_EDICAO' && (faseGaleria === 'SELECAO_ENVIADA' || faseGaleria === 'EM_EDICAO')
+  const mostrarTimeline = modoGaleria !== 'DIRETO' && faseGaleria !== 'SELECAO'
+  const mostrarZonaEspera = modoGaleria !== 'DIRETO'
+    && (faseGaleria === 'SELECAO_ENVIADA' || (requerEdicao && faseGaleria === 'EM_EDICAO'))
 
   const limparFiltros = () => {
     setFiltro('todas')
@@ -563,6 +577,7 @@ export function GaleriaClientePage() {
         <GaleriaIntro
           modo={modoGaleria}
           fase={faseGaleria}
+          requerEdicao={requerEdicao}
           pacoteNome={galeria?.pacoteNome ?? ''}
           pacoteLimit={pacoteLimit}
           selectedCount={selectedIds.size}
@@ -571,18 +586,23 @@ export function GaleriaClientePage() {
         />
 
         {mostrarTimeline && (
-          <GaleriaTimeline fase={faseGaleria} selecao={selecaoAtual} />
+          <GaleriaTimeline fase={faseGaleria} selecao={selecaoAtual} requerEdicao={requerEdicao} />
         )}
 
-        {mostrarZonaEdicao && (
+        {mostrarZonaEspera && (
           <div className="mx-auto mt-8 max-w-lg px-4">
             <div className="rounded-sm border border-gallery-line bg-gallery-surface px-5 py-4 text-center">
               <p className="text-sm font-medium text-gallery-ink">
-                {faseGaleria === 'SELECAO_ENVIADA' ? 'Sua seleção está em boas mãos.' : 'Estamos preparando suas fotos.'}
+                {requerEdicao
+                  ? faseGaleria === 'SELECAO_ENVIADA'
+                    ? 'Sua seleção está em boas mãos.'
+                    : 'Estamos preparando suas fotos.'
+                  : 'Seleção enviada!'}
               </p>
               <p className="mt-1 text-xs leading-relaxed text-gallery-muted">
-                Você pode continuar olhando a galeria e marcar fotos extras: elas entram
-                na mesma edição e ficam disponíveis para compra após a publicação.
+                {requerEdicao
+                  ? 'Você pode continuar olhando a galeria e marcar fotos extras: elas entram na mesma edição e ficam disponíveis para compra após a publicação.'
+                  : 'O estúdio vai revisar e liberar as fotos do seu pacote em instantes. Você ainda pode marcar extras; eles são liberados após a confirmação do pagamento.'}
               </p>
             </div>
           </div>
@@ -793,6 +813,7 @@ export function GaleriaClientePage() {
           valoresExtras={valoresExtras}
           modoGaleria={modoGaleria}
           faseGaleria={faseGaleria}
+          requerEdicao={requerEdicao}
         />
       )}
 
@@ -855,7 +876,7 @@ export function GaleriaClientePage() {
         valor={fotoExtraPendente ? valorUnitarioFoto(fotoExtraPendente.id) : valorUnitario}
         extrasEmSelecao={extrasEmSelecao}
         fotoSeraEditada={!!fotoExtraPendente
-          && modoGaleria === 'COM_EDICAO'
+          && requerEdicao
           && faseGaleria === 'COMERCIALIZACAO'
           && fotoExtraPendente.versaoAtual !== 'EDITADA'}
         onOpenChange={(open) => { if (!open) setFotoExtraPendente(null) }}
@@ -872,6 +893,7 @@ export function GaleriaClientePage() {
         totalExtras={totalExtras}
         onConfirm={handleEnviarSelecao}
         isLoading={isEnviandoSelecao}
+        requerEdicao={requerEdicao}
       />
 
       {token && (

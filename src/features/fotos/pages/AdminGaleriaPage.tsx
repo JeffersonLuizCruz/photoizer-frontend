@@ -526,7 +526,7 @@ export function AdminGaleriaPage({
           <ImageIcon className="h-4 w-4 text-primary" />
           <span>
             Clique na foto que deve aparecer no topo da galeria do cliente.
-            {galeriaEnsaio?.fase === 'COMERCIALIZACAO' && galeriaEnsaio?.modo === 'COM_EDICAO'
+            {galeriaEnsaio?.fase === 'COMERCIALIZACAO' && galeriaEnsaio?.modo !== 'DIRETO'
               ? ' Em comercialização, apenas fotos da seleção publicada podem ser capa.'
               : ''}
           </span>

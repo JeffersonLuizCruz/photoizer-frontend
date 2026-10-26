@@ -18,6 +18,7 @@ export interface GaleriaResponse {
   capaUrl: string | null
   modoGaleria: ModoGaleria
   faseGaleria: FaseGaleria
+  requerEdicao: boolean
   podeSelecionar: boolean
   podeComprar: boolean
   podeBaixar: boolean
@@ -255,6 +256,15 @@ export const ecommerceService = {
   adminGaleria: async (agendamentoId: string): Promise<GaleriaEnsaioResponse> => {
     const { data } = await apiClient.get<GaleriaEnsaioResponse>(
       `/admin/agendamentos/${agendamentoId}/galeria`)
+    return data
+  },
+
+  adminAlterarModoGaleria: async (
+    agendamentoId: string,
+    modo: ModoGaleria,
+  ): Promise<GaleriaEnsaioResponse> => {
+    const { data } = await apiClient.put<GaleriaEnsaioResponse>(
+      `/admin/agendamentos/${agendamentoId}/galeria/modo`, { modo })
     return data
   },
 

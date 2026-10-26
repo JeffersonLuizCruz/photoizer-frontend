@@ -12,9 +12,12 @@ import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import { Button } from '@/shared/components/ui/button'
 import { AuthImage } from '@/shared/components/ui/AuthImage'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/components/ui/select'
 import { extractErrorMessage } from '@/shared/api'
 import { fotoThumbUrl } from '@/shared/lib/foto'
-import type { GaleriaEnsaioResponse, FotoEnsaio, SelecaoEnsaioResponse } from '@/features/ecommerce/types/ecommerce.types'
+import { useAuth } from '@/features/auth/AuthProvider'
+import { useAlterarModoGaleria } from '../../api/queries'
+import type { GaleriaEnsaioResponse, FotoEnsaio, ModoGaleria, SelecaoEnsaioResponse } from '@/features/ecommerce/types/ecommerce.types'
 import type { AgendamentoRef } from '../../services/foto.service'
 import type { GaleriaWorkspaceCounts } from '../../api/queries'
 
@@ -36,6 +39,18 @@ const FASES = [
   { id: 'EM_EDICAO', label: 'Em edição' },
   { id: 'COMERCIALIZACAO', label: 'Comercialização' },
 ] as const
+
+const FASES_SEM_EDICAO = [
+  { id: 'SELECAO', label: 'Seleção' },
+  { id: 'SELECAO_ENVIADA', label: 'Aguardando aprovação' },
+  { id: 'COMERCIALIZACAO', label: 'Liberada' },
+] as const
+
+const MODO_LABEL: Record<ModoGaleria, string> = {
+  COM_EDICAO: 'Seleção + edição',
+  SEM_EDICAO: 'Seleção sem edição',
+  DIRETO: 'Fluxo legado',
+}
 
 const formatBRL = (value: number) =>
   value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
@@ -86,6 +101,9 @@ export function GaleriaVisaoGeral({
   onRetry,
   podeVerCompras,
 }: GaleriaVisaoGeralProps) {
+  const { user } = useAuth()
+  const alterarModo = useAlterarModoGaleria(galeria?.agendamentoId ?? '')
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-20">
@@ -115,8 +133,11 @@ export function GaleriaVisaoGeral({
     ?? fotos.find((foto) => foto.destaque)
     ?? fotos[0]
     ?? null
-  const faseAtual = FASES.findIndex((fase) => fase.id === galeria?.fase)
-  const modoEdicao = galeria?.modo === 'COM_EDICAO'
+  const requerEdicao = galeria?.requerEdicao ?? true
+  const fases = requerEdicao ? FASES : FASES_SEM_EDICAO
+  const faseAtual = fases.findIndex((fase) => fase.id === galeria?.fase)
+  const podeEditarModo = user?.papel === 'ADMIN'
+  const modoLabel = galeria ? MODO_LABEL[galeria.modo] : 'Seleção + edição'
 
   return (
     <div className="space-y-5">
@@ -157,9 +178,36 @@ export function GaleriaVisaoGeral({
         </div>
 
         <div className="flex flex-wrap items-center gap-2 border-t bg-muted/30 px-4 py-2.5 text-xs text-muted-foreground">
-          <span className="rounded-full bg-background px-2 py-1 font-medium text-foreground ring-1 ring-border">
-            {modoEdicao ? 'Seleção + edição' : 'Fluxo direto'}
-          </span>
+          {podeEditarModo ? (
+            <div className="flex flex-wrap items-center gap-1.5">
+              <Select
+                value={galeria?.modo}
+                onValueChange={(valor) => alterarModo.mutate(valor as ModoGaleria)}
+                disabled={!galeria?.podeAlterarModo || alterarModo.isPending}
+              >
+                <SelectTrigger
+                  className="h-8 w-auto min-w-44 bg-background text-xs"
+                  aria-label="Modo da galeria"
+                >
+                  <SelectValue placeholder="Modo da galeria" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="COM_EDICAO">Seleção + edição</SelectItem>
+                  <SelectItem value="SEM_EDICAO">Seleção sem edição</SelectItem>
+                  <SelectItem value="DIRETO" disabled>Fluxo legado (desativado)</SelectItem>
+                </SelectContent>
+              </Select>
+              {!galeria?.podeAlterarModo && (
+                <span className="text-[11px]">
+                  Não pode ser alterado após seleção, venda ou edição.
+                </span>
+              )}
+            </div>
+          ) : (
+            <span className="rounded-full bg-background px-2 py-1 font-medium text-foreground ring-1 ring-border">
+              {modoLabel}
+            </span>
+          )}
           <span>
             {selecaoAtual
               ? `Seleção #${selecaoAtual.numero} · ${STATUS_SELECAO[selecaoAtual.status] ?? selecaoAtual.status}`
@@ -168,13 +216,13 @@ export function GaleriaVisaoGeral({
         </div>
       </section>
 
-      {modoEdicao && (
+      {galeria && (
         <section className="rounded-xl border bg-card p-4">
           <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
             Etapa da galeria
           </p>
           <ol className="flex flex-wrap items-center gap-2">
-            {FASES.map((fase, index) => {
+            {fases.map((fase, index) => {
               const concluida = faseAtual >= 0 && index < faseAtual
               const atual = faseAtual === index
               return (
@@ -193,7 +241,7 @@ export function GaleriaVisaoGeral({
                   <span className={`text-xs ${atual ? 'font-semibold text-foreground' : 'text-muted-foreground'}`}>
                     {fase.label}
                   </span>
-                  {index < FASES.length - 1 && <ChevronRight className="h-3.5 w-3.5 text-muted-foreground" />}
+                  {index < fases.length - 1 && <ChevronRight className="h-3.5 w-3.5 text-muted-foreground" />}
                 </li>
               )
             })}
@@ -219,9 +267,19 @@ export function GaleriaVisaoGeral({
             <Clock className="h-4 w-4" />
           </div>
           <div>
-            <p className="text-sm font-semibold">Aguardando edição</p>
-            <p className="mt-1 text-2xl font-bold tabular-nums">{counts.aguardandoEdicao}</p>
-            <p className="text-xs text-muted-foreground">Fotos da seleção sem versão editada</p>
+            <p className="text-sm font-semibold">
+              {requerEdicao ? 'Aguardando edição' : 'Aguardando aprovação'}
+            </p>
+            <p className="mt-1 text-2xl font-bold tabular-nums">
+              {requerEdicao
+                ? counts.aguardandoEdicao
+                : selecaoAtual?.status === 'ENVIADA' ? 1 : 0}
+            </p>
+            <p className="text-xs text-muted-foreground">
+              {requerEdicao
+                ? 'Fotos da seleção sem versão editada'
+                : 'Seleção enviada aguardando o staff'}
+            </p>
           </div>
         </div>
         <div className="flex items-start gap-3 rounded-xl border bg-card p-4">

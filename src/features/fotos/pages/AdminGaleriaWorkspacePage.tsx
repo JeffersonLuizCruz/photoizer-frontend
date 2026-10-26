@@ -174,7 +174,12 @@ export function AdminGaleriaWorkspacePage() {
         </TabsContent>
 
         <TabsContent value="selecao">
-          {activeTab === 'selecao' && <AdminSelecoesPage key={refreshKey} />}
+          {activeTab === 'selecao' && (
+            <AdminSelecoesPage
+              key={refreshKey}
+              requerEdicao={workspace.galeria?.requerEdicao ?? true}
+            />
+          )}
         </TabsContent>
 
         {podeVerCompras && (

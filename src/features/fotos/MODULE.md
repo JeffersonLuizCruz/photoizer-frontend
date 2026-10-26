@@ -65,10 +65,11 @@ Não existes testes para este módulo.
 
 ## 7. Seleção, numeração e edição
 
-- `AdminGaleriaPage` exibe `#número` + nome do arquivo e permite renumerar a galeria. O seletor de modo (`DIRETO`/`COM_EDICAO`) foi removido: o fluxo novo (`COM_EDICAO`) é o único disponível.
-- `AdminSelecoesPage` (`/agenda/:id/selecoes` e `/admin/selecoes`) lista a fila de seleções, mostra número/nome das fotos, baixa o ZIP de originais e envia versões editadas (individual ou em lote).
+- `AdminGaleriaPage` exibe `#número` + nome do arquivo e permite renumerar a galeria. O modo da galeria (`COM_EDICAO`/`SEM_EDICAO`) é escolhido na Visão geral do workspace; `DIRETO` permanece apenas como leitura legada.
+- `AdminSelecoesPage` (`/agenda/:id/selecoes` e `/admin/selecoes`) lista a fila de seleções, mostra número/nome das fotos, baixa o ZIP de originais e envia versões editadas (individual ou em lote) no modo `COM_EDICAO`. No modo `SEM_EDICAO`, o botão vira **Aprovar seleção** e não exige edição.
 - O upload editado usa `fotoService.uploadEditada` e mantém o número/nome original.
-- A publicação exige 100% dos itens editados.
+- Em `COM_EDICAO`, a publicação exige 100% dos itens editados; em `SEM_EDICAO`, a aprovação não exige itens editados.
+- Em `SEM_EDICAO`, o botão **Reabrir seleção** continua disponível para a seleção aprovada enquanto `selecao.podeReabrir` for verdadeiro (sem download/venda). Em `COM_EDICAO`, a seleção publicada permanece imutável.
 - Estados exibidos: `ENVIADA`, `EM_EDICAO`, `CONCLUIDA`, `PUBLICADA`, `CANCELADA`.
 - Após reabrir, a seleção vira `CANCELADA`: a página mostra o histórico e aguarda uma nova seleção; upload/publicação/reabertura só ficam disponíveis para seleções ativas.
 - O upload em lote continua após erros individuais, aceita sufixos `-edit`/`-editada` e também casa pelo `fotoId`.
@@ -85,12 +86,12 @@ Não existes testes para este módulo.
 
 - `/agenda/:id/fotos` agora renderiza `AdminGaleriaWorkspacePage`, com as abas **Visão geral**, **Fotos**, **Seleção** e **Compras**.
 - `/agenda/:id/selecoes` redireciona para `/agenda/:id/fotos?tab=selecao`, preservando links antigos. `/admin/selecoes` continua como fila de seleções pendentes.
-- A aba **Visão geral** mostra cliente/pacote, link da galeria, stepper da fase (`COM_EDICAO`), cards de total/publicadas/**no pacote**/**extras**/aguardando edição/compras pendentes e os atalhos para as abas Fotos, Seleção e Compras. O antigo card de "próxima ação" foi removido para não duplicar esses atalhos.
+- A aba **Visão geral** mostra cliente/pacote, link da galeria, seletor de modo (ADMIN), stepper da fase adaptado a `COM_EDICAO`/`SEM_EDICAO`, cards de total/publicadas/**no pacote**/**extras**/aguardando edição ou aprovação/compras pendentes e os atalhos para as abas Fotos, Seleção e Compras.
 - A Visão geral também exibe o card **Pagamento PIX** (`GaleriaPagamentoPixCard`): chave/tipo atuais, aviso de que a chave é global para todas as galerias e botão **Editar PIX** apenas para `ADMIN` (reutiliza `AdminPagamentoConfigDialog`). Os demais papéis veem a chave em modo leitura.
 - A aba **Fotos** renderiza `AdminGaleriaPage` diretamente, sem `PageTitle` duplicado, com barra de ações (selecionar, capa, renumerar, publicar) e upload compacto.
-- A aba **Seleção** renderiza `AdminSelecoesPage` diretamente: mostra pacote e extras com o selo `Extra`, permite baixar originais, enviar editadas, reabrir e publicar.
+- A aba **Seleção** renderiza `AdminSelecoesPage` diretamente: mostra pacote e extras com o selo `Extra`, permite baixar originais, enviar editadas, reabrir e publicar em `COM_EDICAO`; em `SEM_EDICAO` permite reabrir e **aprovar** a seleção (sem upload de editadas).
 - A aba **Compras** (`GaleriaComprasPanel`) lista compras de extras, permite confirmar/recusar pagamento e definir link de cartão. Visível para `ADMIN` e `FOTOGRAFO`. É o único lugar de gestão de compras; a aba Ecommerce do agendamento virou resumo com CTAs.
-- O menu de ações da foto (aba Fotos) tem **Incluir/Remover do pacote** para `ADMIN`/`FOTOGRAFO` quando a seleção está editável (`DIRETO` ou `COM_EDICAO/SELECAO`), preservando o override que existia na grade antiga do Ecommerce.
+- O menu de ações da foto (aba Fotos) tem **Incluir/Remover do pacote** para `ADMIN`/`FOTOGRAFO` quando a seleção está editável (`DIRETO` ou fase `SELECAO`), preservando o override que existia na grade antiga do Ecommerce.
 - A contagem de **favoritos por foto** (que aparecia na grade antiga do Ecommerce) agora é exibida na faixa de informações do card na aba Fotos, usando `favoritosPorFoto` do resumo.
 - `useGaleriaWorkspace` agrega fotos, configuração da galeria, seleções e resumo do e-commerce com os mesmos query keys dos hooks existentes, evitando chamadas duplicadas.
 - O botão **Atualizar** no workspace refaz as queries; a aba Seleção tem atualização própria e invalida `fotos`, `selecoes-ensaio`, `galeria-ensaio` e `admin-ecommerce` após upload/publicação/reabertura.

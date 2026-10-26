@@ -21,12 +21,12 @@ import { fotoService } from '../services/foto.service'
 import { ExtrasCompraPendentesSection } from '../components/galeria-admin/ExtrasCompraPendentesSection'
 import { fotoThumbUrl, numeroGaleriaLabel } from '@/shared/lib/foto'
 
-function statusLabel(status: string): string {
+function statusLabel(status: string, requerEdicao = true): string {
   switch (status) {
-    case 'ENVIADA': return 'Aguardando início'
+    case 'ENVIADA': return requerEdicao ? 'Aguardando início' : 'Aguardando aprovação'
     case 'EM_EDICAO': return 'Em edição'
     case 'CONCLUIDA': return 'Edição concluída'
-    case 'PUBLICADA': return 'Publicada'
+    case 'PUBLICADA': return requerEdicao ? 'Publicada' : 'Aprovada'
     case 'CANCELADA': return 'Cancelada'
     default: return status
   }
@@ -63,7 +63,7 @@ function ErroSelecao({ mensagem, onRetry }: { mensagem: string; onRetry: () => v
   )
 }
 
-export function AdminSelecoesPage() {
+export function AdminSelecoesPage({ requerEdicao = true }: { requerEdicao?: boolean }) {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const queryClient = useQueryClient()
@@ -211,7 +211,9 @@ export function AdminSelecoesPage() {
     setIsPublishing(true)
     try {
       await ecommerceService.adminPublicarSelecao(id, selecao.id)
-      toast.success('Edição publicada! O cliente já pode comprar e baixar.')
+      toast.success(requerEdicao
+        ? 'Edição publicada! O cliente já pode comprar e baixar.'
+        : 'Seleção aprovada! O cliente já pode baixar as fotos do pacote.')
       invalidarWorkspace()
       await carregar()
     } catch (err: unknown) {
@@ -222,7 +224,7 @@ export function AdminSelecoesPage() {
   }
 
   const reabrir = async () => {
-    if (!id || !selecao || !selecaoAtiva(selecao.status)) return
+    if (!id || !selecao || !selecao.podeReabrir) return
     setIsReopening(true)
     try {
       await ecommerceService.adminReabrirSelecao(id, selecao.id)
@@ -268,8 +270,13 @@ export function AdminSelecoesPage() {
                 </div>
                 <div className="flex items-center gap-3 text-xs text-muted-foreground">
                   <span className="rounded-full bg-amber-100 px-2 py-1 font-medium text-amber-700">
-                    {statusLabel(p.status)}
+                    {statusLabel(p.status, p.requerEdicao)}
                   </span>
+                  {!p.requerEdicao && (
+                    <span className="rounded-full bg-sky-100 px-2 py-1 font-medium text-sky-700">
+                      Sem edição
+                    </span>
+                  )}
                   <span className="flex items-center gap-1">
                     <Clock className="h-3.5 w-3.5" />
                     {p.diasAguardando} dia(s)
@@ -304,12 +311,13 @@ export function AdminSelecoesPage() {
         </div>
         {historico.length > 0 && (
           <div className="mt-4">
-            <HistoricoSelecoes historico={historico} onOpen={setHistoricoSelecao} />
+            <HistoricoSelecoes historico={historico} onOpen={setHistoricoSelecao} requerEdicao={requerEdicao} />
           </div>
         )}
         <HistoricoSelecaoSheet
           selecao={historicoSelecao}
           onOpenChange={(open) => { if (!open) setHistoricoSelecao(null) }}
+          requerEdicao={requerEdicao}
         />
 
         <div className="mt-6">
@@ -325,7 +333,7 @@ export function AdminSelecoesPage() {
   const editadas = selecao.itens.filter((i) => i.editada).length
   const total = selecao.itens.length
   const ativa = selecaoAtiva(selecao.status)
-  const podePublicar = ativa && total > 0 && editadas === total
+  const podePublicar = ativa && total > 0 && (requerEdicao ? editadas === total : true)
   const itensPacote = selecao.itens.filter((item) => item.tipo === 'PACOTE')
   const itensExtras = selecao.itens.filter((item) => item.tipo === 'EXTRA')
   const editadasPacote = itensPacote.filter((item) => item.editada).length
@@ -365,7 +373,7 @@ export function AdminSelecoesPage() {
             <RefreshCw className="mr-1 h-4 w-4" />
             Atualizar
           </Button>
-          {ativa && (
+          {ativa && requerEdicao && (
             <Button
               variant="outline"
               size="sm"
@@ -376,7 +384,7 @@ export function AdminSelecoesPage() {
               {batchProgress ? `${batchProgress.atual}/${batchProgress.total}` : 'Enviar várias editadas'}
             </Button>
           )}
-          {ativa && (
+          {ativa && requerEdicao && (
             <a
               href={ecommerceService.adminSelecaoZipUrl(id, selecao.id)}
               className="inline-flex h-8 items-center gap-1 rounded-md border bg-background px-3 text-xs font-medium hover:bg-muted"
@@ -385,7 +393,7 @@ export function AdminSelecoesPage() {
               Baixar originais
             </a>
           )}
-          {ativa && (
+          {(ativa || selecao.podeReabrir) && (
             <Button variant="outline" size="sm" onClick={() => setConfirmReabrir(true)}>
               <X className="mr-1 h-4 w-4" />
               Reabrir seleção
@@ -394,7 +402,7 @@ export function AdminSelecoesPage() {
           {ativa && (
             <Button size="sm" onClick={publicar} disabled={!podePublicar || isPublishing || isBatchUploading}>
               {isPublishing ? <Loader2 className="mr-1 h-4 w-4 animate-spin" /> : <Check className="mr-1 h-4 w-4" />}
-              Publicar edição
+              {requerEdicao ? 'Publicar edição' : 'Aprovar seleção'}
             </Button>
           )}
       </div>
@@ -404,14 +412,14 @@ export function AdminSelecoesPage() {
       <div className="space-y-3 rounded-xl border bg-card p-4">
         <div className="flex flex-wrap items-center gap-2 text-sm">
           <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${statusBadgeClass(selecao.status)}`}>
-            {statusLabel(selecao.status)}
+            {statusLabel(selecao.status, requerEdicao)}
           </span>
           <span className="text-muted-foreground">
             Seleção #{selecao.numero} · enviada em {new Date(selecao.enviadaEm).toLocaleString('pt-BR')}
           </span>
         </div>
 
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+        <div className={`grid grid-cols-2 gap-3 ${requerEdicao ? 'sm:grid-cols-4' : 'sm:grid-cols-2'}`}>
           <ResumoSelecao titulo="Pacote" valor={String(itensPacote.length)} />
           <ResumoSelecao
             titulo="Extras"
@@ -419,29 +427,35 @@ export function AdminSelecoesPage() {
             detalhe={valorExtras > 0 ? formatBRL(valorExtras) : undefined}
             destaque={itensExtras.length > 0}
           />
-          <ResumoSelecao titulo="Editadas" valor={`${editadas}/${total}`} />
-          <ResumoSelecao titulo="Progresso" valor={`${percentualEdicao}%`} />
-        </div>
-
-        <div>
-          <div className="flex items-center justify-between text-xs">
-            <span className="text-muted-foreground">Progresso da edição</span>
-            <span className={percentualEdicao === 100 ? 'font-medium text-emerald-600' : 'font-medium text-amber-600'}>
-              {percentualEdicao}%
-            </span>
-          </div>
-          <div className="mt-1.5 h-2 overflow-hidden rounded-full bg-muted">
-            <div
-              className={`h-full rounded-full transition-all ${percentualEdicao === 100 ? 'bg-emerald-500' : 'bg-amber-500'}`}
-              style={{ width: `${percentualEdicao}%` }}
-            />
-          </div>
-          {ativa && faltamEditar > 0 && (
-            <p className="mt-1.5 text-[11px] text-amber-600">
-              Faltam {faltamEditar} foto(s) para liberar a publicação.
-            </p>
+          {requerEdicao && (
+            <>
+              <ResumoSelecao titulo="Editadas" valor={`${editadas}/${total}`} />
+              <ResumoSelecao titulo="Progresso" valor={`${percentualEdicao}%`} />
+            </>
           )}
         </div>
+
+        {requerEdicao && (
+          <div>
+            <div className="flex items-center justify-between text-xs">
+              <span className="text-muted-foreground">Progresso da edição</span>
+              <span className={percentualEdicao === 100 ? 'font-medium text-emerald-600' : 'font-medium text-amber-600'}>
+                {percentualEdicao}%
+              </span>
+            </div>
+            <div className="mt-1.5 h-2 overflow-hidden rounded-full bg-muted">
+              <div
+                className={`h-full rounded-full transition-all ${percentualEdicao === 100 ? 'bg-emerald-500' : 'bg-amber-500'}`}
+                style={{ width: `${percentualEdicao}%` }}
+              />
+            </div>
+            {ativa && faltamEditar > 0 && (
+              <p className="mt-1.5 text-[11px] text-amber-600">
+                Faltam {faltamEditar} foto(s) para liberar a publicação.
+              </p>
+            )}
+          </div>
+        )}
       </div>
 
       {(isBatchUploading || batchProgress) && (
@@ -476,11 +490,14 @@ export function AdminSelecoesPage() {
         icone={Package}
         itens={itensPacote}
         editadas={editadasPacote}
-        descricao="Essas fotos já estão incluídas no pacote, sem custo adicional."
-        disabled={isUploading || isBatchUploading || !ativa}
+        descricao={requerEdicao
+          ? 'Essas fotos já estão incluídas no pacote, sem custo adicional.'
+          : 'Essas fotos já estão incluídas no pacote e serão entregues em versão original.'}
+        disabled={isUploading || isBatchUploading || !ativa || !requerEdicao}
         uploadingId={isUploading ? uploadFotoId : null}
         onUpload={abrirArquivoEdicao}
-        readOnly={!ativa}
+        readOnly={!ativa || !requerEdicao}
+        requerEdicao={requerEdicao}
       />
 
       <SelecaoItensSection
@@ -488,22 +505,30 @@ export function AdminSelecoesPage() {
         icone={ShoppingBag}
         itens={itensExtras}
         editadas={editadasExtras}
-        descricao="Fotos adicionais escolhidas pelo cliente; o valor é congelado no envio da seleção."
+        descricao={requerEdicao
+          ? 'Fotos adicionais escolhidas pelo cliente; o valor é congelado no envio da seleção.'
+          : 'Fotos adicionais escolhidas pelo cliente; liberadas após a confirmação do pagamento.'}
         valorTotal={valorExtras}
         destaque
-        disabled={isUploading || isBatchUploading || !ativa}
+        disabled={isUploading || isBatchUploading || !ativa || !requerEdicao}
         uploadingId={isUploading ? uploadFotoId : null}
         onUpload={abrirArquivoEdicao}
-        readOnly={!ativa}
+        readOnly={!ativa || !requerEdicao}
+        requerEdicao={requerEdicao}
       />
 
       {historicoAnterior.length > 0 && (
-        <HistoricoSelecoes historico={historicoAnterior} onOpen={setHistoricoSelecao} />
+        <HistoricoSelecoes
+          historico={historicoAnterior}
+          onOpen={setHistoricoSelecao}
+          requerEdicao={requerEdicao}
+        />
       )}
 
       <HistoricoSelecaoSheet
         selecao={historicoSelecao}
         onOpenChange={(open) => { if (!open) setHistoricoSelecao(null) }}
+        requerEdicao={requerEdicao}
       />
 
       <ExtrasCompraPendentesSection
@@ -520,7 +545,9 @@ export function AdminSelecoesPage() {
         onConfirm={reabrir}
         isLoading={isReopening}
         title="Reabrir a seleção?"
-        description="O cliente poderá alterar a seleção novamente. O trabalho de edição já feito não será perdido, mas a seleção atual será cancelada."
+        description={requerEdicao
+          ? 'O cliente poderá alterar a seleção novamente. O trabalho de edição já feito não será perdido, mas a seleção atual será cancelada.'
+          : 'O cliente poderá alterar a seleção novamente. A seleção aprovada será cancelada e ele precisará enviar uma nova.'}
         confirmText="Reabrir"
         variant="destructive"
       />
@@ -566,6 +593,7 @@ function SelecaoItensSection({
   uploadingId,
   onUpload,
   readOnly = false,
+  requerEdicao = true,
 }: {
   titulo: string
   icone: LucideIcon
@@ -578,6 +606,7 @@ function SelecaoItensSection({
   uploadingId: string | null
   onUpload: (fotoId: string) => void
   readOnly?: boolean
+  requerEdicao?: boolean
 }) {
   const total = itens.length
   const percentual = total > 0 ? Math.round((editadas / total) * 100) : 0
@@ -597,20 +626,24 @@ function SelecaoItensSection({
             )}
           </div>
         </div>
-        <div className="text-right text-xs">
-          <p className={percentual === 100 ? 'font-medium text-emerald-600' : 'font-medium text-amber-600'}>
-            {editadas}/{total} editadas
-          </p>
-          <p className="text-muted-foreground">{percentual}%</p>
-        </div>
+        {requerEdicao && (
+          <div className="text-right text-xs">
+            <p className={percentual === 100 ? 'font-medium text-emerald-600' : 'font-medium text-amber-600'}>
+              {editadas}/{total} editadas
+            </p>
+            <p className="text-muted-foreground">{percentual}%</p>
+          </div>
+        )}
       </div>
 
-      <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-muted">
-        <div
-          className={`h-full rounded-full transition-all ${percentual === 100 ? 'bg-emerald-500' : 'bg-amber-500'}`}
-          style={{ width: `${percentual}%` }}
-        />
-      </div>
+      {requerEdicao && (
+        <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-muted">
+          <div
+            className={`h-full rounded-full transition-all ${percentual === 100 ? 'bg-emerald-500' : 'bg-amber-500'}`}
+            style={{ width: `${percentual}%` }}
+          />
+        </div>
+      )}
 
       {total === 0 ? (
         <p className="mt-3 rounded-lg border border-dashed p-4 text-center text-xs text-muted-foreground">
@@ -624,6 +657,7 @@ function SelecaoItensSection({
               item={item}
               disabled={disabled}
               readOnly={readOnly}
+              requerEdicao={requerEdicao}
               uploading={uploadingId === item.fotoId}
               onUpload={() => onUpload(item.fotoId)}
             />
@@ -637,9 +671,11 @@ function SelecaoItensSection({
 function HistoricoSelecoes({
   historico,
   onOpen,
+  requerEdicao = true,
 }: {
   historico: SelecaoEnsaioResponse[]
   onOpen: (selecao: SelecaoEnsaioResponse) => void
+  requerEdicao?: boolean
 }) {
   return (
     <section className="space-y-2">
@@ -665,7 +701,7 @@ function HistoricoSelecoes({
             </div>
             <div className="flex items-center gap-2 text-xs text-muted-foreground">
               <span className={`rounded-full px-2 py-1 font-medium ${statusBadgeClass(item.status)}`}>
-                {statusLabel(item.status)}
+                {statusLabel(item.status, requerEdicao)}
               </span>
               <span>{new Date(item.enviadaEm).toLocaleDateString('pt-BR')}</span>
               <ChevronRight className="h-4 w-4" />
@@ -680,9 +716,11 @@ function HistoricoSelecoes({
 function HistoricoSelecaoSheet({
   selecao,
   onOpenChange,
+  requerEdicao = true,
 }: {
   selecao: SelecaoEnsaioResponse | null
   onOpenChange: (open: boolean) => void
+  requerEdicao?: boolean
 }) {
   const itens = selecao?.itens ?? []
   const itensPacote = itens.filter((item) => item.tipo === 'PACOTE')
@@ -697,7 +735,7 @@ function HistoricoSelecaoSheet({
           <>
             <div className="flex flex-wrap items-center gap-2 text-sm">
               <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${statusBadgeClass(selecao.status)}`}>
-                {statusLabel(selecao.status)}
+                {statusLabel(selecao.status, requerEdicao)}
               </span>
               <span className="text-muted-foreground">
                 Seleção #{selecao.numero} · {new Date(selecao.enviadaEm).toLocaleString('pt-BR')}
@@ -721,6 +759,7 @@ function HistoricoSelecaoSheet({
               uploadingId={null}
               onUpload={() => {}}
               readOnly
+              requerEdicao={requerEdicao}
             />
 
             <SelecaoItensSection
@@ -735,11 +774,14 @@ function HistoricoSelecaoSheet({
               uploadingId={null}
               onUpload={() => {}}
               readOnly
+              requerEdicao={requerEdicao}
             />
 
-            <p className="text-xs text-muted-foreground">
-              {editadas} de {itens.length} foto(s) editada(s) nesta seleção.
-            </p>
+            {requerEdicao && (
+              <p className="text-xs text-muted-foreground">
+                {editadas} de {itens.length} foto(s) editada(s) nesta seleção.
+              </p>
+            )}
           </>
         )}
       </SheetContent>
@@ -751,12 +793,14 @@ function ItemSelecaoCard({
   item,
   disabled,
   readOnly = false,
+  requerEdicao = true,
   uploading = false,
   onUpload,
 }: {
   item: SelecaoEnsaioItemResponse
   disabled: boolean
   readOnly?: boolean
+  requerEdicao?: boolean
   uploading?: boolean
   onUpload: () => void
 }) {
@@ -811,7 +855,7 @@ function ItemSelecaoCard({
           <p className={`rounded-md py-2 text-center text-xs font-medium ${
             item.editada ? 'bg-emerald-50 text-emerald-700' : 'bg-muted text-muted-foreground'
           }`}>
-            {item.editada ? 'Editada' : 'Aguardando edição'}
+            {item.editada ? 'Editada' : requerEdicao ? 'Aguardando edição' : 'Incluída'}
           </p>
         )}
       </div>

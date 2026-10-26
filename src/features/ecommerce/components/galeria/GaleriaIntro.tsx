@@ -5,6 +5,7 @@ import { humanizarNome } from '@/shared/lib/foto'
 interface GaleriaIntroProps {
   modo: ModoGaleria
   fase: FaseGaleria
+  requerEdicao: boolean
   pacoteNome: string
   pacoteLimit: number
   selectedCount: number
@@ -12,11 +13,35 @@ interface GaleriaIntroProps {
   carrinhoCount: number
 }
 
-function conteudo(modo: ModoGaleria, fase: FaseGaleria, pacoteLimit: number) {
+function conteudo(modo: ModoGaleria, fase: FaseGaleria, pacoteLimit: number, requerEdicao: boolean) {
   if (modo === 'DIRETO') {
     return {
       titulo: 'Sua galeria está pronta',
       descricao: 'Escolha suas fotos favoritas para o pacote ou adquira extras para levar ainda mais lembranças.',
+    }
+  }
+  if (!requerEdicao) {
+    switch (fase) {
+      case 'SELECAO':
+        return {
+          titulo: 'Escolha suas favoritas',
+          descricao: `Selecione ${pacoteLimit || 'suas'} fotos para o seu pacote. Elas serão entregues em versão original, em alta resolução.`,
+        }
+      case 'SELECAO_ENVIADA':
+        return {
+          titulo: 'Seleção recebida',
+          descricao: 'O estúdio vai revisar e liberar as fotos do seu pacote em instantes.',
+        }
+      case 'COMERCIALIZACAO':
+        return {
+          titulo: 'Seleção aprovada',
+          descricao: 'Baixe as fotos do pacote. Extras são liberados após a confirmação do pagamento.',
+        }
+      default:
+        return {
+          titulo: 'Sua galeria está pronta',
+          descricao: 'Escolha suas fotos favoritas para o pacote ou adquira extras.',
+        }
     }
   }
   switch (fase) {
@@ -51,15 +76,16 @@ function conteudo(modo: ModoGaleria, fase: FaseGaleria, pacoteLimit: number) {
 export function GaleriaIntro({
   modo,
   fase,
+  requerEdicao,
   pacoteNome,
   pacoteLimit,
   selectedCount,
   favoritosCount,
   carrinhoCount,
 }: GaleriaIntroProps) {
-  const { titulo, descricao } = conteudo(modo, fase, pacoteLimit)
+  const { titulo, descricao } = conteudo(modo, fase, pacoteLimit, requerEdicao)
   const percentual = pacoteLimit > 0 ? Math.min(100, Math.round((selectedCount / pacoteLimit) * 100)) : 0
-  const mostrarProgresso = modo === 'COM_EDICAO' && fase === 'SELECAO'
+  const mostrarProgresso = modo !== 'DIRETO' && fase === 'SELECAO'
 
   return (
     <section id="galeria-conteudo" className="scroll-mt-20 px-4 pt-10 text-center sm:pt-14">

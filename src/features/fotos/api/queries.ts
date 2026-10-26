@@ -81,6 +81,23 @@ export function useGaleriaEnsaio(agendamentoId: string | undefined) {
   })
 }
 
+export function useAlterarModoGaleria(agendamentoId: string) {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (modo: GaleriaEnsaioResponse['modo']) =>
+      ecommerceService.adminAlterarModoGaleria(agendamentoId, modo),
+    onSuccess: (data) => {
+      queryClient.setQueryData(['galeria-ensaio', agendamentoId], data)
+      queryClient.invalidateQueries({ queryKey: ['galeria-ensaio', agendamentoId] })
+      queryClient.invalidateQueries({ queryKey: ['fotos', agendamentoId] })
+      queryClient.invalidateQueries({ queryKey: ['selecoes-ensaio', agendamentoId] })
+      queryClient.invalidateQueries({ queryKey: ['admin-ecommerce', agendamentoId] })
+      toast.success('Modo da galeria atualizado')
+    },
+    onError: (error: Error) => toast.error(extractErrorMessage(error, 'Erro ao alterar o modo da galeria')),
+  })
+}
+
 export function useDefinirCapaGaleria(agendamentoId: string) {
   const queryClient = useQueryClient()
   return useMutation({
@@ -315,7 +332,9 @@ export function useGaleriaWorkspace(
     pendentesPublicacao: fotos.filter((foto) => foto.status === 'INEDITA').length,
     pacote: selecaoAtual?.quantidadePacote ?? fotos.filter((foto) => foto.selecionadaPacote).length,
     extras: selecaoAtual?.quantidadeExtras ?? extrasItens.length,
-    aguardandoEdicao: itens.filter((item) => !item.editada).length,
+    aguardandoEdicao: galeriaQuery.data?.requerEdicao
+      ? itens.filter((item) => !item.editada).length
+      : 0,
     comprasPendentes: compras.filter(
       (compra) => compra.status === 'AGUARDANDO_COMPROVANTE' || compra.status === 'AGUARDANDO_CONFIRMACAO',
     ).length,

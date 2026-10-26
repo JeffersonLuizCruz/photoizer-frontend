@@ -13,6 +13,7 @@ interface GaleriaConfirmarSelecaoProps {
   totalExtras: number
   onConfirm: () => void
   isLoading: boolean
+  requerEdicao?: boolean
 }
 
 const formatBRL = (value: number) =>
@@ -46,6 +47,7 @@ export function GaleriaConfirmarSelecao({
   totalExtras,
   onConfirm,
   isLoading,
+  requerEdicao = true,
 }: GaleriaConfirmarSelecaoProps) {
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -69,7 +71,9 @@ export function GaleriaConfirmarSelecao({
         <div className="flex-1 space-y-6 overflow-y-auto px-4 py-5">
           <p className="text-sm leading-relaxed text-gallery-muted">
             Confira suas escolhas. Depois do envio, a seleção ficará bloqueada
-            enquanto o estúdio prepara a edição.
+            {requerEdicao
+              ? ' enquanto o estúdio prepara a edição.'
+              : ' enquanto o estúdio revisa e aprova as fotos.'}
           </p>
 
           <section>

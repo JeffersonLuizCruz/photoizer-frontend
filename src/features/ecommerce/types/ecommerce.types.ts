@@ -27,7 +27,7 @@ export interface FotoEnsaio {
   visivel: boolean
 }
 
-export type ModoGaleria = 'DIRETO' | 'COM_EDICAO'
+export type ModoGaleria = 'DIRETO' | 'COM_EDICAO' | 'SEM_EDICAO'
 export type FaseGaleria = 'SELECAO' | 'SELECAO_ENVIADA' | 'EM_EDICAO' | 'COMERCIALIZACAO'
 export type StatusSelecao = 'ENVIADA' | 'EM_EDICAO' | 'CONCLUIDA' | 'PUBLICADA' | 'CANCELADA'
 
@@ -57,6 +57,7 @@ export interface SelecaoEnsaioResponse {
   quantidadePacote: number
   quantidadeExtras: number
   itens: SelecaoEnsaioItemResponse[]
+  podeReabrir: boolean
 }
 
 export interface SelecaoPendenteResponse {
@@ -70,6 +71,7 @@ export interface SelecaoPendenteResponse {
   quantidadeExtras: number
   enviadaEm: string
   diasAguardando: number
+  requerEdicao: boolean
 }
 
 export interface GaleriaEnsaioResponse {
@@ -79,6 +81,7 @@ export interface GaleriaEnsaioResponse {
   selecaoAtualId: string | null
   capaFotoId: string | null
   capaVersao: 'ORIGINAL' | 'EDITADA' | null
+  requerEdicao: boolean
   podeAlterarModo: boolean
 }
 

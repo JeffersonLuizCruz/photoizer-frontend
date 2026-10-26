@@ -5,6 +5,7 @@ import type { FaseGaleria, SelecaoEnsaioResponse } from '../../types/ecommerce.t
 interface GaleriaTimelineProps {
   fase: FaseGaleria
   selecao: SelecaoEnsaioResponse | null
+  requerEdicao?: boolean
 }
 
 function formatarData(valor: string | null | undefined): string | null {
@@ -14,13 +15,19 @@ function formatarData(valor: string | null | undefined): string | null {
   return new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: 'short' }).format(data)
 }
 
-export function GaleriaTimeline({ fase, selecao }: GaleriaTimelineProps) {
+export function GaleriaTimeline({ fase, selecao, requerEdicao = true }: GaleriaTimelineProps) {
   const etapaAtual = fase === 'COMERCIALIZACAO' ? 3 : fase === 'EM_EDICAO' || fase === 'SELECAO_ENVIADA' ? 2 : 1
-  const passos = [
-    { titulo: 'Seleção enviada', data: formatarData(selecao?.enviadaEm) },
-    { titulo: 'Em edição', data: formatarData(selecao?.iniciadaEm) },
-    { titulo: 'Publicada', data: formatarData(selecao?.publicadaEm) },
-  ]
+  const passos = requerEdicao
+    ? [
+        { titulo: 'Seleção enviada', data: formatarData(selecao?.enviadaEm) },
+        { titulo: 'Em edição', data: formatarData(selecao?.iniciadaEm) },
+        { titulo: 'Publicada', data: formatarData(selecao?.publicadaEm) },
+      ]
+    : [
+        { titulo: 'Seleção enviada', data: formatarData(selecao?.enviadaEm) },
+        { titulo: 'Aprovação', data: formatarData(selecao?.publicadaEm) },
+        { titulo: 'Liberada', data: formatarData(selecao?.publicadaEm) },
+      ]
 
   return (
     <div className="mx-auto mt-8 max-w-lg px-1">
