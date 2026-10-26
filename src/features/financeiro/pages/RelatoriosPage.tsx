@@ -148,13 +148,14 @@ export function RelatoriosPage() {
         a.valorEntradaExigido,
         a.valorEntradaPago,
         a.valorRestante,
+        a.valorExtras,
         a.valorTotalFinal,
       ])
       exportCommon(
         ext,
         base,
         periodo,
-        ['Data', 'Cliente', 'Pacote', 'Status', 'Valor total', 'Entrada exigida', 'Entrada recebida', 'Restante', 'Total final'],
+        ['Data', 'Cliente', 'Pacote', 'Status', 'Valor total', 'Entrada exigida', 'Recebido', 'Restante', 'Extras', 'Total final'],
         rows,
       )
       return
@@ -318,7 +319,7 @@ export function RelatoriosPage() {
           <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
             <Card label="Total" value={formatCurrency(ensaios.data?.totais.total)} isLoading={ensaios.isLoading} />
             <Card label="Entrada exigida" value={formatCurrency(ensaios.data?.totais.entradaExigida)} accent="text-amber-600" isLoading={ensaios.isLoading} />
-            <Card label="Entrada recebida" value={formatCurrency(ensaios.data?.totais.entrada)} accent="text-emerald-600" isLoading={ensaios.isLoading} />
+            <Card label="Recebido" value={formatCurrency(ensaios.data?.totais.entrada)} accent="text-emerald-600" isLoading={ensaios.isLoading} />
             <Card label="Restante" value={formatCurrency(ensaios.data?.totais.restante)} accent="text-amber-600" isLoading={ensaios.isLoading} />
             <Card label="Extras" value={formatCurrency(ensaios.data?.totais.extras)} isLoading={ensaios.isLoading} />
             <Card label="Total final" value={formatCurrency(ensaios.data?.totais.totalFinal)} isLoading={ensaios.isLoading} />

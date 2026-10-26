@@ -61,7 +61,9 @@ export function AdminEcommercePage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-compras'] })
       queryClient.invalidateQueries({ queryKey: ['admin-compras-relatorio'] })
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.AGENDA })
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.FINANCEIRO })
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.DASHBOARD })
       toast.success('Pagamento confirmado!')
     },
     onError: (err: Error) => toast.error(extractErrorMessage(err, 'Erro ao confirmar')),
@@ -72,7 +74,9 @@ export function AdminEcommercePage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-compras'] })
       queryClient.invalidateQueries({ queryKey: ['admin-compras-relatorio'] })
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.AGENDA })
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.FINANCEIRO })
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.DASHBOARD })
       setConfirmCancelId(null)
       setMotivoRecusa('')
       toast.success('Compra cancelada!')

@@ -82,7 +82,7 @@ export function FinanceiroTabela({ agendamentos, dateRange, isLoading }: Finance
             <TableHead>Status</TableHead>
             <TableHead className="text-right">Valor Total</TableHead>
             <TableHead className="text-right">Entrada exigida</TableHead>
-            <TableHead className="text-right">Entrada recebida</TableHead>
+            <TableHead className="text-right">Recebido</TableHead>
             <TableHead className="text-right">Restante</TableHead>
             <TableHead className="text-right">Extras</TableHead>
             <TableHead className="text-right">Total Final</TableHead>
@@ -175,7 +175,7 @@ export function FinanceiroTabela({ agendamentos, dateRange, isLoading }: Finance
                   <span className="tabular-nums text-amber-600">R$ {agendamento.valorEntradaExigido.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between gap-2">
-                  <span className="text-muted-foreground">Entrada recebida</span>
+                  <span className="text-muted-foreground">Recebido</span>
                   <span className={agendamento.valorEntradaPago > 0 ? 'tabular-nums text-emerald-600' : 'tabular-nums text-muted-foreground'}>
                     R$ {agendamento.valorEntradaPago > 0 ? agendamento.valorEntradaPago.toFixed(2) : '0,00'}
                   </span>

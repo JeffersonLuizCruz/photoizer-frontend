@@ -160,8 +160,8 @@ export function AgendamentoFinanceiro({ agendamento }: AgendamentoFinanceiroProp
       status: agendamento.valorEntradaPago > 0 ? 'Pago' : 'Pendente',
     },
     {
-      descricao: `Restante (${100 - agendamento.percentualEntrada}%)`,
-      valor: agendamento.valorTotalFinal - agendamento.valorEntradaExigido,
+      descricao: 'Restante',
+      valor: agendamento.valorRestante,
       tipo: 'negativo',
       status: agendamento.valorRestante > 0 ? 'A Pagar' : 'Pago',
       formaPagamento: agendamento.valorRestante <= 0 ? agendamento.formaPagamentoFinal : null,

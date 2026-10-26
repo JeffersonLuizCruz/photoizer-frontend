@@ -7,6 +7,7 @@ import { AdminLinkPagamentoDialog } from '@/features/ecommerce/components/AdminL
 import { Button } from '@/shared/components/ui/button'
 import { StatusBadge } from '@/shared/components/layout/StatusBadge'
 import { ConfirmDialog } from '@/shared/components/layout/ConfirmDialog'
+import { QUERY_KEYS } from '@/shared/constants'
 import { extractErrorMessage, openProtected } from '@/shared/api'
 
 const formatCurrency = (value: number) =>
@@ -27,6 +28,10 @@ export function GaleriaComprasPanel({ agendamentoId }: { agendamentoId: string }
     queryClient.invalidateQueries({ queryKey: ['admin-ecommerce', agendamentoId] })
     queryClient.invalidateQueries({ queryKey: ['fotos', agendamentoId] })
     queryClient.invalidateQueries({ queryKey: ['selecoes-ensaio', agendamentoId] })
+    // A compra altera valorExtras, valorTotalFinal, valorEntradaPago e valorRestante.
+    queryClient.invalidateQueries({ queryKey: QUERY_KEYS.AGENDA })
+    queryClient.invalidateQueries({ queryKey: QUERY_KEYS.FINANCEIRO })
+    queryClient.invalidateQueries({ queryKey: QUERY_KEYS.DASHBOARD })
   }
 
   const { mutate: confirmarCompra, isPending: isConfirming } = useMutation({
