@@ -2,7 +2,7 @@ import { useEffect, useRef, useState, type TouchEvent } from 'react'
 import { format } from 'date-fns'
 import { ChevronLeft, ChevronRight, X, Check, Clock, ShoppingCart, Loader2, MessageCircle, Send, User, Heart } from 'lucide-react'
 import { toast } from 'sonner'
-import type { FotoEnsaio, FotoComentario } from '../types/ecommerce.types'
+import type { FaseGaleria, FotoEnsaio, FotoComentario, ModoGaleria } from '../types/ecommerce.types'
 import { ecommerceService } from '../services/ecommerce.service'
 import { cn } from '@/shared/lib/cn'
 import { numeroGaleriaLabel } from '@/shared/lib/foto'
@@ -32,6 +32,8 @@ interface FotoViewerProps {
   podeBaixar: boolean
   extrasEmSelecao: boolean
   valoresExtras: Record<string, number>
+  modoGaleria: ModoGaleria
+  faseGaleria: FaseGaleria
 }
 
 function formatComentarioData(iso: string): string {
@@ -72,6 +74,7 @@ export function FotoViewer({
   selectedIds, carrinhoIds, pacoteLimit, selectedCount, onToggleCarrinho, valorUnitario, cartLoadingIds,
   token, commentsOpen, onCommentsOpenChange, favoritoIds, onToggleFavorito,
   podeSelecionar, podeComprar, podeBaixar, extrasEmSelecao, valoresExtras,
+  modoGaleria, faseGaleria,
 }: FotoViewerProps) {
   const foto = fotos[currentIndex]
   const isSelected = selectedIds.has(foto.id)
@@ -81,6 +84,11 @@ export function FotoViewer({
   const pendente = !!foto.compraExtraId && foto.status !== 'PAGA'
   const packageFull = selectedCount >= pacoteLimit
   const valor = valoresExtras[foto.id] ?? valorUnitario
+  const fotoSeraEditada = modoGaleria === 'COM_EDICAO'
+    && faseGaleria === 'COMERCIALIZACAO'
+    && !foto.selecionadaPacote
+    && !foto.compraExtraId
+    && foto.versaoAtual !== 'EDITADA'
 
   // Comentários
   const [comentarios, setComentarios] = useState<FotoComentario[]>([])
@@ -328,7 +336,13 @@ export function FotoViewer({
                   : 'bg-gallery-accent text-white hover:opacity-90',
               )}>
               {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <ShoppingCart className="h-4 w-4" />}
-              {isLoading ? 'Adicionando...' : extrasEmSelecao ? 'Incluir extra' : `Comprar ${formatBRL(valor)}`}
+              {isLoading
+                ? 'Adicionando...'
+                : extrasEmSelecao
+                  ? 'Incluir extra'
+                  : fotoSeraEditada
+                    ? `Comprar e editar ${formatBRL(valor)}`
+                    : `Comprar ${formatBRL(valor)}`}
             </button>
           ) : (
             <span className="flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl bg-gallery-line px-5 py-3 text-sm font-medium text-gallery-muted shadow-md">

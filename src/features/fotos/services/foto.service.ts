@@ -206,6 +206,26 @@ export const fotoService = {
     return data
   },
 
+  /** Edição sob demanda de uma foto extra comprada após a publicação. */
+  uploadEditadaCompraExtra: async (agendamentoId: string, fotoId: string, arquivo: File): Promise<FotoEnsaio> => {
+    const formData = new FormData()
+    formData.append('arquivo', arquivo)
+    const { data } = await apiClient.put<FotoEnsaio>(
+      `/agendamentos/${agendamentoId}/fotos/${fotoId}/editada-compra`,
+      formData,
+      { timeout: env.VITE_UPLOAD_TIMEOUT },
+    )
+    return data
+  },
+
+  /** Libera o download da versão editada de uma foto extra comprada. */
+  publicarEditadaCompraExtra: async (agendamentoId: string, fotoId: string): Promise<FotoEnsaio> => {
+    const { data } = await apiClient.post<FotoEnsaio>(
+      `/agendamentos/${agendamentoId}/fotos/${fotoId}/editada-compra/publicar`,
+    )
+    return data
+  },
+
   substituirImagem: async (agendamentoId: string, fotoId: string, arquivo: File): Promise<FotoEnsaio> => {
     const formData = new FormData()
     formData.append('arquivo', arquivo)

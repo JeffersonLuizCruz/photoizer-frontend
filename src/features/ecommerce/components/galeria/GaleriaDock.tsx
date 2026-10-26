@@ -48,6 +48,7 @@ export function GaleriaDock({
 }: GaleriaDockProps) {
   const percentual = pacoteLimit > 0 ? Math.min(100, Math.round((selectedCount / pacoteLimit) * 100)) : 0
   const emSelecao = modo === 'COM_EDICAO' && fase === 'SELECAO'
+  const emEdicao = modo === 'COM_EDICAO' && (fase === 'SELECAO_ENVIADA' || fase === 'EM_EDICAO')
   const emComercializacao = modo === 'COM_EDICAO' && fase === 'COMERCIALIZACAO'
   const thumbs = selectedFotos.slice(-4)
 
@@ -121,6 +122,13 @@ export function GaleriaDock({
             <button onClick={onDownloadZip} className={cn(secundario, 'flex-1 sm:flex-none')}>
               <Download className="h-3.5 w-3.5" />
               Baixar pacote ({downloadableCount})
+            </button>
+          )}
+
+          {emEdicao && carrinhoCount > 0 && (
+            <button onClick={onOpenCart} className={cn(secundario, 'hidden sm:flex')}>
+              <ShoppingBag className="h-3.5 w-3.5" />
+              Carrinho ({carrinhoCount}) · {formatBRL(totalExtras)}
             </button>
           )}
 

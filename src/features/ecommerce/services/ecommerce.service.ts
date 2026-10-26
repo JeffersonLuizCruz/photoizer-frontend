@@ -1,6 +1,6 @@
 import { apiClient } from '@/shared/api'
 import { env } from '@/shared/config/env'
-import type { FotoEnsaio, CompraExtraResponse, AdminEcommerceResumoResponse, CarrinhoResponse, CalculoCarrinhoResponse, MetodoPagamento, AdminCompraDetalheResponse, AdminComprasRelatorioResponse, Avaliacao, Sessao, EcommerceAnalyticsResponse, DashboardEcommerceResponse, DashboardEcommerceMensalResponse, FotoComentario, ComentariosPorFotoResponse, ConfiguracaoPagamentoResponse, SelecaoEnsaioResponse, SelecaoPendenteResponse, GaleriaEnsaioResponse, ModoGaleria, FaseGaleria } from '../types/ecommerce.types'
+import type { FotoEnsaio, CompraExtraResponse, AdminEcommerceResumoResponse, CarrinhoResponse, CalculoCarrinhoResponse, MetodoPagamento, AdminCompraDetalheResponse, AdminComprasRelatorioResponse, CompraExtraPendenteEdicaoResponse, Avaliacao, Sessao, EcommerceAnalyticsResponse, DashboardEcommerceResponse, DashboardEcommerceMensalResponse, FotoComentario, ComentariosPorFotoResponse, ConfiguracaoPagamentoResponse, SelecaoEnsaioResponse, SelecaoPendenteResponse, GaleriaEnsaioResponse, ModoGaleria, FaseGaleria } from '../types/ecommerce.types'
 import type { PacoteResponse } from '@/features/pacotes/types/pacotes.types'
 import type { AgendamentoCliente } from '@/features/auth/customer/types'
 import type { PaginatedResponse } from '@/shared/types'
@@ -369,6 +369,16 @@ export const ecommerceService = {
 
   adminRelatorioCompras: async (): Promise<AdminComprasRelatorioResponse> => {
     const { data } = await apiClient.get<AdminComprasRelatorioResponse>('/admin/ecommerce/compras/relatorio')
+    return data
+  },
+
+  adminExtrasPendentesEdicao: async (
+    agendamentoId?: string,
+  ): Promise<CompraExtraPendenteEdicaoResponse[]> => {
+    const { data } = await apiClient.get<CompraExtraPendenteEdicaoResponse[]>(
+      '/admin/ecommerce/extras/pendentes-edicao',
+      { params: agendamentoId ? { agendamentoId } : undefined },
+    )
     return data
   },
 

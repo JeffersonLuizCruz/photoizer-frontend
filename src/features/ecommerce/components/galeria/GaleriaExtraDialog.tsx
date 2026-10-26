@@ -8,6 +8,8 @@ interface GaleriaExtraDialogProps {
   open: boolean
   valor: number
   extrasEmSelecao: boolean
+  /** Extra pós-publicação que ainda passará pela edição sob demanda. */
+  fotoSeraEditada: boolean
   onOpenChange: (open: boolean) => void
   onConfirm: () => void
 }
@@ -20,6 +22,7 @@ export function GaleriaExtraDialog({
   open,
   valor,
   extrasEmSelecao,
+  fotoSeraEditada,
   onOpenChange,
   onConfirm,
 }: GaleriaExtraDialogProps) {
@@ -33,8 +36,10 @@ export function GaleriaExtraDialog({
           <DialogDescription className="text-sm leading-relaxed text-gallery-muted">
             Esta foto não está incluída no seu pacote. Você pode incluí-la como extra
             {extrasEmSelecao
-              ? ' e ela será editada junto com as demais.'
-              : ' e baixá-la após a confirmação do pagamento.'}
+              ? ' e ela será editada junto com as demais. A compra é liberada após a publicação da edição.'
+              : fotoSeraEditada
+                ? ' e o estúdio fará a edição após a confirmação do pagamento. O download é liberado assim que a edição for publicada.'
+                : ' e baixá-la após a confirmação do pagamento.'}
           </DialogDescription>
         </DialogHeader>
 
@@ -67,7 +72,7 @@ export function GaleriaExtraDialog({
             className="flex min-h-11 items-center justify-center gap-1.5 rounded-full bg-gallery-ink px-5 text-xs font-semibold text-gallery-bg transition-opacity hover:opacity-90"
           >
             <ShoppingBag className="h-3.5 w-3.5" />
-            {extrasEmSelecao ? 'Incluir extra' : 'Comprar foto'}
+            {extrasEmSelecao ? 'Incluir extra' : fotoSeraEditada ? 'Comprar e editar' : 'Comprar foto'}
           </button>
         </div>
       </DialogContent>

@@ -18,6 +18,7 @@ import type {
   SelecaoPendenteResponse,
 } from '@/features/ecommerce/types/ecommerce.types'
 import { fotoService } from '../services/foto.service'
+import { ExtrasCompraPendentesSection } from '../components/galeria-admin/ExtrasCompraPendentesSection'
 import { fotoThumbUrl, numeroGaleriaLabel } from '@/shared/lib/foto'
 
 function statusLabel(status: string): string {
@@ -278,6 +279,10 @@ export function AdminSelecoesPage() {
             ))}
           </div>
         )}
+
+        <div className="mt-6">
+          <ExtrasCompraPendentesSection onChanged={() => void carregar()} />
+        </div>
       </div>
     )
   }
@@ -306,6 +311,13 @@ export function AdminSelecoesPage() {
           selecao={historicoSelecao}
           onOpenChange={(open) => { if (!open) setHistoricoSelecao(null) }}
         />
+
+        <div className="mt-6">
+          <ExtrasCompraPendentesSection
+            agendamentoId={id}
+            onChanged={() => void carregar()}
+          />
+        </div>
       </div>
     )
   }
@@ -492,6 +504,14 @@ export function AdminSelecoesPage() {
       <HistoricoSelecaoSheet
         selecao={historicoSelecao}
         onOpenChange={(open) => { if (!open) setHistoricoSelecao(null) }}
+      />
+
+      <ExtrasCompraPendentesSection
+        agendamentoId={id}
+        onChanged={() => {
+          invalidarWorkspace()
+          void carregar()
+        }}
       />
 
       <ConfirmDialog

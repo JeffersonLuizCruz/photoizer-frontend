@@ -118,6 +118,10 @@ Não existem testes para este módulo.
 - O envio da seleção usa `GaleriaConfirmarSelecao`, que agrupa pacote/extras e aceita o campo `observacao` (já suportado pelo backend).
 - O hero usa `capaUrl` (capa manual ou fallback) e faz preload com prioridade alta. A capa é escolhida em `AdminGaleriaPage` no modo “Escolher capa”; o backend congela a versão (`capaVersao`) e devolve a URL já versionada (`?v={fotoId}-{versao}`).
 - A galeria pública revalida ao voltar para a aba (`visibilitychange`/`pageshow`) e a cada 60s, sem recarregar a página e sem apagar a seleção local em andamento.
+- **Extras durante a edição**: em `SELECAO_ENVIADA`/`EM_EDICAO` a sacola continua disponível. O extra entra no snapshot da seleção ativa (backend) e o total é calculado no carrinho; o checkout permanece bloqueado até `COMERCIALIZACAO`.
+- **Extras após a publicação**: fotos restantes aparecem com o selo **“A editar”** e podem ser compradas. Após o pagamento, `MinhasComprasSection` mostra **“Aguardando edição”** até o estúdio liberar a versão editada; o download só aparece com `versaoAtual = EDITADA`.
+- `isDownloadable`/`podeBaixarEsta` exigem `versaoAtual = EDITADA` no modo `COM_EDICAO`, evitando liberar download de extra ainda não editado.
+- O `CartSummaryPanel` mostra “Extras da seleção” durante a edição e “Meu Carrinho” na comercialização, com aviso de quando a compra será liberada.
 - As prévias públicas usam o endpoint de watermark em baixa resolução (**800px**, JPEG ~0.60), com marca d'água da contratada. A UI bloqueia menu de contexto, arraste, seleção e callout de toque longo; o visualizador usa `background-image` com overlay para dificultar salvar a imagem.
 - Arquivos editados finais e downloads permanecem em alta qualidade e sem marca d'água.
 

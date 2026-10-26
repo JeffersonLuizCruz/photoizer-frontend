@@ -1,5 +1,5 @@
 import { Check, Download, Heart, ShoppingBag } from 'lucide-react'
-import type { FotoEnsaio } from '../../types/ecommerce.types'
+import type { FaseGaleria, FotoEnsaio, ModoGaleria } from '../../types/ecommerce.types'
 import { ecommerceService } from '../../services/ecommerce.service'
 import { cn } from '@/shared/lib/cn'
 import { numeroGaleriaLabel } from '@/shared/lib/foto'
@@ -14,6 +14,8 @@ interface GaleriaMasonryProps {
   favoritoIds: Set<string>
   compareIds: Set<string>
   compareMode: boolean
+  modoGaleria: ModoGaleria
+  faseGaleria: FaseGaleria
   podeSelecionar: boolean
   podeComprar: boolean
   podeBaixar: boolean
@@ -35,6 +37,8 @@ export function GaleriaMasonry({
   favoritoIds,
   compareIds,
   compareMode,
+  modoGaleria,
+  faseGaleria,
   podeSelecionar,
   podeComprar,
   podeBaixar,
@@ -57,7 +61,16 @@ export function GaleriaMasonry({
         const isCartLoading = cartLoadingIds.has(foto.id)
         const pendente = !!foto.compraExtraId && foto.status !== 'PAGA'
         const jaComprada = foto.status === 'PAGA'
-        const podeBaixarEsta = podeBaixar && (foto.selecionadaPacote || jaComprada)
+        const podeBaixarEsta = podeBaixar
+          && (foto.selecionadaPacote || jaComprada)
+          && (modoGaleria !== 'COM_EDICAO' || foto.versaoAtual === 'EDITADA')
+        // Foto restante da galeria COM_EDICAO: pode ser comprada, mas o
+        // estúdio edita sob demanda antes de liberar o download.
+        const fotoSeraEditada = modoGaleria === 'COM_EDICAO'
+          && faseGaleria === 'COMERCIALIZACAO'
+          && !foto.selecionadaPacote
+          && !foto.compraExtraId
+          && foto.versaoAtual !== 'EDITADA'
         const numero = foto.numeroGaleria != null ? numeroGaleriaLabel(foto.numeroGaleria) : null
         // Uma acao por foto, na mesma ordem do fluxo antigo: pacote primeiro,
         // extra quando o pacote ja esta cheio (ou quando a selecao esta fechada).
@@ -126,12 +139,13 @@ export function GaleriaMasonry({
               </button>
 
               <div className="pointer-events-none absolute inset-x-0 bottom-0 flex items-end justify-between gap-2 bg-gradient-to-t from-gallery-ink/55 via-gallery-ink/10 to-transparent p-1.5 pt-8">
-                {(jaComprada || pendente || isInCart || isSelected) && (
+                {(jaComprada || pendente || isInCart || isSelected || fotoSeraEditada) && (
                   <span className="rounded-sm bg-gallery-surface/90 px-1.5 py-0.5 text-[9px] font-medium uppercase tracking-[0.14em] text-gallery-ink backdrop-blur">
                     {jaComprada ? 'Adquirida'
                       : pendente ? 'Aguardando'
                         : isSelected ? 'Pacote'
-                          : 'Extra'}
+                          : fotoSeraEditada ? 'A editar'
+                            : 'Extra'}
                   </span>
                 )}
 
@@ -155,7 +169,7 @@ export function GaleriaMasonry({
                   {mostrarSacola && (
                     <button
                       onClick={(e) => { e.stopPropagation(); onToggleCarrinho(foto.id) }}
-                      disabled={isCartLoading}
+                      disabled={isCartLoading || (isInCart && extrasEmSelecao && foto.temVersaoEditada)}
                       className={cn(
                         'flex h-11 w-11 items-center justify-center rounded-full shadow-sm ring-1 backdrop-blur transition-all disabled:opacity-50 sm:h-10 sm:w-10',
                         isInCart
@@ -165,7 +179,15 @@ export function GaleriaMasonry({
                       aria-label={isInCart
                         ? `Remover ${foto.fileName} do carrinho`
                         : `${extrasEmSelecao ? 'Incluir' : 'Comprar'} ${foto.fileName} como extra`}
-                      title={isInCart ? 'Remover do carrinho' : extrasEmSelecao ? 'Incluir extra' : 'Comprar foto'}
+                      title={isInCart
+                        ? (extrasEmSelecao && foto.temVersaoEditada
+                          ? 'Foto já editada: fale com o estúdio'
+                          : 'Remover do carrinho')
+                        : extrasEmSelecao
+                          ? 'Incluir extra'
+                          : fotoSeraEditada
+                            ? 'Comprar foto (editada após a compra)'
+                            : 'Comprar foto'}
                       aria-pressed={isInCart}
                     >
                       <ShoppingBag className="h-4 w-4" />

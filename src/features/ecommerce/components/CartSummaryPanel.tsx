@@ -110,8 +110,11 @@ export function CartSummaryPanel({
                     </div>
                     <button
                       onClick={() => onRemoveFromCart(foto.id)}
-                      disabled={!podeEditarCarrinho}
+                      disabled={!podeEditarCarrinho || (extrasEmSelecao && foto.temVersaoEditada)}
                       className="rounded-lg flex h-11 w-11 items-center justify-center text-gallery-muted transition-colors hover:bg-gallery-line/40 hover:text-gallery-accent disabled:cursor-not-allowed disabled:opacity-40"
+                      title={extrasEmSelecao && foto.temVersaoEditada
+                        ? 'Foto já editada: fale com o estúdio para ajustar a seleção'
+                        : `Remover ${foto.fileName} do carrinho`}
                       aria-label={`Remover ${foto.fileName} do carrinho`}>
                       <Trash2 className="h-3.5 w-3.5" />
                     </button>
@@ -145,8 +148,8 @@ export function CartSummaryPanel({
         <div className="shrink-0 border-t border-gallery-line p-4 pb-[calc(1rem+env(safe-area-inset-bottom))]">
           {!podeComprar && (
             <p className="mb-2 text-center text-[11px] font-medium text-gallery-accent">
-              {podeEditarCarrinho
-                ? 'Envie a seleção para que o estúdio edite as fotos antes da compra.'
+              {extrasEmSelecao
+                ? 'Estes extras serão editados junto com o pacote. A compra é liberada após a publicação da edição.'
                 : 'A compra será liberada após a publicação da edição.'}
             </p>
           )}

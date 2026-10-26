@@ -73,16 +73,26 @@ export function GaleriaClientePage() {
   const podeSelecionar = galeria?.podeSelecionar ?? true
   const podeComprar = galeria?.podeComprar ?? true
   const podeBaixar = galeria?.podeBaixar ?? true
-  const podeEscolherExtras = podeSelecionar || podeComprar
+  // Durante a edição o cliente ainda pode marcar extras: eles entram na
+  // seleção ativa para serem editados junto com o pacote. A compra em si só é
+  // liberada quando a edição é publicada.
+  const emEdicaoGaleria = modoGaleria === 'COM_EDICAO'
+    && (faseGaleria === 'SELECAO_ENVIADA' || faseGaleria === 'EM_EDICAO')
+  const podeAdicionarExtras = podeSelecionar || podeComprar || emEdicaoGaleria
   const selecaoAtual = galeria?.selecaoAtual ?? null
   const valoresExtras = galeria?.valoresExtras ?? {}
-  const extrasEmSelecao = modoGaleria === 'COM_EDICAO' && faseGaleria === 'SELECAO'
+  const extrasEmSelecao = modoGaleria === 'COM_EDICAO'
+    && (faseGaleria === 'SELECAO' || emEdicaoGaleria)
   const valorUnitarioFoto = useCallback(
     (fotoId: string) => valoresExtras[fotoId] ?? valorUnitario,
     [valoresExtras, valorUnitario],
   )
+  // No modo COM_EDICAO só há arquivo final depois de EDITADA. Fotos compradas
+  // como extra pós-publicação esperam a edição sob demanda antes do download.
   const isDownloadable = (foto: FotoEnsaio) =>
-    podeBaixar && (foto.selecionadaPacote || foto.status === 'PAGA')
+    podeBaixar
+    && (foto.selecionadaPacote || foto.status === 'PAGA')
+    && (modoGaleria !== 'COM_EDICAO' || foto.versaoAtual === 'EDITADA')
   const downloadableFotos = fotos.filter(isDownloadable)
 
   const capa = useMemo(
@@ -272,7 +282,7 @@ export function GaleriaClientePage() {
 
   const toggleCarrinho = useCallback(async (fotoId: string) => {
     if (!token) return
-    if (!podeEscolherExtras) {
+    if (!podeAdicionarExtras) {
       toast.error('As fotos estão em edição. Aguarde a publicação para alterar o carrinho.')
       return
     }
@@ -300,7 +310,7 @@ export function GaleriaClientePage() {
         return next
       })
     }
-  }, [token, carrinhoIds, podeEscolherExtras])
+  }, [token, carrinhoIds, podeAdicionarExtras])
 
   const toggleSelect = useCallback(async (fotoId: string) => {
     if (!podeSelecionar) {
@@ -358,14 +368,14 @@ export function GaleriaClientePage() {
   // selecao ja foi fechada). Remover continua direto; incluir abre o dialogo
   // com o preco da foto para o cliente confirmar.
   const toggleExtra = useCallback((fotoId: string) => {
-    if (!token || !podeEscolherExtras) return
+    if (!token || !podeAdicionarExtras) return
     if (carrinhoIds.has(fotoId)) {
       void toggleCarrinho(fotoId)
       return
     }
     const foto = fotos.find((f) => f.id === fotoId)
     if (foto) setFotoExtraPendente(foto)
-  }, [token, podeEscolherExtras, carrinhoIds, toggleCarrinho, fotos])
+  }, [token, podeAdicionarExtras, carrinhoIds, toggleCarrinho, fotos])
 
   const handleSaveSelection = async () => {
     if (!token || !podeSelecionar) return
@@ -459,6 +469,7 @@ export function GaleriaClientePage() {
     || fotoExtraPendente !== null
   const mostrarDock = !modalAberto && (
     (modoGaleria === 'COM_EDICAO' && faseGaleria === 'SELECAO')
+    || (emEdicaoGaleria && carrinhoCount > 0)
     || (modoGaleria === 'COM_EDICAO' && faseGaleria === 'COMERCIALIZACAO' && (downloadableFotos.length > 0 || (podeComprar && carrinhoCount > 0)))
     || (modoGaleria === 'DIRETO' && (hasSelectionChanges || downloadableFotos.length > 0 || (podeComprar && carrinhoCount > 0)))
   )
@@ -570,7 +581,8 @@ export function GaleriaClientePage() {
                 {faseGaleria === 'SELECAO_ENVIADA' ? 'Sua seleção está em boas mãos.' : 'Estamos preparando suas fotos.'}
               </p>
               <p className="mt-1 text-xs leading-relaxed text-gallery-muted">
-                Você pode continuar olhando a galeria e favoritando outras fotos enquanto isso.
+                Você pode continuar olhando a galeria e marcar fotos extras: elas entram
+                na mesma edição e ficam disponíveis para compra após a publicação.
               </p>
             </div>
           </div>
@@ -708,8 +720,10 @@ export function GaleriaClientePage() {
               favoritoIds={favoritoIds}
               compareIds={compareIds}
               compareMode={compareMode}
+              modoGaleria={modoGaleria}
+              faseGaleria={faseGaleria}
               podeSelecionar={podeSelecionar}
-              podeComprar={podeEscolherExtras}
+              podeComprar={podeAdicionarExtras}
               podeBaixar={podeBaixar}
               extrasEmSelecao={extrasEmSelecao}
               onSelect={toggleSelect}
@@ -773,10 +787,12 @@ export function GaleriaClientePage() {
           favoritoIds={favoritoIds}
           onToggleFavorito={toggleFavorito}
           podeSelecionar={podeSelecionar}
-          podeComprar={podeEscolherExtras}
+          podeComprar={podeAdicionarExtras}
           podeBaixar={podeBaixar}
           extrasEmSelecao={extrasEmSelecao}
           valoresExtras={valoresExtras}
+          modoGaleria={modoGaleria}
+          faseGaleria={faseGaleria}
         />
       )}
 
@@ -803,7 +819,7 @@ export function GaleriaClientePage() {
         extrasEmSelecao={extrasEmSelecao}
         onRemoveFromCart={toggleCarrinho}
         podeComprar={podeComprar}
-        podeEditarCarrinho={podeEscolherExtras}
+        podeEditarCarrinho={podeAdicionarExtras}
         onCheckout={() => { setShowCart(false); setShowCheckout(true) }}
       />
 
@@ -819,7 +835,7 @@ export function GaleriaClientePage() {
         valoresExtras={valoresExtras}
         extrasEmSelecao={extrasEmSelecao}
         podeSelecionar={podeSelecionar}
-        podeComprar={podeEscolherExtras}
+        podeComprar={podeAdicionarExtras}
         onToggleSelect={toggleSelect}
         onToggleCarrinho={toggleCarrinho}
         onToggleFavorito={toggleFavorito}
@@ -838,6 +854,10 @@ export function GaleriaClientePage() {
         open={fotoExtraPendente !== null}
         valor={fotoExtraPendente ? valorUnitarioFoto(fotoExtraPendente.id) : valorUnitario}
         extrasEmSelecao={extrasEmSelecao}
+        fotoSeraEditada={!!fotoExtraPendente
+          && modoGaleria === 'COM_EDICAO'
+          && faseGaleria === 'COMERCIALIZACAO'
+          && fotoExtraPendente.versaoAtual !== 'EDITADA'}
         onOpenChange={(open) => { if (!open) setFotoExtraPendente(null) }}
         onConfirm={confirmarExtra}
       />
@@ -856,7 +876,7 @@ export function GaleriaClientePage() {
 
       {token && (
         <div className="mx-auto w-full max-w-[1500px] px-3 pb-16 sm:px-6">
-          <MinhasComprasSection token={token} />
+          <MinhasComprasSection token={token} modoGaleria={modoGaleria} />
         </div>
       )}
     </div>

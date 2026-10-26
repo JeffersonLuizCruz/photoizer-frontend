@@ -131,7 +131,7 @@ function ProximaAcao({
   if (fase === 'SELECAO_ENVIADA') {
     return {
       titulo: 'Seleção recebida',
-      descricao: 'Baixe os originais, edite as fotos do pacote e os extras e envie as versões editadas.',
+      descricao: 'Baixe os originais, edite as fotos do pacote e os extras e envie as versões editadas. O cliente ainda pode anexar extras: atualize a seleção antes de publicar.',
       label: 'Abrir seleção',
       tab: 'selecao' as const,
     }
@@ -149,7 +149,7 @@ function ProximaAcao({
 
   return {
     titulo: 'Edição publicada',
-    descricao: 'O cliente já pode baixar o pacote e comprar as fotos extras da seleção.',
+    descricao: 'O cliente já pode baixar o pacote, comprar extras da seleção e comprar as fotos restantes (editadas sob demanda antes do download).',
     label: podeVerCompras ? 'Ver compras' : 'Ver seleção',
     tab: (podeVerCompras ? 'compras' : 'selecao') as GaleriaAdminTab,
   }

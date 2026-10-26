@@ -152,6 +152,16 @@ export interface AdminCompraDetalheResponse extends CompraExtraResponse {
   auditInfo: AuditInfo
 }
 
+/** Compra paga com extras que ainda precisam de edição sob demanda. */
+export interface CompraExtraPendenteEdicaoResponse {
+  compraId: string
+  agendamentoId: string
+  clienteNome: string | null
+  valorTotal: number
+  dataPagamento: string | null
+  fotos: FotoEnsaio[]
+}
+
 export interface AdminComprasRelatorioResponse {
   totalCompras: number
   aguardandoComprovante: number

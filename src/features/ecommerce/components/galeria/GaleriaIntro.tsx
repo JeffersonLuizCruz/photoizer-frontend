@@ -28,17 +28,17 @@ function conteudo(modo: ModoGaleria, fase: FaseGaleria, pacoteLimit: number) {
     case 'SELECAO_ENVIADA':
       return {
         titulo: 'Seleção recebida',
-        descricao: 'Recebemos suas escolhas. Agora o estúdio vai cuidar de cada detalhe da edição.',
+        descricao: 'Recebemos suas escolhas. Você ainda pode marcar fotos extras: elas serão editadas junto com o pacote.',
       }
     case 'EM_EDICAO':
       return {
         titulo: 'Suas fotos estão sendo preparadas',
-        descricao: 'Estamos editando suas favoritas com todo o cuidado. Em breve elas estarão prontas aqui.',
+        descricao: 'Estamos editando suas favoritas com todo o cuidado. Você ainda pode escolher extras; eles entram na mesma edição.',
       }
     case 'COMERCIALIZACAO':
       return {
         titulo: 'Prontas para você',
-        descricao: 'Suas fotos editadas estão aqui. Baixe o pacote e escolha os extras que quiser guardar.',
+        descricao: 'Suas fotos editadas estão aqui. Baixe o pacote e escolha os extras; fotos fora do pacote serão editadas após a compra.',
       }
     default:
       return {

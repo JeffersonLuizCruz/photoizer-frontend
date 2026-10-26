@@ -2,9 +2,9 @@ import { useState, useEffect, useCallback } from 'react'
 import { ChevronDown, ChevronRight, Check, Clock, Upload, Download, Loader2, X, AlertTriangle, CreditCard, ExternalLink, RefreshCw } from 'lucide-react'
 import { toast } from 'sonner'
 import { ecommerceService } from '../services/ecommerce.service'
-import type { CompraExtraResponse, AdminCompraDetalheResponse } from '../types/ecommerce.types'
+import type { CompraExtraResponse, AdminCompraDetalheResponse, ModoGaleria } from '../types/ecommerce.types'
 import { extractErrorMessage } from '@/shared/api'
-import { numeroGaleriaLabel, rotuloFoto } from '@/shared/lib/foto'
+import { fotoThumbUrl, numeroGaleriaLabel, rotuloFoto } from '@/shared/lib/foto'
 
 function formatCurrency(value: number): string {
   return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value)
@@ -12,9 +12,10 @@ function formatCurrency(value: number): string {
 
 interface MinhasComprasSectionProps {
   token: string
+  modoGaleria: ModoGaleria
 }
 
-export function MinhasComprasSection({ token }: MinhasComprasSectionProps) {
+export function MinhasComprasSection({ token, modoGaleria }: MinhasComprasSectionProps) {
   const [compras, setCompras] = useState<CompraExtraResponse[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [expandedId, setExpandedId] = useState<string | null>(null)
@@ -22,16 +23,34 @@ export function MinhasComprasSection({ token }: MinhasComprasSectionProps) {
   const [comprovanteFiles, setComprovanteFiles] = useState<Record<string, File | null>>({})
   const [sendingIds, setSendingIds] = useState<Set<string>>(new Set())
 
-  const carregarCompras = useCallback(() => {
-    ecommerceService.listarCompras(token)
-      .then(setCompras)
-      .catch(() => {})
-      .finally(() => setIsLoading(false))
-  }, [token])
+  const carregarCompras = useCallback(async () => {
+    try {
+      const lista = await ecommerceService.listarCompras(token)
+      setCompras(lista)
+      // Mantém o detalhe expandido em dia (a edição sob demanda pode ser
+      // liberada pelo estúdio enquanto o cliente está na tela).
+      if (expandedId) {
+        const detalhe = await ecommerceService.detalheCompra(token, expandedId)
+        setDetalheMap((prev) => ({ ...prev, [expandedId]: detalhe }))
+      }
+    } catch {
+      // Mantém o comportamento silencioso: a seção some se a galeria expirar.
+    } finally {
+      setIsLoading(false)
+    }
+  }, [token, expandedId])
 
   useEffect(() => {
-    carregarCompras()
+    void carregarCompras()
   }, [carregarCompras])
+
+  // Enquanto houver compra paga, verifica periodicamente se a edição sob
+  // demanda foi liberada (o download passa a aparecer sem recarregar a página).
+  useEffect(() => {
+    if (!compras.some((compra) => compra.status === 'PAGA')) return
+    const interval = setInterval(() => { void carregarCompras() }, 30_000)
+    return () => clearInterval(interval)
+  }, [compras, carregarCompras])
 
   useEffect(() => {
     const temCartaoPendente = compras.some((c) =>
@@ -204,7 +223,7 @@ export function MinhasComprasSection({ token }: MinhasComprasSectionProps) {
                       <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 md:grid-cols-6">
                         {detalhe.fotos.map((foto) => (
                           <div key={foto.id} className="overflow-hidden rounded-lg border border-gallery-line bg-muted">
-                            <div className="relative aspect-[3/2] bg-cover bg-center" style={{ backgroundImage: `url("${foto.thumbUrl}")` }} title={rotuloFoto(foto)}>
+                            <div className="relative aspect-[3/2] bg-cover bg-center" style={{ backgroundImage: `url("${fotoThumbUrl(foto)}")` }} title={rotuloFoto(foto)}>
                               {foto.numeroGaleria != null && (
                                 <span className="absolute left-1 top-1 rounded bg-slate-950/70 px-1 py-0.5 text-[10px] font-semibold tabular-nums text-white backdrop-blur">
                                   {numeroGaleriaLabel(foto.numeroGaleria)}
@@ -213,11 +232,18 @@ export function MinhasComprasSection({ token }: MinhasComprasSectionProps) {
                             </div>
                             <div className="flex justify-center p-1">
                               {compra.status === 'PAGA' ? (
-                                <a href={ecommerceService.downloadUrl(token, foto.id)}
-                                  className="flex min-h-11 items-center gap-0.5 px-2 text-[11px] text-gallery-accent hover:underline">
-                                  <Download className="h-3 w-3" />
-                                  Download
-                                </a>
+                                modoGaleria === 'COM_EDICAO' && foto.versaoAtual !== 'EDITADA' ? (
+                                  <span className="flex min-h-11 items-center gap-0.5 px-2 text-[11px] text-gallery-muted">
+                                    <Clock className="h-3 w-3" />
+                                    Aguardando edição
+                                  </span>
+                                ) : (
+                                  <a href={ecommerceService.downloadUrl(token, foto.id)}
+                                    className="flex min-h-11 items-center gap-0.5 px-2 text-[11px] text-gallery-accent hover:underline">
+                                    <Download className="h-3 w-3" />
+                                    Download
+                                  </a>
+                                )
                               ) : (
                                 <span className="py-1.5 text-[11px] text-gallery-muted">Aguardando</span>
                               )}
@@ -225,6 +251,13 @@ export function MinhasComprasSection({ token }: MinhasComprasSectionProps) {
                           </div>
                         ))}
                       </div>
+                      {modoGaleria === 'COM_EDICAO'
+                        && detalhe.fotos.some((foto) => foto.versaoAtual !== 'EDITADA') && (
+                          <p className="mt-2 text-[11px] leading-relaxed text-gallery-muted">
+                            As fotos marcadas como “Aguardando edição” serão liberadas para download
+                            assim que o estúdio publicar a versão editada.
+                          </p>
+                        )}
                     </div>
                   )}
 

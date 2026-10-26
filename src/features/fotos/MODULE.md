@@ -124,7 +124,21 @@ Não existes testes para este módulo.
 - Para seleções **publicadas/canceladas**, os cards ficam somente leitura (“Editada”/“Aguardando edição”) e as ações de upload/publicação/reabertura somem.
 - O **histórico** lista seleções anteriores (incluindo canceladas) e abre um `Sheet` com status, observação, seções de pacote/extras e os cards de cada foto. O histórico também aparece quando não há seleção ativa.
 
-## 12. Polimento e estados (Fase 5)
+## 12. Extras comprados com edição sob demanda
+
+- A aba **Seleção** e a fila `/admin/selecoes` mostram a seção
+  `ExtrasCompraPendentesSection`: compras `PAGA` com fotos em
+  `versaoAtual = ORIGINAL` (extras compradas depois da publicação).
+- Cada card permite **Enviar edição** (`PUT .../editada-compra`) e, após o
+  upload, **Liberar edição** (`POST .../editada-compra/publicar`). A liberação
+  troca `versaoAtual` para `EDITADA` e habilita o download no cliente.
+- A fila consulta `GET /api/v1/admin/ecommerce/extras/pendentes-edicao` e é
+  acessível a `ADMIN`, `FOTOGRAFO` e `EDITOR`, mantendo a edição no workspace
+  de fotos (a aba Compras continua restrita a `ADMIN`/`FOTOGRAFO`).
+- A seção some quando não há pendências e exibe erro com retry quando a
+  consulta falha.
+
+## 13. Polimento e estados (Fase 5)
 
 - **Loading**: skeleton na grade de fotos, spinner na visão geral/compras e `PageLoading` na seleção.
 - **Erro + retry**: visão geral, grade de fotos, seleção, compras e resumo Ecommerce mostram mensagem amigável e “Tentar novamente” (React Query `refetch` ou `carregar`).
