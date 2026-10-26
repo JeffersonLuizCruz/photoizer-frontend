@@ -1,8 +1,8 @@
 import { useState, useEffect, useCallback } from 'react'
-import { ChevronDown, ChevronRight, Check, Clock, Upload, Download, Loader2, X, AlertTriangle, CreditCard, ExternalLink, RefreshCw } from 'lucide-react'
+import { ChevronDown, ChevronRight, Check, Clock, Upload, Download, Loader2, X, AlertTriangle, Copy, CreditCard, ExternalLink, QrCode, RefreshCw } from 'lucide-react'
 import { toast } from 'sonner'
 import { ecommerceService } from '../services/ecommerce.service'
-import type { CompraExtraResponse, AdminCompraDetalheResponse, ModoGaleria } from '../types/ecommerce.types'
+import type { CompraExtraResponse, AdminCompraDetalheResponse, ConfiguracaoPagamentoResponse, ModoGaleria } from '../types/ecommerce.types'
 import { extractErrorMessage } from '@/shared/api'
 import { fotoThumbUrl, numeroGaleriaLabel, rotuloFoto } from '@/shared/lib/foto'
 
@@ -22,11 +22,17 @@ export function MinhasComprasSection({ token, modoGaleria }: MinhasComprasSectio
   const [detalheMap, setDetalheMap] = useState<Record<string, AdminCompraDetalheResponse>>({})
   const [comprovanteFiles, setComprovanteFiles] = useState<Record<string, File | null>>({})
   const [sendingIds, setSendingIds] = useState<Set<string>>(new Set())
+  const [pagamento, setPagamento] = useState<ConfiguracaoPagamentoResponse | null>(null)
+  const [pixCopiado, setPixCopiado] = useState(false)
 
   const carregarCompras = useCallback(async () => {
     try {
-      const lista = await ecommerceService.listarCompras(token)
+      const [lista, configuracaoPagamento] = await Promise.all([
+        ecommerceService.listarCompras(token),
+        ecommerceService.obterPagamento().catch(() => null),
+      ])
       setCompras(lista)
+      setPagamento(configuracaoPagamento)
       // Mantém o detalhe expandido em dia (a edição sob demanda pode ser
       // liberada pelo estúdio enquanto o cliente está na tela).
       if (expandedId) {
@@ -53,11 +59,13 @@ export function MinhasComprasSection({ token, modoGaleria }: MinhasComprasSectio
   }, [compras, carregarCompras])
 
   useEffect(() => {
-    const temCartaoPendente = compras.some((c) =>
-      c.metodoPagamento === 'CARTAO'
+    // PIX pode ter a chave corrigida pelo staff enquanto a compra está
+    // pendente; o polling mantém a chave exibida sempre atual.
+    const temPagamentoPendente = compras.some((c) =>
+      (c.metodoPagamento === 'CARTAO' || c.metodoPagamento === 'PIX')
       && c.status !== 'PAGA'
       && c.status !== 'CANCELADA')
-    if (!temCartaoPendente) return
+    if (!temPagamentoPendente) return
     const interval = setInterval(carregarCompras, 20000)
     return () => clearInterval(interval)
   }, [carregarCompras, compras])
@@ -76,6 +84,14 @@ export function MinhasComprasSection({ token, modoGaleria }: MinhasComprasSectio
         toast.error('Erro ao carregar detalhes da compra')
       }
     }
+  }
+
+  const copiarPix = () => {
+    if (!pagamento?.pixChave) return
+    navigator.clipboard.writeText(pagamento.pixChave)
+    setPixCopiado(true)
+    setTimeout(() => setPixCopiado(false), 2000)
+    toast.success('Chave PIX copiada!')
   }
 
   const enviarComprovante = async (compraId: string) => {
@@ -170,6 +186,38 @@ export function MinhasComprasSection({ token, modoGaleria }: MinhasComprasSectio
                       <p className="ml-5 text-gallery-muted">Motivo: {compra.motivoRecusa}</p>
                     </div>
                   )}
+
+                  {compra.metodoPagamento === 'PIX'
+                    && (compra.status === 'AGUARDANDO_COMPROVANTE' || compra.status === 'AGUARDANDO_CONFIRMACAO') && (
+                      <div className="space-y-2 rounded-2xl border border-gallery-line bg-gallery-bg p-3">
+                        <div className="flex items-center gap-1.5 text-xs font-medium text-gallery-ink">
+                          <QrCode className="h-3.5 w-3.5" />
+                          Pague via PIX
+                        </div>
+                        {pagamento?.pixChave ? (
+                          <>
+                            <p className="break-all text-[11px] text-gallery-muted">
+                              {pagamento.pixTipoChave ? `${pagamento.pixTipoChave}: ` : ''}
+                              <span className="font-mono text-gallery-ink">{pagamento.pixChave}</span>
+                            </p>
+                            <button
+                              onClick={copiarPix}
+                              className="flex items-center gap-1 text-xs font-medium text-gallery-accent hover:opacity-80"
+                            >
+                              {pixCopiado ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
+                              {pixCopiado ? 'Copiado' : 'Copiar chave'}
+                            </button>
+                          </>
+                        ) : (
+                          <p className="text-[11px] text-gallery-accent">
+                            O estúdio ainda não configurou o PIX. Use &quot;Atualizar&quot; para verificar.
+                          </p>
+                        )}
+                        <p className="text-[11px] text-gallery-muted">
+                          Valor: <span className="font-medium text-gallery-ink">{formatCurrency(compra.valorTotal)}</span>
+                        </p>
+                      </div>
+                    )}
 
                   {(compra.metodoPagamento === 'CARTAO' || compra.linkPagamentoCartao) && compra.status !== 'PAGA' && compra.status !== 'CANCELADA' && (
                     <div className="space-y-2 rounded-2xl border border-gallery-line bg-gallery-bg p-3">

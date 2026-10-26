@@ -80,81 +80,6 @@ function ResumoCard({
   )
 }
 
-function ProximaAcao({
-  galeria,
-  counts,
-  podeVerCompras,
-}: {
-  galeria: GaleriaEnsaioResponse | undefined
-  counts: GaleriaWorkspaceCounts
-  podeVerCompras: boolean
-}) {
-  const modo = galeria?.modo ?? 'DIRETO'
-  const fase = galeria?.fase ?? 'COMERCIALIZACAO'
-
-  if (counts.total === 0) {
-    return {
-      titulo: 'Galeria sem fotos',
-      descricao: 'Envie as fotos do ensaio para montar a galeria e compartilhar o link com o cliente.',
-      label: 'Enviar fotos',
-      tab: 'fotos' as const,
-    }
-  }
-
-  if (modo === 'DIRETO') {
-    const pendentesPublicacao = counts.pendentesPublicacao
-    if (pendentesPublicacao > 0) {
-      return {
-        titulo: 'Publicar a galeria',
-        descricao: `${pendentesPublicacao} foto(s) inédita(s) ainda não publicada(s). O cliente só vê as fotos publicadas e visíveis.`,
-        label: 'Gerenciar fotos',
-        tab: 'fotos' as const,
-      }
-    }
-    return {
-      titulo: 'Galeria publicada',
-      descricao: 'O cliente já pode escolher o pacote, comprar extras e baixar as fotos liberadas.',
-      label: podeVerCompras ? 'Ver compras' : 'Ver fotos',
-      tab: (podeVerCompras ? 'compras' : 'fotos') as GaleriaAdminTab,
-    }
-  }
-
-  if (fase === 'SELECAO') {
-    return {
-      titulo: 'Aguardando a seleção do cliente',
-      descricao: 'Compartilhe o link da galeria. Quando o cliente enviar a seleção, o pacote e os extras aparecerão aqui.',
-      label: 'Ver fotos',
-      tab: 'fotos' as const,
-    }
-  }
-
-  if (fase === 'SELECAO_ENVIADA') {
-    return {
-      titulo: 'Seleção recebida',
-      descricao: 'Baixe os originais, edite as fotos do pacote e os extras e envie as versões editadas. O cliente ainda pode anexar extras: atualize a seleção antes de publicar.',
-      label: 'Abrir seleção',
-      tab: 'selecao' as const,
-    }
-  }
-
-  if (fase === 'EM_EDICAO') {
-    const total = counts.pacote + counts.extras
-    return {
-      titulo: 'Edição em andamento',
-      descricao: `${Math.max(0, total - counts.aguardandoEdicao)} de ${total} foto(s) editada(s). Publique quando todas estiverem prontas.`,
-      label: 'Continuar edição',
-      tab: 'selecao' as const,
-    }
-  }
-
-  return {
-    titulo: 'Edição publicada',
-    descricao: 'O cliente já pode baixar o pacote, comprar extras da seleção e comprar as fotos restantes (editadas sob demanda antes do download).',
-    label: podeVerCompras ? 'Ver compras' : 'Ver seleção',
-    tab: (podeVerCompras ? 'compras' : 'selecao') as GaleriaAdminTab,
-  }
-}
-
 export function GaleriaVisaoGeral({
   agendamento,
   galeria,
@@ -197,7 +122,6 @@ export function GaleriaVisaoGeral({
     ?? fotos[0]
     ?? null
   const faseAtual = FASES.findIndex((fase) => fase.id === galeria?.fase)
-  const acao = ProximaAcao({ galeria, counts, podeVerCompras })
   const modoEdicao = galeria?.modo === 'COM_EDICAO'
 
   return (
@@ -319,18 +243,6 @@ export function GaleriaVisaoGeral({
               {podeVerCompras ? 'Aguardando comprovante ou confirmação' : 'Disponível para administradores'}
             </p>
           </div>
-        </div>
-      </section>
-
-      <section className="rounded-xl border border-primary/30 bg-primary/5 p-4">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <p className="text-sm font-semibold">{acao.titulo}</p>
-            <p className="mt-1 max-w-2xl text-xs leading-relaxed text-muted-foreground">{acao.descricao}</p>
-          </div>
-          <Button size="sm" onClick={() => onNavigateTab(acao.tab)}>
-            {acao.label}
-          </Button>
         </div>
       </section>
 

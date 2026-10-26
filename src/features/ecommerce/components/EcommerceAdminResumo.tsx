@@ -181,7 +181,7 @@ export function EcommerceAdminResumo({ agendamentoId }: { agendamentoId: string 
         <ResumoCard titulo="Valor extras" valor={formatCurrency(data.valorTotalExtras)} />
       </div>
 
-      <div className="grid gap-3 sm:grid-cols-2">
+      <div className="grid gap-3">
         <div className="space-y-3 rounded-xl border bg-card p-4">
           <div className="flex items-start justify-between gap-3">
             <div>
@@ -228,25 +228,6 @@ export function EcommerceAdminResumo({ agendamentoId }: { agendamentoId: string 
               ))}
             </ul>
           )}
-        </div>
-
-        <div className="space-y-3 rounded-xl border bg-card p-4">
-          <div>
-            <h3 className="text-sm font-semibold">Seleção e edição</h3>
-            <p className="mt-0.5 text-xs text-muted-foreground">
-              Pacote, extras, upload das editadas e publicação ficam na aba Seleção do workspace. No menu de cada foto da aba Fotos é possível ajustar manualmente a seleção.
-            </p>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            <Button variant="outline" size="sm" onClick={() => navigate(`/agenda/${agendamentoId}/fotos?tab=selecao`)}>
-              <ListChecks className="mr-1 h-4 w-4" />
-              Abrir seleção
-            </Button>
-            <Button variant="outline" size="sm" onClick={() => navigate(`/agenda/${agendamentoId}/fotos?tab=fotos`)}>
-              <ImageIcon className="mr-1 h-4 w-4" />
-              Abrir fotos
-            </Button>
-          </div>
         </div>
       </div>
 

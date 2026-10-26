@@ -88,6 +88,10 @@ export function CheckoutDialog({
     try {
       const compraCriada = await onCheckout(paymentMode)
       setCompra(compraCriada)
+      if (paymentMode !== 'CARTAO') {
+        // O staff pode ajustar a chave PIX enquanto a compra é criada.
+        void ecommerceService.obterPagamento().then(setPagamento).catch(() => {})
+      }
       setSuccessMessage(paymentMode === 'CARTAO'
         ? 'Compra criada! Aguarde o link de pagamento do estúdio.'
         : 'Compra criada! Envie o comprovante para liberar as fotos.')

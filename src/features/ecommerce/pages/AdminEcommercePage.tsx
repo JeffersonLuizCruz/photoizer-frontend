@@ -32,7 +32,10 @@ function statusBadge(status: string) {
 export function AdminEcommercePage() {
   const queryClient = useQueryClient()
   const { user } = useAuth()
-  const podeEditarPagamento = user?.papel === 'ADMIN' || user?.papel === 'FOTOGRAFO'
+  // A chave PIX do e-commerce é global e somente ADMIN pode alterá-la.
+  // O link de pagamento por cartão de cada compra continua com ADMIN/FOTOGRAFO.
+  const podeConfigurarPix = user?.papel === 'ADMIN'
+  const podeGerenciarPagamento = user?.papel === 'ADMIN' || user?.papel === 'FOTOGRAFO'
   const [page, setPage] = useState(0)
   const [perPage, setPerPage] = useState(20)
   const [statusFilter, setStatusFilter] = useState<string | undefined>()
@@ -90,7 +93,7 @@ export function AdminEcommercePage() {
         className="inline-flex h-9 w-9 items-center justify-center rounded hover:bg-accent" aria-label="Ver detalhes">
         <Eye className="h-4 w-4" />
       </button>
-      {podeEditarPagamento && compra.status !== 'PAGA' && compra.status !== 'CANCELADA' && (
+      {podeGerenciarPagamento && compra.status !== 'PAGA' && compra.status !== 'CANCELADA' && (
         <button onClick={() => setLinkCompra(compra)}
           className="inline-flex h-9 w-9 items-center justify-center rounded hover:bg-accent"
           aria-label="Definir link de pagamento por cartão">
@@ -172,7 +175,7 @@ export function AdminEcommercePage() {
           { label: 'Dashboard', href: ROUTES.DASHBOARD },
           { label: 'Ecommerce' },
         ]}
-        actions={podeEditarPagamento ? (
+        actions={podeConfigurarPix ? (
           <Button variant="outline" size="sm" onClick={() => setShowConfigPagamento(true)}>
             <Settings className="mr-1 h-4 w-4" />
             Configurar PIX

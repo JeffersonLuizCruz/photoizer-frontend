@@ -14,6 +14,7 @@ import { AdminGaleriaPage } from './AdminGaleriaPage'
 import { AdminSelecoesPage } from './AdminSelecoesPage'
 import { GaleriaVisaoGeral } from '../components/galeria-admin/GaleriaVisaoGeral'
 import { GaleriaComprasPanel } from '../components/galeria-admin/GaleriaComprasPanel'
+import { GaleriaPagamentoPixCard } from '../components/galeria-admin/GaleriaPagamentoPixCard'
 
 type GaleriaAdminTab = 'visao' | 'fotos' | 'selecao' | 'compras'
 
@@ -146,18 +147,21 @@ export function AdminGaleriaWorkspacePage() {
         </TabsList>
 
         <TabsContent value="visao">
-          <GaleriaVisaoGeral
-            agendamento={agendamento}
-            galeria={workspace.galeria}
-            fotos={workspace.fotos}
-            counts={workspace.counts}
-            selecaoAtual={workspace.selecaoAtual}
-            isLoading={workspace.isLoading}
-            error={workspace.error}
-            onRetry={() => void workspace.refetch()}
-            podeVerCompras={podeVerCompras}
-            onNavigateTab={mudarTab}
-          />
+          <div className="space-y-5">
+            <GaleriaVisaoGeral
+              agendamento={agendamento}
+              galeria={workspace.galeria}
+              fotos={workspace.fotos}
+              counts={workspace.counts}
+              selecaoAtual={workspace.selecaoAtual}
+              isLoading={workspace.isLoading}
+              error={workspace.error}
+              onRetry={() => void workspace.refetch()}
+              podeVerCompras={podeVerCompras}
+              onNavigateTab={mudarTab}
+            />
+            <GaleriaPagamentoPixCard podeEditar={user?.papel === 'ADMIN'} />
+          </div>
         </TabsContent>
 
         <TabsContent value="fotos">
