@@ -15,6 +15,11 @@ export interface ConfigValues {
   logoContratada?: string
 }
 
+export interface MarcaDaguaFoto {
+  fotoId: string
+  agendamentoId: string
+}
+
 export const configService = {
   get: async (): Promise<ConfigValues> => {
     const { data } = await apiClient.get<ConfigValues>('/config')
@@ -34,6 +39,15 @@ export const configService = {
 
   removerLogo: async (): Promise<void> => {
     await apiClient.delete('/config/logo')
+  },
+
+  listarFotosMarcaDagua: async (): Promise<MarcaDaguaFoto[]> => {
+    const { data } = await apiClient.get<MarcaDaguaFoto[]>('/admin/galerias/marca-dagua/fotos')
+    return data
+  },
+
+  regerarMarcaDagua: async (fotoId: string): Promise<void> => {
+    await apiClient.post(`/admin/galerias/marca-dagua/fotos/${fotoId}/regerar`)
   },
 
   getTemplate: async (): Promise<string> => {

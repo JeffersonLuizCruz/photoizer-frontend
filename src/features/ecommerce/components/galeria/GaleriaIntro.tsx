@@ -132,7 +132,7 @@ export function GaleriaIntro({
       </div>
 
       <p className="mx-auto mt-4 max-w-md text-[10px] leading-relaxed text-gallery-muted/80">
-        Prévia protegida com marca d'água. A foto final em alta resolução é liberada após a compra ou entrega do pacote.
+        Prévia em baixa resolução e com marca d'água. A foto final em alta resolução é liberada após a compra ou entrega do pacote.
       </p>
     </section>
   )

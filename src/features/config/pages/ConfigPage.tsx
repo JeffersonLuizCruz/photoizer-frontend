@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
-import { Save, Loader2, FileUp, RotateCcw, FileSignature, Trash2 } from 'lucide-react'
+import { Save, Loader2, FileUp, RotateCcw, FileSignature, Trash2, RefreshCw } from 'lucide-react'
 import { useState, useEffect, useRef } from 'react'
 import { PageTitle } from '@/shared/components/layout/PageTitle'
 import { Button } from '@/shared/components/ui/button'
@@ -8,6 +8,7 @@ import { Input } from '@/shared/components/ui/input'
 import { Textarea } from '@/shared/components/ui/textarea'
 import { Label } from '@/shared/components/ui/label'
 import { Skeleton } from '@/shared/components/ui/skeleton'
+import { ConfirmDialog } from '@/shared/components/layout/ConfirmDialog'
 import { configService } from '../services/config.service'
 import { extractErrorMessage } from '@/shared/api'
 import { QUERY_KEYS } from '@/shared/constants'
@@ -36,6 +37,10 @@ export function ConfigPage() {
   const fileInputRef = useRef<HTMLInputElement>(null)
   const logoInputRef = useRef<HTMLInputElement>(null)
   const [logoVersion, setLogoVersion] = useState(0)
+  const [confirmarMarcaDagua, setConfirmarMarcaDagua] = useState(false)
+  const [regerandoMarcaDagua, setRegerandoMarcaDagua] = useState(false)
+  const [progressoMarcaDagua, setProgressoMarcaDagua] = useState<{ atual: number; total: number } | null>(null)
+  const [resultadoMarcaDagua, setResultadoMarcaDagua] = useState<{ atualizadas: number; falhas: number } | null>(null)
 
   const { data, isLoading } = useQuery({
     queryKey: ['config'],
@@ -131,6 +136,56 @@ export function ConfigPage() {
       toast.error(extractErrorMessage(error, 'Erro ao remover logo'))
     },
   })
+
+  const nomeContratadaSalvo = String(data?.nomeContratada ?? '').trim()
+  const nomeFotografoSalvo = String(data?.nomeFotografo ?? '').trim()
+  const marcaDaguaTexto = `© ${nomeContratadaSalvo || nomeFotografoSalvo || 'Estúdio'}`
+  const formularioCarregado = values.nomeContratada !== undefined && values.nomeFotografo !== undefined
+  const nomesAlterados = formularioCarregado && (
+    nomeContratadaSalvo !== String(values.nomeContratada ?? '').trim()
+    || nomeFotografoSalvo !== String(values.nomeFotografo ?? '').trim()
+  )
+
+  const atualizarMarcaDagua = async () => {
+    setConfirmarMarcaDagua(false)
+    setRegerandoMarcaDagua(true)
+    setProgressoMarcaDagua(null)
+    setResultadoMarcaDagua(null)
+    try {
+      const fotos = await configService.listarFotosMarcaDagua()
+      if (fotos.length === 0) {
+        toast.info('Nenhuma foto encontrada para atualizar.')
+        return
+      }
+
+      setProgressoMarcaDagua({ atual: 0, total: fotos.length })
+      let falhas = 0
+      for (let indice = 0; indice < fotos.length; indice++) {
+        try {
+          await configService.regerarMarcaDagua(fotos[indice].fotoId)
+        } catch {
+          falhas += 1
+        }
+        setProgressoMarcaDagua({ atual: indice + 1, total: fotos.length })
+      }
+
+      const atualizadas = fotos.length - falhas
+      setResultadoMarcaDagua({ atualizadas, falhas })
+      if (falhas === 0) {
+        toast.success(`${atualizadas} foto(s) atualizada(s) com a nova marca d'água.`)
+      } else {
+        toast.warning(`${atualizadas} foto(s) atualizada(s); ${falhas} falharam.`)
+      }
+
+      void queryClient.invalidateQueries({ queryKey: ['fotos'] })
+      void queryClient.invalidateQueries({ queryKey: ['galeria-ensaio'] })
+      void queryClient.invalidateQueries({ queryKey: ['admin-ecommerce'] })
+    } catch (error: unknown) {
+      toast.error(extractErrorMessage(error, 'Erro ao atualizar a marca d\'água'))
+    } finally {
+      setRegerandoMarcaDagua(false)
+    }
+  }
 
   const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -261,6 +316,77 @@ export function ConfigPage() {
             </div>
           </div>
 
+          <div className="space-y-4">
+            <h2 className="text-lg font-semibold">Marca d'água das fotos</h2>
+            {isLoading ? (
+              <Skeleton className="h-32 w-full rounded-xl" />
+            ) : data ? (
+              <div className="rounded-xl border bg-card p-4">
+                <p className="text-xs font-medium text-muted-foreground">Texto atual</p>
+                <p className="mt-1 text-sm font-semibold">{marcaDaguaTexto}</p>
+                <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
+                  Fotos já enviadas mantêm a marca do momento do upload. Atualize para aplicar
+                  o nome atual a todas as fotos das galerias. Os arquivos originais e os
+                  downloads finais não são alterados.
+                </p>
+
+                {nomesAlterados && (
+                  <p className="mt-2 text-xs font-medium text-amber-600">
+                    Salve os dados da contratada/fotógrafo antes de atualizar a marca d'água.
+                  </p>
+                )}
+
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="mt-3"
+                  onClick={() => setConfirmarMarcaDagua(true)}
+                  disabled={regerandoMarcaDagua || nomesAlterados}
+                >
+                  {regerandoMarcaDagua
+                    ? <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    : <RefreshCw className="mr-2 h-4 w-4" />}
+                  Atualizar marca d'água
+                </Button>
+
+                {regerandoMarcaDagua && progressoMarcaDagua && (
+                  <div className="mt-4">
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="text-muted-foreground">
+                        Atualizando {progressoMarcaDagua.atual} de {progressoMarcaDagua.total}...
+                      </span>
+                      <span className="font-medium tabular-nums">
+                        {Math.round((progressoMarcaDagua.atual / progressoMarcaDagua.total) * 100)}%
+                      </span>
+                    </div>
+                    <div className="mt-1.5 h-2 overflow-hidden rounded-full bg-muted">
+                      <div
+                        className="h-full rounded-full bg-primary transition-all"
+                        style={{
+                          width: `${(progressoMarcaDagua.atual / progressoMarcaDagua.total) * 100}%`,
+                        }}
+                      />
+                    </div>
+                    <p className="mt-1.5 text-[11px] text-muted-foreground">
+                      Mantenha esta página aberta até a conclusão.
+                    </p>
+                  </div>
+                )}
+
+                {resultadoMarcaDagua && !regerandoMarcaDagua && (
+                  <p className={`mt-3 text-xs font-medium ${
+                    resultadoMarcaDagua.falhas > 0 ? 'text-amber-600' : 'text-emerald-600'
+                  }`}>
+                    {resultadoMarcaDagua.atualizadas} foto(s) atualizada(s)
+                    {resultadoMarcaDagua.falhas > 0
+                      ? `; ${resultadoMarcaDagua.falhas} falharam.`
+                      : '.'}
+                  </p>
+                )}
+              </div>
+            ) : null}
+          </div>
+
           <h2 className="text-lg font-semibold">Valores Financeiros</h2>
 
           {isLoading ? (
@@ -348,6 +474,16 @@ export function ConfigPage() {
           )}
         </div>
       </div>
+
+      <ConfirmDialog
+        open={confirmarMarcaDagua}
+        onOpenChange={setConfirmarMarcaDagua}
+        onConfirm={() => void atualizarMarcaDagua()}
+        title="Atualizar marca d'água das fotos?"
+        description={`Todas as fotos das galerias serão reprocessadas com "${marcaDaguaTexto}". Isso pode levar alguns minutos; os arquivos originais não serão alterados.`}
+        confirmText="Atualizar marca d'água"
+        isLoading={regerandoMarcaDagua}
+      />
     </>
   )
 }
