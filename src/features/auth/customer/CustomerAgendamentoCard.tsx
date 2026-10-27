@@ -65,7 +65,7 @@ export function CustomerAgendamentoCard({ agendamento, status }: Props) {
     ? formatarDataCurta(status.previsaoEntrega)
     : null
   const selecaoEnviada = formatarDataCurta(status?.selecaoEnviadaEm)
-  const podeAcompanhar = hasPhotos || !!status
+  const podeAcompanhar = Boolean(agendamento.tokenGaleria)
   const mensagem = status?.mensagem
     ?? (agendamento.status === 'EM_EDICAO'
       ? 'As fotos estão sendo editadas pelo estúdio.'
@@ -140,7 +140,7 @@ export function CustomerAgendamentoCard({ agendamento, status }: Props) {
         <button
           onClick={() => navigate(`/g/${agendamento.tokenGaleria}`)}
           disabled={!podeAcompanhar}
-          className="w-full flex items-center justify-between rounded-lg border px-3 py-2 text-xs font-medium transition-colors hover:bg-accent disabled:opacity-40 disabled:cursor-not-allowed">
+          className="w-full min-h-11 flex items-center justify-between rounded-lg border px-3 py-2 text-xs font-medium transition-colors hover:bg-accent disabled:opacity-40 disabled:cursor-not-allowed">
           <span>{hasPhotos ? 'Acessar Galeria' : podeAcompanhar ? 'Acompanhar ensaio' : 'Indisponível'}</span>
           <ChevronRight className="h-3.5 w-3.5" />
         </button>

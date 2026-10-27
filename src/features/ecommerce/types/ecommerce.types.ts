@@ -140,6 +140,9 @@ export interface GaleriaStatusResponse {
   selecaoStatus: StatusSelecao | null
   selecaoEnviadaEm: string | null
   tokenExpiracao: string | null
+  requerEdicao: boolean
+  pacoteNome: string | null
+  dataHoraEnsaio: string | null
 }
 
 export interface GaleriaPerformanceSerieMensal {

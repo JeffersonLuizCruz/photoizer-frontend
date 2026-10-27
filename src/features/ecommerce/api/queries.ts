@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query'
+import { keepPreviousData, useQuery } from '@tanstack/react-query'
 import { ecommerceService } from '../services/ecommerce.service'
 import type { EtapaGaleria } from '../types/ecommerce.types'
 
@@ -20,6 +20,7 @@ export function useGaleriaPipeline(filtros: GaleriaPipelineFiltros) {
   return useQuery({
     queryKey: GALERIA_PIPELINE_KEYS.fila(filtros),
     queryFn: () => ecommerceService.adminGaleriaPipeline(filtros),
+    placeholderData: keepPreviousData,
     staleTime: 30_000,
     refetchInterval: 60_000,
   })
@@ -38,6 +39,7 @@ export function useGaleriaPerformance(meses: number) {
   return useQuery({
     queryKey: GALERIA_PIPELINE_KEYS.desempenho(meses),
     queryFn: () => ecommerceService.adminGaleriaPerformance(meses),
+    placeholderData: keepPreviousData,
     staleTime: 60_000,
   })
 }

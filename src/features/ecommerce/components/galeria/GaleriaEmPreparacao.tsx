@@ -8,7 +8,7 @@ interface GaleriaEmPreparacaoProps {
   isRefreshing?: boolean
 }
 
-const PASSOS: Array<{ titulo: string; etapas: EtapaGaleria[] }> = [
+const PASSOS_BASE: Array<{ titulo: string; etapas: EtapaGaleria[] }> = [
   { titulo: 'Preparação', etapas: ['AGUARDANDO_UPLOAD', 'FOTOS_NAO_PUBLICADAS'] },
   { titulo: 'Escolha', etapas: ['AGUARDANDO_SELECAO'] },
   { titulo: 'Edição', etapas: ['SELECAO_EM_EDICAO', 'SELECAO_AGUARDANDO_APROVACAO'] },
@@ -23,11 +23,22 @@ function formatarData(valor: string | null | undefined, opcoes?: Intl.DateTimeFo
 }
 
 export function GaleriaEmPreparacao({ status, onRefresh, isRefreshing = false }: GaleriaEmPreparacaoProps) {
-  const etapaAtual = status ? PASSOS.findIndex((passo) => passo.etapas.includes(status.etapa)) : 0
+  const passos = PASSOS_BASE.map((passo) => (
+    passo.titulo === 'Edição' && status?.requerEdicao === false
+      ? { ...passo, titulo: 'Aprovação' }
+      : passo
+  ))
+  const etapaAtual = status ? passos.findIndex((passo) => passo.etapas.includes(status.etapa)) : 0
   const indiceAtual = etapaAtual < 0 ? 0 : etapaAtual
   const previsao = formatarData(status?.previsaoEntrega)
+  const dataEnsaio = formatarData(status?.dataHoraEnsaio)
   const selecaoEnviada = formatarData(status?.selecaoEnviadaEm, { day: '2-digit', month: 'short' })
   const entregue = status?.etapa === 'CONCLUIDA'
+  const previsaoAtrasada = Boolean(
+    status?.previsaoEntrega
+    && !entregue
+    && new Date(`${status.previsaoEntrega}T00:00:00`) < new Date(new Date().toDateString()),
+  )
 
   return (
     <div className="flex min-h-dvh items-center justify-center bg-gallery-bg px-4 py-12 text-gallery-ink">
@@ -44,9 +55,17 @@ export function GaleriaEmPreparacao({ status, onRefresh, isRefreshing = false }:
           {status?.mensagem ?? 'As fotos ainda não chegaram. Assim que o estúdio publicar sua galeria, elas aparecerão aqui.'}
         </p>
 
-        <ol className="relative mt-9 grid grid-cols-4 gap-2">
-          <div className="absolute left-[12.5%] right-[12.5%] top-4 h-px bg-gallery-line" aria-hidden="true" />
-          {PASSOS.map((passo, index) => {
+        {(status?.pacoteNome || dataEnsaio) && (
+          <p className="mt-2 text-[11px] text-gallery-muted">
+            {status?.pacoteNome}
+            {status?.pacoteNome && dataEnsaio ? ' · ' : ''}
+            {dataEnsaio}
+          </p>
+        )}
+
+        <ol className="relative mt-9 grid grid-cols-2 gap-x-2 gap-y-6 sm:grid-cols-4 sm:gap-y-2">
+          <div className="absolute left-[12.5%] right-[12.5%] top-4 hidden h-px bg-gallery-line sm:block" aria-hidden="true" />
+          {passos.map((passo, index) => {
             const concluido = index < indiceAtual || entregue
             const ativo = index === indiceAtual && !entregue
             return (
@@ -78,7 +97,11 @@ export function GaleriaEmPreparacao({ status, onRefresh, isRefreshing = false }:
 
         {(previsao || selecaoEnviada) && (
           <div className="mt-8 space-y-1 text-[11px] text-gallery-muted">
-            {previsao && !entregue && <p>Previsão de entrega: {previsao}</p>}
+            {previsao && !entregue && (
+              <p className={cn(previsaoAtrasada && 'text-amber-700')}>
+                {previsaoAtrasada ? `Previsão anterior: ${previsao}` : `Previsão de entrega: ${previsao}`}
+              </p>
+            )}
             {selecaoEnviada && <p>Seleção recebida em {selecaoEnviada}</p>}
           </div>
         )}

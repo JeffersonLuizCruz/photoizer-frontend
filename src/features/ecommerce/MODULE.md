@@ -151,15 +151,17 @@ Não existem testes para este módulo.
 ## 9. Central de Galerias
 
 - A rota `/admin/ecommerce` passou a renderizar **`AdminGaleriasPage`** (menu renomeado para **Galerias**), com as abas **Fila de trabalho** e **Vendas**. A rota foi mantida para não quebrar links.
+- A aba **Vendas** (e a aba **Desempenho**) só é exibida para `ADMIN`/`FOTOGRAFO`; `EDITOR` vê apenas a fila operacional, sem valores financeiros (o backend também redige esses campos).
 - **Fila**: `GaleriaPipelinePanel` consome `GET /admin/galerias/pipeline` e `/resumo`. Os cards do topo filtram por etapa (e por atrasadas), há busca por cliente/pacote/local, ordenação por urgência e paginação.
 - Cada item mostra etapa, dias na etapa, prazo do pacote, contadores de fotos/seleção/extras, pendências (pagamento, extra a editar, link expirado) e a **próxima ação** com deep link para o workspace (`?tab=fotos|selecao|visao`).
 - O link da galeria pode ser copiado; quando o token expirou, a fila oferece **Novo link** (`adminRegenToken`).
 - **Vendas** reutiliza `AdminEcommercePage` com `embedded` (sem `PageTitle`), mantendo compras, confirmação, cancelamento, link de cartão e configuração de PIX.
 - Hooks em `api/queries.ts` (`useGaleriaPipeline`, `useGaleriaPipelineResumo`) invalidam por `refetchInterval` de 60s.
 - O endpoint público de etapa (`GET /ecommerce/galeria/{token}/status`) alimenta o **acompanhamento do cliente**:
-  - `/g/:token` sem fotos publicadas mostra `GaleriaEmPreparacao` (etapa, mensagem, linha do tempo e previsão de entrega) em vez da tela vazia; o botão “Atualizar” reconsulta o status.
+  - `/g/:token` sem fotos publicadas mostra `GaleriaEmPreparacao` (etapa com label de cliente, mensagem, pacote/data, linha do tempo e previsão) em vez da tela vazia; o botão “Atualizar” reconsulta sem derrubar a tela para skeleton.
   - com fotos, o `GaleriaIntro` exibe a previsão de entrega quando o ensaio ainda não foi entregue.
-  - `/minha-conta` busca o status por ensaio (tolerante a falha individual) e o `CustomerAgendamentoCard` mostra a etapa real, a previsão e o botão **Acompanhar ensaio** mesmo sem fotos publicadas.
+  - `/minha-conta` busca o status por ensaio em background, libera a lista antes dos status e mostra a etapa real, a previsão e o botão **Acompanhar ensaio** mesmo sem fotos publicadas.
+  - A timeline adapta “Edição” para “Aprovação” no modo `SEM_EDICAO` e sinaliza previsão vencida.
 
 ## 10. Gestão (SLA, funil e exportação)
 
@@ -169,5 +171,6 @@ Não existem testes para este módulo.
   - funil (publicadas → com seleção → comercializadas → com extras);
   - série mensal (galerias, publicadas, com extras, receita e tempo até publicar).
 - A fila exibe um alerta vermelho quando há galerias com prazo vencido e um atalho para filtrar as atrasadas.
+- No mobile, os cards de resumo ficam em rolagem horizontal, os controles usam 44px de altura e a ação principal do card ocupa a largura disponível.
 - **Exportar CSV** baixa a fila com os filtros atuais (`etapa`, `busca`, `atrasadas`) via `downloadProtected`; o backend responde com BOM UTF-8 e separador `;` para abrir direto no Excel pt-BR.
 - A rota antiga `/admin/analytics` redireciona para `?tab=desempenho`; `EDITOR` é direcionado para a fila (não vê indicadores financeiros).

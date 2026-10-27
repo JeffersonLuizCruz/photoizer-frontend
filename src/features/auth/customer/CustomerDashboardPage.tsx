@@ -4,6 +4,8 @@ import { useCustomerAuth } from './store'
 import { Camera, LogOut, ChevronRight, Loader2, User, Image, Clock } from 'lucide-react'
 import { ecommerceService } from '@/features/ecommerce/services/ecommerce.service'
 import type { GaleriaStatusResponse } from '@/features/ecommerce/types/ecommerce.types'
+import { Button } from '@/shared/components/ui/button'
+import { extractErrorMessage } from '@/shared/api'
 import type { AgendamentoCliente } from './types'
 import { CustomerAgendamentoCard } from './CustomerAgendamentoCard'
 
@@ -13,19 +15,26 @@ export function CustomerDashboardPage() {
   const [agendamentos, setAgendamentos] = useState<AgendamentoCliente[]>([])
   const [statusPorAgendamento, setStatusPorAgendamento] = useState<Record<string, GaleriaStatusResponse | null>>({})
   const [isLoadingAgendamentos, setIsLoadingAgendamentos] = useState(true)
+  const [erroAgendamentos, setErroAgendamentos] = useState<string | null>(null)
 
   useEffect(() => {
     if (!user) return
     let ativo = true
 
-    const carregar = async () => {
+    const carregar = async (silencioso = false) => {
+      if (!silencioso) {
+        setIsLoadingAgendamentos(true)
+        setErroAgendamentos(null)
+      }
       try {
         const lista = await ecommerceService.listarAgendamentosCliente()
         if (!ativo) return
         setAgendamentos(lista)
+        if (!silencioso) setStatusPorAgendamento({})
+        // Libera a lista antes de buscar os status: o status e complementar e
+        // nao pode esconder os cards atras de um spinner.
+        setIsLoadingAgendamentos(false)
 
-        // O status publico funciona mesmo sem fotos publicadas. Uma falha em um
-        // ensaio (link expirado/arquivado) não impede os demais de aparecerem.
         const pares = await Promise.all(lista.map(async (agendamento) => {
           try {
             return [agendamento.id, await ecommerceService.galeriaStatus(agendamento.tokenGaleria)] as const
@@ -36,15 +45,25 @@ export function CustomerDashboardPage() {
         if (ativo) {
           setStatusPorAgendamento(Object.fromEntries(pares))
         }
-      } catch {
-        // Mantém a lista vazia; o usuário pode tentar novamente ao recarregar.
-      } finally {
-        if (ativo) setIsLoadingAgendamentos(false)
+      } catch (err: unknown) {
+        if (!ativo) return
+        if (!silencioso) {
+          setErroAgendamentos(extractErrorMessage(err, 'Não foi possível carregar seus ensaios'))
+        }
+        setIsLoadingAgendamentos(false)
       }
     }
 
+    const atualizarAoVoltar = () => {
+      if (document.visibilityState === 'visible') void carregar(true)
+    }
+
     void carregar()
-    return () => { ativo = false }
+    document.addEventListener('visibilitychange', atualizarAoVoltar)
+    return () => {
+      ativo = false
+      document.removeEventListener('visibilitychange', atualizarAoVoltar)
+    }
   }, [user])
 
   const handleLogout = () => {
@@ -107,6 +126,24 @@ export function CustomerDashboardPage() {
           {isLoadingAgendamentos ? (
             <div className="flex items-center justify-center py-12">
               <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+            </div>
+          ) : erroAgendamentos ? (
+            <div className="text-center py-12 border rounded-xl bg-card">
+              <Camera className="h-10 w-10 text-muted-foreground mx-auto mb-3" />
+              <p className="text-sm font-medium">Não foi possível carregar seus ensaios</p>
+              <p className="mt-1 text-xs text-muted-foreground">{erroAgendamentos}</p>
+              <Button
+                variant="outline"
+                size="sm"
+                className="mt-4"
+                onClick={() => {
+                  setIsLoadingAgendamentos(true)
+                  setErroAgendamentos(null)
+                  window.location.reload()
+                }}
+              >
+                Tentar novamente
+              </Button>
             </div>
           ) : agendamentos.length === 0 ? (
             <div className="text-center py-12 border rounded-xl bg-card">

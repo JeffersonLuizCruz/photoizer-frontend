@@ -223,7 +223,7 @@ export function AdminEcommercePage({ embedded = false }: { embedded?: boolean })
           <select
             value={statusFilter ?? ''}
             onChange={(e) => { setStatusFilter(e.target.value || undefined); setPage(0) }}
-            className="rounded-lg border bg-background px-3 py-1.5 text-xs font-medium">
+            className="h-11 rounded-lg border bg-background px-3 text-xs font-medium sm:h-9">
             <option value="">Todos os status</option>
             <option value="AGUARDANDO_COMPROVANTE">Aguardando Comprovante</option>
             <option value="AGUARDANDO_CONFIRMACAO">Aguardando Confirmação</option>

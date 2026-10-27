@@ -11,10 +11,11 @@ type GaleriaAdminTab = 'fila' | 'vendas' | 'desempenho'
 
 export function AdminGaleriasPage() {
   const { user } = useAuth()
-  const podeVerDesempenho = user?.papel === 'ADMIN' || user?.papel === 'FOTOGRAFO'
-  const abasDisponiveis: GaleriaAdminTab[] = podeVerDesempenho
+  const podeVerCompras = user?.papel === 'ADMIN' || user?.papel === 'FOTOGRAFO'
+  const podeVerDesempenho = podeVerCompras
+  const abasDisponiveis: GaleriaAdminTab[] = podeVerCompras
     ? ['fila', 'vendas', 'desempenho']
-    : ['fila', 'vendas']
+    : ['fila']
   const [searchParams, setSearchParams] = useSearchParams()
   const tabParam = searchParams.get('tab') as GaleriaAdminTab | null
   const activeTab: GaleriaAdminTab = tabParam && abasDisponiveis.includes(tabParam) ? tabParam : 'fila'
@@ -37,17 +38,19 @@ export function AdminGaleriasPage() {
       <Tabs value={activeTab} onValueChange={mudarTab}>
         <TabsList scrollable aria-label="Seções da central de galerias">
           <TabsTrigger value="fila">Fila de trabalho</TabsTrigger>
-          <TabsTrigger value="vendas">Vendas</TabsTrigger>
+          {podeVerCompras && <TabsTrigger value="vendas">Vendas</TabsTrigger>}
           {podeVerDesempenho && <TabsTrigger value="desempenho">Desempenho</TabsTrigger>}
         </TabsList>
 
         <TabsContent value="fila">
-          <GaleriaPipelinePanel />
+          <GaleriaPipelinePanel podeVerFinanceiro={podeVerCompras} />
         </TabsContent>
 
-        <TabsContent value="vendas">
-          <AdminEcommercePage embedded />
-        </TabsContent>
+        {podeVerCompras && (
+          <TabsContent value="vendas">
+            <AdminEcommercePage embedded />
+          </TabsContent>
+        )}
 
         {podeVerDesempenho && (
           <TabsContent value="desempenho">

@@ -133,7 +133,7 @@ export function GaleriaPerformancePanel() {
           <select
             value={meses}
             onChange={(event) => setMeses(Number(event.target.value))}
-            className="h-9 rounded-lg border bg-background px-3 text-xs font-medium text-foreground"
+            className="h-11 rounded-lg border bg-background px-3 text-xs font-medium text-foreground sm:h-9"
           >
             {PERIODOS.map((periodo) => (
               <option key={periodo} value={periodo}>{periodo} meses</option>
@@ -182,7 +182,7 @@ export function GaleriaPerformancePanel() {
               tone="info"
             />
             <KpiCard
-              label="Tempo de entrega"
+              label="Tempo até liberação"
               value={formatDias(data.tempoMedioEntregaDias)}
               hint="ensaio → seleção publicada"
               icon={Timer}
@@ -242,7 +242,7 @@ export function GaleriaPerformancePanel() {
               <ul className="mt-3 space-y-2 text-[11px] leading-relaxed text-muted-foreground">
                 <li><strong className="text-foreground">Tempo até publicar:</strong> da realização do ensaio até a primeira publicação das fotos.</li>
                 <li><strong className="text-foreground">Tempo de edição:</strong> do envio da seleção pelo cliente até a publicação da edição/aprovação.</li>
-                <li><strong className="text-foreground">Tempo de entrega:</strong> da realização do ensaio até a seleção publicada.</li>
+                <li><strong className="text-foreground">Tempo até liberação:</strong> da realização do ensaio até a seleção publicada (liberação para o cliente).</li>
                 <li><strong className="text-foreground">Conversão de extras:</strong> galerias comercializadas que tiveram ao menos uma compra paga.</li>
                 <li>Médias consideram apenas galerias com as datas disponíveis; “—” indica ausência de amostra.</li>
               </ul>

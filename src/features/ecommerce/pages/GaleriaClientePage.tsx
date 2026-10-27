@@ -49,6 +49,7 @@ export function GaleriaClientePage() {
   const [galeria, setGaleria] = useState<GaleriaResponse | null>(null)
   const [statusGaleria, setStatusGaleria] = useState<GaleriaStatusResponse | null>(null)
   const [isLoading, setIsLoading] = useState(true)
+  const [isRefreshing, setIsRefreshing] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [arquivada, setArquivada] = useState(false)
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
@@ -170,25 +171,23 @@ export function GaleriaClientePage() {
     if (!token) return
     if (carregandoRef.current) return
     carregandoRef.current = true
-    if (mostrarLoading) setIsLoading(true)
+    if (mostrarLoading) {
+      setIsLoading(true)
+      setStatusGaleria(null)
+    }
     try {
-      // O status publico funciona mesmo antes da publicacao das fotos. Ele e
-      // opcional: uma falha nele nao deve impedir a galeria de abrir.
-      const [resultadoGaleria, resultadoStatus] = await Promise.allSettled([
-        ecommerceService.galeria(token),
-        ecommerceService.galeriaStatus(token),
-      ])
-      if (resultadoGaleria.status === 'rejected') {
-        throw resultadoGaleria.reason
-      }
-      const data = resultadoGaleria.value
+      // O status publico nao bloqueia a galeria: ele chega em paralelo e
+      // atualiza a tela quando estiver pronto.
+      const data = await ecommerceService.galeria(token)
       setGaleria(data)
-      setStatusGaleria(resultadoStatus.status === 'fulfilled' ? resultadoStatus.value : null)
       setArquivada(false)
       if (sincronizarSelecao) {
         setSelectedIds(new Set(data.fotos.filter((f) => f.selecionadaPacote).map((f) => f.id)))
       }
       setError(null)
+      void ecommerceService.galeriaStatus(token)
+        .then(setStatusGaleria)
+        .catch(() => {})
     } catch (err: unknown) {
       const resposta = (err as {
         response?: { status?: number; data?: { message?: string; code?: string } }
@@ -209,6 +208,16 @@ export function GaleriaClientePage() {
       if (mostrarLoading) setIsLoading(false)
     }
   }, [token])
+
+  const atualizarTela = useCallback(async () => {
+    if (!token || isRefreshing) return
+    setIsRefreshing(true)
+    try {
+      await carregarGaleria(false)
+    } finally {
+      setIsRefreshing(false)
+    }
+  }, [token, isRefreshing, carregarGaleria])
 
   useEffect(() => {
     void carregarGaleria()
@@ -615,8 +624,8 @@ export function GaleriaClientePage() {
     return (
       <GaleriaEmPreparacao
         status={statusGaleria}
-        onRefresh={() => void carregarGaleria(true)}
-        isRefreshing={isLoading}
+        onRefresh={() => void atualizarTela()}
+        isRefreshing={isRefreshing}
       />
     )
   }

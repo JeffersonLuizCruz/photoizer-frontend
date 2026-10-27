@@ -93,10 +93,12 @@ const cardTone: Record<NonNullable<ResumoCard['tone']>, string> = {
 
 function PipelineItemCard({
   item,
+  podeVerFinanceiro,
   onRegenerarToken,
   regenerandoToken,
 }: {
   item: GaleriaPipelineItem
+  podeVerFinanceiro: boolean
   onRegenerarToken: (agendamentoId: string) => void
   regenerandoToken: boolean
 }) {
@@ -149,7 +151,7 @@ function PipelineItemCard({
           </div>
         </div>
 
-        <div className="flex shrink-0 items-center gap-2">
+        <div className="flex w-full flex-wrap items-center justify-end gap-2 sm:w-auto sm:shrink-0">
           {item.linkGaleria && (
             <Button variant="outline" size="sm" onClick={copiarLink} aria-label="Copiar link da galeria">
               <Link2 className="h-4 w-4 sm:mr-1" />
@@ -167,7 +169,7 @@ function PipelineItemCard({
               <span className="hidden sm:inline">Novo link</span>
             </Button>
           )}
-          <Button size="sm" onClick={() => navigate(item.acaoUrl)}>
+          <Button size="sm" className="w-full sm:w-auto" onClick={() => navigate(item.acaoUrl)}>
             {item.proximaAcao}
             <ArrowRight className="ml-1 h-4 w-4" />
           </Button>
@@ -181,7 +183,7 @@ function PipelineItemCard({
         </span>
         <span>{item.fotosSelecionadas} no pacote</span>
         {item.fotosBaixadas > 0 && <span>{item.fotosBaixadas} baixada(s)</span>}
-        {item.valorExtras > 0 && (
+        {podeVerFinanceiro && item.valorExtras > 0 && (
           <span className="inline-flex items-center gap-1">
             <ShoppingBag className="h-3.5 w-3.5" /> {formatCurrency(item.valorExtras)} em extras
           </span>
@@ -191,7 +193,7 @@ function PipelineItemCard({
             Seleção {item.selecaoNumero ? `#${item.selecaoNumero}` : ''} · {item.selecaoStatus.toLowerCase()}
           </span>
         )}
-        {item.comprasPendentes > 0 && (
+        {podeVerFinanceiro && item.comprasPendentes > 0 && (
           <span className="rounded-full bg-amber-100 px-2 py-0.5 font-medium text-amber-700">
             {item.comprasPendentes} pagamento(s) pendente(s)
           </span>
@@ -216,7 +218,7 @@ function PipelineItemCard({
   )
 }
 
-export function GaleriaPipelinePanel() {
+export function GaleriaPipelinePanel({ podeVerFinanceiro = true }: { podeVerFinanceiro?: boolean }) {
   const queryClient = useQueryClient()
   const [etapa, setEtapa] = useState<EtapaGaleria | undefined>()
   const [busca, setBusca] = useState('')
@@ -281,11 +283,11 @@ export function GaleriaPipelinePanel() {
 
   return (
     <div className="space-y-4">
-      <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+      <div className="flex gap-3 overflow-x-auto pb-1 md:grid md:grid-cols-4 md:overflow-visible">
         {cards.map((card) => {
           const ativo = card.atrasadas ? atrasadas : etapa === card.etapa
           const classes = cn(
-            'rounded-lg border p-3 text-left transition-colors',
+            'min-w-[140px] flex-shrink-0 rounded-lg border p-3 text-left transition-colors md:min-w-0',
             cardTone[card.tone ?? 'default'],
             card.interativo === false ? 'cursor-default' : 'hover:border-primary/40',
             ativo && card.interativo !== false && 'ring-2 ring-primary/40',
@@ -332,20 +334,20 @@ export function GaleriaPipelinePanel() {
             value={busca}
             onChange={(event) => setBusca(event.target.value)}
             placeholder="Buscar por cliente, pacote ou local"
-            className="h-9 w-full rounded-lg border bg-background pl-9 pr-3 text-sm outline-none focus:ring-2 focus:ring-ring"
+            className="h-11 w-full rounded-lg border bg-background pl-9 pr-3 text-sm outline-none focus:ring-2 focus:ring-ring sm:h-9"
           />
         </div>
         <select
           value={etapa ?? ''}
           onChange={(event) => setEtapa((event.target.value || undefined) as EtapaGaleria | undefined)}
-          className="h-9 rounded-lg border bg-background px-3 text-xs font-medium"
+          className="h-11 rounded-lg border bg-background px-3 text-xs font-medium sm:h-9"
         >
           <option value="">Todas as etapas</option>
           {ETAPAS.map((opcao) => (
             <option key={opcao.value} value={opcao.value}>{opcao.label}</option>
           ))}
         </select>
-        <label className="inline-flex h-9 cursor-pointer items-center gap-2 rounded-lg border px-3 text-xs font-medium">
+        <label className="inline-flex h-11 cursor-pointer items-center gap-2 rounded-lg border px-3 text-xs font-medium sm:h-9">
           <input
             type="checkbox"
             checked={atrasadas}
@@ -403,6 +405,7 @@ export function GaleriaPipelinePanel() {
             <PipelineItemCard
               key={item.agendamentoId}
               item={item}
+              podeVerFinanceiro={podeVerFinanceiro}
               onRegenerarToken={regenerarToken}
               regenerandoToken={regenerandoToken}
             />
