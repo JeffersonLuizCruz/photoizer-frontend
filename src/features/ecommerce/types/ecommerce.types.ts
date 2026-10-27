@@ -76,6 +76,72 @@ export interface SelecaoPendenteResponse {
   requerEdicao: boolean
 }
 
+export type EtapaGaleria =
+  | 'AGUARDANDO_UPLOAD'
+  | 'FOTOS_NAO_PUBLICADAS'
+  | 'SELECAO_EM_EDICAO'
+  | 'SELECAO_AGUARDANDO_APROVACAO'
+  | 'AGUARDANDO_SELECAO'
+  | 'AGUARDANDO_DOWNLOAD'
+  | 'CONCLUIDA'
+  | 'ARQUIVADA'
+
+export interface GaleriaPipelineItem {
+  agendamentoId: string
+  clienteNome: string
+  pacoteNome: string | null
+  localEnsaio: string | null
+  dataHoraEnsaio: string
+  prazoEntrega: string | null
+  etapa: EtapaGaleria
+  etapaLabel: string
+  proximaAcao: string
+  acaoUrl: string
+  linkGaleria: string | null
+  totalFotos: number
+  fotosPublicadas: number
+  fotosSelecionadas: number
+  fotosBaixadas: number
+  extrasPendentesEdicao: number
+  comprasPendentes: number
+  valorExtras: number
+  selecaoStatus: StatusSelecao | null
+  selecaoNumero: number | null
+  selecaoEnviadaEm: string | null
+  publicadaEm: string | null
+  diasNaEtapa: number
+  atrasada: boolean
+  tokenExpirado: boolean
+  tokenExpiracao: string | null
+}
+
+export interface GaleriaPipelineResumo {
+  total: number
+  aguardandoUpload: number
+  fotosNaoPublicadas: number
+  aguardandoSelecao: number
+  selecaoEmEdicao: number
+  selecaoAguardandoAprovacao: number
+  aguardandoDownload: number
+  concluidas: number
+  arquivadas: number
+  atrasadas: number
+  comprasPendentes: number
+  extrasPendentesEdicao: number
+}
+
+export interface GaleriaStatusResponse {
+  etapa: EtapaGaleria
+  etapaLabel: string
+  mensagem: string
+  previsaoEntrega: string | null
+  totalFotos: number
+  fotosPublicadas: number
+  selecaoStatus: StatusSelecao | null
+  selecaoEnviadaEm: string | null
+  tokenExpiracao: string | null
+}
+
 export interface GaleriaEnsaioResponse {
   agendamentoId: string
   modo: ModoGaleria
@@ -89,6 +155,7 @@ export interface GaleriaEnsaioResponse {
   arquivada: boolean
   arquivadaEm: string | null
   bytesLiberados: number
+  publicadaEm: string | null
 }
 
 export interface CompraExtraResponse {

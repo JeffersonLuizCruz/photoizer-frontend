@@ -8,6 +8,7 @@ import {
   FileSignature,
   HandCoins,
   HardDrive,
+  Images,
   LayoutDashboard,
   Package,
   Percent,
@@ -62,7 +63,7 @@ const navEntries: NavEntry[] = [
   { to: ROUTES.DASHBOARD, label: 'Dashboard', icon: LayoutDashboard, end: true },
   { to: ROUTES.AGENDA, label: 'Agenda', icon: Calendar },
   { to: ROUTES.PACOTES, label: 'Pacotes', icon: Package },
-  { to: ROUTES.ADMIN_ECOMMERCE, label: 'Ecommerce', icon: ShoppingCart },
+  { to: ROUTES.GALERIAS, label: 'Galerias', icon: Images },
   // Seleções e Analytics seguem acessíveis por URL direta, mas foram
   // removidos do menu visual (decisão de produto).
   { to: ROUTES.PROPOSTAS, label: 'Propostas', icon: FileSignature },
@@ -142,7 +143,7 @@ const mobilePriority: MobileTab[] = [
   { to: ROUTES.DASHBOARD, label: 'Dashboard', shortLabel: 'Início', icon: LayoutDashboard, end: true },
   { to: ROUTES.AGENDA, label: 'Agenda', shortLabel: 'Agenda', icon: Calendar },
   { to: ROUTES.PROPOSTAS, label: 'Propostas', shortLabel: 'Propostas', icon: FileSignature },
-  { to: ROUTES.ADMIN_ECOMMERCE, label: 'Ecommerce', shortLabel: 'Loja', icon: ShoppingCart },
+  { to: ROUTES.GALERIAS, label: 'Galerias', shortLabel: 'Galerias', icon: ShoppingCart },
   { to: ROUTES.PACOTES, label: 'Pacotes', shortLabel: 'Pacotes', icon: Package },
   { to: ROUTES.COMISSOES, label: 'Comissões', shortLabel: 'Comissões', icon: Percent },
   { to: ROUTES.CONFIG, label: 'Configurações', shortLabel: 'Ajustes', icon: Settings },

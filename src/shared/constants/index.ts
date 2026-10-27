@@ -18,6 +18,7 @@ export const ROUTES = {
   AGENDA_SELECAO: '/agenda/:id/selecoes',
   ADMIN_SELECOES: '/admin/selecoes',
   ADMIN_ECOMMERCE: '/admin/ecommerce',
+  GALERIAS: '/admin/galerias',
   ADMIN_CUPONS: '/admin/cupons',
   ADMIN_ANALYTICS: '/admin/analytics',
   ARMAZENAMENTO: '/admin/armazenamento',

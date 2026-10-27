@@ -1,6 +1,6 @@
 import { apiClient } from '@/shared/api'
 import { env } from '@/shared/config/env'
-import type { FotoEnsaio, CompraExtraResponse, AdminEcommerceResumoResponse, CarrinhoResponse, CalculoCarrinhoResponse, MetodoPagamento, AdminCompraDetalheResponse, AdminComprasRelatorioResponse, CompraExtraPendenteEdicaoResponse, Avaliacao, Sessao, EcommerceAnalyticsResponse, DashboardEcommerceResponse, DashboardEcommerceMensalResponse, FotoComentario, ComentariosPorFotoResponse, ConfiguracaoPagamentoResponse, SelecaoEnsaioResponse, SelecaoPendenteResponse, GaleriaEnsaioResponse, ModoGaleria, FaseGaleria } from '../types/ecommerce.types'
+import type { FotoEnsaio, CompraExtraResponse, AdminEcommerceResumoResponse, CarrinhoResponse, CalculoCarrinhoResponse, MetodoPagamento, AdminCompraDetalheResponse, AdminComprasRelatorioResponse, CompraExtraPendenteEdicaoResponse, Avaliacao, Sessao, EcommerceAnalyticsResponse, DashboardEcommerceResponse, DashboardEcommerceMensalResponse, FotoComentario, ComentariosPorFotoResponse, ConfiguracaoPagamentoResponse, SelecaoEnsaioResponse, SelecaoPendenteResponse, GaleriaEnsaioResponse, ModoGaleria, FaseGaleria, EtapaGaleria, GaleriaPipelineItem, GaleriaPipelineResumo, GaleriaStatusResponse } from '../types/ecommerce.types'
 import type { PacoteResponse } from '@/features/pacotes/types/pacotes.types'
 import type { AgendamentoCliente } from '@/features/auth/customer/types'
 import type { PaginatedResponse } from '@/shared/types'
@@ -100,6 +100,11 @@ export const ecommerceService = {
 
   galeria: async (token: string): Promise<GaleriaResponse> => {
     const { data } = await apiClient.get<GaleriaResponse>(`/ecommerce/galeria/${token}`)
+    return data
+  },
+
+  galeriaStatus: async (token: string): Promise<GaleriaStatusResponse> => {
+    const { data } = await apiClient.get<GaleriaStatusResponse>(`/ecommerce/galeria/${token}/status`)
     return data
   },
 
@@ -245,6 +250,23 @@ export const ecommerceService = {
   // Admin endpoints
   adminResumo: async (agendamentoId: string): Promise<AdminEcommerceResumoResponse> => {
     const { data } = await apiClient.get<AdminEcommerceResumoResponse>(`/admin/agendamentos/${agendamentoId}/ecommerce`)
+    return data
+  },
+
+  adminGaleriaPipeline: async (params?: {
+    etapa?: EtapaGaleria
+    busca?: string
+    atrasadas?: boolean
+    page?: number
+    perPage?: number
+  }): Promise<PaginatedResponse<GaleriaPipelineItem>> => {
+    const { data } = await apiClient.get<PaginatedResponse<GaleriaPipelineItem>>(
+      '/admin/galerias/pipeline', { params })
+    return data
+  },
+
+  adminGaleriaPipelineResumo: async (): Promise<GaleriaPipelineResumo> => {
+    const { data } = await apiClient.get<GaleriaPipelineResumo>('/admin/galerias/pipeline/resumo')
     return data
   },
 

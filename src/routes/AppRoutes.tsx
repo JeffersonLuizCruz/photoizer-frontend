@@ -1,5 +1,5 @@
 import { lazy, Suspense } from 'react'
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import { Loader2 } from 'lucide-react'
 import { AppLayout } from '@/shared/components/layout/AppLayout'
 import { ROUTES } from '@/shared/constants'
@@ -15,7 +15,7 @@ const ROLES_DECISAO_PROPOSTA: Papel[] = ['ADMIN', 'FOTOGRAFO']
 
 // RNF001: code splitting por rota — cada página é carregada sob demanda
 const GaleriaClientePage = lazy(() => import('@/features/ecommerce/pages/GaleriaClientePage').then(m => ({ default: m.GaleriaClientePage })))
-const AdminEcommercePage = lazy(() => import('@/features/ecommerce/pages/AdminEcommercePage').then(m => ({ default: m.AdminEcommercePage })))
+const AdminGaleriasPage = lazy(() => import('@/features/ecommerce/pages/AdminGaleriasPage').then(m => ({ default: m.AdminGaleriasPage })))
 const AdminAnalyticsPage = lazy(() => import('@/features/ecommerce/pages/AdminAnalyticsPage').then(m => ({ default: m.AdminAnalyticsPage })))
 const ArmazenamentoPage = lazy(() => import('@/features/armazenamento').then(m => ({ default: m.ArmazenamentoPage })))
 const PackageCatalogPage = lazy(() => import('@/features/ecommerce/pages/PackageCatalogPage').then(m => ({ default: m.PackageCatalogPage })))
@@ -56,6 +56,12 @@ const MinhasFinancasPage = lazy(() => import('@/features/fotografos/pages/Minhas
 function HomeRedirect() {
   const { papel } = useAuth()
   return <Navigate to={papel === 'FOTOGRAFO' ? ROUTES.MINHA_AGENDA : ROUTES.AGENDA} replace />
+}
+
+/** Mantém links antigos de /admin/ecommerce, preservando a aba selecionada. */
+function EcommerceRedirect() {
+  const location = useLocation()
+  return <Navigate to={{ pathname: ROUTES.GALERIAS, search: location.search }} replace />
 }
 
 function PageLoader() {
@@ -116,7 +122,8 @@ export function AppRoutes() {
             <Route path={ROUTES.AGENDA_GALERIA} element={<ProtectedRoute allowedRoles={ROLES_SEM_AGENDADOR}><AdminGaleriaWorkspacePage /></ProtectedRoute>} />
             <Route path={ROUTES.AGENDA_SELECAO} element={<ProtectedRoute allowedRoles={ROLES_SEM_AGENDADOR}><SelecaoRedirect /></ProtectedRoute>} />
             <Route path={ROUTES.ADMIN_SELECOES} element={<ProtectedRoute allowedRoles={ROLES_SEM_AGENDADOR}><AdminSelecoesPage /></ProtectedRoute>} />
-            <Route path={ROUTES.ADMIN_ECOMMERCE} element={<ProtectedRoute allowedRoles={ROLES_SEM_AGENDADOR}><AdminEcommercePage /></ProtectedRoute>} />
+            <Route path={ROUTES.GALERIAS} element={<ProtectedRoute allowedRoles={ROLES_SEM_AGENDADOR}><AdminGaleriasPage /></ProtectedRoute>} />
+            <Route path={ROUTES.ADMIN_ECOMMERCE} element={<ProtectedRoute allowedRoles={ROLES_SEM_AGENDADOR}><EcommerceRedirect /></ProtectedRoute>} />
             <Route path={ROUTES.ADMIN_ANALYTICS} element={<ProtectedRoute allowedRoles={ROLES_SEM_AGENDADOR}><AdminAnalyticsPage /></ProtectedRoute>} />
             <Route path={ROUTES.FOTOGRAFOS} element={<ProtectedRoute allowedRoles={ROLES_SEM_AGENDADOR}><FotografosListPage /></ProtectedRoute>} />
             <Route path={ROUTES.FOTOGRAFOS_NOVO} element={<ProtectedRoute allowedRoles={ROLES_ADMIN}><FotografosNovoPage /></ProtectedRoute>} />

@@ -22,7 +22,7 @@ export function EcommerceDashboardCards() {
 
   if (!data) return null
 
-  const irParaEcommerce = () => navigate(ROUTES.ADMIN_ECOMMERCE)
+  const irParaEcommerce = () => navigate(ROUTES.GALERIAS)
 
   return (
     <div>

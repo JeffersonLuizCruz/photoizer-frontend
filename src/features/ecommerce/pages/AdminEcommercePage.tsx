@@ -29,7 +29,7 @@ function statusBadge(status: string) {
   return { variant: 'secondary' as const, label: status }
 }
 
-export function AdminEcommercePage() {
+export function AdminEcommercePage({ embedded = false }: { embedded?: boolean }) {
   const queryClient = useQueryClient()
   const { user } = useAuth()
   // A chave PIX do e-commerce é global e somente ADMIN pode alterá-la.
@@ -169,19 +169,21 @@ export function AdminEcommercePage() {
 
   return (
     <div>
-      <PageTitle
-        title="Pedidos - Ecommerce"
-        breadcrumbs={[
-          { label: 'Dashboard', href: ROUTES.DASHBOARD },
-          { label: 'Ecommerce' },
-        ]}
-        actions={podeConfigurarPix ? (
-          <Button variant="outline" size="sm" onClick={() => setShowConfigPagamento(true)}>
-            <Settings className="mr-1 h-4 w-4" />
-            Configurar PIX
-          </Button>
-        ) : undefined}
-      />
+      {!embedded && (
+        <PageTitle
+          title="Pedidos - Ecommerce"
+          breadcrumbs={[
+            { label: 'Dashboard', href: ROUTES.DASHBOARD },
+            { label: 'Ecommerce' },
+          ]}
+          actions={podeConfigurarPix ? (
+            <Button variant="outline" size="sm" onClick={() => setShowConfigPagamento(true)}>
+              <Settings className="mr-1 h-4 w-4" />
+              Configurar PIX
+            </Button>
+          ) : undefined}
+        />
+      )}
 
       {relatorio && (
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3 mb-6">
@@ -217,7 +219,7 @@ export function AdminEcommercePage() {
       )}
 
       <div className="rounded-lg border bg-card">
-        <div className="p-4 border-b flex items-center gap-2">
+        <div className="p-4 border-b flex flex-wrap items-center gap-2">
           <select
             value={statusFilter ?? ''}
             onChange={(e) => { setStatusFilter(e.target.value || undefined); setPage(0) }}
@@ -228,6 +230,12 @@ export function AdminEcommercePage() {
             <option value="PAGA">Paga</option>
             <option value="CANCELADA">Cancelada</option>
           </select>
+          {embedded && podeConfigurarPix && (
+            <Button variant="outline" size="sm" onClick={() => setShowConfigPagamento(true)}>
+              <Settings className="mr-1 h-4 w-4" />
+              Configurar PIX
+            </Button>
+          )}
         </div>
         <DataTable
           columns={columns}
