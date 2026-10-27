@@ -24,6 +24,7 @@ export interface GaleriaResponse {
   podeComprar: boolean
   podeBaixar: boolean
   selecaoAtual: SelecaoEnsaioResponse | null
+  selecaoReaberta: boolean
   valoresExtras: Record<string, number>
 }
 
@@ -105,6 +106,10 @@ export const ecommerceService = {
   obterPagamento: async (): Promise<ConfiguracaoPagamentoResponse> => {
     const { data } = await apiClient.get<ConfiguracaoPagamentoResponse>('/ecommerce/pagamento')
     return data
+  },
+
+  limparRascunho: async (token: string): Promise<void> => {
+    await apiClient.delete(`/ecommerce/galeria/${token}/rascunho`)
   },
 
   selecionar: async (token: string, fotoIds: string[], selecionada: boolean): Promise<FotoEnsaio[]> => {

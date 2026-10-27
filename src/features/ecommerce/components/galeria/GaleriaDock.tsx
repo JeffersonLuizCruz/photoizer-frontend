@@ -107,9 +107,13 @@ export function GaleriaDock({
         </div>
 
         <div className="flex shrink-0 items-center gap-2">
-          {emSelecao && hasSelectionChanges && (
-            <button onClick={onSave} disabled={isSaving} className={cn(secundario, 'flex-1 sm:flex-none')}>
-              {isSaving ? 'Salvando...' : 'Salvar rascunho'}
+          {emSelecao && selectedCount > 0 && (
+            <button
+              onClick={onSave}
+              disabled={isSaving || !hasSelectionChanges}
+              className={cn(secundario, 'flex-1 sm:flex-none')}
+            >
+              {isSaving ? 'Salvando...' : hasSelectionChanges ? 'Salvar rascunho' : 'Rascunho salvo'}
             </button>
           )}
 

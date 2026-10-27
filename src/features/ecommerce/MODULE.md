@@ -22,6 +22,7 @@ features/ecommerce/
 │   ├── PhotoGrid.tsx                 # Grid responsivo de fotos (legado)
 │   ├── galeria/                      # Experiência editorial da galeria pública
 │   │   ├── GaleriaHero.tsx           # Capa, título (customizado ou nome), data e local
+│   │   ├── GaleriaRascunhoBanner.tsx # Aviso de seleção reaberta e limpeza do pacote
 │   │   ├── GaleriaNav.tsx            # Navegação mínima com favoritos/carrinho
 │   │   ├── GaleriaIntro.tsx          # Copy por fase e progresso do pacote
 │   │   ├── GaleriaMasonry.tsx        # Grid masonry com favoritos/seleção
@@ -125,6 +126,8 @@ Não existem testes para este módulo.
 - Em `SEM_EDICAO`, uma seleção aprovada (`PUBLICADA`) pode ser reaberta pelo admin enquanto nenhuma foto tiver sido baixada ou vendida. O backend expõe `podeReabrir` na seleção; a reabertura volta a galeria para `SELECAO` e cancela o snapshot aprovado, e o cliente envia uma nova seleção.
 - O hero usa `capaUrl` (capa manual ou fallback) e faz preload com prioridade alta. A capa é escolhida em `AdminGaleriaPage` no modo “Escolher capa”; o backend congela a versão (`capaVersao`) e devolve a URL já versionada (`?v={fotoId}-{versao}`).
 - A galeria pública revalida ao voltar para a aba (`visibilitychange`/`pageshow`) e a cada 60s, sem recarregar a página e sem apagar a seleção local em andamento.
+- Quando o staff reabre uma seleção, o backend mantém `selecionadaPacote`: as fotos anteriores voltam como **rascunho** e o cliente vê o `GaleriaRascunhoBanner`. O progresso mostra “Rascunho · X de Y escolhidas” e o dock exibe “Salvar rascunho”/“Rascunho salvo”.
+- O banner permite **“Limpar fotos do pacote”** com confirmação. A ação chama `DELETE /ecommerce/galeria/{token}/rascunho` e desmarca somente o pacote; os extras do carrinho permanecem.
 - **Extras durante a seleção/edição**: em `SELECAO_ENVIADA`/`EM_EDICAO` (`COM_EDICAO`) e em `SELECAO_ENVIADA` (`SEM_EDICAO`) a sacola continua disponível. O extra entra no snapshot da seleção ativa (backend) e o total é calculado no carrinho; o checkout permanece bloqueado até `COMERCIALIZACAO`.
 - **Extras após a publicação (COM_EDICAO)**: fotos restantes aparecem com o selo **“A editar”** e podem ser compradas. Após o pagamento, `MinhasComprasSection` mostra **“Aguardando edição”** até o estúdio liberar a versão editada; o download só aparece com `versaoAtual = EDITADA`.
 - **Extras após a aprovação (SEM_EDICAO)**: o extra é baixado em original assim que o pagamento é confirmado, sem passar pela fila de edição.

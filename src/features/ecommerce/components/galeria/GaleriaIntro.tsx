@@ -102,7 +102,7 @@ export function GaleriaIntro({
       {mostrarProgresso && (
         <div className="mx-auto mt-7 max-w-xs">
           <div className="flex items-center justify-between text-[10px] uppercase tracking-[0.2em] text-gallery-muted">
-            <span>{selectedCount} de {pacoteLimit} escolhidas</span>
+            <span>Rascunho · {selectedCount} de {pacoteLimit} escolhidas</span>
             <span>{percentual}%</span>
           </div>
           <div className="mt-2 h-px w-full overflow-hidden bg-gallery-line">

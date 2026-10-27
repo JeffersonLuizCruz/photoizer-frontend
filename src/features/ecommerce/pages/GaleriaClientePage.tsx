@@ -14,12 +14,14 @@ import { FavoritosPanel } from '../components/FavoritosPanel'
 import { GaleriaHero } from '../components/galeria/GaleriaHero'
 import { GaleriaNav } from '../components/galeria/GaleriaNav'
 import { GaleriaIntro } from '../components/galeria/GaleriaIntro'
+import { GaleriaRascunhoBanner } from '../components/galeria/GaleriaRascunhoBanner'
 import { GaleriaMasonry } from '../components/galeria/GaleriaMasonry'
 import { GaleriaDock } from '../components/galeria/GaleriaDock'
 import { GaleriaExtraDialog } from '../components/galeria/GaleriaExtraDialog'
 import { GaleriaConfirmarSelecao } from '../components/galeria/GaleriaConfirmarSelecao'
 import { GaleriaTimeline } from '../components/galeria/GaleriaTimeline'
 import { extractErrorMessage } from '@/shared/api'
+import { ConfirmDialog } from '@/shared/components/layout/ConfirmDialog'
 import { cn } from '@/shared/lib/cn'
 import { humanizarNome } from '@/shared/lib/foto'
 
@@ -56,6 +58,8 @@ export function GaleriaClientePage() {
   const [showFavoritos, setShowFavoritos] = useState(false)
   const [showConfirmarSelecao, setShowConfirmarSelecao] = useState(false)
   const [isEnviandoSelecao, setIsEnviandoSelecao] = useState(false)
+  const [showLimparRascunho, setShowLimparRascunho] = useState(false)
+  const [isLimpandoRascunho, setIsLimpandoRascunho] = useState(false)
   const [fotoExtraPendente, setFotoExtraPendente] = useState<FotoEnsaio | null>(null)
   const [observacao, setObservacao] = useState('')
 
@@ -145,6 +149,7 @@ export function GaleriaClientePage() {
   }, [fotos, filtro, favoritoIds, selectedIds, carrinhoIds, categoriaFilter, searchTerm])
 
   const carregandoRef = useRef(false)
+  const reabertaAnteriorRef = useRef(false)
   const carregarGaleria = useCallback(async (mostrarLoading = true, sincronizarSelecao = true) => {
     if (!token) return
     if (carregandoRef.current) return
@@ -226,6 +231,18 @@ export function GaleriaClientePage() {
     const titulo = galeria.tituloHero?.trim() || humanizarNome(galeria.clienteNome)
     document.title = titulo ? `${titulo} · Galeria` : 'Galeria · Photoizer'
     return () => { document.title = anterior }
+  }, [galeria])
+
+  // Quando o staff reabre a seleção, o backend preserva `selecionadaPacote`.
+  // Restaura esse rascunho no estado local apenas na transição para reaberta,
+  // para o polling não sobrescrever alterações que o cliente ainda não salvou.
+  useEffect(() => {
+    if (!galeria) return
+    const reaberta = galeria.selecaoReaberta && galeria.faseGaleria === 'SELECAO'
+    if (reaberta && !reabertaAnteriorRef.current) {
+      setSelectedIds(new Set(galeria.fotos.filter((f) => f.selecionadaPacote).map((f) => f.id)))
+    }
+    reabertaAnteriorRef.current = reaberta
   }, [galeria])
 
   useEffect(() => {
@@ -413,6 +430,25 @@ export function GaleriaClientePage() {
     }
   }
 
+  const handleLimparRascunho = async () => {
+    if (!token) return
+    setIsLimpandoRascunho(true)
+    try {
+      await ecommerceService.limparRascunho(token)
+      setSelectedIds(new Set())
+      setGaleria((prev) => prev ? {
+        ...prev,
+        fotos: prev.fotos.map((f) => f.selecionadaPacote ? { ...f, selecionadaPacote: false } : f),
+      } : prev)
+      setShowLimparRascunho(false)
+      toast.success('Fotos do pacote desmarcadas. Seus extras foram mantidos.')
+    } catch (err: unknown) {
+      toast.error(extractErrorMessage(err, 'Erro ao limpar as fotos do pacote'))
+    } finally {
+      setIsLimpandoRascunho(false)
+    }
+  }
+
   const handleEnviarSelecao = async () => {
     if (!token || selectedIds.size === 0 || isEnviandoSelecao) return
     setIsEnviandoSelecao(true)
@@ -584,6 +620,14 @@ export function GaleriaClientePage() {
           favoritosCount={favoritoIds.size}
           carrinhoCount={carrinhoCount}
         />
+
+        {galeria?.selecaoReaberta && faseGaleria === 'SELECAO' && (
+          <GaleriaRascunhoBanner
+            fotosNoPacote={selectedIds.size}
+            extrasNoCarrinho={carrinhoCount}
+            onLimparPacote={() => setShowLimparRascunho(true)}
+          />
+        )}
 
         {mostrarTimeline && (
           <GaleriaTimeline fase={faseGaleria} selecao={selecaoAtual} requerEdicao={requerEdicao} />
@@ -868,6 +912,17 @@ export function GaleriaClientePage() {
         onClose={() => setShowCheckout(false)}
         onCheckout={handleCheckout}
         onEnviarComprovante={handleEnviarComprovante}
+      />
+
+      <ConfirmDialog
+        open={showLimparRascunho}
+        onOpenChange={setShowLimparRascunho}
+        onConfirm={() => void handleLimparRascunho()}
+        title="Limpar fotos do pacote?"
+        description="As fotos do pacote serão desmarcadas. Os extras no carrinho serão mantidos."
+        confirmText="Limpar fotos do pacote"
+        variant="destructive"
+        isLoading={isLimpandoRascunho}
       />
 
       <GaleriaExtraDialog
