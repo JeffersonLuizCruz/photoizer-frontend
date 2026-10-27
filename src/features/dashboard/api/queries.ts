@@ -25,3 +25,12 @@ export function useDashboardEcommerceMensal(meses = 6) {
     staleTime: 1000 * 60 * 2,
   })
 }
+
+export function useArmazenamentoResumo(habilitado = true) {
+  return useQuery({
+    queryKey: [...QUERY_KEYS.DASHBOARD, 'armazenamento-resumo'],
+    queryFn: () => dashboardService.armazenamentoResumo(),
+    enabled: habilitado,
+    staleTime: 1000 * 60 * 5,
+  })
+}

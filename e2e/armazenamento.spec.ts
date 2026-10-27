@@ -61,7 +61,33 @@ const GALERIAS = [
   },
 ]
 
-async function mockApi(page: Page, onExpurgar?: () => void) {
+const ORFAOS = {
+  total: 2,
+  bytes: 60,
+  elegiveis: 1,
+  bytesElegiveis: 20,
+  desconhecidos: 1,
+  listados: 2,
+  truncado: false,
+  arquivos: [
+    {
+      caminho: 'ag-1/orig/orig_orfao.jpg',
+      bytes: 20,
+      modificadoEm: '2026-01-01T10:00:00',
+      reconhecido: true,
+      elegivel: true,
+    },
+    {
+      caminho: 'ag-1/backup-manual.zip',
+      bytes: 40,
+      modificadoEm: '2026-01-01T10:00:00',
+      reconhecido: false,
+      elegivel: false,
+    },
+  ],
+}
+
+async function mockApi(page: Page, callbacks: { onExpurgar?: () => void; onLimparOrfaos?: () => void } = {}) {
   await page.addInitScript((user) => {
     window.localStorage.setItem('photoizer_auth_token', 'e2e-test-token')
     window.localStorage.setItem('photoizer_auth_user', JSON.stringify(user))
@@ -73,11 +99,21 @@ async function mockApi(page: Page, onExpurgar?: () => void) {
     const metodo = route.request().method()
 
     if (metodo === 'POST' && path.endsWith('/expurgar')) {
-      onExpurgar?.()
+      callbacks.onExpurgar?.()
       await route.fulfill({
         status: 200,
         contentType: 'application/json',
         body: JSON.stringify({ fotos: 300, bytesLiberados: 6_000_000_000 }),
+      })
+      return
+    }
+
+    if (metodo === 'POST' && path.endsWith('/orfaos/limpar')) {
+      callbacks.onLimparOrfaos?.()
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ arquivos: 1, bytesLiberados: 20 }),
       })
       return
     }
@@ -89,6 +125,7 @@ async function mockApi(page: Page, onExpurgar?: () => void) {
     } else if (path === '/notificacoes/nao-lidas') body = { total: 0, quantidade: 0 }
     else if (path === '/admin/armazenamento/resumo') body = RESUMO
     else if (path === '/admin/armazenamento/galerias') body = GALERIAS
+    else if (path === '/admin/armazenamento/orfaos') body = ORFAOS
 
     await route.fulfill({
       status: 200,
@@ -126,9 +163,7 @@ test.describe('Armazenamento', () => {
 
   test('exige a palavra de confirmação e envia o expurgo', async ({ page }) => {
     let expurgos = 0
-    await mockApi(page, () => {
-      expurgos += 1
-    })
+    await mockApi(page, { onExpurgar: () => { expurgos += 1 } })
     await page.goto('/admin/armazenamento')
     await page.waitForTimeout(1200)
 
@@ -145,6 +180,24 @@ test.describe('Armazenamento', () => {
     await page.waitForTimeout(500)
     expect(expurgos).toBe(1)
     await expect(page.getByText(/expurgada\(s\)/)).toBeVisible()
+  })
+
+  test('analisa e limpa arquivos órfãos elegíveis', async ({ page }) => {
+    let limpezas = 0
+    await mockApi(page, { onLimparOrfaos: () => { limpezas += 1 } })
+    await page.goto('/admin/armazenamento')
+    await page.waitForTimeout(1200)
+
+    await page.getByRole('button', { name: 'Analisar órfãos' }).click()
+    await expect(page.getByText('2 arquivo(s)')).toBeVisible()
+    await expect(page.getByText('Desconhecido', { exact: true })).toBeVisible()
+
+    await page.getByRole('button', { name: 'Limpar órfãos elegíveis' }).click()
+    await page.getByRole('button', { name: 'Limpar', exact: true }).click()
+
+    await page.waitForTimeout(500)
+    expect(limpezas).toBe(1)
+    await expect(page.getByText(/órfão\(s\) removido\(s\)/)).toBeVisible()
   })
 
   test('link de galeria arquivada mostra aviso ao cliente', async ({ page }) => {

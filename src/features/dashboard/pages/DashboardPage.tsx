@@ -2,13 +2,19 @@ import { useMemo } from 'react'
 import { Camera, ShoppingCart } from 'lucide-react'
 import { PageTitle } from '@/shared/components/layout/PageTitle'
 import { useAgendamentosList } from '@/features/agenda/api/queries'
+import { useAuth } from '@/features/auth/AuthProvider'
 import { AGENDAMENTO_STATUS } from '@/shared/constants'
 import { EntregasPendentes } from '../components/EntregasPendentes'
 import { EcommerceDashboardCards } from '../components/EcommerceDashboardCards'
 import { GraficoMensal } from '../components/GraficoMensal'
+import { DashboardArmazenamentoCard } from '../components/DashboardArmazenamentoCard'
+import { useArmazenamentoResumo } from '../api/queries'
 
 export function DashboardPage() {
   const { data: agendamentos, isLoading: loadingAgenda } = useAgendamentosList()
+  const { papel } = useAuth()
+  const admin = papel === 'ADMIN'
+  const { data: armazenamento } = useArmazenamentoResumo(admin)
 
   const entregasPendentes = useMemo(() => {
     if (!agendamentos) return []
@@ -26,6 +32,12 @@ export function DashboardPage() {
         description="Visão geral das operações do dia"
         breadcrumbs={[{ label: 'Dashboard' }]}
       />
+
+      {admin && armazenamento && (
+        <div className="mb-6">
+          <DashboardArmazenamentoCard resumo={armazenamento} />
+        </div>
+      )}
 
       <div className="rounded-lg border bg-card">
         <div className="flex items-center gap-2 border-b px-4 py-3">

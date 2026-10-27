@@ -1,20 +1,6 @@
 export type MotivoExpurgoBloqueado = 'NAO_FINALIZADO' | 'JA_ARQUIVADA' | 'PENDENCIA' | 'SEM_FOTOS'
 
-export interface ArmazenamentoResumo {  bytesFotos: number
-  bytesDerivados: number
-  bytesEditadas: number
-  bytesDocumentos: number
-  bytesPropostas: number
-  bytesOutros: number
-  bytesTotal: number
-  volumeTotal: number
-  volumeLivre: number
-  percentualUso: number
-  totalGalerias: number
-  totalFotos: number
-  galeriasArquivadas: number
-  bytesLiberados: number
-}
+export type { ArmazenamentoResumo } from '@/shared/types/armazenamento'
 
 export interface GaleriaArmazenamento {
   agendamentoId: string
@@ -37,6 +23,30 @@ export interface GaleriaArmazenamento {
 export interface ExpurgoResultado {
   fotos: number
   bytesLiberados: number
+}
+
+export interface LimparOrfaosResultado {
+  arquivos: number
+  bytesLiberados: number
+}
+
+export interface ArquivoOrfao {
+  caminho: string
+  bytes: number
+  modificadoEm: string | null
+  reconhecido: boolean
+  elegivel: boolean
+}
+
+export interface ArquivosOrfaos {
+  total: number
+  bytes: number
+  elegiveis: number
+  bytesElegiveis: number
+  desconhecidos: number
+  listados: number
+  truncado: boolean
+  arquivos: ArquivoOrfao[]
 }
 
 export const MOTIVO_BLOQUEIO_LABEL: Record<MotivoExpurgoBloqueado, string> = {

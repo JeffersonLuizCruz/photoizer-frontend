@@ -11,6 +11,7 @@ import { useArmazenamentoResumo, useGaleriasArmazenamento } from '../api/queries
 import { ResumoArmazenamentoCards } from '../components/ResumoArmazenamentoCards'
 import { GaleriasArmazenamentoTable } from '../components/GaleriasArmazenamentoTable'
 import { ExpurgarGaleriaDialog } from '../components/ExpurgarGaleriaDialog'
+import { ArquivosOrfaosCard } from '../components/ArquivosOrfaosCard'
 import type { GaleriaArmazenamento } from '../types/armazenamento.types'
 
 type Filtro = 'todas' | 'elegiveis' | 'arquivadas'
@@ -175,6 +176,8 @@ export function ArmazenamentoPage() {
           O expurgo é feito galeria por galeria, apenas em ensaios finalizados e sem pendências.
           Comprovantes e contratos assinados não entram na remoção.
         </p>
+
+        <ArquivosOrfaosCard />
       </div>
 
       <ExpurgarGaleriaDialog

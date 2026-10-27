@@ -7,14 +7,15 @@ Tela inicial do sistema administrativo. Agrega dados de múltiplos módulos (age
 ```
 features/dashboard/
 ├── index.ts                          # Barrel: DashboardPage, DashboardDetalhesPage
-├── api/queries.ts                    # 3 hooks: useFinanceiroMensal, useDashboardEcommerce, useDashboardEcommerceMensal
-├── services/dashboard.service.ts     # HTTP: financeiroMensal, ecommerce, ecommerceMensal + interfaces de resposta
+├── api/queries.ts                    # 4 hooks: useFinanceiroMensal, useDashboardEcommerce, useDashboardEcommerceMensal, useArmazenamentoResumo
+├── services/dashboard.service.ts     # HTTP: financeiroMensal, ecommerce, ecommerceMensal, armazenamentoResumo + interfaces de resposta
 ├── pages/
 │   ├── DashboardPage.tsx             # Visão geral com cards, alertas, gráficos
 │   └── DashboardDetalhesPage.tsx     # Detalhamento (pagamentos pendentes + alertas)
 └── components/
     ├── AgendaDoDia.tsx               # Card: ensaios de hoje
     ├── Alertas.tsx                   # Banner compacto de alertas
+    ├── DashboardArmazenamentoCard.tsx # Card: uso do volume (ADMIN)
     ├── DashboardDetalhesAlertas.tsx   # Tabela detalhada de alertas
     ├── DashboardDetalhesPagamentos.tsx # Tabela detalhada de pagamentos pendentes
     ├── EcommerceDashboardCards.tsx    # Resumo e-commerce (4 cards)
@@ -67,6 +68,7 @@ features/dashboard/
 1. **StaleTime de 2 minutos**: As queries do dashboard têm `staleTime: 2min` para evitar refetch excessivo.
 2. **Integração com agenda**: O dashboard é o maior "orquestrador" — importa hooks, tipos e componentes diretamente da agenda e despesas.
 3. **Cálculos local-side**: `pagamentosPendentes` e `entregasPendentes` são filtrados client-side a partir da lista completa de agendamentos.
+4. **Card de armazenamento (ADMIN)**: `DashboardArmazenamentoCard` consome `/admin/armazenamento/resumo` (query habilitada só para `ADMIN`, `staleTime` de 5 min) e usa `ArmazenamentoResumo` de `@/shared/types`. Acima de 80% o card fica em estado de alerta e leva para `/admin/armazenamento`.
 
 ## 6. Testes
 Não existem testes para este módulo.

@@ -67,4 +67,17 @@ features/armazenamento/
 
 ## 6. Testes
 - E2E (`e2e/armazenamento.spec.ts`): cards/tabela, elegibilidade, confirmação
-  com `EXPURGAR`, envio do POST e tela de galeria arquivada (410).
+  com `EXPURGAR`, envio do POST, análise/limpeza de órfãos e tela de galeria
+  arquivada (410).
+
+## 7. Arquivos órfãos e dashboard
+
+- O card **Arquivos órfãos** (`ArquivosOrfaosCard`) analisa sob demanda
+  (`GET /admin/armazenamento/orfaos`) e limpa apenas os elegíveis
+  (`POST .../orfaos/limpar`). A lista mostra os 20 maiores; o backend limita a
+  200 e informa quando truncou.
+- Badges: **Elegível** (reconhecido e >24h), **Recente** (reconhecido, mas novo)
+  e **Desconhecido** (nunca apagado).
+- O dashboard (ADMIN) usa `ArmazenamentoResumo` de `shared/types` e o endpoint
+  `/admin/armazenamento/resumo` para exibir o card de volume, com alerta a
+  partir de 80% e link para esta página.

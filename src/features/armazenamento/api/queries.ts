@@ -47,3 +47,27 @@ export function useExpurgarGaleria() {
       toast.error(extractErrorMessage(error, 'Não foi possível expurgar a galeria')),
   })
 }
+
+export function useArquivosOrfaos(habilitado: boolean) {
+  return useQuery({
+    queryKey: [QUERY_KEY, 'orfaos'],
+    queryFn: () => armazenamentoService.orfaos(),
+    enabled: habilitado,
+    staleTime: 30_000,
+  })
+}
+
+export function useLimparOrfaos() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: () => armazenamentoService.limparOrfaos(),
+    onSuccess: (resultado) => {
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEY] })
+      toast.success(
+        `${resultado.arquivos} arquivo(s) órfão(s) removido(s) · ${formatarBytes(resultado.bytesLiberados)} liberados`,
+      )
+    },
+    onError: (error: Error) =>
+      toast.error(extractErrorMessage(error, 'Não foi possível limpar os arquivos órfãos')),
+  })
+}

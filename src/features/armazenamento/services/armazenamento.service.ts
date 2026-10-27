@@ -1,6 +1,12 @@
 import { apiClient } from '@/shared/api'
 import { env } from '@/shared/config/env'
-import type { ArmazenamentoResumo, ExpurgoResultado, GaleriaArmazenamento } from '../types/armazenamento.types'
+import type {
+  ArquivosOrfaos,
+  ArmazenamentoResumo,
+  ExpurgoResultado,
+  GaleriaArmazenamento,
+  LimparOrfaosResultado,
+} from '../types/armazenamento.types'
 
 export const armazenamentoService = {
   resumo: async (): Promise<ArmazenamentoResumo> => {
@@ -29,4 +35,14 @@ export const armazenamentoService = {
 
   manifestoUrl: (agendamentoId: string): string =>
     `${env.VITE_API_URL}/admin/armazenamento/galerias/${agendamentoId}/manifesto`,
+
+  orfaos: async (): Promise<ArquivosOrfaos> => {
+    const { data } = await apiClient.get<ArquivosOrfaos>('/admin/armazenamento/orfaos')
+    return data
+  },
+
+  limparOrfaos: async (): Promise<LimparOrfaosResultado> => {
+    const { data } = await apiClient.post<LimparOrfaosResultado>('/admin/armazenamento/orfaos/limpar')
+    return data
+  },
 }

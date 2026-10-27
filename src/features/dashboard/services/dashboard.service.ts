@@ -1,4 +1,5 @@
 import { apiClient } from '@/shared/api'
+import type { ArmazenamentoResumo } from '@/shared/types/armazenamento'
 
 export interface DadosMensais {
   mes: string
@@ -82,6 +83,11 @@ export const dashboardService = {
     const { data } = await apiClient.get<DashboardEcommerceMensalResponse>('/dashboard/ecommerce/mensal', {
       params: { meses },
     })
+    return data
+  },
+
+  armazenamentoResumo: async (): Promise<ArmazenamentoResumo> => {
+    const { data } = await apiClient.get<ArmazenamentoResumo>('/admin/armazenamento/resumo')
     return data
   },
 }
