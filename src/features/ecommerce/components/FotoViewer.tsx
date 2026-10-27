@@ -1,6 +1,6 @@
-import { useEffect, useRef, useState, type TouchEvent } from 'react'
+import { useCallback, useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from 'react'
 import { format } from 'date-fns'
-import { ChevronLeft, ChevronRight, X, Check, Clock, ShoppingCart, Loader2, MessageCircle, Send, User, Heart } from 'lucide-react'
+import { ChevronLeft, ChevronRight, X, Check, Clock, ShoppingCart, Loader2, MessageCircle, Send, User, Heart, ZoomIn, ZoomOut } from 'lucide-react'
 import { toast } from 'sonner'
 import type { FaseGaleria, FotoEnsaio, FotoComentario, ModoGaleria } from '../types/ecommerce.types'
 import { ecommerceService } from '../services/ecommerce.service'
@@ -45,6 +45,10 @@ function formatComentarioData(iso: string): string {
 
 const formatBRL = (value: number) =>
   value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
+
+const ZOOM_TOQUE = 2.5
+const ZOOM_MAX = 4
+const ZOOM_MIN = 1
 
 function ComentarioBubble({ comentario }: { comentario: FotoComentario }) {
   const isStaff = comentario.origem === 'STAFF'
@@ -91,6 +95,42 @@ export function FotoViewer({
     && !foto.compraExtraId
     && foto.versaoAtual !== 'EDITADA'
 
+  // Zoom por toque/clique e pinça (mobile).
+  const areaRef = useRef<HTMLDivElement>(null)
+  const imagemRef = useRef<HTMLImageElement>(null)
+  const ponteirosRef = useRef<Map<number, { x: number; y: number }>>(new Map())
+  const gestoRef = useRef<{
+    pointerId: number
+    x: number
+    y: number
+    panX: number
+    panY: number
+    arrastou: boolean
+  } | null>(null)
+  const pincaRef = useRef<{
+    distancia: number
+    meioX: number
+    meioY: number
+    escala: number
+    panX: number
+    panY: number
+  } | null>(null)
+  const suprimirToqueRef = useRef(false)
+  const [escala, setEscala] = useState(1)
+  const [pan, setPan] = useState({ x: 0, y: 0 })
+  const [arrastando, setArrastando] = useState(false)
+  const zoomado = escala > 1
+
+  const resetarZoom = useCallback(() => {
+    setEscala(1)
+    setPan({ x: 0, y: 0 })
+    setArrastando(false)
+    suprimirToqueRef.current = false
+    ponteirosRef.current.clear()
+    gestoRef.current = null
+    pincaRef.current = null
+  }, [])
+
   // Comentários
   const [comentarios, setComentarios] = useState<FotoComentario[]>([])
   const [carregandoComentarios, setCarregandoComentarios] = useState(false)
@@ -102,6 +142,7 @@ export function FotoViewer({
     const handler = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
         if (commentsOpen) onCommentsOpenChange(false)
+        else if (zoomado) resetarZoom()
         else onClose()
       }
       if (e.key === 'ArrowLeft' && currentIndex > 0 && !commentsOpen) onNavigate(currentIndex - 1)
@@ -109,7 +150,12 @@ export function FotoViewer({
     }
     window.addEventListener('keydown', handler)
     return () => window.removeEventListener('keydown', handler)
-  }, [currentIndex, fotos.length, onClose, onNavigate, commentsOpen, onCommentsOpenChange])
+  }, [currentIndex, fotos.length, onClose, onNavigate, commentsOpen, onCommentsOpenChange, zoomado, resetarZoom])
+
+  // Cada foto (e a abertura de comentários) começa sem zoom.
+  useEffect(() => {
+    resetarZoom()
+  }, [foto.id, commentsOpen, resetarZoom])
 
   useEffect(() => {
     setComentarios([])
@@ -151,21 +197,182 @@ export function FotoViewer({
     return () => { document.body.style.overflow = anterior }
   }, [])
 
-  const toqueRef = useRef<{ x: number; y: number } | null>(null)
-
-  const iniciarToque = (e: TouchEvent<HTMLDivElement>) => {
-    if (commentsOpen || e.touches.length !== 1) return
-    toqueRef.current = { x: e.touches[0].clientX, y: e.touches[0].clientY }
+  const centroDaArea = () => {
+    const area = areaRef.current
+    if (!area) return { x: 0, y: 0 }
+    const rect = area.getBoundingClientRect()
+    return { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 }
   }
 
-  const encerrarToque = (e: TouchEvent<HTMLDivElement>) => {
-    const inicio = toqueRef.current
-    toqueRef.current = null
-    if (!inicio || commentsOpen) return
-    const toque = e.changedTouches[0]
-    if (!toque) return
-    const dx = toque.clientX - inicio.x
-    const dy = toque.clientY - inicio.y
+  const limitesPan = (escalaAtual: number) => {
+    const area = areaRef.current
+    const imagem = imagemRef.current
+    if (!area || !imagem) return { x: 0, y: 0 }
+    return {
+      x: Math.max(0, (imagem.offsetWidth * escalaAtual - area.clientWidth) / 2),
+      y: Math.max(0, (imagem.offsetHeight * escalaAtual - area.clientHeight) / 2),
+    }
+  }
+
+  const limitarPan = (valor: number, limite: number) =>
+    Math.min(limite, Math.max(-limite, valor))
+
+  const medirPinca = () => {
+    const pontos = Array.from(ponteirosRef.current.values())
+    if (pontos.length < 2) return null
+    const [a, b] = pontos
+    const centro = centroDaArea()
+    return {
+      distancia: Math.max(1, Math.hypot(a.x - b.x, a.y - b.y)),
+      meioX: (a.x + b.x) / 2 - centro.x,
+      meioY: (a.y + b.y) / 2 - centro.y,
+    }
+  }
+
+  const entrarZoom = (clientX: number, clientY: number) => {
+    const centro = centroDaArea()
+    const limite = limitesPan(ZOOM_TOQUE)
+    setEscala(ZOOM_TOQUE)
+    setPan({
+      x: limitarPan(-(clientX - centro.x) * ZOOM_TOQUE, limite.x),
+      y: limitarPan(-(clientY - centro.y) * ZOOM_TOQUE, limite.y),
+    })
+  }
+
+  const iniciarPonteiro = (e: ReactPointerEvent<HTMLDivElement>) => {
+    if (commentsOpen) return
+    if (e.pointerType === 'mouse' && e.button !== 0) return
+    e.currentTarget.setPointerCapture(e.pointerId)
+    ponteirosRef.current.set(e.pointerId, { x: e.clientX, y: e.clientY })
+
+    if (ponteirosRef.current.size >= 2) {
+      suprimirToqueRef.current = true
+      gestoRef.current = null
+      setArrastando(false)
+      const medida = medirPinca()
+      if (medida) {
+        pincaRef.current = {
+          ...medida,
+          escala,
+          panX: pan.x,
+          panY: pan.y,
+        }
+      }
+      return
+    }
+
+    suprimirToqueRef.current = false
+    gestoRef.current = {
+      pointerId: e.pointerId,
+      x: e.clientX,
+      y: e.clientY,
+      panX: pan.x,
+      panY: pan.y,
+      arrastou: false,
+    }
+  }
+
+  const moverPonteiro = (e: ReactPointerEvent<HTMLDivElement>) => {
+    const ponto = ponteirosRef.current.get(e.pointerId)
+    if (!ponto) return
+    ponto.x = e.clientX
+    ponto.y = e.clientY
+
+    if (ponteirosRef.current.size >= 2) {
+      const pinca = pincaRef.current
+      const medida = medirPinca()
+      if (!pinca || !medida) return
+      e.preventDefault()
+      setArrastando(true)
+      const bruta = pinca.escala * (medida.distancia / pinca.distancia)
+      const novaEscala = Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, bruta))
+      const limite = limitesPan(novaEscala)
+      const razao = novaEscala / pinca.escala
+      setEscala(novaEscala)
+      setPan({
+        x: limitarPan(medida.meioX - razao * (pinca.meioX - pinca.panX), limite.x),
+        y: limitarPan(medida.meioY - razao * (pinca.meioY - pinca.panY), limite.y),
+      })
+      return
+    }
+
+    const gesto = gestoRef.current
+    if (!gesto || gesto.pointerId !== e.pointerId) return
+    const dx = e.clientX - gesto.x
+    const dy = e.clientY - gesto.y
+    if (!gesto.arrastou && Math.hypot(dx, dy) > 6) gesto.arrastou = true
+    if (!gesto.arrastou || escala <= 1) return
+    e.preventDefault()
+    setArrastando(true)
+    const limite = limitesPan(escala)
+    setPan({
+      x: limitarPan(gesto.panX + dx, limite.x),
+      y: limitarPan(gesto.panY + dy, limite.y),
+    })
+  }
+
+  const finalizarPonteiro = (e: ReactPointerEvent<HTMLDivElement>) => {
+    const eraPinca = ponteirosRef.current.size >= 2
+    const pincaAtiva = pincaRef.current !== null
+    ponteirosRef.current.delete(e.pointerId)
+
+    if (ponteirosRef.current.size >= 2) {
+      const medida = medirPinca()
+      if (medida) {
+        pincaRef.current = {
+          ...medida,
+          escala,
+          panX: pan.x,
+          panY: pan.y,
+        }
+      }
+      return
+    }
+
+    // Uma pinça terminou com um dedo ainda na tela: continua em modo pan.
+    if (ponteirosRef.current.size === 1) {
+      pincaRef.current = null
+      setArrastando(false)
+      const [pointerId, ponto] = Array.from(ponteirosRef.current.entries())[0]
+      gestoRef.current = {
+        pointerId,
+        x: ponto.x,
+        y: ponto.y,
+        panX: pan.x,
+        panY: pan.y,
+        arrastou: true,
+      }
+      return
+    }
+
+    pincaRef.current = null
+    const gesto = gestoRef.current
+    gestoRef.current = null
+    setArrastando(false)
+
+    // Pinça/toque com mais de um dedo nunca alterna o zoom ao soltar.
+    if (pincaAtiva || eraPinca || suprimirToqueRef.current) {
+      if (escala < 1.05) resetarZoom()
+      suprimirToqueRef.current = false
+      return
+    }
+
+    if (!gesto || gesto.pointerId !== e.pointerId) return
+
+    if (!gesto.arrastou) {
+      if (zoomado) {
+        resetarZoom()
+      } else {
+        entrarZoom(e.clientX, e.clientY)
+      }
+      return
+    }
+
+    // Com zoom ativo o arrasto é pan, não navegação.
+    if (zoomado) return
+
+    const dx = e.clientX - gesto.x
+    const dy = e.clientY - gesto.y
     // Exige deslocamento horizontal claro para não conflitar com toques na vertical.
     if (Math.abs(dx) < 50 || Math.abs(dx) < Math.abs(dy) * 1.2) return
     if (dx < 0 && currentIndex < fotos.length - 1) {
@@ -175,6 +382,29 @@ export function FotoViewer({
       onCommentsOpenChange(false)
       onNavigate(currentIndex - 1)
     }
+  }
+
+  const cancelarPonteiro = (e: ReactPointerEvent<HTMLDivElement>) => {
+    ponteirosRef.current.delete(e.pointerId)
+    pincaRef.current = null
+    gestoRef.current = null
+    setArrastando(false)
+    suprimirToqueRef.current = ponteirosRef.current.size > 0
+    if (escala < 1.05) resetarZoom()
+  }
+
+  const alternarZoom = () => {
+    if (zoomado) {
+      resetarZoom()
+      return
+    }
+    const area = areaRef.current
+    if (!area) {
+      setEscala(ZOOM_TOQUE)
+      return
+    }
+    const rect = area.getBoundingClientRect()
+    entrarZoom(rect.left + rect.width / 2, rect.top + rect.height / 2)
   }
 
   return (
@@ -193,6 +423,13 @@ export function FotoViewer({
             {currentIndex + 1} / {fotos.length}
           </p>
         </div>
+        <button onClick={alternarZoom}
+          aria-label={zoomado ? 'Reduzir foto' : 'Ampliar foto'}
+          aria-pressed={zoomado}
+          title={zoomado ? 'Reduzir foto' : 'Ampliar foto'}
+          className={cn('h-11 w-11 shrink-0', controlBtn)}>
+          {zoomado ? <ZoomOut className="h-5 w-5" /> : <ZoomIn className="h-5 w-5" />}
+        </button>
         <button onClick={onClose} aria-label="Fechar visualização"
           className={cn('h-11 w-11 shrink-0', controlBtn)}>
           <X className="h-5 w-5" />
@@ -200,21 +437,43 @@ export function FotoViewer({
       </div>
 
       {/* Imagem */}
-      <div className="relative flex min-h-0 flex-1 items-center justify-center px-2 pb-1 sm:px-6"
-        style={{ touchAction: 'pan-y' }}
-        onTouchStart={iniciarToque}
-        onTouchEnd={encerrarToque}>
-        <div
-          role="img"
-          aria-label={foto.fileName}
-          className="pointer-events-none h-full w-full select-none bg-contain bg-center bg-no-repeat [-webkit-touch-callout:none]"
-          style={{ backgroundImage: `url("${foto.watermarkedUrl}")` }}
+      <div
+        ref={areaRef}
+        className="relative flex min-h-0 flex-1 items-center justify-center overflow-hidden px-2 pb-1 sm:px-6">
+        <img
+          ref={imagemRef}
+          src={foto.watermarkedUrl}
+          alt={foto.titulo || foto.fileName}
+          draggable={false}
+          className={cn(
+            'pointer-events-none block max-h-full max-w-full select-none object-contain [-webkit-touch-callout:none] will-change-transform',
+            !arrastando && 'transition-transform duration-200 ease-out',
+          )}
+          style={{ transform: `translate3d(${pan.x}px, ${pan.y}px, 0) scale(${escala})` }}
           onContextMenu={(e) => e.preventDefault()}
         />
-        {/* Overlay: dificulta salvar imagem / menu de toque longo. */}
+        {/* Overlay interativo: aplica zoom/pan e bloqueia o menu de toque longo. */}
         <div
-          className="absolute inset-0 select-none [-webkit-touch-callout:none]"
-          aria-hidden="true"
+          role="button"
+          tabIndex={0}
+          aria-label={zoomado ? 'Reduzir foto' : 'Ampliar foto'}
+          aria-pressed={zoomado}
+          title={zoomado ? 'Toque para reduzir' : 'Toque para ampliar'}
+          className={cn(
+            'absolute inset-0 select-none outline-none [-webkit-touch-callout:none] focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-gallery-bg/70',
+            zoomado ? 'cursor-zoom-out' : 'cursor-zoom-in',
+          )}
+          style={{ touchAction: 'none' }}
+          onPointerDown={iniciarPonteiro}
+          onPointerMove={moverPonteiro}
+          onPointerUp={finalizarPonteiro}
+          onPointerCancel={cancelarPonteiro}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault()
+              alternarZoom()
+            }
+          }}
           onContextMenu={(e) => e.preventDefault()}
         />
 

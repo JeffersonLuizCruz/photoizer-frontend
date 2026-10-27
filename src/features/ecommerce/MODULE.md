@@ -136,7 +136,8 @@ Não existem testes para este módulo.
 - `GaleriaTimeline` e `GaleriaIntro` adaptam as etapas e o texto quando `requerEdicao = false` (“Aprovação”/“Liberada”).
 - O `CartSummaryPanel` mostra “Extras da seleção” durante a seleção/edição e “Meu Carrinho” na comercialização, com aviso de quando a compra será liberada.
 - **PIX do e-commerce**: a chave é global e somente `ADMIN` altera. O controle fica no workspace da galeria (aba Visão geral, `GaleriaPagamentoPixCard`) e em Pedidos → Ecommerce. `MinhasComprasSection` exibe a chave atual para compras PIX pendentes, com botão de copiar; a chave não é congelada na compra, então correções do staff aparecem no polling/“Atualizar”.
-- As prévias públicas usam o endpoint de watermark em resolução reduzida (**800px**, JPEG ~0.60), com marca d'água da contratada. A UI bloqueia menu de contexto, arraste, seleção e callout de toque longo; o visualizador usa `background-image` com overlay para dificultar salvar a imagem.
+- As prévias públicas usam o endpoint de watermark em resolução reduzida (**800px**, JPEG ~0.60), com marca d'água da contratada. A UI bloqueia menu de contexto, arraste, seleção e callout de toque longo; o visualizador usa `<img>` com overlay para dificultar salvar a imagem.
+- No visualizador, toque/clique alterna o zoom (2,5x no ponto tocado), a pinça ajusta a escala continuamente (até 4x) e o arrasto move a imagem. O swipe horizontal só navega entre fotos quando a imagem está em 1x.
 - Arquivos editados finais e downloads permanecem em alta qualidade e sem marca d'água.
 
 ## 8. Pontos de Atenção
