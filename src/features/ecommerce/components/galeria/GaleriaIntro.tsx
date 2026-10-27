@@ -11,6 +11,7 @@ interface GaleriaIntroProps {
   selectedCount: number
   favoritosCount: number
   carrinhoCount: number
+  previsaoEntrega?: string | null
 }
 
 function conteudo(modo: ModoGaleria, fase: FaseGaleria, pacoteLimit: number, requerEdicao: boolean) {
@@ -82,6 +83,7 @@ export function GaleriaIntro({
   selectedCount,
   favoritosCount,
   carrinhoCount,
+  previsaoEntrega,
 }: GaleriaIntroProps) {
   const { titulo, descricao } = conteudo(modo, fase, pacoteLimit, requerEdicao)
   const percentual = pacoteLimit > 0 ? Math.min(100, Math.round((selectedCount / pacoteLimit) * 100)) : 0
@@ -98,6 +100,12 @@ export function GaleriaIntro({
       <p className="mx-auto mt-3 max-w-xl text-sm leading-relaxed text-gallery-muted">
         {descricao}
       </p>
+
+      {previsaoEntrega && (
+        <p className="mt-3 text-[11px] uppercase tracking-[0.18em] text-gallery-accent">
+          Previsão de entrega: {previsaoEntrega}
+        </p>
+      )}
 
       {mostrarProgresso && (
         <div className="mx-auto mt-7 max-w-xs">

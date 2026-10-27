@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useCustomerAuth } from './store'
-import { Camera, LogOut, ChevronRight, Loader2, User, Image } from 'lucide-react'
+import { Camera, LogOut, ChevronRight, Loader2, User, Image, Clock } from 'lucide-react'
 import { ecommerceService } from '@/features/ecommerce/services/ecommerce.service'
+import type { GaleriaStatusResponse } from '@/features/ecommerce/types/ecommerce.types'
 import type { AgendamentoCliente } from './types'
 import { CustomerAgendamentoCard } from './CustomerAgendamentoCard'
 
@@ -10,14 +11,40 @@ export function CustomerDashboardPage() {
   const { user, logout } = useCustomerAuth()
   const navigate = useNavigate()
   const [agendamentos, setAgendamentos] = useState<AgendamentoCliente[]>([])
+  const [statusPorAgendamento, setStatusPorAgendamento] = useState<Record<string, GaleriaStatusResponse | null>>({})
   const [isLoadingAgendamentos, setIsLoadingAgendamentos] = useState(true)
 
   useEffect(() => {
     if (!user) return
-    ecommerceService.listarAgendamentosCliente()
-      .then(setAgendamentos)
-      .catch(() => {})
-      .finally(() => setIsLoadingAgendamentos(false))
+    let ativo = true
+
+    const carregar = async () => {
+      try {
+        const lista = await ecommerceService.listarAgendamentosCliente()
+        if (!ativo) return
+        setAgendamentos(lista)
+
+        // O status publico funciona mesmo sem fotos publicadas. Uma falha em um
+        // ensaio (link expirado/arquivado) não impede os demais de aparecerem.
+        const pares = await Promise.all(lista.map(async (agendamento) => {
+          try {
+            return [agendamento.id, await ecommerceService.galeriaStatus(agendamento.tokenGaleria)] as const
+          } catch {
+            return [agendamento.id, null] as const
+          }
+        }))
+        if (ativo) {
+          setStatusPorAgendamento(Object.fromEntries(pares))
+        }
+      } catch {
+        // Mantém a lista vazia; o usuário pode tentar novamente ao recarregar.
+      } finally {
+        if (ativo) setIsLoadingAgendamentos(false)
+      }
+    }
+
+    void carregar()
+    return () => { ativo = false }
   }, [user])
 
   const handleLogout = () => {
@@ -66,6 +93,11 @@ export function CustomerDashboardPage() {
             <p className="text-2xl font-bold">{agendamentosComFotos.length}</p>
             <p className="text-xs text-muted-foreground">Ensaios com fotos</p>
           </div>
+          <div className="rounded-xl border bg-card p-4">
+            <Clock className="h-5 w-5 text-primary mb-2" />
+            <p className="text-2xl font-bold">{agendamentosSemFotos.length}</p>
+            <p className="text-xs text-muted-foreground">Em preparação</p>
+          </div>
         </div>
 
         {/* Seção: Meus Ensaios */}
@@ -86,7 +118,7 @@ export function CustomerDashboardPage() {
               {agendamentosComFotos.length > 0 && (
                 <div className="grid gap-4 sm:grid-cols-2">
                   {agendamentosComFotos.map((a) => (
-                    <CustomerAgendamentoCard key={a.id} agendamento={a} />
+                    <CustomerAgendamentoCard key={a.id} agendamento={a} status={statusPorAgendamento[a.id]} />
                   ))}
                 </div>
               )}
@@ -94,18 +126,11 @@ export function CustomerDashboardPage() {
                 <details className="group">
                   <summary className="text-xs text-muted-foreground cursor-pointer hover:text-foreground transition-colors list-none flex items-center gap-1">
                     <ChevronRight className="h-3 w-3 group-open:rotate-90 transition-transform" />
-                    {agendamentosSemFotos.length} ensaio(s) sem fotos publicadas
+                    {agendamentosSemFotos.length} ensaio(s) em preparação
                   </summary>
-                  <div className="mt-3 space-y-2">
+                  <div className="mt-3 grid gap-4 sm:grid-cols-2">
                     {agendamentosSemFotos.map((a) => (
-                      <div key={a.id} className="rounded-lg border bg-card/50 p-3 flex items-center justify-between">
-                        <div>
-                          <p className="text-xs font-medium">{a.pacoteNome}</p>
-                          <p className="text-[11px] text-muted-foreground">
-                            {new Date(a.dataHoraEnsaio).toLocaleDateString('pt-BR')} · {a.statusDescricao}
-                          </p>
-                        </div>
-                      </div>
+                      <CustomerAgendamentoCard key={a.id} agendamento={a} status={statusPorAgendamento[a.id]} />
                     ))}
                   </div>
                 </details>

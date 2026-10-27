@@ -18,6 +18,7 @@ features/ecommerce/
 │   ├── DepoimentosSection.tsx        # Seção de depoimentos + formulário
 │   ├── EcommerceAdminResumo.tsx      # Resumo e-commerce por agendamento (admin)
 │   ├── FotoViewer.tsx                # Visualizador fullscreen de fotos
+│   ├── GaleriaPipelinePanel.tsx      # Fila operacional da Central de Galerias
 │   ├── MinhasComprasSection.tsx      # Histórico de compras do cliente
 │   ├── PhotoGrid.tsx                 # Grid responsivo de fotos (legado)
 │   ├── galeria/                      # Experiência editorial da galeria pública
@@ -33,9 +34,8 @@ features/ecommerce/
 │   └── PurchaseConfirmation.tsx      # Tela de sucesso pós-compra
 ├── pages/
 │   ├── AdminAnalyticsPage.tsx        # Analytics e-commerce (admin)
-│   ├── AdminCuponsPage.tsx           # Gerenciamento de cupons (admin)
-│   ├── AdminEcommercePage.tsx        # Compras pendentes (admin)
-│   ├── AdminPedidosPage.tsx          # Pedidos do e-commerce (admin)
+│   ├── AdminEcommercePage.tsx        # Vendas de extras (aba "Vendas"; embutível)
+│   ├── AdminGaleriasPage.tsx         # Central de Galerias (Fila + Vendas)
 │   ├── CheckoutPage.tsx              # Checkout completo (5 steps)
 │   ├── GaleriaClientePage.tsx        # Galeria pública do cliente
 │   └── PackageCatalogPage.tsx        # Catálogo de pacotes (público)
@@ -141,8 +141,21 @@ Não existem testes para este módulo.
 ## 8. Pontos de Atenção
 - **Maior módulo do frontend**: 19 arquivos, 7 páginas, 10 componentes, service com 30+ métodos.
 - **Violações de isolamento**: Importa `PacoteResponse` de `@/features/pacotes` (3 arquivos) e `useCustomerAuth` + `AgendamentoCliente` de `@/features/auth` (2 arquivos).
-- **Sem `api/queries.ts`**: Hooks espalhados entre páginas e componentes — difícil de manter e reusar.
+- **Hooks parcialmente centralizados**: `api/queries.ts` cobre a fila da Central de Galerias; galeria/checkout ainda usam `useState`/`useEffect`.
 - **`CheckoutPage` com `any`**: `PedidoRequest` e `CupomFormState` têm cast `as any` — brecha de type safety.
 - **`GaleriaClientePage` (805 linhas)**: Maior arquivo do módulo — mistura dados, UI e lógica de negócio. Forte candidato a refatoração.
 - **`ecommerce.service.ts` (282 linhas)**: Segundo maior service do frontend. Agrupa métodos de cliente e admin — poderia ser dividido.
 - **Dead code potencial**: `DashboardEcommerceResponse` e `DashboardEcommerceMensalResponse` parecem duplicados do dashboard.
+
+## 9. Central de Galerias
+
+- A rota `/admin/ecommerce` passou a renderizar **`AdminGaleriasPage`** (menu renomeado para **Galerias**), com as abas **Fila de trabalho** e **Vendas**. A rota foi mantida para não quebrar links.
+- **Fila**: `GaleriaPipelinePanel` consome `GET /admin/galerias/pipeline` e `/resumo`. Os cards do topo filtram por etapa (e por atrasadas), há busca por cliente/pacote/local, ordenação por urgência e paginação.
+- Cada item mostra etapa, dias na etapa, prazo do pacote, contadores de fotos/seleção/extras, pendências (pagamento, extra a editar, link expirado) e a **próxima ação** com deep link para o workspace (`?tab=fotos|selecao|visao`).
+- O link da galeria pode ser copiado; quando o token expirou, a fila oferece **Novo link** (`adminRegenToken`).
+- **Vendas** reutiliza `AdminEcommercePage` com `embedded` (sem `PageTitle`), mantendo compras, confirmação, cancelamento, link de cartão e configuração de PIX.
+- Hooks em `api/queries.ts` (`useGaleriaPipeline`, `useGaleriaPipelineResumo`) invalidam por `refetchInterval` de 60s.
+- O endpoint público de etapa (`GET /ecommerce/galeria/{token}/status`) alimenta o **acompanhamento do cliente**:
+  - `/g/:token` sem fotos publicadas mostra `GaleriaEmPreparacao` (etapa, mensagem, linha do tempo e previsão de entrega) em vez da tela vazia; o botão “Atualizar” reconsulta o status.
+  - com fotos, o `GaleriaIntro` exibe a previsão de entrega quando o ensaio ainda não foi entregue.
+  - `/minha-conta` busca o status por ensaio (tolerante a falha individual) e o `CustomerAgendamentoCard` mostra a etapa real, a previsão e o botão **Acompanhar ensaio** mesmo sem fotos publicadas.

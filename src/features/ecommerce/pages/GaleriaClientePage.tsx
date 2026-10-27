@@ -1,9 +1,9 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import { useParams } from 'react-router-dom'
-import { Camera, Columns2, Search, ShieldAlert, X } from 'lucide-react'
+import { Columns2, Search, ShieldAlert, X } from 'lucide-react'
 import { toast } from 'sonner'
 import { ecommerceService } from '../services/ecommerce.service'
-import type { FotoEnsaio, CompraExtraResponse, MetodoPagamento } from '../types/ecommerce.types'
+import type { FotoEnsaio, CompraExtraResponse, MetodoPagamento, GaleriaStatusResponse } from '../types/ecommerce.types'
 import type { GaleriaResponse } from '../services/ecommerce.service'
 import { FotoViewer } from '../components/FotoViewer'
 import { CheckoutDialog } from '../components/CheckoutDialog'
@@ -21,6 +21,7 @@ import { GaleriaExtraDialog } from '../components/galeria/GaleriaExtraDialog'
 import { GaleriaConfirmarSelecao } from '../components/galeria/GaleriaConfirmarSelecao'
 import { GaleriaTimeline } from '../components/galeria/GaleriaTimeline'
 import { GaleriaArquivada } from '../components/galeria/GaleriaArquivada'
+import { GaleriaEmPreparacao } from '../components/galeria/GaleriaEmPreparacao'
 import { extractErrorMessage } from '@/shared/api'
 import { ConfirmDialog } from '@/shared/components/layout/ConfirmDialog'
 import { cn } from '@/shared/lib/cn'
@@ -36,9 +37,17 @@ function scrollSuavePara(id: string) {
   window.scrollTo({ top: Math.max(0, topo), behavior: reduzir ? 'auto' : 'smooth' })
 }
 
+function formatarDataLonga(valor: string | null | undefined): string | null {
+  if (!valor) return null
+  const data = valor.length === 10 ? new Date(`${valor}T00:00:00`) : new Date(valor)
+  if (Number.isNaN(data.getTime())) return null
+  return new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' }).format(data)
+}
+
 export function GaleriaClientePage() {
   const { token } = useParams<{ token: string }>()
   const [galeria, setGaleria] = useState<GaleriaResponse | null>(null)
+  const [statusGaleria, setStatusGaleria] = useState<GaleriaStatusResponse | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [arquivada, setArquivada] = useState(false)
@@ -104,6 +113,11 @@ export function GaleriaClientePage() {
     && (foto.selecionadaPacote || foto.status === 'PAGA')
     && (!requerEdicao || foto.versaoAtual === 'EDITADA')
   const downloadableFotos = fotos.filter(isDownloadable)
+  const previsaoEntrega = statusGaleria
+    && statusGaleria.etapa !== 'CONCLUIDA'
+    && statusGaleria.etapa !== 'ARQUIVADA'
+    ? formatarDataLonga(statusGaleria.previsaoEntrega)
+    : null
 
   const capa = useMemo(
     () => fotos.find((f) => f.destaque) ?? fotos[0] ?? null,
@@ -158,8 +172,18 @@ export function GaleriaClientePage() {
     carregandoRef.current = true
     if (mostrarLoading) setIsLoading(true)
     try {
-      const data = await ecommerceService.galeria(token)
+      // O status publico funciona mesmo antes da publicacao das fotos. Ele e
+      // opcional: uma falha nele nao deve impedir a galeria de abrir.
+      const [resultadoGaleria, resultadoStatus] = await Promise.allSettled([
+        ecommerceService.galeria(token),
+        ecommerceService.galeriaStatus(token),
+      ])
+      if (resultadoGaleria.status === 'rejected') {
+        throw resultadoGaleria.reason
+      }
+      const data = resultadoGaleria.value
       setGaleria(data)
+      setStatusGaleria(resultadoStatus.status === 'fulfilled' ? resultadoStatus.value : null)
       setArquivada(false)
       if (sincronizarSelecao) {
         setSelectedIds(new Set(data.fotos.filter((f) => f.selecionadaPacote).map((f) => f.id)))
@@ -589,17 +613,11 @@ export function GaleriaClientePage() {
 
   if (fotos.length === 0) {
     return (
-      <div className="flex min-h-dvh items-center justify-center bg-gallery-bg px-4">
-        <div className="max-w-sm text-center">
-          <Camera className="mx-auto h-10 w-10 text-gallery-accent" />
-          <h1 className="mt-4 text-balance font-display text-2xl text-gallery-ink">
-            As fotos ainda não chegaram
-          </h1>
-          <p className="mt-2 text-sm leading-relaxed text-gallery-muted">
-            Assim que o estúdio publicar sua galeria, elas aparecerão aqui.
-          </p>
-        </div>
-      </div>
+      <GaleriaEmPreparacao
+        status={statusGaleria}
+        onRefresh={() => void carregarGaleria(true)}
+        isRefreshing={isLoading}
+      />
     )
   }
 
@@ -634,6 +652,7 @@ export function GaleriaClientePage() {
           selectedCount={selectedIds.size}
           favoritosCount={favoritoIds.size}
           carrinhoCount={carrinhoCount}
+          previsaoEntrega={previsaoEntrega}
         />
 
         {galeria?.selecaoReaberta && faseGaleria === 'SELECAO' && (
