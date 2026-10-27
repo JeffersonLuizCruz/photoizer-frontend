@@ -1,6 +1,6 @@
-import { apiClient } from '@/shared/api'
+import { apiClient, downloadProtected } from '@/shared/api'
 import { env } from '@/shared/config/env'
-import type { FotoEnsaio, CompraExtraResponse, AdminEcommerceResumoResponse, CarrinhoResponse, CalculoCarrinhoResponse, MetodoPagamento, AdminCompraDetalheResponse, AdminComprasRelatorioResponse, CompraExtraPendenteEdicaoResponse, Avaliacao, Sessao, EcommerceAnalyticsResponse, DashboardEcommerceResponse, DashboardEcommerceMensalResponse, FotoComentario, ComentariosPorFotoResponse, ConfiguracaoPagamentoResponse, SelecaoEnsaioResponse, SelecaoPendenteResponse, GaleriaEnsaioResponse, ModoGaleria, FaseGaleria, EtapaGaleria, GaleriaPipelineItem, GaleriaPipelineResumo, GaleriaStatusResponse } from '../types/ecommerce.types'
+import type { FotoEnsaio, CompraExtraResponse, AdminEcommerceResumoResponse, CarrinhoResponse, CalculoCarrinhoResponse, MetodoPagamento, AdminCompraDetalheResponse, AdminComprasRelatorioResponse, CompraExtraPendenteEdicaoResponse, Avaliacao, Sessao, EcommerceAnalyticsResponse, DashboardEcommerceResponse, DashboardEcommerceMensalResponse, FotoComentario, ComentariosPorFotoResponse, ConfiguracaoPagamentoResponse, SelecaoEnsaioResponse, SelecaoPendenteResponse, GaleriaEnsaioResponse, ModoGaleria, FaseGaleria, EtapaGaleria, GaleriaPipelineItem, GaleriaPipelineResumo, GaleriaStatusResponse, GaleriaPerformance } from '../types/ecommerce.types'
 import type { PacoteResponse } from '@/features/pacotes/types/pacotes.types'
 import type { AgendamentoCliente } from '@/features/auth/customer/types'
 import type { PaginatedResponse } from '@/shared/types'
@@ -268,6 +268,29 @@ export const ecommerceService = {
   adminGaleriaPipelineResumo: async (): Promise<GaleriaPipelineResumo> => {
     const { data } = await apiClient.get<GaleriaPipelineResumo>('/admin/galerias/pipeline/resumo')
     return data
+  },
+
+  adminGaleriaPerformance: async (meses: number = 6): Promise<GaleriaPerformance> => {
+    const { data } = await apiClient.get<GaleriaPerformance>('/admin/galerias/desempenho', {
+      params: { meses },
+    })
+    return data
+  },
+
+  adminExportarGaleriaPipeline: async (params?: {
+    etapa?: EtapaGaleria
+    busca?: string
+    atrasadas?: boolean
+  }): Promise<void> => {
+    const query = new URLSearchParams()
+    if (params?.etapa) query.set('etapa', params.etapa)
+    if (params?.busca) query.set('busca', params.busca)
+    if (params?.atrasadas) query.set('atrasadas', 'true')
+    const sufixo = query.toString()
+    await downloadProtected(
+      `/admin/galerias/pipeline/export.csv${sufixo ? `?${sufixo}` : ''}`,
+      'galerias.csv',
+    )
   },
 
   adminOverrideSelecao: async (agendamentoId: string, fotoId: string, selecionada: boolean): Promise<FotoEnsaio> => {

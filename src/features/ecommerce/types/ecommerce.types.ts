@@ -142,6 +142,35 @@ export interface GaleriaStatusResponse {
   tokenExpiracao: string | null
 }
 
+export interface GaleriaPerformanceSerieMensal {
+  mes: string
+  galerias: number
+  publicadas: number
+  comExtras: number
+  receitaExtras: number
+  tempoMedioPublicacaoDias: number | null
+}
+
+export interface GaleriaPerformance {
+  meses: number
+  totalGalerias: number
+  publicadas: number
+  comSelecao: number
+  comercializadas: number
+  comExtras: number
+  atrasadas: number
+  tempoMedioPublicacaoDias: number | null
+  tempoMedioEdicaoDias: number | null
+  tempoMedioEntregaDias: number | null
+  receitaExtras: number
+  ticketMedioExtras: number
+  extrasPorGaleria: number
+  conversaoExtras: number
+  totalFotosExtras: number
+  totalComprasPagas: number
+  serieMensal: GaleriaPerformanceSerieMensal[]
+}
+
 export interface GaleriaEnsaioResponse {
   agendamentoId: string
   modo: ModoGaleria

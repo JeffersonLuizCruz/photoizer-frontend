@@ -13,6 +13,7 @@ export interface GaleriaPipelineFiltros {
 export const GALERIA_PIPELINE_KEYS = {
   fila: (filtros: GaleriaPipelineFiltros) => ['galeria-pipeline', filtros] as const,
   resumo: ['galeria-pipeline-resumo'] as const,
+  desempenho: (meses: number) => ['galeria-desempenho', meses] as const,
 }
 
 export function useGaleriaPipeline(filtros: GaleriaPipelineFiltros) {
@@ -30,5 +31,13 @@ export function useGaleriaPipelineResumo() {
     queryFn: () => ecommerceService.adminGaleriaPipelineResumo(),
     staleTime: 30_000,
     refetchInterval: 60_000,
+  })
+}
+
+export function useGaleriaPerformance(meses: number) {
+  return useQuery({
+    queryKey: GALERIA_PIPELINE_KEYS.desempenho(meses),
+    queryFn: () => ecommerceService.adminGaleriaPerformance(meses),
+    staleTime: 60_000,
   })
 }

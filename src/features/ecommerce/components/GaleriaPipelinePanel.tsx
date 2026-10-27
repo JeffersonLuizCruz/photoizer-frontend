@@ -7,6 +7,7 @@ import {
   CalendarDays,
   ChevronLeft,
   ChevronRight,
+  Download,
   ExternalLink,
   Image,
   Link2,
@@ -222,6 +223,7 @@ export function GaleriaPipelinePanel() {
   const [atrasadas, setAtrasadas] = useState(false)
   const [page, setPage] = useState(1)
   const perPage = 20
+  const [isExporting, setIsExporting] = useState(false)
 
   const buscaDebounced = useDebounce(busca, 400)
 
@@ -261,6 +263,22 @@ export function GaleriaPipelinePanel() {
     setEtapa((valor) => (valor === card.etapa ? undefined : card.etapa))
   }
 
+  const exportarCsv = async () => {
+    setIsExporting(true)
+    try {
+      await ecommerceService.adminExportarGaleriaPipeline({
+        etapa,
+        busca: buscaDebounced || undefined,
+        atrasadas: atrasadas || undefined,
+      })
+      toast.success('Fila exportada em CSV')
+    } catch (err: unknown) {
+      toast.error(extractErrorMessage(err, 'Não foi possível exportar a fila'))
+    } finally {
+      setIsExporting(false)
+    }
+  }
+
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
@@ -293,6 +311,19 @@ export function GaleriaPipelinePanel() {
           )
         })}
       </div>
+
+      {resumo && resumo.atrasadas > 0 && !atrasadas && (
+        <div className="flex flex-wrap items-center gap-3 rounded-lg border border-rose-200 bg-rose-50 p-3 text-sm text-rose-700">
+          <AlertTriangle className="h-4 w-4 shrink-0" />
+          <p className="min-w-[200px] flex-1">
+            <strong>{resumo.atrasadas}</strong> galeria(s) com o prazo do pacote vencido.
+            Priorize estas entregas.
+          </p>
+          <Button variant="outline" size="sm" onClick={() => setAtrasadas(true)}>
+            Ver atrasadas
+          </Button>
+        </div>
+      )}
 
       <div className="flex flex-wrap items-center gap-2 rounded-lg border bg-card p-3">
         <div className="relative min-w-[220px] flex-1">
@@ -336,6 +367,12 @@ export function GaleriaPipelinePanel() {
             Limpar filtros
           </Button>
         )}
+        <Button variant="outline" size="sm" onClick={exportarCsv} disabled={isExporting}>
+          {isExporting
+            ? <Loader2 className="mr-1 h-4 w-4 animate-spin" />
+            : <Download className="mr-1 h-4 w-4" />}
+          Exportar CSV
+        </Button>
       </div>
 
       {isLoading && (

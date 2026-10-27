@@ -18,6 +18,7 @@ features/ecommerce/
 │   ├── DepoimentosSection.tsx        # Seção de depoimentos + formulário
 │   ├── EcommerceAdminResumo.tsx      # Resumo e-commerce por agendamento (admin)
 │   ├── FotoViewer.tsx                # Visualizador fullscreen de fotos
+│   ├── GaleriaPerformancePanel.tsx   # SLA, funil, extras e série mensal
 │   ├── GaleriaPipelinePanel.tsx      # Fila operacional da Central de Galerias
 │   ├── MinhasComprasSection.tsx      # Histórico de compras do cliente
 │   ├── PhotoGrid.tsx                 # Grid responsivo de fotos (legado)
@@ -159,3 +160,14 @@ Não existem testes para este módulo.
   - `/g/:token` sem fotos publicadas mostra `GaleriaEmPreparacao` (etapa, mensagem, linha do tempo e previsão de entrega) em vez da tela vazia; o botão “Atualizar” reconsulta o status.
   - com fotos, o `GaleriaIntro` exibe a previsão de entrega quando o ensaio ainda não foi entregue.
   - `/minha-conta` busca o status por ensaio (tolerante a falha individual) e o `CustomerAgendamentoCard` mostra a etapa real, a previsão e o botão **Acompanhar ensaio** mesmo sem fotos publicadas.
+
+## 10. Gestão (SLA, funil e exportação)
+
+- A aba **Desempenho** (`Admin`/`Fotografo`) consome `GET /admin/galerias/desempenho?meses=3|6|12` e mostra:
+  - tempo médio ensaio → publicação, seleção → publicação e ensaio → entrega;
+  - atrasadas no período, receita/ticket/extras por galeria e conversão de extras;
+  - funil (publicadas → com seleção → comercializadas → com extras);
+  - série mensal (galerias, publicadas, com extras, receita e tempo até publicar).
+- A fila exibe um alerta vermelho quando há galerias com prazo vencido e um atalho para filtrar as atrasadas.
+- **Exportar CSV** baixa a fila com os filtros atuais (`etapa`, `busca`, `atrasadas`) via `downloadProtected`; o backend responde com BOM UTF-8 e separador `;` para abrir direto no Excel pt-BR.
+- A rota antiga `/admin/analytics` redireciona para `?tab=desempenho`; `EDITOR` é direcionado para a fila (não vê indicadores financeiros).
