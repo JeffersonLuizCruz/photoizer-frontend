@@ -87,7 +87,56 @@ const ORFAOS = {
   ],
 }
 
-async function mockApi(page: Page, callbacks: { onExpurgar?: () => void; onLimparOrfaos?: () => void } = {}) {
+const HISTORICO = {
+  dias: 30,
+  snapshots: [
+    {
+      data: '2026-10-25',
+      bytesFotos: 5_000,
+      bytesDerivados: 200,
+      bytesEditadas: 100,
+      bytesDocumentos: 50,
+      bytesPropostas: 10,
+      bytesOutros: 0,
+      bytesTotal: 5_360,
+      volumeTotal: 100_000,
+      volumeLivre: 94_640,
+      totalFotos: 10,
+      totalGalerias: 1,
+      galeriasArquivadas: 0,
+      fotosArquivadas: 0,
+      bytesLiberadosNoDia: 0,
+      coletadoEm: '2026-10-25T23:55:00',
+    },
+    {
+      data: '2026-10-26',
+      bytesFotos: 4_500,
+      bytesDerivados: 200,
+      bytesEditadas: 100,
+      bytesDocumentos: 50,
+      bytesPropostas: 10,
+      bytesOutros: 0,
+      bytesTotal: 4_860,
+      volumeTotal: 100_000,
+      volumeLivre: 95_140,
+      totalFotos: 9,
+      totalGalerias: 1,
+      galeriasArquivadas: 1,
+      fotosArquivadas: 1,
+      bytesLiberadosNoDia: 500,
+      coletadoEm: '2026-10-26T23:55:00',
+    },
+  ],
+}
+
+interface MockCallbacks {
+  onExpurgar?: () => void
+  onLimparOrfaos?: () => void
+  onColetarHistorico?: () => void
+  historico?: unknown
+}
+
+async function mockApi(page: Page, callbacks: MockCallbacks = {}) {
   await page.addInitScript((user) => {
     window.localStorage.setItem('photoizer_auth_token', 'e2e-test-token')
     window.localStorage.setItem('photoizer_auth_user', JSON.stringify(user))
@@ -118,6 +167,16 @@ async function mockApi(page: Page, callbacks: { onExpurgar?: () => void; onLimpa
       return
     }
 
+    if (metodo === 'POST' && path.endsWith('/historico/coletar')) {
+      callbacks.onColetarHistorico?.()
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify(HISTORICO.snapshots[1]),
+      })
+      return
+    }
+
     let body: unknown = []
     if (path === '/auth/me') body = ADMIN_USER
     else if (path === '/notificacoes') {
@@ -126,6 +185,7 @@ async function mockApi(page: Page, callbacks: { onExpurgar?: () => void; onLimpa
     else if (path === '/admin/armazenamento/resumo') body = RESUMO
     else if (path === '/admin/armazenamento/galerias') body = GALERIAS
     else if (path === '/admin/armazenamento/orfaos') body = ORFAOS
+    else if (path === '/admin/armazenamento/historico') body = callbacks.historico ?? HISTORICO
 
     await route.fulfill({
       status: 200,
@@ -198,6 +258,33 @@ test.describe('Armazenamento', () => {
     await page.waitForTimeout(500)
     expect(limpezas).toBe(1)
     await expect(page.getByText(/órfão\(s\) removido\(s\)/)).toBeVisible()
+  })
+
+  test('exibe o histórico diário e coleta sob demanda', async ({ page }) => {
+    let coletas = 0
+    await mockApi(page, { onColetarHistorico: () => { coletas += 1 } })
+    await page.goto('/admin/armazenamento')
+    await page.waitForTimeout(1200)
+
+    await expect(page.getByText('Histórico de consumo')).toBeVisible()
+    await expect(page.getByText('Consumo por categoria')).toBeVisible()
+    await expect(page.getByText('Espaço livre no volume')).toBeVisible()
+    await expect(page.getByRole('button', { name: '30 dias' })).toHaveAttribute('aria-pressed', 'true')
+    await expect(page.getByRole('button', { name: '365 dias' })).toHaveAttribute('aria-pressed', 'false')
+
+    await page.getByRole('button', { name: 'Coletar agora' }).click()
+    await page.waitForTimeout(500)
+    expect(coletas).toBe(1)
+    await expect(page.getByText('Snapshot de hoje coletado')).toBeVisible()
+  })
+
+  test('mostra estado vazio quando ainda não há snapshots', async ({ page }) => {
+    await mockApi(page, { historico: { dias: 30, snapshots: [] } })
+    await page.goto('/admin/armazenamento')
+    await page.waitForTimeout(1200)
+
+    await expect(page.getByText('Ainda não há histórico')).toBeVisible()
+    await expect(page.getByRole('button', { name: 'Coletar agora' })).toBeVisible()
   })
 
   test('link de galeria arquivada mostra aviso ao cliente', async ({ page }) => {

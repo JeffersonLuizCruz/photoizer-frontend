@@ -19,8 +19,12 @@ features/armazenamento/
 │   └── ArmazenamentoPage.tsx                  # Página /admin/armazenamento
 └── components/
     ├── ResumoArmazenamentoCards.tsx           # Cards por tipo de arquivo + barra do volume
+    ├── HistoricoConsumoSection.tsx            # Período + coleta manual + gráfico/tabela
+    ├── HistoricoConsumoChart.tsx              # Áreas empilhadas + espaço livre (Recharts)
+    ├── HistoricoConsumoTable.tsx              # Série diária com variação e liberado no dia
     ├── GaleriasArmazenamentoTable.tsx         # Tabela (desktop) e cards (mobile)
-    └── ExpurgarGaleriaDialog.tsx              # Confirmação com digitação + manifesto CSV
+    ├── ExpurgarGaleriaDialog.tsx              # Confirmação com digitação + manifesto CSV
+    └── ArquivosOrfaosCard.tsx                 # Análise e limpeza de órfãos
 ```
 
 ## 3. Dependências Externas
@@ -53,22 +57,35 @@ features/armazenamento/
 3. Busca por nome do cliente (sem diferenciar acentos/maiúsculas).
 4. O nome da galeria abre `/agenda/:id/fotos`.
 
+### Fluxo 3: Histórico diário
+1. `HistoricoConsumoSection` chama `GET /admin/armazenamento/historico?dias=30`
+   (padrão) e oferece 30/90/365 dias.
+2. Com dois ou mais snapshots, exibe o gráfico de áreas empilhadas por categoria
+   e o de espaço livre; a tabela mostra data, total, variação, liberado no dia
+   e livre.
+3. **Coletar agora** (`POST .../historico/coletar`) grava o snapshot do dia e
+   invalida as queries de armazenamento.
+
 ## 5. Regras Específicas
 1. **Somente ADMIN**: a rota usa `ProtectedRoute allowedRoles={ROLES_ADMIN}` e
    o item do menu declara `roles: ['ADMIN']`.
 2. **Estado de arquivamento é derivado**: a galeria só é "arquivada" quando tem
    fotos e todas já tiveram os arquivos expurgados.
-3. **Bloqueios exibidos**: `NAO_FINALIZADO`, `JA_ARQUIVADA` e `PENDENCIA`
-   (seleção ativa ou compra aguardando comprovante/confirmação).
+3. **Bloqueios exibidos**: `NAO_FINALIZADO`, `JA_ARQUIVADA`, `PENDENCIA`
+   (seleção ativa ou compra aguardando comprovante/confirmação) e `SEM_FOTOS`.
 4. **Nenhuma ação destrutiva fora do diálogo**: "Liberar espaço" abre o
    `ExpurgarGaleriaDialog`, exige digitar `EXPURGAR` e oferece o manifesto CSV.
    O backend reforça todas as regras (ensaio finalizado, pendências e
    `arquivosRemovidos`).
+5. **Histórico sem interpolação**: dias sem snapshot simplesmente não aparecem;
+   com um único ponto, o gráfico é substituído por um aviso e a tabela continua.
+6. **Datas do histórico**: `parseISO`/`date-fns` para não deslocar o dia por
+   fuso; períodos em dias corridos.
 
 ## 6. Testes
 - E2E (`e2e/armazenamento.spec.ts`): cards/tabela, elegibilidade, confirmação
-  com `EXPURGAR`, envio do POST, análise/limpeza de órfãos e tela de galeria
-  arquivada (410).
+  com `EXPURGAR`, envio do POST, análise/limpeza de órfãos, histórico diário
+  (dados, estado vazio e coleta) e tela de galeria arquivada (410).
 
 ## 7. Arquivos órfãos e dashboard
 

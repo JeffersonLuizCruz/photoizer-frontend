@@ -5,7 +5,9 @@ import type {
   ArmazenamentoResumo,
   ExpurgoResultado,
   GaleriaArmazenamento,
+  HistoricoArmazenamento,
   LimparOrfaosResultado,
+  SnapshotArmazenamento,
 } from '../types/armazenamento.types'
 
 export const armazenamentoService = {
@@ -43,6 +45,20 @@ export const armazenamentoService = {
 
   limparOrfaos: async (): Promise<LimparOrfaosResultado> => {
     const { data } = await apiClient.post<LimparOrfaosResultado>('/admin/armazenamento/orfaos/limpar')
+    return data
+  },
+
+  historico: async (dias = 30): Promise<HistoricoArmazenamento> => {
+    const { data } = await apiClient.get<HistoricoArmazenamento>('/admin/armazenamento/historico', {
+      params: { dias },
+    })
+    return data
+  },
+
+  coletarHistorico: async (): Promise<SnapshotArmazenamento> => {
+    const { data } = await apiClient.post<SnapshotArmazenamento>(
+      '/admin/armazenamento/historico/coletar',
+    )
     return data
   },
 }

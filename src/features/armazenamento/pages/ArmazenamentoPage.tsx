@@ -12,6 +12,7 @@ import { ResumoArmazenamentoCards } from '../components/ResumoArmazenamentoCards
 import { GaleriasArmazenamentoTable } from '../components/GaleriasArmazenamentoTable'
 import { ExpurgarGaleriaDialog } from '../components/ExpurgarGaleriaDialog'
 import { ArquivosOrfaosCard } from '../components/ArquivosOrfaosCard'
+import { HistoricoConsumoSection } from '../components/HistoricoConsumoSection'
 import type { GaleriaArmazenamento } from '../types/armazenamento.types'
 
 type Filtro = 'todas' | 'elegiveis' | 'arquivadas'
@@ -122,6 +123,8 @@ export function ArmazenamentoPage() {
         )}
 
         <ResumoArmazenamentoCards resumo={dados} />
+
+        <HistoricoConsumoSection />
 
         <section className="space-y-3">
           <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">

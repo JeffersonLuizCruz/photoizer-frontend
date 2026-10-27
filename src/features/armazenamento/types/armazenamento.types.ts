@@ -49,6 +49,30 @@ export interface ArquivosOrfaos {
   arquivos: ArquivoOrfao[]
 }
 
+export interface SnapshotArmazenamento {
+  data: string
+  bytesFotos: number
+  bytesDerivados: number
+  bytesEditadas: number
+  bytesDocumentos: number
+  bytesPropostas: number
+  bytesOutros: number
+  bytesTotal: number
+  volumeTotal: number
+  volumeLivre: number
+  totalFotos: number
+  totalGalerias: number
+  galeriasArquivadas: number
+  fotosArquivadas: number
+  bytesLiberadosNoDia: number
+  coletadoEm: string
+}
+
+export interface HistoricoArmazenamento {
+  dias: number
+  snapshots: SnapshotArmazenamento[]
+}
+
 export const MOTIVO_BLOQUEIO_LABEL: Record<MotivoExpurgoBloqueado, string> = {
   NAO_FINALIZADO: 'Finalize o ensaio para liberar o expurgo',
   JA_ARQUIVADA: 'Galeria já arquivada',

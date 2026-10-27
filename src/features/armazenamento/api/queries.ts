@@ -71,3 +71,24 @@ export function useLimparOrfaos() {
       toast.error(extractErrorMessage(error, 'Não foi possível limpar os arquivos órfãos')),
   })
 }
+
+export function useHistoricoArmazenamento(dias: number) {
+  return useQuery({
+    queryKey: [QUERY_KEY, 'historico', dias],
+    queryFn: () => armazenamentoService.historico(dias),
+    staleTime: 60_000,
+  })
+}
+
+export function useColetarHistorico() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: () => armazenamentoService.coletarHistorico(),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEY] })
+      toast.success('Snapshot de hoje coletado')
+    },
+    onError: (error: Error) =>
+      toast.error(extractErrorMessage(error, 'Não foi possível coletar o snapshot')),
+  })
+}
