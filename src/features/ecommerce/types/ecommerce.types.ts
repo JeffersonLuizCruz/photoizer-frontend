@@ -81,6 +81,7 @@ export interface GaleriaEnsaioResponse {
   selecaoAtualId: string | null
   capaFotoId: string | null
   capaVersao: 'ORIGINAL' | 'EDITADA' | null
+  tituloHero: string | null
   requerEdicao: boolean
   podeAlterarModo: boolean
 }

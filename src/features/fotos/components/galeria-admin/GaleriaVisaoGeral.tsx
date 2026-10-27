@@ -17,6 +17,7 @@ import { extractErrorMessage } from '@/shared/api'
 import { fotoThumbUrl } from '@/shared/lib/foto'
 import { useAuth } from '@/features/auth/AuthProvider'
 import { useAlterarModoGaleria } from '../../api/queries'
+import { GaleriaHeroTituloCard } from './GaleriaHeroTituloCard'
 import type { GaleriaEnsaioResponse, FotoEnsaio, ModoGaleria, SelecaoEnsaioResponse } from '@/features/ecommerce/types/ecommerce.types'
 import type { AgendamentoRef } from '../../services/foto.service'
 import type { GaleriaWorkspaceCounts } from '../../api/queries'
@@ -47,8 +48,8 @@ const FASES_SEM_EDICAO = [
 ] as const
 
 const MODO_LABEL: Record<ModoGaleria, string> = {
-  COM_EDICAO: 'Seleção + edição',
-  SEM_EDICAO: 'Seleção sem edição',
+  COM_EDICAO: 'Edição após a seleção',
+  SEM_EDICAO: 'Seleção com edição',
   DIRETO: 'Fluxo legado',
 }
 
@@ -137,7 +138,7 @@ export function GaleriaVisaoGeral({
   const fases = requerEdicao ? FASES : FASES_SEM_EDICAO
   const faseAtual = fases.findIndex((fase) => fase.id === galeria?.fase)
   const podeEditarModo = user?.papel === 'ADMIN'
-  const modoLabel = galeria ? MODO_LABEL[galeria.modo] : 'Seleção + edição'
+  const modoLabel = galeria ? MODO_LABEL[galeria.modo] : 'Edição após a seleção'
 
   return (
     <div className="space-y-5">
@@ -192,8 +193,8 @@ export function GaleriaVisaoGeral({
                   <SelectValue placeholder="Modo da galeria" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="COM_EDICAO">Seleção + edição</SelectItem>
-                  <SelectItem value="SEM_EDICAO">Seleção sem edição</SelectItem>
+                  <SelectItem value="COM_EDICAO">Edição após a seleção</SelectItem>
+                  <SelectItem value="SEM_EDICAO">Seleção com edição</SelectItem>
                   <SelectItem value="DIRETO" disabled>Fluxo legado (desativado)</SelectItem>
                 </SelectContent>
               </Select>
@@ -215,6 +216,14 @@ export function GaleriaVisaoGeral({
           </span>
         </div>
       </section>
+
+      {galeria && (
+        <GaleriaHeroTituloCard
+          agendamentoId={galeria.agendamentoId}
+          tituloAtual={galeria.tituloHero}
+          clienteNome={agendamento?.clienteNome}
+        />
+      )}
 
       {galeria && (
         <section className="rounded-xl border bg-card p-4">

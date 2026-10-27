@@ -274,7 +274,7 @@ export function AdminSelecoesPage({ requerEdicao = true }: { requerEdicao?: bool
                   </span>
                   {!p.requerEdicao && (
                     <span className="rounded-full bg-sky-100 px-2 py-1 font-medium text-sky-700">
-                      Sem edição
+                      Seleção com edição
                     </span>
                   )}
                   <span className="flex items-center gap-1">

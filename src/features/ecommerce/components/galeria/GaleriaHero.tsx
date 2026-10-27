@@ -1,11 +1,10 @@
 import { Heart, MapPin } from 'lucide-react'
 import type { FotoEnsaio } from '../../types/ecommerce.types'
-import { humanizarNome } from '@/shared/lib/foto'
 
 interface GaleriaHeroProps {
   foto: FotoEnsaio | null
   capaUrl?: string | null
-  clienteNome: string | null
+  titulo: string | null
   dataHoraEnsaio: string
   localEnsaio: string | null
   onExplore: () => void
@@ -24,13 +23,13 @@ function formatarDataEnsaio(valor: string): string {
 export function GaleriaHero({
   foto,
   capaUrl,
-  clienteNome,
+  titulo,
   dataHoraEnsaio,
   localEnsaio,
   onExplore,
 }: GaleriaHeroProps) {
   const dataFormatada = formatarDataEnsaio(dataHoraEnsaio)
-  const nomeExibicao = humanizarNome(clienteNome)
+  const tituloExibicao = titulo?.trim() || 'Sua galeria'
   const url = capaUrl || foto?.watermarkedUrl || null
 
   return (
@@ -57,7 +56,7 @@ export function GaleriaHero({
           Sua galeria
         </p>
         <h1 className="mt-4 max-w-4xl text-balance font-display text-4xl uppercase leading-[1.05] tracking-[0.04em] drop-shadow-[0_2px_24px_rgba(0,0,0,0.4)] sm:text-6xl lg:text-7xl">
-          {nomeExibicao || 'Sua galeria'}
+          {tituloExibicao}
         </h1>
         <div className="mt-5 flex flex-col items-center gap-1.5 text-[10px] uppercase tracking-[0.26em] text-white/80 sm:text-[11px]">
           {dataFormatada && <span>{dataFormatada}</span>}

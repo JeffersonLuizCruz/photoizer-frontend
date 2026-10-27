@@ -113,6 +113,20 @@ export function useDefinirCapaGaleria(agendamentoId: string) {
   })
 }
 
+export function useAtualizarTituloGaleria(agendamentoId: string) {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (tituloHero: string | null) =>
+      ecommerceService.adminAtualizarTituloGaleria(agendamentoId, tituloHero),
+    onSuccess: (data) => {
+      queryClient.setQueryData(['galeria-ensaio', agendamentoId], data)
+      queryClient.invalidateQueries({ queryKey: ['galeria-ensaio', agendamentoId] })
+      toast.success('Texto do hero atualizado')
+    },
+    onError: (error: Error) => toast.error(extractErrorMessage(error, 'Erro ao atualizar o texto do hero')),
+  })
+}
+
 export function useRenumerarGaleria(agendamentoId: string) {
   const queryClient = useQueryClient()
   return useMutation({

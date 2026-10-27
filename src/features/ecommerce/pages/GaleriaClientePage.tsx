@@ -223,8 +223,8 @@ export function GaleriaClientePage() {
   useEffect(() => {
     if (!galeria) return
     const anterior = document.title
-    const nome = humanizarNome(galeria.clienteNome)
-    document.title = nome ? `${nome} · Galeria` : 'Galeria · Photoizer'
+    const titulo = galeria.tituloHero?.trim() || humanizarNome(galeria.clienteNome)
+    document.title = titulo ? `${titulo} · Galeria` : 'Galeria · Photoizer'
     return () => { document.title = anterior }
   }, [galeria])
 
@@ -567,7 +567,7 @@ export function GaleriaClientePage() {
       <GaleriaHero
         foto={capa}
         capaUrl={capaUrl}
-        clienteNome={galeria?.clienteNome ?? null}
+        titulo={galeria?.tituloHero?.trim() || humanizarNome(galeria?.clienteNome)}
         dataHoraEnsaio={galeria?.dataHoraEnsaio ?? ''}
         localEnsaio={galeria?.localEnsaio ?? null}
         onExplore={() => scrollSuavePara('galeria-conteudo')}

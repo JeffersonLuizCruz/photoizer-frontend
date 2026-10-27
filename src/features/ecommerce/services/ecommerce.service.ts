@@ -12,6 +12,7 @@ export interface GaleriaResponse {
   pacoteNome: string
   localEnsaio: string
   clienteNome: string | null
+  tituloHero: string | null
   dataHoraEnsaio: string
   capaFotoId: string | null
   capaVersao: 'ORIGINAL' | 'EDITADA' | null
@@ -274,6 +275,15 @@ export const ecommerceService = {
   ): Promise<GaleriaEnsaioResponse> => {
     const { data } = await apiClient.put<GaleriaEnsaioResponse>(
       `/admin/agendamentos/${agendamentoId}/galeria/capa`, { fotoId })
+    return data
+  },
+
+  adminAtualizarTituloGaleria: async (
+    agendamentoId: string,
+    tituloHero: string | null,
+  ): Promise<GaleriaEnsaioResponse> => {
+    const { data } = await apiClient.put<GaleriaEnsaioResponse>(
+      `/admin/agendamentos/${agendamentoId}/galeria/titulo`, { tituloHero })
     return data
   },
 
