@@ -7,6 +7,7 @@ import {
   FileBarChart2,
   FileSignature,
   HandCoins,
+  HardDrive,
   LayoutDashboard,
   Package,
   Percent,
@@ -23,6 +24,8 @@ export interface NavItem {
   label: string
   icon: ElementType
   end?: boolean
+  /** Restringe o item a determinados papéis. Ausente = visível para todos. */
+  roles?: Papel[]
 }
 
 export interface NavGroup {
@@ -66,6 +69,7 @@ const navEntries: NavEntry[] = [
   { to: ROUTES.COMISSOES, label: 'Comissões', icon: Percent },
   financeiroGroup,
   fotografosGroup,
+  { to: ROUTES.ARMAZENAMENTO, label: 'Armazenamento', icon: HardDrive, roles: ['ADMIN'] },
   { to: ROUTES.CONFIG, label: 'Configurações', icon: Settings },
 ]
 
@@ -87,6 +91,18 @@ export function isNavItem(entry: NavEntry): entry is NavItem {
   return 'to' in entry
 }
 
+function podeAcessar(item: { roles?: Papel[] }, papel: Papel): boolean {
+  return !item.roles || item.roles.includes(papel)
+}
+
+function filtrarPorPapel(entries: NavEntry[], papel: Papel): NavEntry[] {
+  return entries.filter((entry) =>
+    isNavItem(entry)
+      ? podeAcessar(entry, papel)
+      : entry.children.some((child) => podeAcessar(child, papel)),
+  )
+}
+
 export function getVisibleEntries(papel: Papel | null): NavEntry[] {
   if (!papel) return []
 
@@ -94,14 +110,16 @@ export function getVisibleEntries(papel: Papel | null): NavEntry[] {
     return fotografoEntries
   }
 
-  const base =
+  const base = filtrarPorPapel(
     papel in allowedRoutesByPapel
       ? navEntries.filter((entry) =>
           isNavItem(entry)
             ? allowedRoutesByPapel[papel].has(entry.to)
             : entry.children.some((child) => allowedRoutesByPapel[papel].has(child.to)),
         )
-      : navEntries
+      : navEntries,
+    papel,
+  )
 
   // Parceiro EDITOR também acessa o autoatendimento (Minhas Finanças, Meu Painel, Minha Agenda)
   if (papel === 'EDITOR') {
@@ -117,6 +135,7 @@ export interface MobileTab {
   shortLabel?: string
   icon: ElementType
   end?: boolean
+  roles?: Papel[]
 }
 
 const mobilePriority: MobileTab[] = [
@@ -144,6 +163,7 @@ export function getMobileTabs(papel: Papel | null): MobileTab[] {
 
   const allowed = allowedRoutesByPapel[papel]
   return mobilePriority
+    .filter((tab) => podeAcessar(tab, papel))
     .filter((tab) => !allowed || allowed.has(tab.to))
     .slice(0, 4)
 }

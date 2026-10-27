@@ -20,6 +20,7 @@ import { GaleriaDock } from '../components/galeria/GaleriaDock'
 import { GaleriaExtraDialog } from '../components/galeria/GaleriaExtraDialog'
 import { GaleriaConfirmarSelecao } from '../components/galeria/GaleriaConfirmarSelecao'
 import { GaleriaTimeline } from '../components/galeria/GaleriaTimeline'
+import { GaleriaArquivada } from '../components/galeria/GaleriaArquivada'
 import { extractErrorMessage } from '@/shared/api'
 import { ConfirmDialog } from '@/shared/components/layout/ConfirmDialog'
 import { cn } from '@/shared/lib/cn'
@@ -40,6 +41,7 @@ export function GaleriaClientePage() {
   const [galeria, setGaleria] = useState<GaleriaResponse | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [arquivada, setArquivada] = useState(false)
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
   const [carrinhoIds, setCarrinhoIds] = useState<Set<string>>(new Set())
   const [carrinhoCount, setCarrinhoCount] = useState(0)
@@ -158,12 +160,21 @@ export function GaleriaClientePage() {
     try {
       const data = await ecommerceService.galeria(token)
       setGaleria(data)
+      setArquivada(false)
       if (sincronizarSelecao) {
         setSelectedIds(new Set(data.fotos.filter((f) => f.selecionadaPacote).map((f) => f.id)))
       }
       setError(null)
     } catch (err: unknown) {
-      const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message || ''
+      const resposta = (err as {
+        response?: { status?: number; data?: { message?: string; code?: string } }
+      })?.response
+      if (resposta?.status === 410 && resposta.data?.code === 'GALERIA_ARQUIVADA') {
+        setArquivada(true)
+        setError(null)
+        return
+      }
+      const msg = resposta?.data?.message || ''
       if (msg.includes('expirou')) {
         setError(msg)
       } else {
@@ -549,6 +560,10 @@ export function GaleriaClientePage() {
         </div>
       </div>
     )
+  }
+
+  if (arquivada) {
+    return <GaleriaArquivada />
   }
 
   if (error) {

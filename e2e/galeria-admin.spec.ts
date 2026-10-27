@@ -39,6 +39,7 @@ function foto(numero: number, selecionadaPacote: boolean) {
     destaque: false,
     fotoEdicaoId: null,
     visivel: true,
+    arquivosRemovidos: false,
   }
 }
 
@@ -102,6 +103,9 @@ const GALERIA = {
   capaFotoId: null,
   capaVersao: null,
   podeAlterarModo: false,
+  arquivada: false,
+  arquivadaEm: null,
+  bytesLiberados: 0,
 }
 
 const RESUMO = {

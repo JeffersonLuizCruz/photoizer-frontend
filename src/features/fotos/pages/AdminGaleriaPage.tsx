@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useMemo } from 'react'
-import { useParams } from 'react-router-dom'
-import { Upload, Trash2, Send, ImagePlus, Image as ImageIcon, X, Loader2, Star, Pencil, Eye, EyeOff, RefreshCw, MessageCircle, Check, Lock, Search, MoreVertical, Package, Heart, AlertTriangle, type LucideIcon } from 'lucide-react'
+import { Link, useParams } from 'react-router-dom'
+import { Upload, Trash2, Send, ImagePlus, Image as ImageIcon, ImageOff, X, Loader2, Star, Pencil, Eye, EyeOff, RefreshCw, MessageCircle, Check, Lock, Search, MoreVertical, Package, Heart, AlertTriangle, type LucideIcon } from 'lucide-react'
 import { toast } from 'sonner'
 import { extractErrorMessage } from '@/shared/api'
 import { Button } from '@/shared/components/ui/button'
@@ -14,7 +14,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Sheet, SheetContent, SheetTitle } from '@/shared/components/ui/sheet'
 import { ConfirmDialog } from '@/shared/components/layout/ConfirmDialog'
 import { cn } from '@/shared/lib/cn'
-import { AGENDAMENTO_STATUS, type AgendamentoStatus } from '@/shared/constants'
+import { AGENDAMENTO_STATUS, ROUTES, type AgendamentoStatus } from '@/shared/constants'
 import { fotoThumbUrl, numeroGaleriaLabel, rotuloFoto } from '@/shared/lib/foto'
 import { useAgendamento, useFotosList, useUploadFotos, usePublicarFotos, useRenumerarGaleria, useGaleriaEnsaio, useDefinirCapaGaleria, useDeletarFoto, useDeletarFotosEmLote, useUpdateFotoMetadata, useAlterarVisibilidade, useAlterarStatus, useSubstituirImagem, useComentariosAdmin, useOverrideSelecao } from '../api/queries'
 import { useAuth } from '@/features/auth/AuthProvider'
@@ -52,7 +52,8 @@ function fotoProtegida(foto: FotoEnsaio): boolean {
     foto.downloadada === true ||
     foto.status === 'PAGA' ||
     foto.status === 'AGUARDANDO_COMPROVANTE' ||
-    foto.status === 'AGUARDANDO_CONFIRMACAO'
+    foto.status === 'AGUARDANDO_CONFIRMACAO' ||
+    foto.arquivosRemovidos === true
   )
 }
 
@@ -167,7 +168,13 @@ function FotoMetadataDialog({ agendamentoId, foto, open, onOpenChange }: {
         <div className="space-y-4">
           <div className="flex gap-4">
             <div className="h-20 w-20 rounded-lg bg-muted overflow-hidden flex-shrink-0">
-              <AuthImage src={fotoThumbUrl(foto)} alt="" className="h-full w-full object-cover" />
+              {foto.arquivosRemovidos ? (
+                <div className="flex h-full w-full items-center justify-center text-muted-foreground">
+                  <ImageOff className="h-6 w-6" />
+                </div>
+              ) : (
+                <AuthImage src={fotoThumbUrl(foto)} alt="" className="h-full w-full object-cover" />
+              )}
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium truncate">{foto.fileName}</p>
@@ -315,6 +322,7 @@ export function AdminGaleriaPage({
 
   const uploadLiberado = agendamento ? STATUS_LIBERADOS.includes(agendamento.status) : false
   const publicacaoLiberada = uploadLiberado
+  const galeriaArquivada = galeriaEnsaio?.arquivada === true
 
   if (!id) return <PageLoading />
 
@@ -336,7 +344,9 @@ export function AdminGaleriaPage({
     ? fotos.find((f) => f.id === galeriaEnsaio.capaFotoId) ?? null
     : null
   const podeSerCapa = (foto: FotoEnsaio) =>
-    foto.visivel && (foto.status === 'PUBLICADA' || foto.status === 'PAGA')
+    !foto.arquivosRemovidos
+    && foto.visivel
+    && (foto.status === 'PUBLICADA' || foto.status === 'PAGA')
   const selecionarCapa = (fotoId: string) => {
     definirCapa(fotoId, { onSuccess: () => setModoSelecaoCapa(false) })
   }
@@ -470,7 +480,7 @@ export function AdminGaleriaPage({
       />
 
       <div className="mb-4 flex flex-wrap items-center gap-2 rounded-xl border bg-card p-3">
-          {fotos.length > 0 && (
+          {fotos.length > 0 && !galeriaArquivada && (
             modoSelecao ? (
               <Button variant="outline" size="sm" onClick={cancelarSelecao}>
                 <X className="mr-1 h-4 w-4" />
@@ -483,7 +493,7 @@ export function AdminGaleriaPage({
               </Button>
             )
           )}
-          {papel !== 'AGENDADOR' && (
+          {papel !== 'AGENDADOR' && !galeriaArquivada && (
             <Button
               variant={modoSelecaoCapa ? 'default' : 'outline'}
               size="sm"
@@ -499,7 +509,7 @@ export function AdminGaleriaPage({
               Remover capa
             </Button>
           )}
-          {publicadas > 0 && (
+          {publicadas > 0 && !galeriaArquivada && (
             <Button
               variant="outline"
               size="sm"
@@ -513,7 +523,7 @@ export function AdminGaleriaPage({
               Renumerar
             </Button>
           )}
-          {publicacaoLiberada && fotos.length > 0 && !allPublished && (
+          {publicacaoLiberada && fotos.length > 0 && !allPublished && !galeriaArquivada && (
             <Button onClick={() => publicar()} disabled={isPublishing} variant="default" size="sm">
               {isPublishing ? <Loader2 className="mr-1 h-4 w-4 animate-spin" /> : <Send className="mr-1 h-4 w-4" />}
               Publicar Galeria
@@ -542,7 +552,26 @@ export function AdminGaleriaPage({
       )}
 
       <div className="space-y-6">
-        {uploadLiberado ? (
+        {galeriaArquivada ? (
+          <div className="rounded-xl border bg-card p-6">
+            <div className="flex flex-col items-center justify-center py-8 text-center">
+              <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-muted">
+                <ImageOff className="h-6 w-6 text-muted-foreground" />
+              </div>
+              <h3 className="text-sm font-medium">Arquivos expurgados</h3>
+              <p className="mt-1 max-w-md text-sm text-muted-foreground">
+                Os arquivos desta galeria foram removidos para liberar espaço. Os comprovantes e
+                contratos assinados continuam disponíveis.
+              </p>
+              <Link
+                to={ROUTES.ARMAZENAMENTO}
+                className="mt-3 text-sm font-medium text-primary hover:underline"
+              >
+                Gerenciar armazenamento
+              </Link>
+            </div>
+          </div>
+        ) : uploadLiberado ? (
           <div className="rounded-xl border bg-card p-3 sm:p-4">
             <input
               ref={inputRef}
@@ -840,11 +869,18 @@ export function AdminGaleriaPage({
                       {tipo === 'PACOTE' ? 'Pacote' : 'Extra'}
                     </span>
                   )}
-                  <AuthImage
-                    src={fotoThumbUrl(foto)}
-                    alt={rotuloFoto(foto)}
-                    className="h-full w-full object-cover"
-                  />
+                  {foto.arquivosRemovidos ? (
+                    <div className="flex h-full w-full flex-col items-center justify-center gap-1 bg-muted px-2 text-muted-foreground">
+                      <ImageOff className="h-6 w-6" />
+                      <span className="text-center text-[10px] font-medium">Arquivos expurgados</span>
+                    </div>
+                  ) : (
+                    <AuthImage
+                      src={fotoThumbUrl(foto)}
+                      alt={rotuloFoto(foto)}
+                      className="h-full w-full object-cover"
+                    />
+                  )}
                   {modoSelecaoCapa && (
                     <button
                       type="button"
@@ -943,6 +979,11 @@ export function AdminGaleriaPage({
                         <Lock className="h-3 w-3" /> Protegida
                       </span>
                     )}
+                    {foto.arquivosRemovidos && (
+                      <span className="text-[10px] text-muted-foreground bg-muted px-1.5 py-0.5 rounded-sm flex items-center gap-0.5">
+                        <ImageOff className="h-3 w-3" /> Arquivada
+                      </span>
+                    )}
                     {favoritos > 0 && (
                       <span
                         role="img"
@@ -971,11 +1012,17 @@ export function AdminGaleriaPage({
             <>
               <div className="flex items-center gap-3 rounded-lg border bg-muted/30 p-2">
                 <div className="h-16 w-20 shrink-0 overflow-hidden rounded-md bg-muted">
-                  <AuthImage
-                    src={fotoThumbUrl(fotoAcoes)}
-                    alt={rotuloFoto(fotoAcoes)}
-                    className="h-full w-full object-cover"
-                  />
+                  {fotoAcoes.arquivosRemovidos ? (
+                    <div className="flex h-full w-full items-center justify-center text-muted-foreground">
+                      <ImageOff className="h-5 w-5" />
+                    </div>
+                  ) : (
+                    <AuthImage
+                      src={fotoThumbUrl(fotoAcoes)}
+                      alt={rotuloFoto(fotoAcoes)}
+                      className="h-full w-full object-cover"
+                    />
+                  )}
                 </div>
                 <div className="min-w-0">
                   <p className="truncate text-xs font-medium">

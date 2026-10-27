@@ -20,6 +20,7 @@ export const ROUTES = {
   ADMIN_ECOMMERCE: '/admin/ecommerce',
   ADMIN_CUPONS: '/admin/cupons',
   ADMIN_ANALYTICS: '/admin/analytics',
+  ARMAZENAMENTO: '/admin/armazenamento',
   LOGIN: '/login',
   ACESSO_CLIENTE: '/acesso-cliente',
   MINHA_CONTA: '/minha-conta',

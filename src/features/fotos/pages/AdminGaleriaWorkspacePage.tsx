@@ -1,6 +1,6 @@
 import { useState } from 'react'
-import { useParams, useSearchParams, useNavigate, Navigate } from 'react-router-dom'
-import { ArrowLeft, Copy, ExternalLink, RefreshCw } from 'lucide-react'
+import { useParams, useSearchParams, useNavigate, Navigate, Link } from 'react-router-dom'
+import { ArrowLeft, Archive, Copy, ExternalLink, RefreshCw } from 'lucide-react'
 import { toast } from 'sonner'
 import { PageTitle } from '@/shared/components/layout/PageTitle'
 import { PageLoading } from '@/shared/components/layout/Loading'
@@ -111,6 +111,19 @@ export function AdminGaleriaWorkspacePage() {
           </div>
         }
       />
+
+      {workspace.galeria?.arquivada && (
+        <div className="mb-4 flex items-start gap-3 rounded-xl border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900">
+          <Archive className="mt-0.5 h-4 w-4 shrink-0" />
+          <p>
+            Esta galeria está arquivada: os arquivos das fotos foram expurgados para liberar espaço.
+            Comprovantes e contratos assinados continuam disponíveis.{' '}
+            <Link to={ROUTES.ARMAZENAMENTO} className="font-medium underline">
+              Ver armazenamento
+            </Link>
+          </p>
+        </div>
+      )}
 
       <Tabs value={activeTab} onValueChange={mudarTab}>
         <TabsList scrollable aria-label="Seções da galeria">

@@ -1,5 +1,6 @@
 import {
   AlertTriangle,
+  Archive,
   CalendarDays,
   Check,
   ChevronRight,
@@ -214,6 +215,13 @@ export function GaleriaVisaoGeral({
               ? `Seleção #${selecaoAtual.numero} · ${STATUS_SELECAO[selecaoAtual.status] ?? selecaoAtual.status}`
               : 'Nenhuma seleção enviada ainda'}
           </span>
+          {galeria?.arquivada && (
+            <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-1 font-medium text-amber-800">
+              <Archive className="h-3 w-3" />
+              Arquivos expurgados
+              {galeria.arquivadaEm ? ` em ${formatarData(galeria.arquivadaEm)}` : ''}
+            </span>
+          )}
         </div>
       </section>
 

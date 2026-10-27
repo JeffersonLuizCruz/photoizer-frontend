@@ -25,6 +25,8 @@ export interface FotoEnsaio {
   titulo: string | null
   fotoEdicaoId: string | null
   visivel: boolean
+  arquivosRemovidos: boolean
+  arquivosRemovidosEm?: string | null
 }
 
 export type ModoGaleria = 'DIRETO' | 'COM_EDICAO' | 'SEM_EDICAO'
@@ -84,6 +86,9 @@ export interface GaleriaEnsaioResponse {
   tituloHero: string | null
   requerEdicao: boolean
   podeAlterarModo: boolean
+  arquivada: boolean
+  arquivadaEm: string | null
+  bytesLiberados: number
 }
 
 export interface CompraExtraResponse {

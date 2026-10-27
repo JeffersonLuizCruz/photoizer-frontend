@@ -75,6 +75,7 @@ Não existes testes para este módulo.
 - O upload em lote continua após erros individuais, aceita sufixos `-edit`/`-editada` e também casa pelo `fotoId`.
 - `AdminGaleriaPage` tem o modo **“Escolher capa”**: o staff clica na foto que deve ir ao topo da galeria do cliente. A capa atual aparece na Visão geral; o toolbar tem **Escolher/Remover capa** e o menu de ações tem **Usar como capa**.
 - A capa é salva via `PUT /admin/agendamentos/{id}/galeria/capa`; fotos já publicadas/selecionadas continuam protegidas normalmente. `AGENDADOR` não altera a capa. Fotos ocultas/não publicadas aparecem como “Indisponível para capa”.
+- **Galeria arquivada (V17)**: fotos com `arquivosRemovidos` exibem o placeholder “Arquivos expurgados”, entram em `fotoProtegida` (não podem ser selecionadas, removidas, substituídas ou ter status/visibilidade alterados) e não podem ser capa. A galeria mostra o aviso de arquivamento com link para `/admin/armazenamento`; upload, publicar, renumerar e “Escolher capa” ficam ocultos.
 
 ## 8. Pontos de Atenção
 - **Violação de isolamento**: O tipo `FotoEnsaio` é importado de `@/features/ecommerce/types`. Este tipo deveria estar em `shared/types/`, já que é usado por múltiplas features (fotos, ecommerce, agenda indiretamente).

@@ -17,6 +17,7 @@ const ROLES_DECISAO_PROPOSTA: Papel[] = ['ADMIN', 'FOTOGRAFO']
 const GaleriaClientePage = lazy(() => import('@/features/ecommerce/pages/GaleriaClientePage').then(m => ({ default: m.GaleriaClientePage })))
 const AdminEcommercePage = lazy(() => import('@/features/ecommerce/pages/AdminEcommercePage').then(m => ({ default: m.AdminEcommercePage })))
 const AdminAnalyticsPage = lazy(() => import('@/features/ecommerce/pages/AdminAnalyticsPage').then(m => ({ default: m.AdminAnalyticsPage })))
+const ArmazenamentoPage = lazy(() => import('@/features/armazenamento').then(m => ({ default: m.ArmazenamentoPage })))
 const PackageCatalogPage = lazy(() => import('@/features/ecommerce/pages/PackageCatalogPage').then(m => ({ default: m.PackageCatalogPage })))
 const CheckoutPage = lazy(() => import('@/features/ecommerce/pages/CheckoutPage').then(m => ({ default: m.CheckoutPage })))
 const CustomerLoginPage = lazy(() => import('@/features/auth/customer').then(m => ({ default: m.CustomerLoginPage })))
@@ -110,6 +111,7 @@ export function AppRoutes() {
             <Route path={ROUTES.FINANCEIRO_FLUXO_CAIXA} element={<ProtectedRoute allowedRoles={ROLES_ADMIN}><FluxoCaixaPage /></ProtectedRoute>} />
             <Route path={ROUTES.FINANCEIRO_RELATORIOS} element={<ProtectedRoute allowedRoles={ROLES_ADMIN}><RelatoriosPage /></ProtectedRoute>} />
             <Route path={ROUTES.CONFIG} element={<ProtectedRoute allowedRoles={ROLES_ADMIN}><ConfigPage /></ProtectedRoute>} />
+            <Route path={ROUTES.ARMAZENAMENTO} element={<ProtectedRoute allowedRoles={ROLES_ADMIN}><ArmazenamentoPage /></ProtectedRoute>} />
             <Route path={ROUTES.COMISSOES} element={<ProtectedRoute allowedRoles={ROLES_SEM_AGENDADOR}><ComissoesConsultaPage /></ProtectedRoute>} />
             <Route path={ROUTES.AGENDA_GALERIA} element={<ProtectedRoute allowedRoles={ROLES_SEM_AGENDADOR}><AdminGaleriaWorkspacePage /></ProtectedRoute>} />
             <Route path={ROUTES.AGENDA_SELECAO} element={<ProtectedRoute allowedRoles={ROLES_SEM_AGENDADOR}><SelecaoRedirect /></ProtectedRoute>} />
