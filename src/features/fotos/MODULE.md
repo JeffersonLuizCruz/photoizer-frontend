@@ -149,3 +149,11 @@ Não existes testes para este módulo.
 - **Acessibilidade**: chips de filtro com `aria-pressed`, botões de ícone com `aria-label`, foco visível nos controles customizados (chips, menu da foto, ações do sheet, histórico e tabela de compras), alvos de 44px no mobile e títulos em todos os `Sheet`.
 - **Código morto removido**: `AdminGaleriaPage` e `AdminSelecoesPage` deixaram de ter os ramos não embutidos/`PageTitle` antigos; o workspace é o único ponto de entrada.
 - **E2E**: `e2e/galeria-admin.spec.ts` cobre visão geral, filtros/ações da aba Fotos, seções/histórico da aba Seleção, aba Compras e estado de erro com retry, sempre checando overflow horizontal no mobile. A suíte completa (`npx playwright test`) permanece verde.
+
+## 14. Reedição de foto entregue
+
+- A seleção `PUBLICADA` deixa de ser totalmente somente leitura: quando `requerEdicao` e a galeria não está arquivada, os cards mostram **Reeditar** e a toolbar mostra **Enviar várias reedições**.
+- A reedição usa `PUT /agendamentos/{id}/fotos/{fotoId}/reedicao` e substitui a versão editada anterior; a seleção continua `PUBLICADA`, sem reabertura.
+- A aba **Fotos** também oferece **Reeditar edição** no menu de ações para qualquer foto com `versaoAtual = EDITADA` e status `PUBLICADA`/`PAGA`. Esse caminho cobre extras comprados depois da publicação.
+- Após o upload, as queries de fotos, galeria, seleções e resumo são invalidadas. O cliente vê o novo preview pelo cache-buster `?v=updatedAt` e baixa a nova versão pelo mesmo link de download.
+- **Substituir imagem** continua sendo outra operação: troca o RAW/original e permanece bloqueada para fotos protegidas.

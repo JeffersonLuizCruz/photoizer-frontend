@@ -206,6 +206,21 @@ export const fotoService = {
     return data
   },
 
+  /**
+   * Reenvia a edição de uma foto já entregue, quando o cliente pede um ajuste.
+   * A nova versão substitui a anterior e fica disponível para download.
+   */
+  uploadReedicao: async (agendamentoId: string, fotoId: string, arquivo: File): Promise<FotoEnsaio> => {
+    const formData = new FormData()
+    formData.append('arquivo', arquivo)
+    const { data } = await apiClient.put<FotoEnsaio>(
+      `/agendamentos/${agendamentoId}/fotos/${fotoId}/reedicao`,
+      formData,
+      { timeout: env.VITE_UPLOAD_TIMEOUT },
+    )
+    return data
+  },
+
   /** Edição sob demanda de uma foto extra comprada após a publicação. */
   uploadEditadaCompraExtra: async (agendamentoId: string, fotoId: string, arquivo: File): Promise<FotoEnsaio> => {
     const formData = new FormData()

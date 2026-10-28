@@ -36,6 +36,15 @@ function selecaoAtiva(status: string): boolean {
   return status === 'ENVIADA' || status === 'EM_EDICAO' || status === 'CONCLUIDA'
 }
 
+/**
+ * A seleção ativa aceita a primeira edição; a publicada aceita reedição
+ * enquanto a galeria não estiver arquivada. A reedição substitui a versão
+ * entregue sem reabrir a seleção.
+ */
+function permiteEnviarEdicao(status: string, requerEdicao: boolean, arquivada: boolean): boolean {
+  return selecaoAtiva(status) || (requerEdicao && status === 'PUBLICADA' && !arquivada)
+}
+
 const formatBRL = (value: number) =>
   value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
 
@@ -63,7 +72,13 @@ function ErroSelecao({ mensagem, onRetry }: { mensagem: string; onRetry: () => v
   )
 }
 
-export function AdminSelecoesPage({ requerEdicao = true }: { requerEdicao?: boolean }) {
+export function AdminSelecoesPage({
+  requerEdicao = true,
+  arquivada = false,
+}: {
+  requerEdicao?: boolean
+  arquivada?: boolean
+}) {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const queryClient = useQueryClient()
@@ -138,11 +153,18 @@ export function AdminSelecoesPage({ requerEdicao = true }: { requerEdicao?: bool
   const handleArquivoEdicao = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
     event.target.value = ''
-    if (!file || !id || !uploadFotoId || !selecao || !selecaoAtiva(selecao.status) || isBatchUploading) return
+    if (!file || !id || !uploadFotoId || !selecao
+      || !permiteEnviarEdicao(selecao.status, requerEdicao, arquivada)
+      || isBatchUploading) return
     setIsUploading(true)
     try {
-      await fotoService.uploadEditada(id, uploadFotoId, file)
-      toast.success('Versão editada enviada')
+      if (selecao.status === 'PUBLICADA') {
+        await fotoService.uploadReedicao(id, uploadFotoId, file)
+        toast.success('Reedição enviada. O cliente já pode baixar a nova versão.')
+      } else {
+        await fotoService.uploadEditada(id, uploadFotoId, file)
+        toast.success('Versão editada enviada')
+      }
       invalidarWorkspace()
       await carregar()
     } catch (err: unknown) {
@@ -156,8 +178,11 @@ export function AdminSelecoesPage({ requerEdicao = true }: { requerEdicao?: bool
   const handleArquivosLote = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(event.target.files ?? [])
     event.target.value = ''
-    if (!id || !selecao || files.length === 0 || !selecaoAtiva(selecao.status) || isUploading) return
+    if (!id || !selecao || files.length === 0
+      || !permiteEnviarEdicao(selecao.status, requerEdicao, arquivada)
+      || isUploading) return
 
+    const reedicao = selecao.status === 'PUBLICADA'
     const base = (nome: string) => nome.replace(/\.[^.]+$/, '').toLowerCase()
     const normalizar = (nome: string) => base(nome)
       .replace(/[-_ ]?(edit|editada|edited|final)+$/g, '')
@@ -186,14 +211,18 @@ export function AdminSelecoesPage({ requerEdicao = true }: { requerEdicao?: bool
       for (let i = 0; i < pares.length; i++) {
         setBatchProgress({ atual: i + 1, total: pares.length })
         try {
-          await fotoService.uploadEditada(id, pares[i].item.fotoId, pares[i].file)
+          if (reedicao) {
+            await fotoService.uploadReedicao(id, pares[i].item.fotoId, pares[i].file)
+          } else {
+            await fotoService.uploadEditada(id, pares[i].item.fotoId, pares[i].file)
+          }
         } catch {
           falhas.push(pares[i].file.name)
         }
       }
       const enviadas = pares.length - falhas.length
       if (enviadas > 0) {
-        toast.success(`${enviadas} foto(s) editada(s) enviada(s)`)
+        toast.success(`${enviadas} foto(s) ${reedicao ? 'reeditada(s)' : 'editada(s)'} enviada(s)`)
       }
       if (falhas.length > 0) {
         toast.error(`Falha em ${falhas.length} arquivo(s): ${falhas.join(', ')}`)
@@ -333,6 +362,9 @@ export function AdminSelecoesPage({ requerEdicao = true }: { requerEdicao?: bool
   const editadas = selecao.itens.filter((i) => i.editada).length
   const total = selecao.itens.length
   const ativa = selecaoAtiva(selecao.status)
+  const publicada = selecao.status === 'PUBLICADA'
+  const podeReeditar = requerEdicao && publicada && !arquivada
+  const podeEnviarAgora = requerEdicao && (ativa || podeReeditar)
   const podePublicar = ativa && total > 0 && (requerEdicao ? editadas === total : true)
   const itensPacote = selecao.itens.filter((item) => item.tipo === 'PACOTE')
   const itensExtras = selecao.itens.filter((item) => item.tipo === 'EXTRA')
@@ -373,15 +405,19 @@ export function AdminSelecoesPage({ requerEdicao = true }: { requerEdicao?: bool
             <RefreshCw className="mr-1 h-4 w-4" />
             Atualizar
           </Button>
-          {ativa && requerEdicao && (
+          {((ativa && requerEdicao) || podeReeditar) && (
             <Button
               variant="outline"
               size="sm"
               onClick={() => loteInputRef.current?.click()}
               disabled={isBatchUploading}
             >
-              {isBatchUploading ? <Loader2 className="mr-1 h-4 w-4 animate-spin" /> : <Upload className="mr-1 h-4 w-4" />}
-              {batchProgress ? `${batchProgress.atual}/${batchProgress.total}` : 'Enviar várias editadas'}
+              {isBatchUploading
+                ? <Loader2 className="mr-1 h-4 w-4 animate-spin" />
+                : podeReeditar ? <RefreshCw className="mr-1 h-4 w-4" /> : <Upload className="mr-1 h-4 w-4" />}
+              {batchProgress
+                ? `${batchProgress.atual}/${batchProgress.total}`
+                : podeReeditar ? 'Enviar várias reedições' : 'Enviar várias editadas'}
             </Button>
           )}
           {ativa && requerEdicao && (
@@ -406,6 +442,16 @@ export function AdminSelecoesPage({ requerEdicao = true }: { requerEdicao?: bool
             </Button>
           )}
       </div>
+
+      {podeReeditar && (
+        <div className="rounded-xl border border-amber-200 bg-amber-50 p-3 text-xs text-amber-900">
+          <p className="font-medium">Seleção publicada</p>
+          <p className="mt-1">
+            Se o cliente pedir um ajuste, reenvie a versão editada da foto. A nova versão
+            substitui a anterior e fica disponível para download imediatamente.
+          </p>
+        </div>
+      )}
 
       {erro && <ErroSelecao mensagem={erro} onRetry={() => void carregar()} />}
 
@@ -490,14 +536,17 @@ export function AdminSelecoesPage({ requerEdicao = true }: { requerEdicao?: bool
         icone={Package}
         itens={itensPacote}
         editadas={editadasPacote}
-        descricao={requerEdicao
-          ? 'Essas fotos já estão incluídas no pacote, sem custo adicional.'
-          : 'Essas fotos já estão incluídas no pacote e serão entregues em versão original.'}
-        disabled={isUploading || isBatchUploading || !ativa || !requerEdicao}
+        descricao={podeReeditar
+          ? 'Fotos já entregues. Reenvie a edição se o cliente pedir um ajuste.'
+          : requerEdicao
+            ? 'Essas fotos já estão incluídas no pacote, sem custo adicional.'
+            : 'Essas fotos já estão incluídas no pacote e serão entregues em versão original.'}
+        disabled={isUploading || isBatchUploading || !podeEnviarAgora}
         uploadingId={isUploading ? uploadFotoId : null}
         onUpload={abrirArquivoEdicao}
-        readOnly={!ativa || !requerEdicao}
+        readOnly={!podeEnviarAgora}
         requerEdicao={requerEdicao}
+        publicada={podeReeditar}
       />
 
       <SelecaoItensSection
@@ -505,16 +554,19 @@ export function AdminSelecoesPage({ requerEdicao = true }: { requerEdicao?: bool
         icone={ShoppingBag}
         itens={itensExtras}
         editadas={editadasExtras}
-        descricao={requerEdicao
-          ? 'Fotos adicionais escolhidas pelo cliente; o valor é congelado no envio da seleção.'
-          : 'Fotos adicionais escolhidas pelo cliente; liberadas após a confirmação do pagamento.'}
+        descricao={podeReeditar
+          ? 'Extras já entregues. Reenvie a edição se o cliente pedir um ajuste.'
+          : requerEdicao
+            ? 'Fotos adicionais escolhidas pelo cliente; o valor é congelado no envio da seleção.'
+            : 'Fotos adicionais escolhidas pelo cliente; liberadas após a confirmação do pagamento.'}
         valorTotal={valorExtras}
         destaque
-        disabled={isUploading || isBatchUploading || !ativa || !requerEdicao}
+        disabled={isUploading || isBatchUploading || !podeEnviarAgora}
         uploadingId={isUploading ? uploadFotoId : null}
         onUpload={abrirArquivoEdicao}
-        readOnly={!ativa || !requerEdicao}
+        readOnly={!podeEnviarAgora}
         requerEdicao={requerEdicao}
+        publicada={podeReeditar}
       />
 
       {historicoAnterior.length > 0 && (
@@ -594,6 +646,7 @@ function SelecaoItensSection({
   onUpload,
   readOnly = false,
   requerEdicao = true,
+  publicada = false,
 }: {
   titulo: string
   icone: LucideIcon
@@ -607,6 +660,7 @@ function SelecaoItensSection({
   onUpload: (fotoId: string) => void
   readOnly?: boolean
   requerEdicao?: boolean
+  publicada?: boolean
 }) {
   const total = itens.length
   const percentual = total > 0 ? Math.round((editadas / total) * 100) : 0
@@ -658,6 +712,7 @@ function SelecaoItensSection({
               disabled={disabled}
               readOnly={readOnly}
               requerEdicao={requerEdicao}
+              publicada={publicada}
               uploading={uploadingId === item.fotoId}
               onUpload={() => onUpload(item.fotoId)}
             />
@@ -794,6 +849,7 @@ function ItemSelecaoCard({
   disabled,
   readOnly = false,
   requerEdicao = true,
+  publicada = false,
   uploading = false,
   onUpload,
 }: {
@@ -801,10 +857,12 @@ function ItemSelecaoCard({
   disabled: boolean
   readOnly?: boolean
   requerEdicao?: boolean
+  publicada?: boolean
   uploading?: boolean
   onUpload: () => void
 }) {
   const foto = item.foto
+  const acaoEdicao = publicada ? 'Reeditar' : item.editada ? 'Substituir editada' : 'Enviar editada'
   return (
     <div className="overflow-hidden rounded-xl border bg-card">
       <div className="relative aspect-[3/2] bg-muted">
@@ -841,15 +899,25 @@ function ItemSelecaoCard({
         )}
         {!readOnly ? (
           <Button
-            variant={item.editada ? 'outline' : 'default'}
+            variant={publicada || item.editada ? 'outline' : 'default'}
             size="sm"
             className="w-full"
             onClick={onUpload}
             disabled={disabled || uploading}
-            aria-label={item.editada ? `Substituir editada de ${item.nomeArquivo}` : `Enviar editada de ${item.nomeArquivo}`}
+            aria-label={
+              publicada
+                ? `Reeditar ${item.nomeArquivo}`
+                : item.editada
+                  ? `Substituir editada de ${item.nomeArquivo}`
+                  : `Enviar editada de ${item.nomeArquivo}`
+            }
           >
-            {uploading ? <Loader2 className="mr-1 h-4 w-4 animate-spin" /> : item.editada ? <RefreshCw className="mr-1 h-4 w-4" /> : <Upload className="mr-1 h-4 w-4" />}
-            {uploading ? 'Enviando...' : item.editada ? 'Substituir editada' : 'Enviar editada'}
+            {uploading
+              ? <Loader2 className="mr-1 h-4 w-4 animate-spin" />
+              : publicada || item.editada
+                ? <RefreshCw className="mr-1 h-4 w-4" />
+                : <Upload className="mr-1 h-4 w-4" />}
+            {uploading ? 'Enviando...' : acaoEdicao}
           </Button>
         ) : (
           <p className={`rounded-md py-2 text-center text-xs font-medium ${

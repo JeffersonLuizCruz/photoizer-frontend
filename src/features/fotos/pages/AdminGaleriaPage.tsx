@@ -16,7 +16,7 @@ import { ConfirmDialog } from '@/shared/components/layout/ConfirmDialog'
 import { cn } from '@/shared/lib/cn'
 import { AGENDAMENTO_STATUS, ROUTES, type AgendamentoStatus } from '@/shared/constants'
 import { fotoStaffThumbUrl, numeroGaleriaLabel, rotuloFoto } from '@/shared/lib/foto'
-import { useAgendamento, useFotosList, useUploadFotos, usePublicarFotos, useRenumerarGaleria, useGaleriaEnsaio, useDefinirCapaGaleria, useDeletarFoto, useDeletarFotosEmLote, useUpdateFotoMetadata, useAlterarVisibilidade, useAlterarStatus, useSubstituirImagem, useComentariosAdmin, useOverrideSelecao } from '../api/queries'
+import { useAgendamento, useFotosList, useUploadFotos, usePublicarFotos, useRenumerarGaleria, useGaleriaEnsaio, useDefinirCapaGaleria, useDeletarFoto, useDeletarFotosEmLote, useUpdateFotoMetadata, useAlterarVisibilidade, useAlterarStatus, useSubstituirImagem, useComentariosAdmin, useOverrideSelecao, useReeditarFoto } from '../api/queries'
 import { useAuth } from '@/features/auth/AuthProvider'
 import { ComentariosDialog } from '../components/ComentariosDialog'
 import { UploadLoteError, type UploadProgress } from '../services/foto.service'
@@ -240,10 +240,12 @@ export function AdminGaleriaPage({
   const { id } = useParams<{ id: string }>()
   const inputRef = useRef<HTMLInputElement>(null)
   const replaceInputRef = useRef<HTMLInputElement>(null)
+  const reedicaoInputRef = useRef<HTMLInputElement>(null)
   const [selectedFiles, setSelectedFiles] = useState<File[]>([])
   const [uploadProgress, setUploadProgress] = useState<UploadProgress | null>(null)
   const [editFoto, setEditFoto] = useState<FotoEnsaio | null>(null)
   const [replaceFotoId, setReplaceFotoId] = useState<string | null>(null)
+  const [reedicaoFotoId, setReedicaoFotoId] = useState<string | null>(null)
   const [confirmDeleteFotoId, setConfirmDeleteFotoId] = useState<string | null>(null)
   const [comentariosFoto, setComentariosFoto] = useState<FotoEnsaio | null>(null)
   const [modoSelecao, setModoSelecao] = useState(false)
@@ -267,6 +269,7 @@ export function AdminGaleriaPage({
   const { mutate: alterarVisibilidade } = useAlterarVisibilidade(id ?? '')
   const { mutate: alterarStatus } = useAlterarStatus(id ?? '')
   const { mutate: substituirImagem, isPending: isReplacing } = useSubstituirImagem(id ?? '')
+  const { mutate: reeditar, isPending: isReeditando } = useReeditarFoto(id ?? '')
   const { data: agendamento } = useAgendamento(id)
   const { papel } = useAuth()
   const { data: galeriaEnsaio } = useGaleriaEnsaio(id)
@@ -472,6 +475,25 @@ export function AdminGaleriaPage({
     )
   }
 
+  const handleReeditarImage = (fotoId: string) => {
+    setReedicaoFotoId(fotoId)
+    reedicaoInputRef.current?.click()
+  }
+
+  const handleReedicaoFileSelected = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file || !reedicaoFotoId) return
+    reeditar(
+      { fotoId: reedicaoFotoId, arquivo: file },
+      {
+        onSettled: () => {
+          setReedicaoFotoId(null)
+          if (reedicaoInputRef.current) reedicaoInputRef.current.value = ''
+        },
+      },
+    )
+  }
+
   return (
     <div>
       <input
@@ -481,6 +503,13 @@ export function AdminGaleriaPage({
         capture="environment"
         className="hidden"
         onChange={handleReplaceFileSelected}
+      />
+      <input
+        ref={reedicaoInputRef}
+        type="file"
+        accept="image/jpeg,image/png,image/webp"
+        className="hidden"
+        onChange={handleReedicaoFileSelected}
       />
 
       <div className="mb-4 flex flex-wrap items-center gap-2 rounded-xl border bg-card p-3">
@@ -1147,6 +1176,20 @@ export function AdminGaleriaPage({
                     setFotoAcoes(null)
                   }}
                 />
+                {fotoAcoes.versaoAtual === 'EDITADA'
+                  && (fotoAcoes.status === 'PUBLICADA' || fotoAcoes.status === 'PAGA')
+                  && !fotoAcoes.arquivosRemovidos && (
+                  <AcaoFotoSheet
+                    icone={RefreshCw}
+                    rotulo="Reeditar edição"
+                    descricao="Envia uma nova versão editada para o cliente baixar"
+                    disabled={isReeditando}
+                    onClick={() => {
+                      handleReeditarImage(fotoAcoes.id)
+                      setFotoAcoes(null)
+                    }}
+                  />
+                )}
                 {papel !== 'AGENDADOR' && podeSerCapa(fotoAcoes) && (
                   <AcaoFotoSheet
                     icone={ImageIcon}

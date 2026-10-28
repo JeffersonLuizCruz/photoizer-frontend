@@ -61,6 +61,28 @@ export function useUploadFotos(agendamentoId: string) {
   })
 }
 
+export interface ReeditarFotoVariables {
+  fotoId: string
+  arquivo: File
+}
+
+export function useReeditarFoto(agendamentoId: string) {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ({ fotoId, arquivo }: ReeditarFotoVariables) =>
+      fotoService.uploadReedicao(agendamentoId, fotoId, arquivo),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['fotos', agendamentoId] })
+      queryClient.invalidateQueries({ queryKey: ['galeria-ensaio', agendamentoId] })
+      queryClient.invalidateQueries({ queryKey: ['selecoes-ensaio', agendamentoId] })
+      queryClient.invalidateQueries({ queryKey: ['admin-ecommerce', agendamentoId] })
+      toast.success('Reedição enviada. O cliente já pode baixar a nova versão.')
+    },
+    onError: (error: Error) =>
+      toast.error(extractErrorMessage(error, 'Erro ao enviar a reedição')),
+  })
+}
+
 export function usePublicarFotos(agendamentoId: string) {
   const queryClient = useQueryClient()
   return useMutation({

@@ -191,6 +191,7 @@ export function AdminGaleriaWorkspacePage() {
             <AdminSelecoesPage
               key={refreshKey}
               requerEdicao={workspace.galeria?.requerEdicao ?? true}
+              arquivada={workspace.galeria?.arquivada ?? false}
             />
           )}
         </TabsContent>
