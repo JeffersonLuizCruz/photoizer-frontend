@@ -6,6 +6,7 @@ import type {
   AdminEcommerceResumoResponse,
   FotoEnsaio,
   GaleriaEnsaioResponse,
+  QualidadePreview,
   SelecaoEnsaioResponse,
 } from '@/features/ecommerce/types/ecommerce.types'
 import { extractErrorMessage } from '@/shared/api'
@@ -72,20 +73,23 @@ export function usePublicarFotos(agendamentoId: string) {
   })
 }
 
-export function useAquecerPrevias(agendamentoId: string) {
+export function useAplicarQualidadeGaleria(agendamentoId: string) {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: () => fotoService.aquecerPrevias(agendamentoId),
+    mutationFn: (qualidade: QualidadePreview) =>
+      ecommerceService.adminAlterarQualidadeGaleria(agendamentoId, qualidade),
     onSuccess: (resultado) => {
+      queryClient.invalidateQueries({ queryKey: ['galeria-ensaio', agendamentoId] })
       queryClient.invalidateQueries({ queryKey: ['fotos', agendamentoId] })
       const partes = [`${resultado.geradas} gerada(s)`, `${resultado.reaproveitadas} reaproveitada(s)`]
       if (resultado.falhas > 0) partes.push(`${resultado.falhas} falha(s)`)
       if (resultado.ignoradas > 0) partes.push(`${resultado.ignoradas} ignorada(s)`)
-      const mensagem = `Prévias em alta resolução: ${partes.join(', ')}`
+      const mensagem = `Qualidade da prévia aplicada: ${partes.join(', ')}`
       if (resultado.falhas > 0) toast.warning(mensagem)
       else toast.success(mensagem)
     },
-    onError: (error: Error) => toast.error(extractErrorMessage(error, 'Erro ao processar as prévias')),
+    onError: (error: Error) =>
+      toast.error(extractErrorMessage(error, 'Erro ao aplicar a qualidade da prévia')),
   })
 }
 

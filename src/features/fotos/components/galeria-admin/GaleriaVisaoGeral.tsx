@@ -19,6 +19,7 @@ import { fotoThumbUrl } from '@/shared/lib/foto'
 import { useAuth } from '@/features/auth/AuthProvider'
 import { useAlterarModoGaleria } from '../../api/queries'
 import { GaleriaHeroTituloCard } from './GaleriaHeroTituloCard'
+import { GaleriaQualidadePreviewCard } from './GaleriaQualidadePreviewCard'
 import type { GaleriaEnsaioResponse, FotoEnsaio, ModoGaleria, SelecaoEnsaioResponse } from '@/features/ecommerce/types/ecommerce.types'
 import type { AgendamentoRef } from '../../services/foto.service'
 import type { GaleriaWorkspaceCounts } from '../../api/queries'
@@ -230,6 +231,15 @@ export function GaleriaVisaoGeral({
           agendamentoId={galeria.agendamentoId}
           tituloAtual={galeria.tituloHero}
           clienteNome={agendamento?.clienteNome}
+        />
+      )}
+
+      {galeria && (
+        <GaleriaQualidadePreviewCard
+          agendamentoId={galeria.agendamentoId}
+          qualidadeAtual={galeria.qualidadePreview}
+          arquivada={galeria.arquivada}
+          podeEditar={user?.papel === 'ADMIN'}
         />
       )}
 

@@ -30,6 +30,7 @@ export interface FotoEnsaio {
 }
 
 export type ModoGaleria = 'DIRETO' | 'COM_EDICAO' | 'SEM_EDICAO'
+export type QualidadePreview = 'PROTEGIDA' | 'EQUILIBRADA' | 'ORIGINAL'
 export type FaseGaleria = 'SELECAO' | 'SELECAO_ENVIADA' | 'EM_EDICAO' | 'COMERCIALIZACAO'
 export type StatusSelecao = 'ENVIADA' | 'EM_EDICAO' | 'CONCLUIDA' | 'PUBLICADA' | 'CANCELADA'
 
@@ -178,6 +179,7 @@ export interface GaleriaEnsaioResponse {
   agendamentoId: string
   modo: ModoGaleria
   fase: FaseGaleria
+  qualidadePreview: QualidadePreview
   selecaoAtualId: string | null
   capaFotoId: string | null
   capaVersao: 'ORIGINAL' | 'EDITADA' | null
@@ -188,6 +190,15 @@ export interface GaleriaEnsaioResponse {
   arquivadaEm: string | null
   bytesLiberados: number
   publicadaEm: string | null
+}
+
+export interface AplicarQualidadePreviewResponse {
+  qualidade: QualidadePreview
+  total: number
+  geradas: number
+  reaproveitadas: number
+  falhas: number
+  ignoradas: number
 }
 
 export interface CompraExtraResponse {

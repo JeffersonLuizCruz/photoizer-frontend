@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useParams, useSearchParams, useNavigate, Navigate, Link } from 'react-router-dom'
-import { ArrowLeft, Archive, Copy, ExternalLink, RefreshCw, Sparkles } from 'lucide-react'
+import { ArrowLeft, Archive, Copy, ExternalLink, RefreshCw } from 'lucide-react'
 import { toast } from 'sonner'
 import { PageTitle } from '@/shared/components/layout/PageTitle'
 import { PageLoading } from '@/shared/components/layout/Loading'
@@ -9,7 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/shared/components/ui
 import { ROUTES } from '@/shared/constants'
 import { copyToClipboard } from '@/shared/lib/clipboard'
 import { useAuth } from '@/features/auth/AuthProvider'
-import { useAgendamento, useAquecerPrevias, useGaleriaWorkspace } from '../api/queries'
+import { useAgendamento, useGaleriaWorkspace } from '../api/queries'
 import { AdminGaleriaPage } from './AdminGaleriaPage'
 import { AdminSelecoesPage } from './AdminSelecoesPage'
 import { GaleriaVisaoGeral } from '../components/galeria-admin/GaleriaVisaoGeral'
@@ -28,7 +28,6 @@ export function AdminGaleriaWorkspacePage() {
 
   const { data: agendamento, isLoading: carregandoAgendamento, refetch: refetchAgendamento } = useAgendamento(id)
   const workspace = useGaleriaWorkspace(id, { incluirResumo: podeVerCompras })
-  const aquecerPrevias = useAquecerPrevias(id ?? '')
 
   if (!id) return <PageLoading />
   if (carregandoAgendamento && !agendamento && workspace.isLoading) return <PageLoading />
@@ -83,21 +82,6 @@ export function AdminGaleriaWorkspacePage() {
               <RefreshCw className="mr-1 h-4 w-4" />
               Atualizar
             </Button>
-            {user?.papel === 'ADMIN' && (
-              <Button
-                variant="outline"
-                size="sm"
-                aria-label="Reprocessar prévias em alta resolução"
-                title="Gera as prévias em alta resolução das fotos antigas desta galeria"
-                onClick={() => aquecerPrevias.mutate()}
-                disabled={aquecerPrevias.isPending || workspace.galeria?.arquivada}
-              >
-                <Sparkles className="h-4 w-4 sm:mr-1" />
-                <span className="hidden sm:inline">
-                  {aquecerPrevias.isPending ? 'Processando...' : 'Prévias HD'}
-                </span>
-              </Button>
-            )}
             <Button
               variant="outline"
               size="sm"

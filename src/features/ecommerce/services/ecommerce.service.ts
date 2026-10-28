@@ -1,6 +1,6 @@
 import { apiClient, downloadProtected } from '@/shared/api'
 import { env } from '@/shared/config/env'
-import type { FotoEnsaio, CompraExtraResponse, AdminEcommerceResumoResponse, CarrinhoResponse, CalculoCarrinhoResponse, MetodoPagamento, AdminCompraDetalheResponse, AdminComprasRelatorioResponse, CompraExtraPendenteEdicaoResponse, Avaliacao, Sessao, EcommerceAnalyticsResponse, DashboardEcommerceResponse, DashboardEcommerceMensalResponse, FotoComentario, ComentariosPorFotoResponse, ConfiguracaoPagamentoResponse, SelecaoEnsaioResponse, SelecaoPendenteResponse, GaleriaEnsaioResponse, ModoGaleria, FaseGaleria, EtapaGaleria, GaleriaPipelineItem, GaleriaPipelineResumo, GaleriaStatusResponse, GaleriaPerformance } from '../types/ecommerce.types'
+import type { FotoEnsaio, CompraExtraResponse, AdminEcommerceResumoResponse, CarrinhoResponse, CalculoCarrinhoResponse, MetodoPagamento, AdminCompraDetalheResponse, AdminComprasRelatorioResponse, CompraExtraPendenteEdicaoResponse, Avaliacao, Sessao, EcommerceAnalyticsResponse, DashboardEcommerceResponse, DashboardEcommerceMensalResponse, FotoComentario, ComentariosPorFotoResponse, ConfiguracaoPagamentoResponse, SelecaoEnsaioResponse, SelecaoPendenteResponse, GaleriaEnsaioResponse, ModoGaleria, QualidadePreview, AplicarQualidadePreviewResponse, FaseGaleria, EtapaGaleria, GaleriaPipelineItem, GaleriaPipelineResumo, GaleriaStatusResponse, GaleriaPerformance } from '../types/ecommerce.types'
 import type { PacoteResponse } from '@/features/pacotes/types/pacotes.types'
 import type { AgendamentoCliente } from '@/features/auth/customer/types'
 import type { PaginatedResponse } from '@/shared/types'
@@ -316,6 +316,15 @@ export const ecommerceService = {
   ): Promise<GaleriaEnsaioResponse> => {
     const { data } = await apiClient.put<GaleriaEnsaioResponse>(
       `/admin/agendamentos/${agendamentoId}/galeria/modo`, { modo })
+    return data
+  },
+
+  adminAlterarQualidadeGaleria: async (
+    agendamentoId: string,
+    qualidade: QualidadePreview,
+  ): Promise<AplicarQualidadePreviewResponse> => {
+    const { data } = await apiClient.put<AplicarQualidadePreviewResponse>(
+      `/admin/agendamentos/${agendamentoId}/galeria/qualidade`, { qualidade })
     return data
   },
 
