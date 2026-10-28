@@ -87,6 +87,11 @@ export const agendamentoService = {
     return data
   },
 
+  atualizarAvulso: async (id: string, payload: EditarAgendamentoFormData): Promise<Agendamento> => {
+    const { data } = await apiClient.put<Agendamento>(`/agendamentos/avulso/${id}`, payload)
+    return data
+  },
+
   criarAvulso: async (payload: CriarAgendamentoAvulsoPayload): Promise<Agendamento> => {
     const { data } = await apiClient.post<Agendamento>('/agendamentos/avulso', payload)
     return data

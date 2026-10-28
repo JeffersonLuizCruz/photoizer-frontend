@@ -65,14 +65,17 @@ export function EditarAgendamentoForm({ agendamento, onSubmit, isPending }: Edit
   const selectedDate = watch('dataHoraEnsaio') ? new Date(watch('dataHoraEnsaio')) : undefined
   const fotografoId = watch('fotografoId')
   const pacoteSelecionado = pacotes?.find((p) => p.id === watch('pacoteId'))
+  const historico = agendamento.origem === 'AVULSO'
+    && !!selectedDate
+    && selectedDate.getTime() < Date.now()
 
   const responsaveis = usuarios.filter(
     (u) => (u.papel === 'FOTOGRAFO' || u.papel === 'ADMIN') && u.ativo !== false,
   )
 
   const { data: disponibilidade } = useDisponibilidade(
-    selectedDate,
-    selectedDate ? format(selectedDate, 'HH:mm') : undefined,
+    historico ? undefined : selectedDate,
+    historico ? undefined : selectedDate ? format(selectedDate, 'HH:mm') : undefined,
     parseDuracao(pacoteSelecionado?.duracaoEstimada),
     pacoteSelecionado?.bloqueiaDiaInteiro ?? false,
     fotografoId || undefined,
@@ -200,11 +203,17 @@ export function EditarAgendamentoForm({ agendamento, onSubmit, isPending }: Edit
             value={selectedDate ? format(selectedDate, 'HH:mm') : ''}
             onChange={handleHoraSelect}
             slots={HORARIOS_ENSAIO}
+            allowCustom={agendamento.origem === 'AVULSO'}
             placeholder="Selecione o horário"
             title="Horário do ensaio"
             description={selectedDate ? format(selectedDate, 'dd/MM/yyyy') : 'Selecione o horário de início do ensaio.'}
             invalid={!!errors.dataHoraEnsaio}
           />
+          {historico && (
+            <p className="mt-1 text-xs text-muted-foreground">
+              Registro retroativo: a disponibilidade do horário não é validada para ensaios que já aconteceram.
+            </p>
+          )}
           {conflito && disponibilidade && (
             <div className="mt-2 rounded-lg border border-destructive/50 bg-destructive/5 p-3">
               <div className="flex items-center gap-2">

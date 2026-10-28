@@ -97,6 +97,24 @@ export function useUpdateAgendamento(id: string) {
   })
 }
 
+export function useUpdateAgendamentoAvulso(id: string) {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (payload: EditarAgendamentoFormData) =>
+      agendamentoService.atualizarAvulso(id, payload),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.AGENDA })
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.FINANCEIRO })
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.DASHBOARD })
+      toast.success('Agendamento atualizado com sucesso')
+    },
+    onError: (error: Error) => {
+      toast.error(extractErrorMessage(error, 'Erro ao atualizar agendamento'))
+    },
+  })
+}
+
 export function useOpcoesAgendamentoAvulso() {
   return useQuery({
     queryKey: [...QUERY_KEYS.AGENDA, 'avulso', 'opcoes'],

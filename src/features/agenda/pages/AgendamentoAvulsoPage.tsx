@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useNavigate } from 'react-router-dom'
-import { format, startOfToday } from 'date-fns'
+import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import { toast } from 'sonner'
 import { AlertTriangle, CalendarIcon, Copy, ExternalLink, Link2, Loader2, Percent, Save, Wallet } from 'lucide-react'
@@ -76,6 +76,20 @@ export function AgendamentoAvulsoPage() {
   const fotografoId = watch('fotografoId')
   const dataValue = watch('data')
   const horaValue = watch('hora')
+  const ensaioNoPassado = useMemo(() => {
+    if (!(dataValue instanceof Date) || !horaValue) return false
+    const [hora, minuto] = horaValue.split(':').map(Number)
+    const dataHora = new Date(
+      dataValue.getFullYear(),
+      dataValue.getMonth(),
+      dataValue.getDate(),
+      hora,
+      minuto,
+      0,
+      0,
+    )
+    return dataHora.getTime() < Date.now()
+  }, [dataValue, horaValue])
   const modoEntrada = watch('modoEntrada')
   const percentualEntrada = Number(watch('percentualEntrada')) || 0
   const valorJaRecebido = Number(watch('valorJaRecebido')) || 0
@@ -103,13 +117,13 @@ export function AgendamentoAvulsoPage() {
   const saldoRestante = Math.max(valorTotal - (modoEntrada === 'RECEBIDO' ? valorJaRecebido : 0), 0)
 
   const { data: disponibilidade, isFetching: verificandoDisponibilidade } = useDisponibilidade(
-    dataValue instanceof Date ? dataValue : undefined,
-    horaValue || undefined,
+    ensaioNoPassado ? undefined : dataValue instanceof Date ? dataValue : undefined,
+    ensaioNoPassado ? undefined : horaValue || undefined,
     duracao,
     pacoteEscolhido?.bloqueiaDiaInteiro ?? false,
     fotografoId || undefined,
   )
-  const conflito = disponibilidade && !disponibilidade.disponivel
+  const conflito = !ensaioNoPassado && disponibilidade && !disponibilidade.disponivel
 
   useEffect(() => {
     if (!opcoes || custoInicializado.current) return
@@ -208,7 +222,7 @@ export function AgendamentoAvulsoPage() {
     <div>
       <PageTitle
         title="Agendamento Avulso"
-        description="Cadastre um ensaio já confirmado e gere o link para o cliente preencher o contrato."
+        description="Cadastre um ensaio já confirmado — inclusive um ensaio que já aconteceu — e gere o link para o cliente preencher o contrato."
         breadcrumbs={[{ label: 'Agenda', href: ROUTES.AGENDA }, { label: 'Agendamento avulso' }]}
       />
 
@@ -217,7 +231,7 @@ export function AgendamentoAvulsoPage() {
           <div>
             <h2 className="font-semibold">Ensaio</h2>
             <p className="text-xs text-muted-foreground">
-              O agendamento entra na agenda como confirmado. O cliente preenche os próprios dados pelo link.
+              O agendamento entra na agenda como confirmado. Para ensaios já realizados, o cadastro fica com a data passada. O cliente preenche os próprios dados pelo link.
             </p>
           </div>
 
@@ -249,7 +263,6 @@ export function AgendamentoAvulsoPage() {
                     mode="single"
                     selected={dataValue instanceof Date ? dataValue : undefined}
                     onSelect={(date) => { if (date) setValue('data', date, { shouldValidate: true }) }}
-                    disabled={(date: Date) => date < startOfToday()}
                     locale={ptBR}
                     initialFocus
                   />
@@ -265,12 +278,18 @@ export function AgendamentoAvulsoPage() {
                 value={horaValue}
                 onChange={(value) => setValue('hora', value, { shouldValidate: true })}
                 slots={HORARIOS_AVULSO}
+                allowCustom
                 placeholder="Selecione um horário"
                 title="Horário do ensaio"
                 description={dataValue instanceof Date ? `Horário para ${format(dataValue, "dd 'de' MMMM", { locale: ptBR })}` : 'Selecione o horário de início do ensaio.'}
                 invalid={!!errors.hora}
               />
               {errors.hora && <p className="mt-1 text-sm text-destructive">{errors.hora.message}</p>}
+              {ensaioNoPassado && (
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Registro retroativo: a disponibilidade do horário não é validada para ensaios que já aconteceram.
+                </p>
+              )}
               {verificandoDisponibilidade && (
                 <p className="mt-1 flex items-center gap-2 text-xs text-muted-foreground">
                   <Loader2 className="h-3 w-3 animate-spin" /> Verificando disponibilidade...

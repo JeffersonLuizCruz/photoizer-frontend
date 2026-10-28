@@ -1,17 +1,16 @@
 import { useParams, useNavigate } from 'react-router-dom'
-import { useAgendamento, useUpdateAgendamento } from '../api/queries'
+import { useAgendamento, useUpdateAgendamento, useUpdateAgendamentoAvulso } from '../api/queries'
 import { EditarAgendamentoForm } from '../components/EditarAgendamentoForm'
 import { PageTitle } from '@/shared/components/layout/PageTitle'
 import { PageLoading } from '@/shared/components/layout/Loading'
 import { ROUTES } from '@/shared/constants'
 import type { EditarAgendamentoFormData } from '../schemas/agendamento.schema'
+import type { Agendamento } from '../types'
 
 export function EditarAgendamentoPage() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
-
   const { data: agendamento, isLoading, error } = useAgendamento(id ?? '')
-  const { mutate: updateAgendamento, isPending } = useUpdateAgendamento(id ?? '')
 
   if (isLoading) return <PageLoading />
   if (error || !agendamento) {
@@ -28,9 +27,19 @@ export function EditarAgendamentoPage() {
     )
   }
 
+  return <EditarAgendamentoContent agendamento={agendamento} />
+}
+
+function EditarAgendamentoContent({ agendamento }: { agendamento: Agendamento }) {
+  const navigate = useNavigate()
+  const atualizarNormal = useUpdateAgendamento(agendamento.id)
+  const atualizarAvulso = useUpdateAgendamentoAvulso(agendamento.id)
+  const { mutate: updateAgendamento, isPending } =
+    agendamento.origem === 'AVULSO' ? atualizarAvulso : atualizarNormal
+
   const handleSubmit = (data: EditarAgendamentoFormData) => {
     updateAgendamento(data, {
-      onSuccess: () => navigate(`/agenda/${id}`),
+      onSuccess: () => navigate(`/agenda/${agendamento.id}`),
     })
   }
 
@@ -41,7 +50,7 @@ export function EditarAgendamentoPage() {
         description={agendamento.clienteNome ?? 'Pré-reserva'}
         breadcrumbs={[
           { label: 'Agenda', href: ROUTES.AGENDA },
-          { label: agendamento.clienteNome ?? 'Pré-reserva', href: `/agenda/${id}` },
+          { label: agendamento.clienteNome ?? 'Pré-reserva', href: `/agenda/${agendamento.id}` },
           { label: 'Editar' },
         ]}
       />
