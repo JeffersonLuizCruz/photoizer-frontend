@@ -15,7 +15,7 @@ import { Sheet, SheetContent, SheetTitle } from '@/shared/components/ui/sheet'
 import { ConfirmDialog } from '@/shared/components/layout/ConfirmDialog'
 import { cn } from '@/shared/lib/cn'
 import { AGENDAMENTO_STATUS, ROUTES, type AgendamentoStatus } from '@/shared/constants'
-import { fotoThumbUrl, numeroGaleriaLabel, rotuloFoto } from '@/shared/lib/foto'
+import { fotoStaffThumbUrl, numeroGaleriaLabel, rotuloFoto } from '@/shared/lib/foto'
 import { useAgendamento, useFotosList, useUploadFotos, usePublicarFotos, useRenumerarGaleria, useGaleriaEnsaio, useDefinirCapaGaleria, useDeletarFoto, useDeletarFotosEmLote, useUpdateFotoMetadata, useAlterarVisibilidade, useAlterarStatus, useSubstituirImagem, useComentariosAdmin, useOverrideSelecao } from '../api/queries'
 import { useAuth } from '@/features/auth/AuthProvider'
 import { ComentariosDialog } from '../components/ComentariosDialog'
@@ -173,7 +173,11 @@ function FotoMetadataDialog({ agendamentoId, foto, open, onOpenChange }: {
                   <ImageOff className="h-6 w-6" />
                 </div>
               ) : (
-                <AuthImage src={fotoThumbUrl(foto)} alt="" className="h-full w-full object-cover" />
+                <AuthImage
+                  src={fotoStaffThumbUrl(foto, agendamentoId)}
+                  alt=""
+                  className="h-full w-full object-cover"
+                />
               )}
             </div>
             <div className="flex-1 min-w-0">
@@ -876,7 +880,7 @@ export function AdminGaleriaPage({
                     </div>
                   ) : (
                     <AuthImage
-                      src={fotoThumbUrl(foto)}
+                      src={fotoStaffThumbUrl(foto, id)}
                       alt={rotuloFoto(foto)}
                       className="h-full w-full object-cover"
                     />
@@ -1018,7 +1022,7 @@ export function AdminGaleriaPage({
                     </div>
                   ) : (
                     <AuthImage
-                      src={fotoThumbUrl(fotoAcoes)}
+                      src={fotoStaffThumbUrl(fotoAcoes, id)}
                       alt={rotuloFoto(fotoAcoes)}
                       className="h-full w-full object-cover"
                     />

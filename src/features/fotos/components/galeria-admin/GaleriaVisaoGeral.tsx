@@ -15,7 +15,7 @@ import { Button } from '@/shared/components/ui/button'
 import { AuthImage } from '@/shared/components/ui/AuthImage'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/components/ui/select'
 import { extractErrorMessage } from '@/shared/api'
-import { fotoThumbUrl } from '@/shared/lib/foto'
+import { fotoStaffThumbUrl, fotoThumbUrl } from '@/shared/lib/foto'
 import { useAuth } from '@/features/auth/AuthProvider'
 import { useAlterarModoGaleria } from '../../api/queries'
 import { GaleriaHeroTituloCard } from './GaleriaHeroTituloCard'
@@ -150,7 +150,7 @@ export function GaleriaVisaoGeral({
             <div className="h-20 w-28 shrink-0 overflow-hidden rounded-lg bg-muted">
               {capa ? (
                 <AuthImage
-                  src={fotoThumbUrl(capa)}
+                  src={galeria ? fotoStaffThumbUrl(capa, galeria.agendamentoId) : fotoThumbUrl(capa)}
                   alt="Capa da galeria"
                   priority
                   className="h-full w-full object-cover"

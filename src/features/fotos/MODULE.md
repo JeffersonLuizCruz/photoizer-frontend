@@ -97,7 +97,7 @@ Não existes testes para este módulo.
 - `useGaleriaWorkspace` agrega fotos, configuração da galeria, seleções e resumo do e-commerce com os mesmos query keys dos hooks existentes, evitando chamadas duplicadas.
 - O botão **Atualizar** no workspace refaz as queries; a aba Seleção tem atualização própria e invalida `fotos`, `selecoes-ensaio`, `galeria-ensaio` e `admin-ecommerce` após upload/publicação/reabertura.
 - As queries administrativas fazem polling de 60s (quando a aba está ativa) para refletir envio de seleção/compras feitas pelo cliente.
-- A miniatura usa `fotoThumbUrl()` (`?v={editadaEm|updatedAt}`) para o `AuthImage` refazer a busca após edição/substituição; o `AuthImage` carrega sob demanda via `IntersectionObserver` (exceto `priority`, usado na capa).
+- A miniatura do staff usa `fotoStaffThumbUrl()` (endpoint autenticado `/agendamentos/{id}/fotos/{fotoId}/thumb`) para exibir também fotos `INEDITA` logo após o upload; a galeria pública continua usando `fotoThumbUrl()` (endpoint público, somente `PUBLICADA`/`PAGA`). Ambos acrescentam `?v={editadaEm|updatedAt}` para o `AuthImage` refazer a busca após edição/substituição; o `AuthImage` carrega sob demanda via `IntersectionObserver` (exceto `priority`, usado na capa).
 - **Papéis**: `ADMIN` vê tudo; `FOTOGRAFO`/`EDITOR` gerenciam fotos e seleção; `AGENDADOR` não acessa a galeria (rota protegida por `ROLES_SEM_AGENDADOR`). A aba Compras fica restrita a `ADMIN`/`FOTOGRAFO`.
 - **Mobile-first**: abas roláveis, cards em 2 colunas e ações em barras que quebram linha, sem depender de hover.
 

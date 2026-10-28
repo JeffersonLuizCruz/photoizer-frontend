@@ -36,23 +36,46 @@ export function rotuloFoto(foto: {
   return numero ? `${numero} · ${nome}` : nome
 }
 
+interface FotoComVersao {
+  editadaEm?: string | null
+  auditInfo?: { updatedAt?: string | null; createdAt?: string | null }
+}
+
 /**
- * URL da miniatura com cache-busting.
+ * Acrescenta o cache-buster de uma foto à URL informada.
  *
  * O endpoint de thumb é estável por foto; sem uma versão na URL o navegador
  * (e o AuthImage, que só refaz a busca quando `src` muda) continua exibindo a
  * imagem antiga depois de uma edição/substituição. A versão usa o momento da
  * edição e, na falta dele, o `updatedAt` do registro.
  */
-export function fotoThumbUrl(foto: {
-  thumbUrl: string
-  editadaEm?: string | null
-  auditInfo?: { updatedAt?: string | null; createdAt?: string | null }
-}): string {
+function comVersaoDaFoto(url: string, foto: FotoComVersao): string {
   const versao = foto.editadaEm
     ?? foto.auditInfo?.updatedAt
     ?? foto.auditInfo?.createdAt
-  if (!versao) return foto.thumbUrl
-  const separador = foto.thumbUrl.includes('?') ? '&' : '?'
-  return `${foto.thumbUrl}${separador}v=${encodeURIComponent(versao)}`
+  if (!versao) return url
+  const separador = url.includes('?') ? '&' : '?'
+  return `${url}${separador}v=${encodeURIComponent(versao)}`
+}
+
+/** URL pública da miniatura (galeria do cliente). */
+export function fotoThumbUrl(foto: { thumbUrl: string } & FotoComVersao): string {
+  return comVersaoDaFoto(foto.thumbUrl, foto)
+}
+
+/**
+ * URL autenticada da miniatura para o staff.
+ *
+ * O endpoint público só serve fotos PUBLICADA/PAGA. O workspace do staff
+ * precisa exibir também as fotos INEDITA logo após o upload, então usa o
+ * endpoint protegido do módulo foto.
+ */
+export function fotoStaffThumbUrl(
+  foto: { id: string } & FotoComVersao,
+  agendamentoId: string,
+): string {
+  return comVersaoDaFoto(
+    `/api/v1/agendamentos/${agendamentoId}/fotos/${foto.id}/thumb`,
+    foto,
+  )
 }
