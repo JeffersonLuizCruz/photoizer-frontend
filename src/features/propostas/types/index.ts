@@ -9,11 +9,9 @@ export interface PacoteOption {
   duracaoEstimada?: string
 }
 
-export interface UsuarioOption {
-  id: string
-  nome: string
-  papel?: string
-  ativo?: boolean
+export interface OpcoesFotografo {
+  fotografos: Array<{ id: string; nome: string }>
+  fotografoPadraoId: string | null
 }
 
 export interface IndicadorOption {

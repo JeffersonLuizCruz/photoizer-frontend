@@ -82,7 +82,8 @@ export function ConfigPage() {
     onSuccess: () => {
       setLastSavedAt(new Date())
       queryClient.invalidateQueries({ queryKey: ['config'] })
-      queryClient.invalidateQueries({ queryKey: [...QUERY_KEYS.PROPOSTAS, 'usuarios'] })
+      queryClient.invalidateQueries({ queryKey: [...QUERY_KEYS.PROPOSTAS, 'fotografos', 'opcoes'] })
+      queryClient.invalidateQueries({ queryKey: [...QUERY_KEYS.AGENDA, 'avulso', 'opcoes'] })
       toast.success('Configurações salvas com sucesso')
     },
     onError: (error: Error) => {

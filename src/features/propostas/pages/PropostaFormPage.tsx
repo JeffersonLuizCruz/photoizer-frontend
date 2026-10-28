@@ -20,6 +20,7 @@ import { ROUTES, AGENDAMENTO_STATUS } from '@/shared/constants'
 import { formatCurrency } from '@/shared/lib/format'
 import { parseDuracao } from '@/shared/lib/duracao'
 import { cn } from '@/shared/lib/cn'
+import { useAuth } from '@/features/auth/AuthProvider'
 import { StickyActionBar } from '@/shared/components/mobile'
 import { ParceirosRepasseList } from '@/shared/components/parceiros/ParceirosRepasseList'
 import { novaPropostaSchema, type NovaPropostaFormValues } from '../schemas/proposta.schema'
@@ -28,7 +29,7 @@ import {
   useAtualizarProposta,
   usePropostaDetalhe,
   usePacotesOptions,
-  useUsuariosOptions,
+  useOpcoesFotografo,
   useIndicadoresSearch,
   useDisponibilidadeProposta,
 } from '../api/queries'
@@ -48,6 +49,7 @@ interface PropostaFormPageProps {
 export function PropostaFormPage({ mode }: PropostaFormPageProps) {
   const isEdit = mode === 'edit'
   const navigate = useNavigate()
+  const { user } = useAuth()
   const { id } = useParams<{ id: string }>()
   const [searchParams] = useSearchParams()
   const dataParam = searchParams.get('data')
@@ -68,7 +70,7 @@ export function PropostaFormPage({ mode }: PropostaFormPageProps) {
   const salvando = isEdit ? atualizar.isPending : criar.isPending
   const { data: detalhe, isLoading: carregandoDetalhe, isError: erroDetalhe } = usePropostaDetalhe(isEdit ? id : undefined)
   const { data: pacotes = [] } = usePacotesOptions()
-  const { data: usuarios = [] } = useUsuariosOptions()
+  const { data: fotografoOpcoes } = useOpcoesFotografo(user?.userId)
   const [searchIndicador, setSearchIndicador] = useState('')
   const [isOpen, setIsOpen] = useState(false)
   const [selectedIndicadorId, setSelectedIndicadorId] = useState<string | null>(null)
@@ -99,6 +101,12 @@ export function PropostaFormPage({ mode }: PropostaFormPageProps) {
   })
 
   const { register, handleSubmit, setValue, watch, reset, formState: { errors } } = methods
+
+  useEffect(() => {
+    if (isEdit || !fotografoOpcoes?.fotografoPadraoId) return
+    if (methods.getValues('fotografoId')) return
+    methods.setValue('fotografoId', fotografoOpcoes.fotografoPadraoId, { shouldValidate: false })
+  }, [isEdit, fotografoOpcoes, methods])
 
   const passos = isEdit ? ['Ensaio', 'Valores'] : ['Ensaio', 'Valores', 'Indicação']
 
@@ -137,9 +145,7 @@ export function PropostaFormPage({ mode }: PropostaFormPageProps) {
   const pacoteEscolhido = pacotes.find((p) => p.id === pacoteId)
   const baseCaculoRepasse = (pacoteEscolhido?.valorBase ?? 0) + (repassar ? custoDeslocamento : 0)
 
-  const responsaveis = usuarios.filter(
-    (u) => u.papel === 'FOTOGRAFO' && u.ativo !== false,
-  )
+  const responsaveis = fotografoOpcoes?.fotografos ?? []
   const semFotografo = responsaveis.length === 0
 
   const { data: disponibilidade, isFetching: verificandoDisponibilidade } = useDisponibilidadeProposta(

@@ -17,11 +17,12 @@ export function usePacotesOptions() {
   })
 }
 
-export function useUsuariosOptions() {
+export function useOpcoesFotografo(usuarioId?: string) {
   return useQuery({
-    queryKey: [...QUERY_KEYS.PROPOSTAS, 'usuarios'],
-    queryFn: () => propostaService.listUsuarios(),
+    queryKey: [...QUERY_KEYS.PROPOSTAS, 'fotografos', 'opcoes', usuarioId],
+    queryFn: () => propostaService.getOpcoesFotografo(),
     staleTime: 1000 * 60 * 5,
+    enabled: !!usuarioId,
   })
 }
 

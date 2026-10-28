@@ -137,6 +137,7 @@ export interface Pagamento {
 
 export interface OpcoesAgendamentoAvulso {
   fotografos: Array<{ id: string; nome: string }>
+  fotografoPadraoId: string | null
   percentualEntrada: number
   taxaDeslocamentoPadrao: number
 }

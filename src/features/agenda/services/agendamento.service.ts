@@ -101,6 +101,7 @@ export const agendamentoService = {
     const { data } = await apiClient.get<OpcoesAgendamentoAvulso>('/agendamentos/avulso/opcoes')
     return {
       ...data,
+      fotografoPadraoId: data.fotografoPadraoId ?? null,
       percentualEntrada: Number(data.percentualEntrada) || 30,
       taxaDeslocamentoPadrao: Number(data.taxaDeslocamentoPadrao) || 0,
     }

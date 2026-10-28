@@ -115,11 +115,12 @@ export function useUpdateAgendamentoAvulso(id: string) {
   })
 }
 
-export function useOpcoesAgendamentoAvulso() {
+export function useOpcoesAgendamentoAvulso(usuarioId?: string) {
   return useQuery({
-    queryKey: [...QUERY_KEYS.AGENDA, 'avulso', 'opcoes'],
+    queryKey: [...QUERY_KEYS.AGENDA, 'avulso', 'opcoes', usuarioId],
     queryFn: () => agendamentoService.getOpcoesAvulso(),
     staleTime: 1000 * 60 * 5,
+    enabled: !!usuarioId,
   })
 }
 

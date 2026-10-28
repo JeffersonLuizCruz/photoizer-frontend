@@ -19,6 +19,7 @@ import { Calendar } from '@/shared/components/ui/calendar'
 import { Popover, PopoverContent, PopoverTrigger } from '@/shared/components/ui/popover'
 import { CurrencyInput } from '@/shared/components/layout/CurrencyInput'
 import { ROUTES, FORMA_PAGAMENTO_LABELS } from '@/shared/constants'
+import { useAuth } from '@/features/auth/AuthProvider'
 import { formatCurrency } from '@/shared/lib/format'
 import { parseDuracao } from '@/shared/lib/duracao'
 import { cn } from '@/shared/lib/cn'
@@ -35,9 +36,10 @@ interface ResultadoCriacao {
 
 export function AgendamentoAvulsoPage() {
   const navigate = useNavigate()
+  const { user } = useAuth()
   const criar = useCriarAgendamentoAvulso()
   const { data: pacotes = [] } = usePacotesList()
-  const { data: opcoes } = useOpcoesAgendamentoAvulso()
+  const { data: opcoes } = useOpcoesAgendamentoAvulso(user?.userId)
   const [continuando, setContinuando] = useState(false)
   const [resultado, setResultado] = useState<ResultadoCriacao | null>(null)
   const custoInicializado = useRef(false)
@@ -131,6 +133,11 @@ export function AgendamentoAvulsoPage() {
     setValue('custoDeslocamento', opcoes.taxaDeslocamentoPadrao, { shouldValidate: true })
     setValue('percentualEntrada', Number(opcoes.percentualEntrada) || 30, { shouldValidate: true })
   }, [opcoes, setValue])
+
+  useEffect(() => {
+    if (!opcoes?.fotografoPadraoId || fotografoId) return
+    setValue('fotografoId', opcoes.fotografoPadraoId, { shouldValidate: true })
+  }, [opcoes, fotografoId, setValue])
 
   function handlePacoteChange(id: string) {
     setValue('pacoteId', id, { shouldValidate: true })

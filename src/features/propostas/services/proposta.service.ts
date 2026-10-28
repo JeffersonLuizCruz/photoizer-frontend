@@ -7,12 +7,12 @@ import type {
   DisponibilidadeResponse,
   IndicadorOption,
   NovaPropostaPayload,
+  OpcoesFotografo,
   PacoteOption,
   Proposta,
   PropostaDetalhe,
   PropostaPublica,
   PropostaStatusPublico,
-  UsuarioOption,
 } from '../types'
 import type { AssinarPropostaFormValues } from '../schemas/proposta.schema'
 
@@ -28,9 +28,12 @@ export const propostaService = {
     return data
   },
 
-  listUsuarios: async (): Promise<UsuarioOption[]> => {
-    const { data } = await apiClient.get<UsuarioOption[]>('/users')
-    return data
+  getOpcoesFotografo: async (): Promise<OpcoesFotografo> => {
+    const { data } = await apiClient.get<OpcoesFotografo>('/agendamentos/fotografos')
+    return {
+      ...data,
+      fotografoPadraoId: data.fotografoPadraoId ?? null,
+    }
   },
 
   listIndicadores: async (search?: string): Promise<IndicadorOption[]> => {

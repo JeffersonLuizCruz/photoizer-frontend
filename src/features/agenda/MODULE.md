@@ -101,6 +101,7 @@ EM_EDICAO              → finalizar
 4. **Ações contextuais**: `statusActions` define botões por status. `actionConfig` mapeia label, ícone, variante, título de confirmação e status alvo. Ações que abrem diálogo (reagendar, pagarFinal) vs `ConfirmDialog` (as demais).
 5. **Enums compartilhados**: `AGENDAMENTO_STATUS`, `TAREFA_STATUS`, `TAREFA_TIPO` em `shared/constants`. Interfaces em `types/` importam de lá.
 6. **recibo.ts**: Utilitário de texto puro para recibo formatado. Contém emoji no output.
+7. **Fotógrafo responsável padrão**: tanto no agendamento avulso (`useOpcoesAgendamentoAvulso`) quanto na Nova Proposta (`useOpcoesFotografo`) o campo é pré-selecionado com o `fotografoPadraoId` retornado pelo backend — o próprio usuário logado quando é FOTOGRAFO ativo; senão o fotógrafo definido em Configurações. O select continua editável e nunca sobrescreve uma escolha manual ou o valor salvo na edição.
 
 ## 6. Testes
 Não existem testes para este módulo.
