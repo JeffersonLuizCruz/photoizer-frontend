@@ -72,6 +72,23 @@ export function usePublicarFotos(agendamentoId: string) {
   })
 }
 
+export function useAquecerPrevias(agendamentoId: string) {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: () => fotoService.aquecerPrevias(agendamentoId),
+    onSuccess: (resultado) => {
+      queryClient.invalidateQueries({ queryKey: ['fotos', agendamentoId] })
+      const partes = [`${resultado.geradas} gerada(s)`, `${resultado.reaproveitadas} reaproveitada(s)`]
+      if (resultado.falhas > 0) partes.push(`${resultado.falhas} falha(s)`)
+      if (resultado.ignoradas > 0) partes.push(`${resultado.ignoradas} ignorada(s)`)
+      const mensagem = `Prévias em alta resolução: ${partes.join(', ')}`
+      if (resultado.falhas > 0) toast.warning(mensagem)
+      else toast.success(mensagem)
+    },
+    onError: (error: Error) => toast.error(extractErrorMessage(error, 'Erro ao processar as prévias')),
+  })
+}
+
 export function useGaleriaEnsaio(agendamentoId: string | undefined) {
   return useQuery({
     queryKey: ['galeria-ensaio', agendamentoId],

@@ -119,6 +119,7 @@ export function FotoViewer({
   const [escala, setEscala] = useState(1)
   const [pan, setPan] = useState({ x: 0, y: 0 })
   const [arrastando, setArrastando] = useState(false)
+  const [imagemCarregada, setImagemCarregada] = useState(false)
   const zoomado = escala > 1
 
   const resetarZoom = useCallback(() => {
@@ -130,6 +131,17 @@ export function FotoViewer({
     gestoRef.current = null
     pincaRef.current = null
   }, [])
+
+  // Quando a foto atual termina de carregar, baixa as vizinhas em background
+  // para a navegação ficar instantânea sem competir com a imagem principal.
+  const precarregarVizinhos = useCallback(() => {
+    for (const indice of [currentIndex - 1, currentIndex + 1]) {
+      const vizinha = fotos[indice]
+      if (!vizinha) continue
+      const imagem = new Image()
+      imagem.src = vizinha.watermarkedUrl
+    }
+  }, [currentIndex, fotos])
 
   // Comentários
   const [comentarios, setComentarios] = useState<FotoComentario[]>([])
@@ -156,6 +168,11 @@ export function FotoViewer({
   useEffect(() => {
     resetarZoom()
   }, [foto.id, commentsOpen, resetarZoom])
+
+  // Ao trocar de foto, o thumb protegido volta a ser o placeholder.
+  useEffect(() => {
+    setImagemCarregada(false)
+  }, [foto.id])
 
   useEffect(() => {
     setComentarios([])
@@ -440,14 +457,34 @@ export function FotoViewer({
       <div
         ref={areaRef}
         className="relative flex min-h-0 flex-1 items-center justify-center overflow-hidden px-2 pb-1 sm:px-6">
+        {!imagemCarregada && (
+          <>
+            <img
+              src={foto.thumbUrl}
+              alt=""
+              aria-hidden="true"
+              draggable={false}
+              className="pointer-events-none absolute inset-0 z-0 h-full w-full select-none object-contain blur-2xl [-webkit-touch-callout:none]"
+            />
+            <Loader2
+              className="absolute z-20 h-8 w-8 animate-spin text-gallery-bg/70"
+              aria-label="Carregando foto" />
+          </>
+        )}
         <img
           ref={imagemRef}
           src={foto.watermarkedUrl}
           alt={foto.titulo || foto.fileName}
           draggable={false}
+          fetchPriority="high"
+          onLoad={() => {
+            setImagemCarregada(true)
+            precarregarVizinhos()
+          }}
           className={cn(
-            'pointer-events-none block max-h-full max-w-full select-none object-contain [-webkit-touch-callout:none] will-change-transform',
-            !arrastando && 'transition-transform duration-200 ease-out',
+            'pointer-events-none relative z-10 block max-h-full max-w-full select-none object-contain [-webkit-touch-callout:none] will-change-transform',
+            !arrastando && 'transition-[transform,opacity] duration-200 ease-out',
+            imagemCarregada ? 'opacity-100' : 'opacity-0',
           )}
           style={{ transform: `translate3d(${pan.x}px, ${pan.y}px, 0) scale(${escala})` }}
           onContextMenu={(e) => e.preventDefault()}
@@ -460,7 +497,7 @@ export function FotoViewer({
           aria-pressed={zoomado}
           title={zoomado ? 'Toque para reduzir' : 'Toque para ampliar'}
           className={cn(
-            'absolute inset-0 select-none outline-none [-webkit-touch-callout:none] focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-gallery-bg/70',
+            'absolute inset-0 z-20 select-none outline-none [-webkit-touch-callout:none] focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-gallery-bg/70',
             zoomado ? 'cursor-zoom-out' : 'cursor-zoom-in',
           )}
           style={{ touchAction: 'none' }}
@@ -480,14 +517,14 @@ export function FotoViewer({
         {currentIndex > 0 && (
           <button onClick={() => onNavigate(currentIndex - 1)}
             aria-label="Foto anterior"
-            className={cn('absolute left-2 top-1/2 h-11 w-11 -translate-y-1/2 sm:left-4', controlBtn)}>
+            className={cn('absolute left-2 top-1/2 z-30 h-11 w-11 -translate-y-1/2 sm:left-4', controlBtn)}>
             <ChevronLeft className="h-6 w-6" />
           </button>
         )}
         {currentIndex < fotos.length - 1 && !commentsOpen && (
           <button onClick={() => onNavigate(currentIndex + 1)}
             aria-label="Próxima foto"
-            className={cn('absolute right-2 top-1/2 h-11 w-11 -translate-y-1/2 sm:right-4', controlBtn)}>
+            className={cn('absolute right-2 top-1/2 z-30 h-11 w-11 -translate-y-1/2 sm:right-4', controlBtn)}>
             <ChevronRight className="h-6 w-6" />
           </button>
         )}

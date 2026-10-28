@@ -1,6 +1,6 @@
 import { apiClient } from '@/shared/api'
 import { env } from '@/shared/config/env'
-import type { FotoEnsaio, FotoComentario, ComentariosPorFotoResponse } from '../types/foto.types'
+import type { AquecerPreviasResponse, FotoEnsaio, FotoComentario, ComentariosPorFotoResponse } from '../types/foto.types'
 import type { AgendamentoStatus } from '@/shared/constants'
 
 export interface AgendamentoRef {
@@ -157,6 +157,14 @@ export const fotoService = {
 
   publicar: async (agendamentoId: string): Promise<FotoEnsaio[]> => {
     const { data } = await apiClient.patch<FotoEnsaio[]>(`/agendamentos/${agendamentoId}/fotos/publicar`)
+    return data
+  },
+
+  /** Reprocessa as prévias protegidas antigas em alta resolução. */
+  aquecerPrevias: async (agendamentoId: string): Promise<AquecerPreviasResponse> => {
+    const { data } = await apiClient.post<AquecerPreviasResponse>(
+      `/admin/agendamentos/${agendamentoId}/galeria/previews/aquecer`,
+    )
     return data
   },
 

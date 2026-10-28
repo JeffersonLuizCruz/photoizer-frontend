@@ -72,7 +72,7 @@ export function PhotoGrid({
               )}
               onClick={() => abrirFoto()}>
               <img
-                src={foto.watermarkedUrl}
+                src={foto.thumbUrl}
                 alt={rotuloFoto(foto)}
                 loading="lazy"
                 decoding="async"
