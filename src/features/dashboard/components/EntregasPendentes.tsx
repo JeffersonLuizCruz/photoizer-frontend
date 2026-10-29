@@ -61,7 +61,8 @@ export function EntregasPendentes({ agendamentos, isLoading }: EntregasPendentes
                 {agendamento.pacoteNome}
                 {agendamento.localEnsaio ? ` · ${agendamento.localEnsaio}` : ''}
               </p>
-              <p className="mt-0.5 text-xs text-amber-700 dark:text-amber-400">
+              <p className="mt-0.5 flex items-center gap-1.5 text-xs text-muted-foreground">
+                <span className="h-1.5 w-1.5 rounded-full bg-amber-500" aria-hidden="true" />
                 Em edição {formatDistanceToNow(new Date(desde), { addSuffix: true, locale: ptBR })}
               </p>
             </div>

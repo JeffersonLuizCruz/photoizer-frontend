@@ -108,55 +108,63 @@ export function EntregaPendenteAlerta({
     : null
   const cliente = entregaMaisAntiga?.clienteNome ?? 'Cliente não informado'
 
-  const descricao = tempo
-    ? quantidade === 1
-      ? `A entrega de ${cliente} está em edição ${tempo}. Finalize a edição e marque o agendamento como finalizado.`
-      : `A mais antiga é de ${cliente}, em edição ${tempo}. Finalize a edição e marque o agendamento como finalizado.`
-    : 'Finalize a edição e marque o agendamento como finalizado para concluir a entrega.'
-
   return (
     <div
       role="status"
-      className="flex flex-col gap-3 rounded-lg border border-amber-300 bg-amber-50 p-4 text-amber-900 sm:flex-row sm:items-center sm:justify-between dark:border-amber-700 dark:bg-amber-950/40 dark:text-amber-100"
+      className="relative overflow-hidden rounded-xl border border-border bg-card p-4 pl-5 text-card-foreground shadow-sm sm:p-5 sm:pl-6"
     >
-      <div className="flex items-start gap-3">
-        <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0" aria-hidden="true" />
-        <div>
-          <p className="text-sm font-semibold">
-            {quantidade === 1
-              ? '1 entrega aguardando finalização'
-              : `${quantidade} entregas aguardando finalização`}
-          </p>
-          <p className="text-xs">
-            {descricao}
-            {permission === 'denied' && ' As notificações do navegador estão bloqueadas.'}
-          </p>
-        </div>
-      </div>
+      <span className="absolute inset-y-0 left-0 w-1 bg-amber-500" aria-hidden="true" />
 
-      <div className="flex flex-wrap items-center gap-2 sm:justify-end">
-        {podeAtivarLembretes && (
-          <Button size="sm" variant="outline" onClick={handleAtivarLembretes}>
-            <BellRing className="mr-1 h-4 w-4" aria-hidden="true" />
-            Ativar lembretes
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex min-w-0 items-start gap-3">
+          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-amber-500/10 text-amber-600">
+            <AlertTriangle className="h-4 w-4" aria-hidden="true" />
+          </span>
+          <div className="min-w-0">
+            <p className="text-sm font-semibold text-foreground">
+              {quantidade === 1
+                ? '1 entrega aguardando finalização'
+                : `${quantidade} entregas aguardando finalização`}
+            </p>
+            <p className="mt-0.5 break-words text-sm leading-relaxed text-muted-foreground">
+              {tempo ? (
+                <>
+                  {quantidade === 1 ? 'A entrega de ' : 'A mais antiga é de '}
+                  <span className="font-medium text-foreground">{cliente}</span>
+                  {` está em edição ${tempo}. Finalize a edição e marque o agendamento como finalizado.`}
+                </>
+              ) : (
+                'Finalize a edição e marque o agendamento como finalizado para concluir a entrega.'
+              )}
+              {permission === 'denied' && ' As notificações do navegador estão bloqueadas.'}
+            </p>
+          </div>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-2 sm:justify-end">
+          {podeAtivarLembretes && (
+            <Button size="sm" variant="outline" onClick={handleAtivarLembretes}>
+              <BellRing className="mr-1 h-4 w-4" aria-hidden="true" />
+              Ativar lembretes
+            </Button>
+          )}
+          <Button
+            size="sm"
+            onClick={() => navigate(`${ROUTES.AGENDA}?status=${AGENDAMENTO_STATUS.EM_EDICAO}`)}
+          >
+            Ver entregas
           </Button>
-        )}
-        <Button
-          size="sm"
-          onClick={() => navigate(`${ROUTES.AGENDA}?status=${AGENDAMENTO_STATUS.EM_EDICAO}`)}
-        >
-          Ver entregas
-        </Button>
-        <Button
-          size="sm"
-          variant="ghost"
-          onClick={handleDispensar}
-          aria-label={`Dispensar lembrete por ${DISMISS_HOURS} horas`}
-          title={`Dispensar por ${DISMISS_HOURS} horas`}
-          className="text-amber-900 hover:bg-amber-100 dark:text-amber-100 dark:hover:bg-amber-900/40"
-        >
-          <X className="h-4 w-4" aria-hidden="true" />
-        </Button>
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={handleDispensar}
+            aria-label={`Dispensar lembrete por ${DISMISS_HOURS} horas`}
+            title={`Dispensar por ${DISMISS_HOURS} horas`}
+            className="text-muted-foreground hover:bg-accent hover:text-foreground"
+          >
+            <X className="h-4 w-4" aria-hidden="true" />
+          </Button>
+        </div>
       </div>
     </div>
   )
