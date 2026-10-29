@@ -50,7 +50,20 @@ export const QUERY_KEYS = {
   DASHBOARD: ['dashboard'],
   PROPOSTAS: ['propostas'],
   BLOQUEIOS: ['bloqueios'],
+  GALERIAS: ['galerias'],
 } as const
+
+/**
+ * Chave do resumo da Central de Galerias (cards + badge do menu).
+ *
+ * Inclui usuário e papel porque o backend omite valores financeiros para o
+ * perfil EDITOR; sem isso o cache de um login anterior poderia exibir
+ * contadores de compras para quem não tem acesso à aba Compras.
+ */
+export const galeriaResumoQueryKey = (
+  userId?: string | null,
+  papel?: string | null,
+) => [...QUERY_KEYS.GALERIAS, 'pipeline-resumo', userId ?? 'anon', papel ?? 'anon'] as const
 
 export const AGENDAMENTO_STATUS = {
   PRE_RESERVA: 'PRE_RESERVA',

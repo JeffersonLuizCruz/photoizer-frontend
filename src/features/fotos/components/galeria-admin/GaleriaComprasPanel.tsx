@@ -32,6 +32,8 @@ export function GaleriaComprasPanel({ agendamentoId }: { agendamentoId: string }
     queryClient.invalidateQueries({ queryKey: QUERY_KEYS.AGENDA })
     queryClient.invalidateQueries({ queryKey: QUERY_KEYS.FINANCEIRO })
     queryClient.invalidateQueries({ queryKey: QUERY_KEYS.DASHBOARD })
+    // Recalcula o badge de pendências do menu/abas (compra aprovada ou recusada).
+    queryClient.invalidateQueries({ queryKey: QUERY_KEYS.GALERIAS })
   }
 
   const { mutate: confirmarCompra, isPending: isConfirming } = useMutation({

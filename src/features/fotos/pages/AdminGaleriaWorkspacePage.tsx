@@ -138,7 +138,14 @@ export function AdminGaleriaWorkspacePage() {
           </TabsTrigger>
           <TabsTrigger value="selecao">
             Seleção
-            {workspace.counts.extras > 0 && (
+            {workspace.counts.selecoesPendentes > 0 ? (
+              <span
+                className="ml-1.5 rounded-full bg-amber-100 px-1.5 py-0.5 text-[10px] font-semibold tabular-nums text-amber-700"
+                title={`${workspace.counts.selecoesPendentes} seleção(ões) aguardando o estúdio`}
+              >
+                {workspace.counts.selecoesPendentes}
+              </span>
+            ) : workspace.counts.extras > 0 && (
               <span
                 className="ml-1.5 rounded-full bg-orange-100 px-1.5 py-0.5 text-[10px] font-semibold tabular-nums text-orange-700"
                 title={`${workspace.counts.extras} extra(s)`}
@@ -151,7 +158,10 @@ export function AdminGaleriaWorkspacePage() {
             <TabsTrigger value="compras">
               Compras
               {workspace.counts.comprasPendentes > 0 && (
-                <span className="ml-1.5 rounded-full bg-amber-100 px-1.5 py-0.5 text-[10px] font-semibold tabular-nums text-amber-700">
+                <span
+                  className="ml-1.5 rounded-full bg-amber-100 px-1.5 py-0.5 text-[10px] font-semibold tabular-nums text-amber-700"
+                  title={`${workspace.counts.comprasPendentes} compra(s) pendente(s)`}
+                >
                   {workspace.counts.comprasPendentes}
                 </span>
               )}

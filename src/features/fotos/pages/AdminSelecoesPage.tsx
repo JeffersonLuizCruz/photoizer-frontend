@@ -9,7 +9,7 @@ import { PageLoading } from '@/shared/components/layout/Loading'
 import { PageTitle } from '@/shared/components/layout/PageTitle'
 import { ConfirmDialog } from '@/shared/components/layout/ConfirmDialog'
 import { Sheet, SheetContent, SheetTitle } from '@/shared/components/ui/sheet'
-import { ROUTES } from '@/shared/constants'
+import { ROUTES, QUERY_KEYS } from '@/shared/constants'
 import { extractErrorMessage } from '@/shared/api'
 import { ecommerceService } from '@/features/ecommerce/services/ecommerce.service'
 import type {
@@ -143,6 +143,8 @@ export function AdminSelecoesPage({
     void queryClient.invalidateQueries({ queryKey: ['selecoes-ensaio', id] })
     void queryClient.invalidateQueries({ queryKey: ['galeria-ensaio', id] })
     void queryClient.invalidateQueries({ queryKey: ['admin-ecommerce', id] })
+    // Atualiza o badge de pendências do menu (seleções aguardando o estúdio).
+    void queryClient.invalidateQueries({ queryKey: QUERY_KEYS.GALERIAS })
   }, [id, queryClient])
 
   const abrirArquivoEdicao = (fotoId: string) => {

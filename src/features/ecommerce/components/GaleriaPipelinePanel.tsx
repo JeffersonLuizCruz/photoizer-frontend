@@ -20,12 +20,14 @@ import {
 import { toast } from 'sonner'
 import { Button } from '@/shared/components/ui/button'
 import { StatusBadge } from '@/shared/components/layout/StatusBadge'
+import { QUERY_KEYS } from '@/shared/constants'
+import { useAuth } from '@/features/auth/AuthProvider'
 import { useDebounce } from '@/shared/hooks/useDebounce'
 import { copyToClipboard } from '@/shared/lib/clipboard'
 import { cn } from '@/shared/lib/cn'
 import { extractErrorMessage } from '@/shared/api'
 import { ecommerceService } from '../services/ecommerce.service'
-import { GALERIA_PIPELINE_KEYS, useGaleriaPipeline, useGaleriaPipelineResumo } from '../api/queries'
+import { useGaleriaPipeline, useGaleriaPipelineResumo } from '../api/queries'
 import type { EtapaGaleria, GaleriaPipelineItem, GaleriaPipelineResumo } from '../types/ecommerce.types'
 
 type BadgeVariant = 'warning' | 'info' | 'success' | 'destructive' | 'default' | 'secondary'
@@ -239,6 +241,7 @@ function PipelineItemCard({
 
 export function GaleriaPipelinePanel({ podeVerFinanceiro = true }: { podeVerFinanceiro?: boolean }) {
   const queryClient = useQueryClient()
+  const { user, papel } = useAuth()
   const [etapa, setEtapa] = useState<EtapaGaleria | undefined>()
   const [busca, setBusca] = useState('')
   const [atrasadas, setAtrasadas] = useState(false)
@@ -261,14 +264,14 @@ export function GaleriaPipelinePanel({ podeVerFinanceiro = true }: { podeVerFina
     page,
     perPage,
   })
-  const { data: resumo } = useGaleriaPipelineResumo()
+  const { data: resumo } = useGaleriaPipelineResumo(user?.userId, papel)
 
   const { mutate: regenerarToken, isPending: regenerandoToken } = useMutation({
     mutationFn: (agendamentoId: string) => ecommerceService.adminRegenToken(agendamentoId),
     onSuccess: () => {
       toast.success('Novo link gerado. A validade anterior foi substituída.')
       void queryClient.invalidateQueries({ queryKey: ['galeria-pipeline'] })
-      void queryClient.invalidateQueries({ queryKey: GALERIA_PIPELINE_KEYS.resumo })
+      void queryClient.invalidateQueries({ queryKey: QUERY_KEYS.GALERIAS })
     },
     onError: (err: Error) => toast.error(extractErrorMessage(err, 'Erro ao gerar novo link')),
   })

@@ -1,4 +1,5 @@
 import { keepPreviousData, useQuery } from '@tanstack/react-query'
+import { galeriaResumoQueryKey } from '@/shared/constants'
 import { ecommerceService } from '../services/ecommerce.service'
 import type { EtapaGaleria } from '../types/ecommerce.types'
 
@@ -13,7 +14,6 @@ export interface GaleriaPipelineFiltros {
 
 export const GALERIA_PIPELINE_KEYS = {
   fila: (filtros: GaleriaPipelineFiltros) => ['galeria-pipeline', filtros] as const,
-  resumo: ['galeria-pipeline-resumo'] as const,
   desempenho: (meses: number) => ['galeria-desempenho', meses] as const,
 }
 
@@ -27,9 +27,9 @@ export function useGaleriaPipeline(filtros: GaleriaPipelineFiltros) {
   })
 }
 
-export function useGaleriaPipelineResumo() {
+export function useGaleriaPipelineResumo(userId?: string, papel?: string | null) {
   return useQuery({
-    queryKey: GALERIA_PIPELINE_KEYS.resumo,
+    queryKey: galeriaResumoQueryKey(userId, papel),
     queryFn: () => ecommerceService.adminGaleriaPipelineResumo(),
     staleTime: 30_000,
     refetchInterval: 60_000,

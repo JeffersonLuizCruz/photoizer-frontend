@@ -6,6 +6,7 @@ import { ROUTES } from '@/shared/constants'
 import { useSidebarStore } from '@/stores/sidebar.store'
 import { useAuth } from '@/features/auth/AuthProvider'
 import { useEntregasPendentes } from '@/shared/hooks/useEntregasPendentes'
+import { useGaleriasPendentes } from '@/shared/hooks/useGaleriasPendentes'
 import {
   getVisibleEntries,
   isNavItem,
@@ -24,6 +25,14 @@ export function Sidebar() {
   const { quantidade: entregasPendentes } = useEntregasPendentes({
     enabled: podeVerDashboard && !!user,
     userId: user?.userId,
+  })
+  const podeVerGalerias = entries.some(
+    (entry) => isNavItem(entry) && entry.to === ROUTES.GALERIAS,
+  )
+  const { total: galeriasPendentes } = useGaleriasPendentes({
+    enabled: podeVerGalerias && !!user,
+    userId: user?.userId,
+    papel,
   })
 
   const [groupsOpen, setGroupsOpen] = useState<Record<string, boolean>>({
@@ -76,11 +85,20 @@ export function Sidebar() {
           if (isNavItem(entry)) {
             const Icon = entry.icon
             const isDashboard = entry.to === ROUTES.DASHBOARD
+            const contador = isDashboard
+              ? entregasPendentes
+              : entry.to === ROUTES.GALERIAS
+                ? galeriasPendentes
+                : 0
+            const contadorLabel = isDashboard
+              ? 'entrega(s) pendente(s)'
+              : 'pendência(s) em Galerias'
             return (
               <NavLink
                 key={entry.to}
                 to={entry.to}
                 end={entry.end}
+                aria-label={contador > 0 ? `${entry.label} (${contador} ${contadorLabel})` : undefined}
                 className={({ isActive }) =>
                   cn(
                     'flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors',
@@ -93,16 +111,19 @@ export function Sidebar() {
               >
                 <span className="relative shrink-0">
                   <Icon className="h-5 w-5" />
-                  {!isOpen && isDashboard && entregasPendentes > 0 && (
+                  {!isOpen && contador > 0 && (
                     <span className="absolute -right-1.5 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-amber-500 px-0.5 text-[9px] font-bold text-white">
-                      {entregasPendentes > 99 ? '99+' : entregasPendentes}
+                      {contador > 99 ? '99+' : contador}
                     </span>
                   )}
                 </span>
                 {isOpen && <span className="flex-1">{entry.label}</span>}
-                {isOpen && isDashboard && entregasPendentes > 0 && (
-                  <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-amber-100 px-1 text-[10px] font-bold text-amber-800 dark:bg-amber-900/60 dark:text-amber-100">
-                    {entregasPendentes > 99 ? '99+' : entregasPendentes}
+                {isOpen && contador > 0 && (
+                  <span
+                    title={`${contador} ${contadorLabel}`}
+                    className="flex h-5 min-w-5 items-center justify-center rounded-full bg-amber-100 px-1 text-[10px] font-bold text-amber-800 dark:bg-amber-900/60 dark:text-amber-100"
+                  >
+                    {contador > 99 ? '99+' : contador}
                   </span>
                 )}
               </NavLink>
