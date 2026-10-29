@@ -71,7 +71,7 @@ export function Header() {
       </div>
 
       <div className="flex items-center gap-3">
-        <NotificationBell />
+        <NotificationBell userId={user?.userId} />
 
         {user && (
           <DropdownMenu>

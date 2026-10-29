@@ -1,8 +1,12 @@
-import { Camera } from 'lucide-react'
+import { formatDistanceToNow } from 'date-fns'
+import { ptBR } from 'date-fns/locale'
+import { ArrowRight, Camera, ChevronRight } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
-
-import { ROUTES } from '@/shared/constants'
+import { Button } from '@/shared/components/ui/button'
+import { AGENDAMENTO_STATUS, ROUTES } from '@/shared/constants'
 import type { Agendamento } from '@/features/agenda/types'
+
+const MAX_VISIVEIS = 5
 
 interface EntregasPendentesProps {
   agendamentos: Agendamento[]
@@ -34,22 +38,49 @@ export function EntregasPendentes({ agendamentos, isLoading }: EntregasPendentes
     )
   }
 
+  const visiveis = agendamentos.slice(0, MAX_VISIVEIS)
+
   return (
     <div className="space-y-2">
-      {agendamentos.map((agendamento) => {
+      {visiveis.map((agendamento) => {
+        const desde = agendamento.dataRealizacao ?? agendamento.dataHoraEnsaio
+
         return (
-          <div
+          <button
             key={agendamento.id}
-            className="flex items-center justify-between rounded-lg border p-3 cursor-pointer transition-colors hover:bg-accent/50"
+            type="button"
+            className="flex w-full items-center justify-between gap-3 rounded-lg border p-3 text-left transition-colors hover:bg-accent/50"
             onClick={() => navigate(ROUTES.AGENDA_DETALHES.replace(':id', agendamento.id))}
+            aria-label={`Abrir entrega pendente de ${agendamento.clienteNome ?? 'cliente não informado'}`}
           >
             <div className="min-w-0 flex-1">
-              <p className="text-sm font-medium truncate">{agendamento.localEnsaio}</p>
-              <p className="text-xs text-muted-foreground">Em Edição</p>
+              <p className="truncate text-sm font-medium">
+                {agendamento.clienteNome ?? 'Cliente não informado'}
+              </p>
+              <p className="truncate text-xs text-muted-foreground">
+                {agendamento.pacoteNome}
+                {agendamento.localEnsaio ? ` · ${agendamento.localEnsaio}` : ''}
+              </p>
+              <p className="mt-0.5 text-xs text-amber-700 dark:text-amber-400">
+                Em edição {formatDistanceToNow(new Date(desde), { addSuffix: true, locale: ptBR })}
+              </p>
             </div>
-          </div>
+            <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" aria-hidden="true" />
+          </button>
         )
       })}
+
+      {agendamentos.length > MAX_VISIVEIS && (
+        <Button
+          variant="ghost"
+          size="sm"
+          className="w-full"
+          onClick={() => navigate(`${ROUTES.AGENDA}?status=${AGENDAMENTO_STATUS.EM_EDICAO}`)}
+        >
+          <ArrowRight className="mr-1 h-4 w-4" aria-hidden="true" />
+          Ver todas as {agendamentos.length} entregas
+        </Button>
+      )}
     </div>
   )
 }

@@ -3,6 +3,7 @@ import { Sidebar } from './Sidebar'
 import { Header } from './Header'
 import { MobileNav } from './MobileNav'
 import { MobileMenu } from './MobileMenu'
+import { EntregaPendenteToast } from './EntregaPendenteToast'
 import { InstallPrompt } from '@/shared/components/InstallPrompt'
 
 export function AppLayout() {
@@ -30,6 +31,7 @@ export function AppLayout() {
       <MobileNav />
       <InstallPrompt />
       <MobileMenu />
+      <EntregaPendenteToast />
     </div>
   )
 }

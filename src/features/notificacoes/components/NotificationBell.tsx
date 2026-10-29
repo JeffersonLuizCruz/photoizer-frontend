@@ -1,17 +1,27 @@
+import { useState } from 'react'
 import { formatDistanceToNow } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
-import { Bell, CheckCheck, ExternalLink } from 'lucide-react'
+import { Bell, BellOff, BellRing, CheckCheck, ExternalLink } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
+import { toast } from 'sonner'
 import { Button } from '@/shared/components/ui/button'
 import {
   DropdownMenu,
+  DropdownMenuCheckboxItem,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/shared/components/ui/dropdown-menu'
+import {
+  getBrowserNotificationPermission,
+  requestBrowserNotificationPermission,
+  type BrowserNotificationPermission,
+} from '@/shared/lib/browser-notifications'
+import { useNotificationPreferences } from '@/stores/notification-preferences.store'
 import { useNotificacoes, useNotificacoesNaoLidas, useMarcarComoLida, useMarcarTodasComoLidas } from '../api/queries'
+import { useBrowserNotifications } from '../hooks/useBrowserNotifications'
 
 const tipoIcon: Record<string, string> = {
   NOVO_ENSAIO: '📷',
@@ -19,10 +29,20 @@ const tipoIcon: Record<string, string> = {
   PAGAMENTO_FINAL: '💰',
   ENSAIO_REATRIBUIDO: '🔁',
   SELECAO_ENVIADA: '🖼️',
+  ENTREGA_PENDENTE: '📦',
 }
 
-export function NotificationBell() {
+interface NotificationBellProps {
+  userId?: string
+}
+
+export function NotificationBell({ userId }: NotificationBellProps) {
   const navigate = useNavigate()
+  const [permission, setPermission] = useState<BrowserNotificationPermission>(getBrowserNotificationPermission)
+  const browserNotificationsEnabled = useNotificationPreferences((state) => state.browserNotificationsEnabled)
+  const setBrowserNotificationsEnabled = useNotificationPreferences((state) => state.setBrowserNotificationsEnabled)
+  const notifyOnlyWhenHidden = useNotificationPreferences((state) => state.notifyOnlyWhenHidden)
+  const setNotifyOnlyWhenHidden = useNotificationPreferences((state) => state.setNotifyOnlyWhenHidden)
 
   const { data: notificacoesData } = useNotificacoes()
   const notificacoes = notificacoesData?.data ?? []
@@ -30,11 +50,31 @@ export function NotificationBell() {
   const marcarLida = useMarcarComoLida()
   const marcarTodas = useMarcarTodasComoLidas()
 
+  useBrowserNotifications(userId)
+
   const recentes = notificacoes.slice(0, 10)
 
   const handleClick = (n: (typeof notificacoes)[0]) => {
     if (!n.lida) marcarLida.mutate(n.id)
     if (n.link) navigate(n.link)
+  }
+
+  const handleAtivarLembretes = async () => {
+    const resultado = await requestBrowserNotificationPermission()
+    setPermission(resultado)
+
+    if (resultado === 'granted') {
+      setBrowserNotificationsEnabled(true)
+      toast.success('Lembretes no navegador ativados')
+    } else if (resultado === 'denied') {
+      setBrowserNotificationsEnabled(false)
+      toast.error('Permissão de notificações bloqueada pelo navegador')
+    }
+  }
+
+  const handleDesativarLembretes = () => {
+    setBrowserNotificationsEnabled(false)
+    toast.success('Lembretes no navegador desativados')
   }
 
   return (
@@ -89,6 +129,46 @@ export function NotificationBell() {
               </span>
             </DropdownMenuItem>
           ))
+        )}
+
+        <DropdownMenuSeparator />
+
+        {permission === 'unsupported' && (
+          <DropdownMenuItem disabled className="text-xs text-muted-foreground">
+            <BellOff className="mr-2 h-4 w-4" />
+            Navegador sem suporte a notificações
+          </DropdownMenuItem>
+        )}
+
+        {permission === 'denied' && (
+          <DropdownMenuItem disabled className="text-xs text-muted-foreground">
+            <BellOff className="mr-2 h-4 w-4" />
+            Notificações bloqueadas no navegador
+          </DropdownMenuItem>
+        )}
+
+        {permission !== 'unsupported' && permission !== 'denied' && browserNotificationsEnabled && (
+          <DropdownMenuItem className="text-xs cursor-pointer" onClick={handleDesativarLembretes}>
+            <BellOff className="mr-2 h-4 w-4" />
+            Desativar lembretes no navegador
+          </DropdownMenuItem>
+        )}
+
+        {permission !== 'unsupported' && permission !== 'denied' && browserNotificationsEnabled && (
+          <DropdownMenuCheckboxItem
+            className="text-xs"
+            checked={notifyOnlyWhenHidden}
+            onCheckedChange={(checked) => setNotifyOnlyWhenHidden(checked === true)}
+          >
+            Notificar só em segundo plano
+          </DropdownMenuCheckboxItem>
+        )}
+
+        {permission !== 'unsupported' && permission !== 'denied' && !browserNotificationsEnabled && (
+          <DropdownMenuItem className="text-xs cursor-pointer" onClick={handleAtivarLembretes}>
+            <BellRing className="mr-2 h-4 w-4" />
+            Ativar lembretes no navegador
+          </DropdownMenuItem>
         )}
 
         {notificacoes.length > 10 && (

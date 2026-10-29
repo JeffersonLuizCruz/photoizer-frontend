@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react'
-import { useNavigate, Navigate } from 'react-router-dom'
+import { useNavigate, Navigate, useSearchParams } from 'react-router-dom'
 import { CalendarDays, CalendarPlus, Table2, FilterX, Search, Clock, MapPin, Lock } from 'lucide-react'
 import {
   endOfDay,
@@ -47,15 +47,20 @@ export function AgendaPage() {
 
 function AgendaPageContent() {
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
   const { user, papel } = useAuth()
   const podeAvulso = papel === 'ADMIN' || papel === 'AGENDADOR'
   const isMobile = useIsMobile()
-  const [viewMode, setViewMode] = useState<AgendaViewMode>('calendar')
+  const statusDaUrl = searchParams.get('status')
+  const statusInicial = AGENDA_STATUS_OPTIONS.some((opt) => opt.value === statusDaUrl)
+    ? statusDaUrl ?? ''
+    : ''
+  const [viewMode, setViewMode] = useState<AgendaViewMode>(statusInicial ? 'list' : 'calendar')
   const [calendarView, setCalendarView] = useState<CalendarView>('month')
   const [currentDate, setCurrentDate] = useState(() => new Date())
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(() => new Date())
 
-  const [statusFilter, setStatusFilter] = useState('')
+  const [statusFilter, setStatusFilter] = useState(statusInicial)
   const [pacoteFilter, setPacoteFilter] = useState('')
   const [dateRange, setDateRange] = useState<DateRange | undefined>()
   const [clientSearch, setClientSearch] = useState('')

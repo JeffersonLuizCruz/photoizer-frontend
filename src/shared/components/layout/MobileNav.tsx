@@ -1,16 +1,23 @@
 import { LayoutGrid } from 'lucide-react'
 import { NavLink, useLocation } from 'react-router-dom'
 import { cn } from '@/shared/lib/cn'
+import { ROUTES } from '@/shared/constants'
 import { useAuth } from '@/features/auth/AuthProvider'
+import { useEntregasPendentes } from '@/shared/hooks/useEntregasPendentes'
 import { useSidebarStore } from '@/stores/sidebar.store'
 import { getMobileTabs } from '@/shared/lib/navigation'
 
 export function MobileNav() {
-  const { papel } = useAuth()
+  const { papel, user } = useAuth()
   const mobileMenuOpen = useSidebarStore((state) => state.mobileMenuOpen)
   const setMobileMenuOpen = useSidebarStore((state) => state.setMobileMenuOpen)
   const location = useLocation()
   const tabs = getMobileTabs(papel)
+  const podeVerDashboard = tabs.some((tab) => tab.to === ROUTES.DASHBOARD)
+  const { quantidade: entregasPendentes } = useEntregasPendentes({
+    enabled: podeVerDashboard && !!user,
+    userId: user?.userId,
+  })
 
   const isMaisActive = !tabs.some((tab) =>
     tab.end ? location.pathname === tab.to : location.pathname.startsWith(tab.to),
@@ -44,7 +51,14 @@ export function MobileNav() {
                       aria-hidden="true"
                     />
                   )}
-                  <Icon className="h-5 w-5 shrink-0" aria-hidden="true" />
+                  <span className="relative">
+                    <Icon className="h-5 w-5 shrink-0" aria-hidden="true" />
+                    {tab.to === ROUTES.DASHBOARD && entregasPendentes > 0 && (
+                      <span className="absolute -right-2 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-amber-500 px-0.5 text-[9px] font-bold text-white">
+                        {entregasPendentes > 99 ? '99+' : entregasPendentes}
+                      </span>
+                    )}
+                  </span>
                   <span className="w-full max-w-full truncate px-1 text-center">{tab.shortLabel ?? tab.label}</span>
                 </>
               )}

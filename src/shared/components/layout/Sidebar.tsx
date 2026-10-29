@@ -5,6 +5,7 @@ import { cn } from '@/shared/lib/cn'
 import { ROUTES } from '@/shared/constants'
 import { useSidebarStore } from '@/stores/sidebar.store'
 import { useAuth } from '@/features/auth/AuthProvider'
+import { useEntregasPendentes } from '@/shared/hooks/useEntregasPendentes'
 import {
   getVisibleEntries,
   isNavItem,
@@ -14,9 +15,16 @@ import {
 export function Sidebar() {
   const isOpen = useSidebarStore((state) => state.isOpen)
   const setOpen = useSidebarStore((state) => state.setOpen)
-  const { papel } = useAuth()
+  const { papel, user } = useAuth()
   const location = useLocation()
   const entries = getVisibleEntries(papel)
+  const podeVerDashboard = entries.some(
+    (entry) => isNavItem(entry) && entry.to === ROUTES.DASHBOARD,
+  )
+  const { quantidade: entregasPendentes } = useEntregasPendentes({
+    enabled: podeVerDashboard && !!user,
+    userId: user?.userId,
+  })
 
   const [groupsOpen, setGroupsOpen] = useState<Record<string, boolean>>({
     Financeiro: location.pathname.startsWith(ROUTES.FINANCEIRO),
@@ -67,6 +75,7 @@ export function Sidebar() {
         {entries.map((entry) => {
           if (isNavItem(entry)) {
             const Icon = entry.icon
+            const isDashboard = entry.to === ROUTES.DASHBOARD
             return (
               <NavLink
                 key={entry.to}
@@ -82,8 +91,20 @@ export function Sidebar() {
                   )
                 }
               >
-                <Icon className="h-5 w-5 shrink-0" />
-                {isOpen && <span>{entry.label}</span>}
+                <span className="relative shrink-0">
+                  <Icon className="h-5 w-5" />
+                  {!isOpen && isDashboard && entregasPendentes > 0 && (
+                    <span className="absolute -right-1.5 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-amber-500 px-0.5 text-[9px] font-bold text-white">
+                      {entregasPendentes > 99 ? '99+' : entregasPendentes}
+                    </span>
+                  )}
+                </span>
+                {isOpen && <span className="flex-1">{entry.label}</span>}
+                {isOpen && isDashboard && entregasPendentes > 0 && (
+                  <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-amber-100 px-1 text-[10px] font-bold text-amber-800 dark:bg-amber-900/60 dark:text-amber-100">
+                    {entregasPendentes > 99 ? '99+' : entregasPendentes}
+                  </span>
+                )}
               </NavLink>
             )
           }

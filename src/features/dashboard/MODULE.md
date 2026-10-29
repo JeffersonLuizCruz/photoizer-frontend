@@ -19,7 +19,8 @@ features/dashboard/
     ├── DashboardDetalhesAlertas.tsx   # Tabela detalhada de alertas
     ├── DashboardDetalhesPagamentos.tsx # Tabela detalhada de pagamentos pendentes
     ├── EcommerceDashboardCards.tsx    # Resumo e-commerce (4 cards)
-    ├── EntregasPendentes.tsx         # Card: entregas pendentes
+    ├── EntregasPendentes.tsx         # Card: entregas pendentes (cliente, pacote/local e tempo em edição)
+    ├── EntregaPendenteAlerta.tsx     # Banner de lembrete + CTA para ativar notificações do navegador
     ├── GraficoMensal.tsx             # Gráfico financeiro mensal (Recharts)
     ├── GraficoVendasExtras.tsx       # Gráfico vendas extras (Recharts)
     └── PagamentosPendentes.tsx       # Card: pagamentos pendentes
@@ -67,8 +68,11 @@ features/dashboard/
 ## 5. Regras Específicas
 1. **StaleTime de 2 minutos**: As queries do dashboard têm `staleTime: 2min` para evitar refetch excessivo.
 2. **Integração com agenda**: O dashboard é o maior "orquestrador" — importa hooks, tipos e componentes diretamente da agenda e despesas.
-3. **Cálculos local-side**: `pagamentosPendentes` e `entregasPendentes` são filtrados client-side a partir da lista completa de agendamentos.
+3. **Cálculos local-side**: `pagamentosPendentes` e `entregasPendentes` são filtrados client-side a partir da lista completa de agendamentos. `entregasPendentes` (status `EM_EDICAO`) é ordenada da mais antiga para a mais recente; o card mostra o nome do cliente, pacote/local e há quanto tempo está em edição. O hook compartilhado `useEntregasPendentes` (`shared/hooks`) concentra a query e é reutilizado pelo dashboard, sidebar e mobile nav.
 4. **Card de armazenamento (ADMIN)**: `DashboardArmazenamentoCard` consome `/admin/armazenamento/resumo` (query habilitada só para `ADMIN`, `staleTime` de 5 min) e usa `ArmazenamentoResumo` de `@/shared/types`. Acima de 80% o card fica em estado de alerta e leva para `/admin/armazenamento`.
+5. **Lembrete de entrega pendente**: quando há entregas em `EM_EDICAO`, `EntregaPendenteAlerta` exibe um banner com contagem, a entrega mais antiga e CTA "Ativar lembretes". O backend cria notificações `ENTREGA_PENDENTE` no sino (evento ao entrar em edição + job diário); o frontend também pode exibir notificação nativa do navegador via `useBrowserNotifications` (preferência em `useNotificationPreferences`). O botão "Ver entregas" leva a `/agenda?status=EM_EDICAO`, que a AgendaPage usa para pré-filtrar e abrir em modo lista.
+6. **Dispensa temporária do banner**: o botão de fechar do `EntregaPendenteAlerta` esconde o banner por 8 horas (`localStorage`). O sino continua ativo. Se a quantidade de entregas aumentar, o banner reaparece mesmo antes do prazo.
+7. **Badge e toast**: a sidebar (e o item "Início" do mobile nav) mostra a quantidade de entregas pendentes. Ao entrar no CRM, `EntregaPendenteToast` exibe um toast único por sessão (`sessionStorage` por usuário) com a entrega mais antiga e ação "Ver entregas".
 
 ## 6. Testes
 Não existem testes para este módulo.

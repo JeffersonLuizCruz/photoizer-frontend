@@ -1,29 +1,24 @@
-import { useMemo } from 'react'
 import { Camera, ShoppingCart } from 'lucide-react'
 import { PageTitle } from '@/shared/components/layout/PageTitle'
-import { useAgendamentosList } from '@/features/agenda/api/queries'
+import { Badge } from '@/shared/components/ui/badge'
 import { useAuth } from '@/features/auth/AuthProvider'
-import { AGENDAMENTO_STATUS } from '@/shared/constants'
+import { useEntregasPendentes } from '@/shared/hooks/useEntregasPendentes'
 import { EntregasPendentes } from '../components/EntregasPendentes'
+import { EntregaPendenteAlerta } from '../components/EntregaPendenteAlerta'
 import { EcommerceDashboardCards } from '../components/EcommerceDashboardCards'
 import { GraficoMensal } from '../components/GraficoMensal'
 import { DashboardArmazenamentoCard } from '../components/DashboardArmazenamentoCard'
 import { useArmazenamentoResumo } from '../api/queries'
 
 export function DashboardPage() {
-  const { data: agendamentos, isLoading: loadingAgenda } = useAgendamentosList()
-  const { papel } = useAuth()
+  const { papel, user, isLoading: authLoading } = useAuth()
+  const { entregasPendentes, maisAntiga, isLoading } = useEntregasPendentes({
+    enabled: !!user,
+    userId: user?.userId,
+  })
   const admin = papel === 'ADMIN'
   const { data: armazenamento } = useArmazenamentoResumo(admin)
-
-  const entregasPendentes = useMemo(() => {
-    if (!agendamentos) return []
-    return agendamentos.filter(
-      (a) => a.status === AGENDAMENTO_STATUS.EM_EDICAO,
-    )
-  }, [agendamentos])
-
-  const isLoading = loadingAgenda
+  const carregandoEntregas = authLoading || isLoading
 
   return (
     <div>
@@ -32,6 +27,16 @@ export function DashboardPage() {
         description="Visão geral das operações do dia"
         breadcrumbs={[{ label: 'Dashboard' }]}
       />
+
+      {entregasPendentes.length > 0 && (
+        <div className="mb-6">
+          <EntregaPendenteAlerta
+            quantidade={entregasPendentes.length}
+            entregaMaisAntiga={maisAntiga}
+            userId={user?.userId}
+          />
+        </div>
+      )}
 
       {admin && armazenamento && (
         <div className="mb-6">
@@ -43,9 +48,12 @@ export function DashboardPage() {
         <div className="flex items-center gap-2 border-b px-4 py-3">
           <Camera className="h-4 w-4 text-muted-foreground" />
           <h2 className="text-sm font-semibold">Entregas Pendentes</h2>
+          {entregasPendentes.length > 0 && (
+            <Badge variant="warning">{entregasPendentes.length}</Badge>
+          )}
         </div>
         <div className="p-4">
-          <EntregasPendentes agendamentos={entregasPendentes} isLoading={isLoading} />
+          <EntregasPendentes agendamentos={entregasPendentes} isLoading={carregandoEntregas} />
         </div>
       </div>
 
