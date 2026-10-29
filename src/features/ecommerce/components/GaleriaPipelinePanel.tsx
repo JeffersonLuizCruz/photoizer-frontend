@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import {
   AlertTriangle,
@@ -133,7 +133,13 @@ function PipelineItemCard({
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-2">
-            <p className="truncate text-sm font-semibold">{item.clienteNome}</p>
+            <Link
+              to={`/agenda/${item.agendamentoId}/fotos`}
+              className="truncate rounded text-sm font-semibold hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+              aria-label={`Abrir visão geral da galeria de ${item.clienteNome}`}
+            >
+              {item.clienteNome}
+            </Link>
             <StatusBadge
               status={item.etapa}
               customLabels={{ [item.etapa]: { label: item.etapaLabel, variant: ETAPA_VARIANT[item.etapa] } }}
