@@ -31,23 +31,26 @@ import type { EtapaGaleria, GaleriaPipelineItem, GaleriaPipelineResumo } from '.
 type BadgeVariant = 'warning' | 'info' | 'success' | 'destructive' | 'default' | 'secondary'
 
 const ETAPA_VARIANT: Record<EtapaGaleria, BadgeVariant> = {
+  COMPRA_EXTRA_PENDENTE: 'warning',
   AGUARDANDO_UPLOAD: 'warning',
   FOTOS_NAO_PUBLICADAS: 'warning',
   SELECAO_EM_EDICAO: 'info',
   SELECAO_AGUARDANDO_APROVACAO: 'info',
   AGUARDANDO_SELECAO: 'secondary',
   AGUARDANDO_DOWNLOAD: 'default',
+  CLIENTE_BAIXOU: 'success',
   CONCLUIDA: 'success',
   ARQUIVADA: 'secondary',
 }
 
 const ETAPAS: Array<{ value: EtapaGaleria; label: string }> = [
-  { value: 'AGUARDANDO_UPLOAD', label: 'Aguardando envio de fotos' },
+  { value: 'COMPRA_EXTRA_PENDENTE', label: 'Compra de extra aguardando aprovação' },
   { value: 'FOTOS_NAO_PUBLICADAS', label: 'Fotos aguardando publicação' },
   { value: 'AGUARDANDO_SELECAO', label: 'Aguardando escolha do cliente' },
   { value: 'SELECAO_EM_EDICAO', label: 'Seleção em edição' },
   { value: 'SELECAO_AGUARDANDO_APROVACAO', label: 'Seleção aguardando aprovação' },
   { value: 'AGUARDANDO_DOWNLOAD', label: 'Publicada, aguardando download' },
+  { value: 'CLIENTE_BAIXOU', label: 'Cliente baixou as fotos' },
   { value: 'CONCLUIDA', label: 'Concluída' },
   { value: 'ARQUIVADA', label: 'Arquivada' },
 ]
@@ -73,12 +76,18 @@ interface ResumoCard {
 
 function montarCards(resumo: GaleriaPipelineResumo | undefined): ResumoCard[] {
   return [
-    { label: 'Sem fotos', value: resumo?.aguardandoUpload ?? 0, etapa: 'AGUARDANDO_UPLOAD', tone: 'warning' },
+    {
+      label: 'Compras de extras',
+      value: (resumo?.comprasAguardandoConfirmacao ?? 0) + (resumo?.comprasAguardandoComprovante ?? 0),
+      etapa: 'COMPRA_EXTRA_PENDENTE',
+      tone: 'warning',
+    },
     { label: 'Fotos a publicar', value: resumo?.fotosNaoPublicadas ?? 0, etapa: 'FOTOS_NAO_PUBLICADAS', tone: 'warning' },
     { label: 'Com o cliente', value: resumo?.aguardandoSelecao ?? 0, etapa: 'AGUARDANDO_SELECAO', tone: 'info' },
     { label: 'Em edição', value: resumo?.selecaoEmEdicao ?? 0, etapa: 'SELECAO_EM_EDICAO', tone: 'info' },
     { label: 'Aprovar seleção', value: resumo?.selecaoAguardandoAprovacao ?? 0, etapa: 'SELECAO_AGUARDANDO_APROVACAO', tone: 'info' },
     { label: 'Aguardando download', value: resumo?.aguardandoDownload ?? 0, etapa: 'AGUARDANDO_DOWNLOAD' },
+    { label: 'Cliente baixou', value: resumo?.clientesBaixaram ?? 0, etapa: 'CLIENTE_BAIXOU' },
     { label: 'Atrasadas', value: resumo?.atrasadas ?? 0, atrasadas: true, tone: 'danger' },
     { label: 'Extras a editar', value: resumo?.extrasPendentesEdicao ?? 0, interativo: false },
   ]
@@ -182,7 +191,12 @@ function PipelineItemCard({
           {item.totalFotos} foto(s) · {item.fotosPublicadas} publicada(s)
         </span>
         <span>{item.fotosSelecionadas} no pacote</span>
-        {item.fotosBaixadas > 0 && <span>{item.fotosBaixadas} baixada(s)</span>}
+        {item.fotosPacote > 0 && (
+          <span className="inline-flex items-center gap-1">
+            <Download className="h-3.5 w-3.5" />
+            {item.fotosPacoteBaixadas}/{item.fotosPacote} baixada(s) do pacote
+          </span>
+        )}
         {podeVerFinanceiro && item.valorExtras > 0 && (
           <span className="inline-flex items-center gap-1">
             <ShoppingBag className="h-3.5 w-3.5" /> {formatCurrency(item.valorExtras)} em extras
@@ -193,9 +207,14 @@ function PipelineItemCard({
             Seleção {item.selecaoNumero ? `#${item.selecaoNumero}` : ''} · {item.selecaoStatus.toLowerCase()}
           </span>
         )}
-        {podeVerFinanceiro && item.comprasPendentes > 0 && (
+        {item.comprasAguardandoConfirmacao > 0 && (
+          <span className="rounded-full bg-rose-100 px-2 py-0.5 font-medium text-rose-700">
+            {item.comprasAguardandoConfirmacao} compra(s) para aprovar
+          </span>
+        )}
+        {item.comprasAguardandoComprovante > 0 && (
           <span className="rounded-full bg-amber-100 px-2 py-0.5 font-medium text-amber-700">
-            {item.comprasPendentes} pagamento(s) pendente(s)
+            {item.comprasAguardandoComprovante} aguardando comprovante
           </span>
         )}
         {item.extrasPendentesEdicao > 0 && (
@@ -223,6 +242,7 @@ export function GaleriaPipelinePanel({ podeVerFinanceiro = true }: { podeVerFina
   const [etapa, setEtapa] = useState<EtapaGaleria | undefined>()
   const [busca, setBusca] = useState('')
   const [atrasadas, setAtrasadas] = useState(false)
+  const [semFotos, setSemFotos] = useState(false)
   const [page, setPage] = useState(1)
   const perPage = 20
   const [isExporting, setIsExporting] = useState(false)
@@ -231,12 +251,13 @@ export function GaleriaPipelinePanel({ podeVerFinanceiro = true }: { podeVerFina
 
   useEffect(() => {
     setPage(1)
-  }, [buscaDebounced, etapa, atrasadas])
+  }, [buscaDebounced, etapa, atrasadas, semFotos])
 
   const { data, isLoading, isError, error } = useGaleriaPipeline({
     etapa,
     busca: buscaDebounced || undefined,
     atrasadas: atrasadas || undefined,
+    semFotos: semFotos || undefined,
     page,
     perPage,
   })
@@ -272,6 +293,7 @@ export function GaleriaPipelinePanel({ podeVerFinanceiro = true }: { podeVerFina
         etapa,
         busca: buscaDebounced || undefined,
         atrasadas: atrasadas || undefined,
+        semFotos: semFotos || undefined,
       })
       toast.success('Fila exportada em CSV')
     } catch (err: unknown) {
@@ -356,7 +378,7 @@ export function GaleriaPipelinePanel({ podeVerFinanceiro = true }: { podeVerFina
           />
           Somente atrasadas
         </label>
-        {(etapa || busca || atrasadas) && (
+        {(etapa || busca || atrasadas || semFotos) && (
           <Button
             variant="ghost"
             size="sm"
@@ -364,6 +386,7 @@ export function GaleriaPipelinePanel({ podeVerFinanceiro = true }: { podeVerFina
               setEtapa(undefined)
               setBusca('')
               setAtrasadas(false)
+              setSemFotos(false)
             }}
           >
             Limpar filtros
@@ -376,6 +399,20 @@ export function GaleriaPipelinePanel({ podeVerFinanceiro = true }: { podeVerFina
           Exportar CSV
         </Button>
       </div>
+
+      {(resumo?.semFotosNoCrm ?? 0) > 0 && (
+        <div className="flex justify-end">
+          <button
+            type="button"
+            onClick={() => setSemFotos((valor) => !valor)}
+            className="text-xs font-medium text-primary hover:underline"
+          >
+            {semFotos
+              ? 'Ocultar galerias sem fotos'
+              : `Mostrar galerias sem fotos (${resumo?.semFotosNoCrm ?? 0})`}
+          </button>
+        </div>
+      )}
 
       {isLoading && (
         <div className="flex items-center justify-center rounded-lg border bg-card py-16">

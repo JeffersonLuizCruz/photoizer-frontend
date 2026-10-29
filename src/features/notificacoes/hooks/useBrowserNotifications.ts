@@ -5,6 +5,11 @@ import { useNotificacoes } from '../api/queries'
 
 const STORAGE_PREFIX = 'photoizer:entrega-pendente:ultima-notificacao'
 const MAX_NOTIFICACOES_POR_CICLO = 3
+const TIPOS_NOTIFICAVEIS = new Set([
+  'ENTREGA_PENDENTE',
+  'COMPRA_EXTRA_SOLICITADA',
+  'COMPRA_EXTRA_COMPROVANTE_ENVIADO',
+])
 
 function chaveStorage(userId: string): string {
   return `${STORAGE_PREFIX}:${userId}`
@@ -12,8 +17,8 @@ function chaveStorage(userId: string): string {
 
 /**
  * Ponte entre as notificações persistidas no backend e a API de notificações
- * nativas do navegador. Só considera lembretes de entrega pendente e evita
- * repetir notificações já exibidas (último createdAt visto por usuário).
+ * nativas do navegador. Considera lembretes de entrega e compras de extras, e
+ * evita repetir notificações já exibidas (último createdAt visto por usuário).
  */
 export function useBrowserNotifications(userId?: string) {
   const navigate = useNavigate()
@@ -37,7 +42,7 @@ export function useBrowserNotifications(userId?: string) {
     if (onlyWhenHidden && isVisible) return
 
     const pendentes = (data?.data ?? [])
-      .filter((notificacao) => !notificacao.lida && notificacao.tipo === 'ENTREGA_PENDENTE')
+      .filter((notificacao) => !notificacao.lida && TIPOS_NOTIFICAVEIS.has(notificacao.tipo))
       .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
 
     if (pendentes.length === 0) return
@@ -63,7 +68,7 @@ export function useBrowserNotifications(userId?: string) {
       try {
         const notification = new window.Notification(notificacao.titulo, {
           body: notificacao.mensagem,
-          tag: `entrega-pendente-${notificacao.id}`,
+          tag: `notificacao-${notificacao.id}`,
           icon: '/pwa-192x192.png',
         })
         notification.onclick = () => {

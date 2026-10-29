@@ -257,6 +257,7 @@ export const ecommerceService = {
     etapa?: EtapaGaleria
     busca?: string
     atrasadas?: boolean
+    semFotos?: boolean
     page?: number
     perPage?: number
   }): Promise<PaginatedResponse<GaleriaPipelineItem>> => {
@@ -281,11 +282,13 @@ export const ecommerceService = {
     etapa?: EtapaGaleria
     busca?: string
     atrasadas?: boolean
+    semFotos?: boolean
   }): Promise<void> => {
     const query = new URLSearchParams()
     if (params?.etapa) query.set('etapa', params.etapa)
     if (params?.busca) query.set('busca', params.busca)
     if (params?.atrasadas) query.set('atrasadas', 'true')
+    if (params?.semFotos) query.set('semFotos', 'true')
     const sufixo = query.toString()
     await downloadProtected(
       `/admin/galerias/pipeline/export.csv${sufixo ? `?${sufixo}` : ''}`,

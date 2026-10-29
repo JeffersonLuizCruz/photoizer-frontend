@@ -30,6 +30,8 @@ const tipoIcon: Record<string, string> = {
   ENSAIO_REATRIBUIDO: '🔁',
   SELECAO_ENVIADA: '🖼️',
   ENTREGA_PENDENTE: '📦',
+  COMPRA_EXTRA_SOLICITADA: '🛒',
+  COMPRA_EXTRA_COMPROVANTE_ENVIADO: '🧾',
 }
 
 interface NotificationBellProps {

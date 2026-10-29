@@ -117,6 +117,7 @@ export function GaleriaClientePage() {
   const previsaoEntrega = statusGaleria
     && statusGaleria.etapa !== 'CONCLUIDA'
     && statusGaleria.etapa !== 'ARQUIVADA'
+    && statusGaleria.etapa !== 'CLIENTE_BAIXOU'
     ? formatarDataLonga(statusGaleria.previsaoEntrega)
     : null
 

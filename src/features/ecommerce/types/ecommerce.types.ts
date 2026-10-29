@@ -78,12 +78,14 @@ export interface SelecaoPendenteResponse {
 }
 
 export type EtapaGaleria =
+  | 'COMPRA_EXTRA_PENDENTE'
   | 'AGUARDANDO_UPLOAD'
   | 'FOTOS_NAO_PUBLICADAS'
   | 'SELECAO_EM_EDICAO'
   | 'SELECAO_AGUARDANDO_APROVACAO'
   | 'AGUARDANDO_SELECAO'
   | 'AGUARDANDO_DOWNLOAD'
+  | 'CLIENTE_BAIXOU'
   | 'CONCLUIDA'
   | 'ARQUIVADA'
 
@@ -114,6 +116,12 @@ export interface GaleriaPipelineItem {
   atrasada: boolean
   tokenExpirado: boolean
   tokenExpiracao: string | null
+  fotosPacote: number
+  fotosPacoteBaixadas: number
+  downloadPacoteEm: string | null
+  clienteBaixou: boolean
+  comprasAguardandoComprovante: number
+  comprasAguardandoConfirmacao: number
 }
 
 export interface GaleriaPipelineResumo {
@@ -129,6 +137,10 @@ export interface GaleriaPipelineResumo {
   atrasadas: number
   comprasPendentes: number
   extrasPendentesEdicao: number
+  semFotosNoCrm: number
+  clientesBaixaram: number
+  comprasAguardandoComprovante: number
+  comprasAguardandoConfirmacao: number
 }
 
 export interface GaleriaStatusResponse {
@@ -144,6 +156,8 @@ export interface GaleriaStatusResponse {
   requerEdicao: boolean
   pacoteNome: string | null
   dataHoraEnsaio: string | null
+  clienteBaixou: boolean
+  clienteBaixouEm: string | null
 }
 
 export interface GaleriaPerformanceSerieMensal {

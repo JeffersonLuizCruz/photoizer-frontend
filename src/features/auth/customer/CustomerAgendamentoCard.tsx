@@ -30,6 +30,7 @@ function etapaColor(etapa: EtapaGaleria | undefined, fallbackStatus: string): st
     case 'AGUARDANDO_SELECAO':
       return 'bg-violet-100 text-violet-700'
     case 'AGUARDANDO_DOWNLOAD':
+    case 'CLIENTE_BAIXOU':
     case 'CONCLUIDA':
       return 'bg-emerald-100 text-emerald-700'
     case 'ARQUIVADA':
@@ -61,7 +62,7 @@ export function CustomerAgendamentoCard({ agendamento, status }: Props) {
   const hasPhotos = agendamento.totalFotosPublicadas > 0
   const remaining = agendamento.pacoteQuantidadeFotos - agendamento.fotosSelecionadasPacote
   const etapaLabel = status?.etapaLabel ?? agendamento.statusDescricao
-  const previsao = status && status.etapa !== 'CONCLUIDA' && status.etapa !== 'ARQUIVADA'
+  const previsao = status && status.etapa !== 'CONCLUIDA' && status.etapa !== 'ARQUIVADA' && status.etapa !== 'CLIENTE_BAIXOU'
     ? formatarDataCurta(status.previsaoEntrega)
     : null
   const selecaoEnviada = formatarDataCurta(status?.selecaoEnviadaEm)

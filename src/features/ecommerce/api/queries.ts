@@ -6,6 +6,7 @@ export interface GaleriaPipelineFiltros {
   etapa?: EtapaGaleria
   busca?: string
   atrasadas?: boolean
+  semFotos?: boolean
   page?: number
   perPage?: number
 }

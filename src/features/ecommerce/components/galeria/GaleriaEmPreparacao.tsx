@@ -12,7 +12,7 @@ const PASSOS_BASE: Array<{ titulo: string; etapas: EtapaGaleria[] }> = [
   { titulo: 'Preparação', etapas: ['AGUARDANDO_UPLOAD', 'FOTOS_NAO_PUBLICADAS'] },
   { titulo: 'Escolha', etapas: ['AGUARDANDO_SELECAO'] },
   { titulo: 'Edição', etapas: ['SELECAO_EM_EDICAO', 'SELECAO_AGUARDANDO_APROVACAO'] },
-  { titulo: 'Entrega', etapas: ['AGUARDANDO_DOWNLOAD', 'CONCLUIDA'] },
+  { titulo: 'Entrega', etapas: ['AGUARDANDO_DOWNLOAD', 'CLIENTE_BAIXOU', 'CONCLUIDA'] },
 ]
 
 function formatarData(valor: string | null | undefined, opcoes?: Intl.DateTimeFormatOptions): string | null {
@@ -33,7 +33,10 @@ export function GaleriaEmPreparacao({ status, onRefresh, isRefreshing = false }:
   const previsao = formatarData(status?.previsaoEntrega)
   const dataEnsaio = formatarData(status?.dataHoraEnsaio)
   const selecaoEnviada = formatarData(status?.selecaoEnviadaEm, { day: '2-digit', month: 'short' })
-  const entregue = status?.etapa === 'CONCLUIDA'
+  const baixadoEm = status?.clienteBaixouEm
+    ? formatarData(status.clienteBaixouEm, { day: '2-digit', month: 'long', year: 'numeric' })
+    : null
+  const entregue = status?.etapa === 'CONCLUIDA' || status?.etapa === 'CLIENTE_BAIXOU'
   const previsaoAtrasada = Boolean(
     status?.previsaoEntrega
     && !entregue
@@ -95,7 +98,7 @@ export function GaleriaEmPreparacao({ status, onRefresh, isRefreshing = false }:
           })}
         </ol>
 
-        {(previsao || selecaoEnviada) && (
+        {(previsao || selecaoEnviada || baixadoEm) && (
           <div className="mt-8 space-y-1 text-[11px] text-gallery-muted">
             {previsao && !entregue && (
               <p className={cn(previsaoAtrasada && 'text-amber-700')}>
@@ -103,6 +106,7 @@ export function GaleriaEmPreparacao({ status, onRefresh, isRefreshing = false }:
               </p>
             )}
             {selecaoEnviada && <p>Seleção recebida em {selecaoEnviada}</p>}
+            {baixadoEm && <p>Fotos baixadas em {baixadoEm}</p>}
           </div>
         )}
 

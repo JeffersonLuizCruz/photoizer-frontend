@@ -154,7 +154,9 @@ Não existem testes para este módulo.
 - A rota `/admin/ecommerce` passou a renderizar **`AdminGaleriasPage`** (menu renomeado para **Galerias**), com as abas **Fila de trabalho** e **Vendas**. A rota foi mantida para não quebrar links.
 - A aba **Vendas** (e a aba **Desempenho**) só é exibida para `ADMIN`/`FOTOGRAFO`; `EDITOR` vê apenas a fila operacional, sem valores financeiros (o backend também redige esses campos).
 - **Fila**: `GaleriaPipelinePanel` consome `GET /admin/galerias/pipeline` e `/resumo`. Os cards do topo filtram por etapa (e por atrasadas), há busca por cliente/pacote/local, ordenação por urgência e paginação.
-- Cada item mostra etapa, dias na etapa, prazo do pacote, contadores de fotos/seleção/extras, pendências (pagamento, extra a editar, link expirado) e a **próxima ação** com deep link para o workspace (`?tab=fotos|selecao|visao`).
+- **Sem fotos no CRM**: galerias com 0 fotos ficam fora da fila por padrão (as fotos podem ter sido entregues por outro canal). O link “Mostrar galerias sem fotos (N)” usa `semFotos=true` e o contador `semFotosNoCrm` do resumo.
+- **Etapas novas**: `COMPRA_EXTRA_PENDENTE` (compra aguardando comprovante/aprovação, com contadores separados por item) e `CLIENTE_BAIXOU` (todas as fotos do pacote baixadas; terminal, fora de “Atrasadas”). A visão geral do workspace mostra o card “Baixadas pelo cliente”.
+- Cada item mostra etapa, dias na etapa, prazo do pacote, contadores de fotos/seleção/extras, pendências (compra a aprovar, aguardando comprovante, extra a editar, link expirado) e a **próxima ação** com deep link para o workspace (`?tab=fotos|selecao|compras|visao`).
 - O link da galeria pode ser copiado; quando o token expirou, a fila oferece **Novo link** (`adminRegenToken`).
 - **Vendas** reutiliza `AdminEcommercePage` com `embedded` (sem `PageTitle`), mantendo compras, confirmação, cancelamento, link de cartão e configuração de PIX.
 - Hooks em `api/queries.ts` (`useGaleriaPipeline`, `useGaleriaPipelineResumo`) invalidam por `refetchInterval` de 60s.

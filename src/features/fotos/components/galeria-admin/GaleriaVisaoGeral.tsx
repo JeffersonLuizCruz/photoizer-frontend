@@ -136,6 +136,7 @@ export function GaleriaVisaoGeral({
     ?? fotos.find((foto) => foto.destaque)
     ?? fotos[0]
     ?? null
+  const baixadasPacote = fotos.filter((foto) => foto.selecionadaPacote && foto.downloadada).length
   const requerEdicao = galeria?.requerEdicao ?? true
   const fases = requerEdicao ? FASES : FASES_SEM_EDICAO
   const faseAtual = fases.findIndex((fase) => fase.id === galeria?.fase)
@@ -276,10 +277,17 @@ export function GaleriaVisaoGeral({
         </section>
       )}
 
-      <section className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+      <section className="grid grid-cols-2 gap-3 lg:grid-cols-5">
         <ResumoCard titulo="Total de fotos" valor={counts.total} detalhe="Enviadas para a galeria" />
         <ResumoCard titulo="Publicadas" valor={counts.publicadas} detalhe="Visíveis ao cliente" />
         <ResumoCard titulo="No pacote" valor={counts.pacote} destaque />
+        <ResumoCard
+          titulo="Baixadas pelo cliente"
+          valor={`${baixadasPacote}/${counts.pacote}`}
+          detalhe={counts.pacote > 0 && baixadasPacote >= counts.pacote
+            ? 'Pacote baixado'
+            : 'Fotos do pacote baixadas'}
+        />
         <ResumoCard
           titulo="Extras"
           valor={counts.extras}
