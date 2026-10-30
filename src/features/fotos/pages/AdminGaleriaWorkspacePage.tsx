@@ -180,6 +180,7 @@ export function AdminGaleriaWorkspacePage() {
               isLoading={workspace.isLoading}
               error={workspace.error}
               onRetry={() => void workspace.refetch()}
+              onVerGrade={() => mudarTab('fotos')}
               podeVerCompras={podeVerCompras}
             />
             <GaleriaPagamentoPixCard podeEditar={user?.papel === 'ADMIN'} />

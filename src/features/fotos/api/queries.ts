@@ -89,6 +89,8 @@ export function usePublicarFotos(agendamentoId: string) {
     mutationFn: () => fotoService.publicar(agendamentoId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['fotos', agendamentoId] })
+      queryClient.invalidateQueries({ queryKey: ['galeria-ensaio', agendamentoId] })
+      queryClient.invalidateQueries({ queryKey: ['admin-ecommerce', agendamentoId] })
       toast.success('Galeria publicada com sucesso')
     },
     onError: (error: Error) => toast.error(extractErrorMessage(error, 'Erro ao publicar galeria')),

@@ -3,7 +3,6 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
 import {
   AlertTriangle,
-  Camera,
   Copy,
   ExternalLink,
   Image as ImageIcon,
@@ -12,6 +11,7 @@ import {
   Loader2,
   RefreshCw,
   ShoppingBag,
+  SlidersHorizontal,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { ecommerceService } from '@/features/ecommerce/services/ecommerce.service'
@@ -124,8 +124,8 @@ export function EcommerceAdminResumo({ agendamentoId }: { agendamentoId: string 
     <div className="space-y-6">
       <div className="flex flex-wrap items-center gap-2">
         <Button size="sm" onClick={() => navigate(`/agenda/${agendamentoId}/fotos`)}>
-          <Camera className="mr-1 h-4 w-4" />
-          Abrir galeria
+          <SlidersHorizontal className="mr-1 h-4 w-4" />
+          Gerenciar galeria
         </Button>
         <Button variant="outline" size="sm" onClick={() => navigate(`/agenda/${agendamentoId}/fotos?tab=fotos`)}>
           <ImageIcon className="mr-1 h-4 w-4" />

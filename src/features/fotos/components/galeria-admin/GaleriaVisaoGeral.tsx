@@ -13,13 +13,14 @@ import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import { Button } from '@/shared/components/ui/button'
 import { AuthImage } from '@/shared/components/ui/AuthImage'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/components/ui/select'
 import { extractErrorMessage } from '@/shared/api'
 import { fotoStaffThumbUrl, fotoThumbUrl } from '@/shared/lib/foto'
 import { useAuth } from '@/features/auth/AuthProvider'
-import { useAlterarModoGaleria } from '../../api/queries'
+import { GaleriaCapaCard } from './GaleriaCapaCard'
 import { GaleriaHeroTituloCard } from './GaleriaHeroTituloCard'
+import { GaleriaModoCard } from './GaleriaModoCard'
 import { GaleriaQualidadePreviewCard } from './GaleriaQualidadePreviewCard'
+import { GaleriaUploadCard } from './GaleriaUploadCard'
 import type { GaleriaEnsaioResponse, FotoEnsaio, ModoGaleria, SelecaoEnsaioResponse } from '@/features/ecommerce/types/ecommerce.types'
 import type { AgendamentoRef } from '../../services/foto.service'
 import type { GaleriaWorkspaceCounts } from '../../api/queries'
@@ -33,6 +34,7 @@ interface GaleriaVisaoGeralProps {
   isLoading: boolean
   error?: unknown
   onRetry?: () => void
+  onVerGrade: () => void
   podeVerCompras: boolean
 }
 
@@ -102,10 +104,10 @@ export function GaleriaVisaoGeral({
   isLoading,
   error,
   onRetry,
+  onVerGrade,
   podeVerCompras,
 }: GaleriaVisaoGeralProps) {
   const { user } = useAuth()
-  const alterarModo = useAlterarModoGaleria(galeria?.agendamentoId ?? '')
 
   if (isLoading) {
     return (
@@ -140,7 +142,6 @@ export function GaleriaVisaoGeral({
   const requerEdicao = galeria?.requerEdicao ?? true
   const fases = requerEdicao ? FASES : FASES_SEM_EDICAO
   const faseAtual = fases.findIndex((fase) => fase.id === galeria?.fase)
-  const podeEditarModo = user?.papel === 'ADMIN'
   const modoLabel = galeria ? MODO_LABEL[galeria.modo] : 'Edição após a seleção'
 
   return (
@@ -182,36 +183,9 @@ export function GaleriaVisaoGeral({
         </div>
 
         <div className="flex flex-wrap items-center gap-2 border-t bg-muted/30 px-4 py-2.5 text-xs text-muted-foreground">
-          {podeEditarModo ? (
-            <div className="flex flex-wrap items-center gap-1.5">
-              <Select
-                value={galeria?.modo}
-                onValueChange={(valor) => alterarModo.mutate(valor as ModoGaleria)}
-                disabled={!galeria?.podeAlterarModo || alterarModo.isPending}
-              >
-                <SelectTrigger
-                  className="h-8 w-auto min-w-44 bg-background text-xs"
-                  aria-label="Modo da galeria"
-                >
-                  <SelectValue placeholder="Modo da galeria" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="COM_EDICAO">Edição após a seleção</SelectItem>
-                  <SelectItem value="SEM_EDICAO">Seleção com edição</SelectItem>
-                  <SelectItem value="DIRETO" disabled>Fluxo legado (desativado)</SelectItem>
-                </SelectContent>
-              </Select>
-              {!galeria?.podeAlterarModo && (
-                <span className="text-[11px]">
-                  Não pode ser alterado após seleção, venda ou edição.
-                </span>
-              )}
-            </div>
-          ) : (
-            <span className="rounded-full bg-background px-2 py-1 font-medium text-foreground ring-1 ring-border">
-              {modoLabel}
-            </span>
-          )}
+          <span className="rounded-full bg-background px-2 py-1 font-medium text-foreground ring-1 ring-border">
+            {modoLabel}
+          </span>
           <span>
             {selecaoAtual
               ? `Seleção #${selecaoAtual.numero} · ${STATUS_SELECAO[selecaoAtual.status] ?? selecaoAtual.status}`
@@ -226,6 +200,29 @@ export function GaleriaVisaoGeral({
           )}
         </div>
       </section>
+
+      {galeria && (
+        <GaleriaUploadCard
+          agendamentoId={galeria.agendamentoId}
+          agendamento={agendamento}
+          fotos={fotos}
+          arquivada={galeria.arquivada}
+          onVerGrade={onVerGrade}
+        />
+      )}
+
+      {galeria && (
+        <div className="grid gap-4 lg:grid-cols-2">
+          <GaleriaCapaCard
+            agendamentoId={galeria.agendamentoId}
+            fotos={fotos}
+            capaFotoId={galeria.capaFotoId}
+            arquivada={galeria.arquivada}
+            onVerGrade={onVerGrade}
+          />
+          <GaleriaModoCard galeria={galeria} podeEditar={user?.papel === 'ADMIN'} />
+        </div>
+      )}
 
       {galeria && (
         <GaleriaHeroTituloCard
