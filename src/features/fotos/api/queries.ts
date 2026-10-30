@@ -399,7 +399,7 @@ export function useGaleriaWorkspace(
       (compra) => compra.status === 'AGUARDANDO_COMPROVANTE' || compra.status === 'AGUARDANDO_CONFIRMACAO',
     ).length,
     // Seleção ativa = o estúdio ainda precisa agir (iniciar/concluir a edição
-    // ou aprovar a seleção no modo SEM_EDICAO). Não depende da quantidade de
+    // ou aprovar a seleção no modo ENTREGA_DIRETA). Não depende da quantidade de
     // extras, então também aparece quando o cliente escolhe só fotos do pacote.
     selecoesPendentes: selecoes.filter(
       (selecao) => selecao.status === 'ENVIADA' || selecao.status === 'EM_EDICAO' || selecao.status === 'CONCLUIDA',

@@ -1,46 +1,29 @@
 import { useState } from 'react'
-import { Check, Loader2, PencilRuler, ShieldCheck } from 'lucide-react'
+import { Check, Loader2, Lock, PencilRuler, Send } from 'lucide-react'
 import { ConfirmDialog } from '@/shared/components/layout/ConfirmDialog'
+import { MODO_GALERIA_META, type ModoGaleria } from '@/shared/constants/galeriaModo'
 import { useAlterarModoGaleria } from '../../api/queries'
 import { cn } from '@/shared/lib/cn'
-import type { GaleriaEnsaioResponse, ModoGaleria } from '@/features/ecommerce/types/ecommerce.types'
+import type { GaleriaEnsaioResponse } from '@/features/ecommerce/types/ecommerce.types'
 
-interface OpcaoModo {
-  valor: ModoGaleria
-  titulo: string
-  descricao: string
-  detalhe: string
-  icone: typeof PencilRuler
-}
-
-const OPCOES: OpcaoModo[] = [
-  {
-    valor: 'COM_EDICAO',
-    titulo: 'Edição após a seleção',
-    descricao: 'O cliente escolhe as fotos, o estúdio edita e publica a versão final antes da entrega.',
-    detalhe: 'Mais controle de qualidade; a entrega acontece depois da edição.',
-    icone: PencilRuler,
-  },
-  {
-    valor: 'SEM_EDICAO',
-    titulo: 'Seleção com edição',
-    descricao: 'O staff apenas aprova a seleção do cliente e libera a entrega.',
-    detalhe: 'Sem etapa de edição após a escolha; as fotos do pacote saem na versão original.',
-    icone: ShieldCheck,
-  },
+const OPCOES: Array<{ valor: Exclude<ModoGaleria, 'DIRETO'>; icone: typeof PencilRuler }> = [
+  { valor: 'COM_EDICAO', icone: PencilRuler },
+  { valor: 'ENTREGA_DIRETA', icone: Send },
 ]
 
 interface GaleriaModoCardProps {
   galeria: GaleriaEnsaioResponse
   podeEditar: boolean
+  /** Falso enquanto nenhuma foto foi publicada: o fluxo será escolhido no publish. */
+  fluxoDefinido: boolean
 }
 
-export function GaleriaModoCard({ galeria, podeEditar }: GaleriaModoCardProps) {
+export function GaleriaModoCard({ galeria, podeEditar, fluxoDefinido }: GaleriaModoCardProps) {
   const [modoPendente, setModoPendente] = useState<ModoGaleria | null>(null)
   const { mutate: alterarModo, isPending } = useAlterarModoGaleria(galeria.agendamentoId)
 
-  const selecionado = galeria.modo
-  const bloqueado = !podeEditar || !galeria.podeAlterarModo || isPending
+  const selecionado = fluxoDefinido ? galeria.modo : null
+  const bloqueado = !fluxoDefinido || !podeEditar || !galeria.podeAlterarModo || isPending
   const legado = selecionado === 'DIRETO'
 
   const selecionar = (modo: ModoGaleria) => {
@@ -56,7 +39,7 @@ export function GaleriaModoCard({ galeria, podeEditar }: GaleriaModoCardProps) {
     })
   }
 
-  const opcaoPendente = OPCOES.find((opcao) => opcao.valor === modoPendente)
+  const opcaoPendente = modoPendente ? MODO_GALERIA_META[modoPendente] : null
 
   return (
     <section className="flex flex-col rounded-xl border bg-card p-4" aria-labelledby="galeria-modo-titulo">
@@ -72,9 +55,20 @@ export function GaleriaModoCard({ galeria, podeEditar }: GaleriaModoCardProps) {
         </div>
       </div>
 
+      {!fluxoDefinido && (
+        <div className="mt-3 flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50 p-3 text-xs text-amber-900">
+          <Lock className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+          <span>
+            Ainda não há fotos publicadas. O fluxo será escolhido no momento da publicação
+            e só um administrador pode definir.
+          </span>
+        </div>
+      )}
+
       <div className="mt-4 grid gap-2 sm:grid-cols-2">
         {OPCOES.map((opcao) => {
           const Icone = opcao.icone
+          const meta = MODO_GALERIA_META[opcao.valor]
           const ativo = selecionado === opcao.valor
           return (
             <button
@@ -94,7 +88,7 @@ export function GaleriaModoCard({ galeria, podeEditar }: GaleriaModoCardProps) {
             >
               <span className="flex items-center gap-2 text-sm font-medium">
                 <Icone className="h-4 w-4 shrink-0" />
-                {opcao.titulo}
+                {meta.titulo}
                 {ativo && (
                   <span className="ml-auto inline-flex items-center gap-1 rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-semibold text-primary">
                     <Check className="h-3 w-3" />
@@ -102,21 +96,23 @@ export function GaleriaModoCard({ galeria, podeEditar }: GaleriaModoCardProps) {
                   </span>
                 )}
               </span>
-              <span className="text-xs text-muted-foreground">{opcao.descricao}</span>
-              <span className="text-[11px] text-muted-foreground/80">{opcao.detalhe}</span>
+              <span className="text-xs text-muted-foreground">{meta.resumo}</span>
+              <span className="text-[11px] text-muted-foreground/80">{meta.detalhe}</span>
             </button>
           )
         })}
       </div>
 
       <p className="mt-3 text-[11px] text-muted-foreground">
-        {legado
-          ? 'Esta galeria usa o fluxo legado (desativado) até ser migrada.'
-          : !podeEditar
-            ? 'Somente administradores podem alterar o fluxo de entrega.'
-            : !galeria.podeAlterarModo
-              ? 'Não pode ser alterado após seleção, venda ou edição.'
-              : 'A alteração é confirmada antes de ser aplicada.'}
+        {!fluxoDefinido
+          ? 'O fluxo fica bloqueado até a primeira publicação das fotos.'
+          : legado
+            ? 'Esta galeria usa o fluxo legado (desativado) até ser migrada.'
+            : !podeEditar
+              ? 'Somente administradores podem alterar o fluxo de entrega.'
+              : !galeria.podeAlterarModo
+                ? 'Não pode ser alterado após seleção, venda ou edição.'
+                : 'A alteração é confirmada antes de ser aplicada.'}
       </p>
 
       {isPending && (
@@ -132,7 +128,7 @@ export function GaleriaModoCard({ galeria, podeEditar }: GaleriaModoCardProps) {
         onConfirm={confirmar}
         isLoading={isPending}
         title="Alterar fluxo de entrega?"
-        description={`A galeria passará a usar "${opcaoPendente?.titulo ?? ''}". ${opcaoPendente?.descricao ?? ''}`}
+        description={`A galeria passará a usar "${opcaoPendente?.titulo ?? ''}". ${opcaoPendente?.resumo ?? ''}`}
         confirmText="Alterar fluxo"
       >
         {opcaoPendente && (

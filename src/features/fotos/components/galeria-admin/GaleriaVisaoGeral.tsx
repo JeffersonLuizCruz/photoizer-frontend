@@ -14,6 +14,7 @@ import { ptBR } from 'date-fns/locale'
 import { Button } from '@/shared/components/ui/button'
 import { AuthImage } from '@/shared/components/ui/AuthImage'
 import { extractErrorMessage } from '@/shared/api'
+import { MODO_GALERIA_META } from '@/shared/constants/galeriaModo'
 import { fotoStaffThumbUrl, fotoThumbUrl } from '@/shared/lib/foto'
 import { useAuth } from '@/features/auth/AuthProvider'
 import { GaleriaCapaCard } from './GaleriaCapaCard'
@@ -21,7 +22,7 @@ import { GaleriaHeroTituloCard } from './GaleriaHeroTituloCard'
 import { GaleriaModoCard } from './GaleriaModoCard'
 import { GaleriaQualidadePreviewCard } from './GaleriaQualidadePreviewCard'
 import { GaleriaUploadCard } from './GaleriaUploadCard'
-import type { GaleriaEnsaioResponse, FotoEnsaio, ModoGaleria, SelecaoEnsaioResponse } from '@/features/ecommerce/types/ecommerce.types'
+import type { GaleriaEnsaioResponse, FotoEnsaio, SelecaoEnsaioResponse } from '@/features/ecommerce/types/ecommerce.types'
 import type { AgendamentoRef } from '../../services/foto.service'
 import type { GaleriaWorkspaceCounts } from '../../api/queries'
 
@@ -45,17 +46,11 @@ const FASES = [
   { id: 'COMERCIALIZACAO', label: 'Comercialização' },
 ] as const
 
-const FASES_SEM_EDICAO = [
+const FASES_ENTREGA_DIRETA = [
   { id: 'SELECAO', label: 'Seleção' },
   { id: 'SELECAO_ENVIADA', label: 'Aguardando aprovação' },
   { id: 'COMERCIALIZACAO', label: 'Liberada' },
 ] as const
-
-const MODO_LABEL: Record<ModoGaleria, string> = {
-  COM_EDICAO: 'Edição após a seleção',
-  SEM_EDICAO: 'Seleção com edição',
-  DIRETO: 'Fluxo legado',
-}
 
 const formatBRL = (value: number) =>
   value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
@@ -140,9 +135,13 @@ export function GaleriaVisaoGeral({
     ?? null
   const baixadasPacote = fotos.filter((foto) => foto.selecionadaPacote && foto.downloadada).length
   const requerEdicao = galeria?.requerEdicao ?? true
-  const fases = requerEdicao ? FASES : FASES_SEM_EDICAO
+  const fases = requerEdicao ? FASES : FASES_ENTREGA_DIRETA
   const faseAtual = fases.findIndex((fase) => fase.id === galeria?.fase)
-  const modoLabel = galeria ? MODO_LABEL[galeria.modo] : 'Edição após a seleção'
+  const modoMeta = galeria ? MODO_GALERIA_META[galeria.modo] : MODO_GALERIA_META.COM_EDICAO
+  // Qualquer foto que saiu de INEDITA já foi publicada alguma vez. Usar
+  // `publicadas > 0` falharia quando todas as publicadas fossem compradas
+  // (status PAGA/AGUARDANDO), reabrindo a escolha de fluxo indevidamente.
+  const fluxoDefinido = fotos.some((foto) => foto.status !== 'INEDITA')
 
   return (
     <div className="space-y-5">
@@ -183,9 +182,18 @@ export function GaleriaVisaoGeral({
         </div>
 
         <div className="flex flex-wrap items-center gap-2 border-t bg-muted/30 px-4 py-2.5 text-xs text-muted-foreground">
-          <span className="rounded-full bg-background px-2 py-1 font-medium text-foreground ring-1 ring-border">
-            {modoLabel}
-          </span>
+          {fluxoDefinido ? (
+            <span className="rounded-full bg-background px-2 py-1 font-medium text-foreground ring-1 ring-border">
+              {modoMeta.titulo}
+            </span>
+          ) : (
+            <span
+              className="rounded-full bg-amber-100 px-2 py-1 font-medium text-amber-900"
+              title="O fluxo será escolhido ao publicar as fotos."
+            >
+              Fluxo a definir
+            </span>
+          )}
           <span>
             {selecaoAtual
               ? `Seleção #${selecaoAtual.numero} · ${STATUS_SELECAO[selecaoAtual.status] ?? selecaoAtual.status}`
@@ -207,6 +215,7 @@ export function GaleriaVisaoGeral({
           agendamento={agendamento}
           fotos={fotos}
           arquivada={galeria.arquivada}
+          modoAtual={galeria.modo}
           onVerGrade={onVerGrade}
         />
       )}
@@ -220,7 +229,11 @@ export function GaleriaVisaoGeral({
             arquivada={galeria.arquivada}
             onVerGrade={onVerGrade}
           />
-          <GaleriaModoCard galeria={galeria} podeEditar={user?.papel === 'ADMIN'} />
+          <GaleriaModoCard
+            galeria={galeria}
+            podeEditar={user?.papel === 'ADMIN'}
+            fluxoDefinido={fluxoDefinido}
+          />
         </div>
       )}
 

@@ -16,9 +16,10 @@ import { ConfirmDialog } from '@/shared/components/layout/ConfirmDialog'
 import { cn } from '@/shared/lib/cn'
 import { AGENDAMENTO_STATUS, ROUTES, type AgendamentoStatus } from '@/shared/constants'
 import { fotoStaffThumbUrl, numeroGaleriaLabel, rotuloFoto } from '@/shared/lib/foto'
-import { useAgendamento, useFotosList, useUploadFotos, usePublicarFotos, useRenumerarGaleria, useGaleriaEnsaio, useDefinirCapaGaleria, useDeletarFoto, useDeletarFotosEmLote, useUpdateFotoMetadata, useAlterarVisibilidade, useAlterarStatus, useSubstituirImagem, useComentariosAdmin, useOverrideSelecao, useReeditarFoto } from '../api/queries'
+import { useAgendamento, useFotosList, useUploadFotos, useRenumerarGaleria, useGaleriaEnsaio, useDefinirCapaGaleria, useDeletarFoto, useDeletarFotosEmLote, useUpdateFotoMetadata, useAlterarVisibilidade, useAlterarStatus, useSubstituirImagem, useComentariosAdmin, useOverrideSelecao, useReeditarFoto } from '../api/queries'
 import { useAuth } from '@/features/auth/AuthProvider'
 import { ComentariosDialog } from '../components/ComentariosDialog'
+import { PublicarGaleriaDialog } from '../components/galeria-admin/PublicarGaleriaDialog'
 import { UploadLoteError, type UploadProgress } from '../services/foto.service'
 import type { FotoEnsaio } from '@/features/ecommerce/types/ecommerce.types'
 
@@ -258,11 +259,11 @@ export function AdminGaleriaPage({
   const [categoriaFoto, setCategoriaFoto] = useState('')
   const [fotoAcoes, setFotoAcoes] = useState<FotoEnsaio | null>(null)
   const [uploadAberto, setUploadAberto] = useState(false)
+  const [publicarAberto, setPublicarAberto] = useState(false)
 
   const { data: fotos = [], isLoading, isError, error, refetch: refetchFotos } = useFotosList(id)
   const { data: comentariosAdmin = [] } = useComentariosAdmin(id)
   const { mutate: uploadFotos, isPending: isUploading } = useUploadFotos(id ?? '')
-  const { mutate: publicar, isPending: isPublishing } = usePublicarFotos(id ?? '')
   const { mutate: renumerar, isPending: isRenumerando } = useRenumerarGaleria(id ?? '')
   const { mutate: deletar } = useDeletarFoto(id ?? '')
   const { mutate: deletarEmLote, isPending: isDeletingLote } = useDeletarFotosEmLote(id ?? '')
@@ -557,8 +558,8 @@ export function AdminGaleriaPage({
             </Button>
           )}
           {publicacaoLiberada && fotos.length > 0 && !allPublished && !galeriaArquivada && (
-            <Button onClick={() => publicar()} disabled={isPublishing} variant="default" size="sm">
-              {isPublishing ? <Loader2 className="mr-1 h-4 w-4 animate-spin" /> : <Send className="mr-1 h-4 w-4" />}
+            <Button onClick={() => setPublicarAberto(true)} variant="default" size="sm">
+              <Send className="mr-1 h-4 w-4" />
               Publicar Galeria
             </Button>
           )}
@@ -1283,6 +1284,17 @@ export function AdminGaleriaPage({
         open={comentariosFoto !== null}
         onOpenChange={(open) => { if (!open) setComentariosFoto(null) }}
       />
+
+      {id && (
+        <PublicarGaleriaDialog
+          agendamentoId={id}
+          open={publicarAberto}
+          onOpenChange={setPublicarAberto}
+          quantidade={ineditas}
+          modoAtual={galeriaEnsaio?.modo ?? 'COM_EDICAO'}
+          fluxoDefinido={fotos.some((foto) => foto.status !== 'INEDITA')}
+        />
+      )}
     </div>
   )
 }

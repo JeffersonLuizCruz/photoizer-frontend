@@ -108,7 +108,7 @@ export function GaleriaClientePage() {
     [valoresExtras, valorUnitario],
   )
   // No modo COM_EDICAO só há arquivo final depois de EDITADA. Nos modos
-  // SEM_EDICAO/DIRETO o próprio original é o entregável.
+  // ENTREGA_DIRETA/DIRETO o arquivo já publicado é o entregável.
   const isDownloadable = (foto: FotoEnsaio) =>
     podeBaixar
     && (foto.selecionadaPacote || foto.status === 'PAGA')

@@ -49,7 +49,7 @@ export function GaleriaDock({
   const percentual = pacoteLimit > 0 ? Math.min(100, Math.round((selectedCount / pacoteLimit) * 100)) : 0
   const emSelecao = modo !== 'DIRETO' && fase === 'SELECAO'
   const emEdicao = modo === 'COM_EDICAO' && (fase === 'SELECAO_ENVIADA' || fase === 'EM_EDICAO')
-  const emAprovacao = modo === 'SEM_EDICAO' && fase === 'SELECAO_ENVIADA'
+  const emAprovacao = modo === 'ENTREGA_DIRETA' && fase === 'SELECAO_ENVIADA'
   const emComercializacao = modo !== 'DIRETO' && fase === 'COMERCIALIZACAO'
   const thumbs = selectedFotos.slice(-4)
 

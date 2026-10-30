@@ -1,4 +1,7 @@
 import type { AuditInfo } from '@/shared/types'
+import type { ModoGaleria } from '@/shared/constants/galeriaModo'
+
+export type { ModoGaleria } from '@/shared/constants/galeriaModo'
 
 export interface FotoEnsaio {
   id: string
@@ -29,7 +32,6 @@ export interface FotoEnsaio {
   arquivosRemovidosEm?: string | null
 }
 
-export type ModoGaleria = 'DIRETO' | 'COM_EDICAO' | 'SEM_EDICAO'
 export type QualidadePreview = 'PROTEGIDA' | 'EQUILIBRADA' | 'ORIGINAL'
 export type FaseGaleria = 'SELECAO' | 'SELECAO_ENVIADA' | 'EM_EDICAO' | 'COMERCIALIZACAO'
 export type StatusSelecao = 'ENVIADA' | 'EM_EDICAO' | 'CONCLUIDA' | 'PUBLICADA' | 'CANCELADA'

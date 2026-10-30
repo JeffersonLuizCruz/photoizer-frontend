@@ -10,6 +10,7 @@ import { PageTitle } from '@/shared/components/layout/PageTitle'
 import { ConfirmDialog } from '@/shared/components/layout/ConfirmDialog'
 import { Sheet, SheetContent, SheetTitle } from '@/shared/components/ui/sheet'
 import { ROUTES, QUERY_KEYS } from '@/shared/constants'
+import { MODO_GALERIA_META } from '@/shared/constants/galeriaModo'
 import { extractErrorMessage } from '@/shared/api'
 import { ecommerceService } from '@/features/ecommerce/services/ecommerce.service'
 import type {
@@ -305,7 +306,7 @@ export function AdminSelecoesPage({
                   </span>
                   {!p.requerEdicao && (
                     <span className="rounded-full bg-sky-100 px-2 py-1 font-medium text-sky-700">
-                      Seleção com edição
+                      {MODO_GALERIA_META.ENTREGA_DIRETA.titulo}
                     </span>
                   )}
                   <span className="flex items-center gap-1">

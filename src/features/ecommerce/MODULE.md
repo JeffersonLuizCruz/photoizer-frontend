@@ -102,12 +102,12 @@ Não existem testes para este módulo.
 ## 7. Galeria com seleção e edição
 
 - O fluxo legado `DIRETO` foi desativado. Galerias novas e migradas usam
-  `COM_EDICAO` por padrão; `SEM_EDICAO` está disponível para ensaios que não
-  precisam de edição. A página mantém fallback de leitura para `DIRETO` apenas
-  para linhas antigas não migradas.
+  `COM_EDICAO` por padrão; `ENTREGA_DIRETA` está disponível para ensaios que não
+  têm etapa de edição depois da seleção. A página mantém fallback de leitura para
+  `DIRETO` apenas para linhas antigas não migradas.
 - `GaleriaClientePage` passou a respeitar `modoGaleria`, `faseGaleria`, `requerEdicao`, `podeSelecionar`, `podeComprar` e `podeBaixar`.
 - No modo `COM_EDICAO`, o cliente seleciona fotos do pacote (e extras no carrinho), envia a seleção e fica em modo leitura até a publicação da edição.
-- No modo `SEM_EDICAO`, o cliente seleciona, o staff aprova e o pacote é liberado em versão original; extras só são liberados após a confirmação do pagamento.
+- No modo `ENTREGA_DIRETA`, o cliente seleciona, o staff aprova e o pacote é liberado com o arquivo já publicado na galeria (que pode ter sido editado antes do upload); extras só são liberados após a confirmação do pagamento.
 - `PhotoGrid`, `FotoViewer`, `CartSummaryPanel` e `FavoritosPanel` recebem os flags de fase.
 - Cada foto exibe `#número` e o nome do arquivo; a busca aceita ambos.
 - `ecommerce.service.ts` expõe `enviarSelecao`, `selecaoAtiva`, `adminAlterarModoGaleria` e os endpoints administrativos de seleção/galeria.
@@ -115,7 +115,7 @@ Não existem testes para este módulo.
 - A seleção pode ser salva como rascunho antes do envio; após o envio, fica bloqueada.
 - O envio da seleção **não recria** a sessão do carrinho quando o servidor a considera inválida: isso perderia os extras silenciosamente. O erro é mostrado e o cliente precisa recarregar/refazer o carrinho. Se a resposta vier com `quantidadeExtras` diferente do carrinho local, a UI avisa o cliente.
 - `valoresExtras` (preço congelado por foto) é usado no grid, viewer, favoritos e resumo do carrinho.
-- O botão “Baixar pacote” do `GaleriaDock` aparece sempre que `downloadableFotos.length > 0`, inclusive nos fluxos `SEM_EDICAO` e `DIRETO`.
+- O botão “Baixar pacote” do `GaleriaDock` aparece sempre que `downloadableFotos.length > 0`, inclusive nos fluxos `ENTREGA_DIRETA` e `DIRETO`.
 - Favoritos e comparador respeitam `podeSelecionar`/`podeComprar`; não oferecem ações em fases bloqueadas.
 - A galeria pública é mobile-first: header compacto com ícones, filtros fora do sticky, barra de ações fixa com safe-area no rodapé, grid de 2 colunas e rodapé fixo no visualizador.
 - O `FotoViewer` suporta swipe horizontal (além de setas e teclado) e bloqueia o scroll do fundo enquanto está aberto; o comparador também bloqueia o scroll.
@@ -124,15 +124,15 @@ Não existem testes para este módulo.
 - O texto do hero é editado por galeria na aba **Visão geral** do workspace administrativo (`GaleriaHeroTituloCard`) e salvo em `PUT /admin/agendamentos/{id}/galeria/titulo`.
 - Quando o pacote está cheio, o check do grid dá lugar à sacola de extra; o clique abre o `GaleriaExtraDialog` para confirmar a inclusão, em vez de adicionar silenciosamente ao carrinho. Extras só ficam disponíveis depois que o pacote atinge o limite (ou quando a fase de seleção já foi fechada).
 - O envio da seleção usa `GaleriaConfirmarSelecao`, que agrupa pacote/extras e aceita o campo `observacao` (já suportado pelo backend).
-- Em `SEM_EDICAO`, uma seleção aprovada (`PUBLICADA`) pode ser reaberta pelo admin enquanto nenhuma foto tiver sido baixada ou vendida. O backend expõe `podeReabrir` na seleção; a reabertura volta a galeria para `SELECAO` e cancela o snapshot aprovado, e o cliente envia uma nova seleção.
+- Em `ENTREGA_DIRETA`, uma seleção aprovada (`PUBLICADA`) pode ser reaberta pelo admin enquanto nenhuma foto tiver sido baixada ou vendida. O backend expõe `podeReabrir` na seleção; a reabertura volta a galeria para `SELECAO` e cancela o snapshot aprovado, e o cliente envia uma nova seleção.
 - O hero usa `capaUrl` (capa manual ou fallback) e faz preload com prioridade alta. A capa é escolhida em `AdminGaleriaPage` no modo “Escolher capa”; o backend congela a versão (`capaVersao`) e devolve a URL já versionada (`?v={fotoId}-{versao}`).
 - A galeria pública revalida ao voltar para a aba (`visibilitychange`/`pageshow`) e a cada 60s, sem recarregar a página e sem apagar a seleção local em andamento.
 - Quando o staff reabre uma seleção, o backend mantém `selecionadaPacote`: as fotos anteriores voltam como **rascunho** e o cliente vê o `GaleriaRascunhoBanner`. O progresso mostra “Rascunho · X de Y escolhidas” e o dock exibe “Salvar rascunho”/“Rascunho salvo”.
 - O banner permite **“Limpar fotos do pacote”** com confirmação. A ação chama `DELETE /ecommerce/galeria/{token}/rascunho` e desmarca somente o pacote; os extras do carrinho permanecem.
-- **Extras durante a seleção/edição**: em `SELECAO_ENVIADA`/`EM_EDICAO` (`COM_EDICAO`) e em `SELECAO_ENVIADA` (`SEM_EDICAO`) a sacola continua disponível. O extra entra no snapshot da seleção ativa (backend) e o total é calculado no carrinho; o checkout permanece bloqueado até `COMERCIALIZACAO`.
+- **Extras durante a seleção/edição**: em `SELECAO_ENVIADA`/`EM_EDICAO` (`COM_EDICAO`) e em `SELECAO_ENVIADA` (`ENTREGA_DIRETA`) a sacola continua disponível. O extra entra no snapshot da seleção ativa (backend) e o total é calculado no carrinho; o checkout permanece bloqueado até `COMERCIALIZACAO`.
 - **Extras após a publicação (COM_EDICAO)**: fotos restantes aparecem com o selo **“A editar”** e podem ser compradas. Após o pagamento, `MinhasComprasSection` mostra **“Aguardando edição”** até o estúdio liberar a versão editada; o download só aparece com `versaoAtual = EDITADA`.
-- **Extras após a aprovação (SEM_EDICAO)**: o extra é baixado em original assim que o pagamento é confirmado, sem passar pela fila de edição.
-- `isDownloadable`/`podeBaixarEsta` exigem `versaoAtual = EDITADA` apenas no modo `COM_EDICAO`, evitando liberar download de extra ainda não editado; em `SEM_EDICAO` o original é o entregável.
+- **Extras após a aprovação (ENTREGA_DIRETA)**: o extra é baixado com o arquivo já publicado assim que o pagamento é confirmado, sem passar pela fila de edição.
+- `isDownloadable`/`podeBaixarEsta` exigem `versaoAtual = EDITADA` apenas no modo `COM_EDICAO`, evitando liberar download de extra ainda não editado; em `ENTREGA_DIRETA` o arquivo publicado é o entregável.
 - `GaleriaTimeline` e `GaleriaIntro` adaptam as etapas e o texto quando `requerEdicao = false` (“Aprovação”/“Liberada”).
 - O `CartSummaryPanel` mostra “Extras da seleção” durante a seleção/edição e “Meu Carrinho” na comercialização, com aviso de quando a compra será liberada.
 - **PIX do e-commerce**: a chave é global e somente `ADMIN` altera. O controle fica no workspace da galeria (aba Visão geral, `GaleriaPagamentoPixCard`) e em Pedidos → Ecommerce. `MinhasComprasSection` exibe a chave atual para compras PIX pendentes, com botão de copiar; a chave não é congelada na compra, então correções do staff aparecem no polling/“Atualizar”.
@@ -164,7 +164,7 @@ Não existem testes para este módulo.
   - `/g/:token` sem fotos publicadas mostra `GaleriaEmPreparacao` (etapa com label de cliente, mensagem, pacote/data, linha do tempo e previsão) em vez da tela vazia; o botão “Atualizar” reconsulta sem derrubar a tela para skeleton.
   - com fotos, o `GaleriaIntro` exibe a previsão de entrega quando o ensaio ainda não foi entregue.
   - `/minha-conta` busca o status por ensaio em background, libera a lista antes dos status e mostra a etapa real, a previsão e o botão **Acompanhar ensaio** mesmo sem fotos publicadas.
-  - A timeline adapta “Edição” para “Aprovação” no modo `SEM_EDICAO` e sinaliza previsão vencida.
+  - A timeline adapta “Edição” para “Aprovação” no modo `ENTREGA_DIRETA` e sinaliza previsão vencida.
 
 ## 10. Gestão (SLA, funil e exportação)
 

@@ -3,9 +3,11 @@ import { ImagePlus, Loader2, Send, Upload, X } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/shared/components/ui/button'
 import { AGENDAMENTO_STATUS, type AgendamentoStatus } from '@/shared/constants'
+import { type ModoGaleria } from '@/shared/constants/galeriaModo'
 import { cn } from '@/shared/lib/cn'
-import { usePublicarFotos, useUploadFotos } from '../../api/queries'
+import { useUploadFotos } from '../../api/queries'
 import { UploadLoteError, type AgendamentoRef, type UploadProgress } from '../../services/foto.service'
+import { PublicarGaleriaDialog } from './PublicarGaleriaDialog'
 import type { FotoEnsaio } from '@/features/ecommerce/types/ecommerce.types'
 
 /** Limite por imagem aceito pelo backend (FileValidator, contexto "image"). */
@@ -30,6 +32,7 @@ interface GaleriaUploadCardProps {
   agendamento: AgendamentoRef | undefined
   fotos: FotoEnsaio[]
   arquivada: boolean
+  modoAtual: ModoGaleria
   onVerGrade: () => void
 }
 
@@ -38,6 +41,7 @@ export function GaleriaUploadCard({
   agendamento,
   fotos,
   arquivada,
+  modoAtual,
   onVerGrade,
 }: GaleriaUploadCardProps) {
   const inputRef = useRef<HTMLInputElement>(null)
@@ -45,9 +49,9 @@ export function GaleriaUploadCard({
   const [previews, setPreviews] = useState<{ file: File; url: string }[]>([])
   const [uploadProgress, setUploadProgress] = useState<UploadProgress | null>(null)
   const [arrastando, setArrastando] = useState(false)
+  const [publicarAberto, setPublicarAberto] = useState(false)
 
   const { mutate: uploadFotos, isPending: isUploading } = useUploadFotos(agendamentoId)
-  const { mutate: publicar, isPending: isPublicando } = usePublicarFotos(agendamentoId)
 
   // Previews em state + effect: o progresso do upload re-renderiza a tela
   // várias vezes e recriar os object URLs a cada render vazaria memória.
@@ -63,6 +67,8 @@ export function GaleriaUploadCard({
   const total = fotos.length
   const publicadas = fotos.filter((foto) => foto.status === 'PUBLICADA').length
   const ineditas = fotos.filter((foto) => foto.status === 'INEDITA').length
+  // Qualquer foto que saiu de INEDITA já foi publicada alguma vez.
+  const fluxoDefinido = fotos.some((foto) => foto.status !== 'INEDITA')
 
   const percentualUpload = uploadProgress && uploadProgress.totalArquivos > 0
     ? Math.min(100, Math.round(
@@ -286,16 +292,23 @@ export function GaleriaUploadCard({
         {!arquivada && uploadLiberado && ineditas > 0 && (
           <Button
             size="sm"
-            onClick={() => publicar()}
-            disabled={isPublicando || isUploading}
+            onClick={() => setPublicarAberto(true)}
+            disabled={isUploading}
           >
-            {isPublicando
-              ? <Loader2 className="mr-1 h-4 w-4 animate-spin" />
-              : <Send className="mr-1 h-4 w-4" />}
+            <Send className="mr-1 h-4 w-4" />
             Publicar {ineditas} foto(s)
           </Button>
         )}
       </div>
+
+      <PublicarGaleriaDialog
+        agendamentoId={agendamentoId}
+        open={publicarAberto}
+        onOpenChange={setPublicarAberto}
+        quantidade={ineditas}
+        modoAtual={modoAtual}
+        fluxoDefinido={fluxoDefinido}
+      />
     </section>
   )
 }
