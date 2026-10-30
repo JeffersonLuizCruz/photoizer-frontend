@@ -4,7 +4,7 @@ import { ecommerceService } from '../../services/ecommerce.service'
 import { cn } from '@/shared/lib/cn'
 import { numeroGaleriaLabel } from '@/shared/lib/foto'
 
-interface GaleriaMasonryProps {
+interface GaleriaGridProps {
   fotos: FotoEnsaio[]
   token: string
   selectedIds: Set<string>
@@ -27,7 +27,7 @@ interface GaleriaMasonryProps {
   onView: (index: number) => void
 }
 
-export function GaleriaMasonry({
+export function GaleriaGrid({
   fotos,
   token,
   selectedIds,
@@ -48,11 +48,11 @@ export function GaleriaMasonry({
   onToggleFavorito,
   onToggleCompare,
   onView,
-}: GaleriaMasonryProps) {
+}: GaleriaGridProps) {
   const packageFull = selectedIds.size >= pacoteLimit
 
   return (
-    <div className="columns-2 gap-2 sm:columns-3 sm:gap-3 lg:columns-4 xl:columns-5">
+    <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 sm:gap-3 lg:grid-cols-4 xl:grid-cols-5">
       {fotos.map((foto, index) => {
         const isSelected = selectedIds.has(foto.id)
         const isInCart = carrinhoIds.has(foto.id)
@@ -88,7 +88,7 @@ export function GaleriaMasonry({
         return (
           <figure
             key={foto.id}
-            className="group relative mb-2 break-inside-avoid motion-safe:animate-[gallery-fade-up_0.6s_ease-out_both] sm:mb-3"
+            className="group relative min-w-0 motion-safe:animate-[gallery-fade-up_0.6s_ease-out_both]"
             style={{ animationDelay: `${Math.min(index, 12) * 45}ms` }}
           >
             <div
@@ -103,7 +103,7 @@ export function GaleriaMasonry({
               }}
               aria-label={compareMode ? `Comparar ${foto.fileName}` : `Ver ${foto.fileName}`}
               className={cn(
-                'relative block w-full cursor-pointer overflow-hidden rounded-[2px] bg-gallery-line/40 outline-none transition-shadow focus-visible:ring-2 focus-visible:ring-gallery-accent',
+                'relative block aspect-[3/2] w-full cursor-pointer overflow-hidden rounded-[2px] bg-gallery-line/40 outline-none transition-shadow focus-visible:ring-2 focus-visible:ring-gallery-accent',
                 isSelected && 'ring-2 ring-gallery-accent ring-offset-2 ring-offset-gallery-bg',
                 compareMode && isComparing && 'ring-2 ring-gallery-ink ring-offset-2 ring-offset-gallery-bg',
               )}
@@ -115,7 +115,7 @@ export function GaleriaMasonry({
                 decoding="async"
                 draggable={false}
                 onContextMenu={(e) => e.preventDefault()}
-                className="pointer-events-none block w-full select-none object-cover transition-transform duration-500 ease-out [-webkit-touch-callout:none] motion-safe:group-hover:scale-[1.02]"
+                className="pointer-events-none block h-full w-full select-none object-cover transition-transform duration-500 ease-out [-webkit-touch-callout:none] motion-safe:group-hover:scale-[1.02]"
               />
 
               {numero && (

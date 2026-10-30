@@ -15,7 +15,7 @@ import { GaleriaHero } from '../components/galeria/GaleriaHero'
 import { GaleriaNav } from '../components/galeria/GaleriaNav'
 import { GaleriaIntro } from '../components/galeria/GaleriaIntro'
 import { GaleriaRascunhoBanner } from '../components/galeria/GaleriaRascunhoBanner'
-import { GaleriaMasonry } from '../components/galeria/GaleriaMasonry'
+import { GaleriaGrid } from '../components/galeria/GaleriaGrid'
 import { GaleriaDock } from '../components/galeria/GaleriaDock'
 import { GaleriaExtraDialog } from '../components/galeria/GaleriaExtraDialog'
 import { GaleriaConfirmarSelecao } from '../components/galeria/GaleriaConfirmarSelecao'
@@ -587,9 +587,9 @@ export function GaleriaClientePage() {
           <div className="mx-auto mt-4 h-8 w-72 max-w-full animate-pulse rounded bg-gallery-line/60" />
           <div className="mx-auto mt-3 h-3 w-full max-w-md animate-pulse rounded bg-gallery-line/40" />
         </div>
-        <div className="mx-auto mt-10 columns-2 gap-2 px-4 sm:columns-3 sm:px-6 lg:columns-4">
+        <div className="mx-auto mt-10 grid grid-cols-2 gap-2 px-4 sm:grid-cols-3 sm:gap-3 sm:px-6 lg:grid-cols-4 xl:grid-cols-5">
           {Array.from({ length: 10 }).map((_, i) => (
-            <div key={i} className="mb-2 aspect-[3/4] animate-pulse break-inside-avoid bg-gallery-line/40 sm:mb-3" />
+            <div key={i} className="aspect-[3/2] animate-pulse bg-gallery-line/40" />
           ))}
         </div>
       </div>
@@ -818,7 +818,7 @@ export function GaleriaClientePage() {
               </button>
             </div>
           ) : (
-            <GaleriaMasonry
+            <GaleriaGrid
               fotos={filteredFotos}
               token={token ?? ''}
               selectedIds={selectedIds}

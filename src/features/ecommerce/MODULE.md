@@ -27,7 +27,7 @@ features/ecommerce/
 │   │   ├── GaleriaRascunhoBanner.tsx # Aviso de seleção reaberta e limpeza do pacote
 │   │   ├── GaleriaNav.tsx            # Navegação mínima com favoritos/carrinho
 │   │   ├── GaleriaIntro.tsx          # Copy por fase e progresso do pacote
-│   │   ├── GaleriaMasonry.tsx        # Grid masonry com favoritos/seleção
+│   │   ├── GaleriaGrid.tsx           # Grid alinhado (linha a linha) com favoritos/seleção
 │   │   ├── GaleriaDock.tsx           # Barra fixa de ações
 │   │   ├── GaleriaTimeline.tsx       # Linha do tempo da seleção/edição
 │   │   ├── GaleriaExtraDialog.tsx    # Confirmação ao exceder o pacote
@@ -119,7 +119,7 @@ Não existem testes para este módulo.
 - Favoritos e comparador respeitam `podeSelecionar`/`podeComprar`; não oferecem ações em fases bloqueadas.
 - A galeria pública é mobile-first: header compacto com ícones, filtros fora do sticky, barra de ações fixa com safe-area no rodapé, grid de 2 colunas e rodapé fixo no visualizador.
 - O `FotoViewer` suporta swipe horizontal (além de setas e teclado) e bloqueia o scroll do fundo enquanto está aberto; o comparador também bloqueia o scroll.
-- A experiência editorial usa `GaleriaHero` (capa + título + data + local), `GaleriaMasonry` (masonry, sem nome de arquivo/preço por foto), `GaleriaDock` e `GaleriaIntro` com copy por modo/fase.
+- A experiência editorial usa `GaleriaHero` (capa + título + data + local), `GaleriaGrid` (grid alinhado, sem nome de arquivo/preço por foto), `GaleriaDock` e `GaleriaIntro` com copy por modo/fase.
 - O endpoint público expõe `clienteNome`, `tituloHero`, `dataHoraEnsaio` e `requerEdicao` para personalizar o hero e o texto; `tituloHero` nulo/vazio faz o hero exibir o nome do cliente. A capa é manual (definida pelo staff) com fallback para `destaque` ou primeira foto.
 - O texto do hero é editado por galeria na aba **Visão geral** do workspace administrativo (`GaleriaHeroTituloCard`) e salvo em `PUT /admin/agendamentos/{id}/galeria/titulo`.
 - Quando o pacote está cheio, o check do grid dá lugar à sacola de extra; o clique abre o `GaleriaExtraDialog` para confirmar a inclusão, em vez de adicionar silenciosamente ao carrinho. Extras só ficam disponíveis depois que o pacote atinge o limite (ou quando a fase de seleção já foi fechada).
