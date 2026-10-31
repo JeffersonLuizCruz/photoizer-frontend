@@ -177,3 +177,30 @@ Não existem testes para este módulo.
 - No mobile, os cards de resumo ficam em rolagem horizontal, os controles usam 44px de altura e a ação principal do card ocupa a largura disponível.
 - **Exportar CSV** baixa a fila com os filtros atuais (`etapa`, `busca`, `atrasadas`) via `downloadProtected`; o backend responde com BOM UTF-8 e separador `;` para abrir direto no Excel pt-BR.
 - A rota antiga `/admin/analytics` redireciona para `?tab=desempenho`; `EDITOR` é direcionado para a fila (não vê indicadores financeiros).
+
+## 11. Compra de extras após o envio da seleção
+
+- `GaleriaClientePage` usa `podePagarExtras` (novo campo da galeria) para liberar o checkout de extras
+  em `SELECAO_ENVIADA`/`EM_EDICAO`; em `SELECAO` o botão fica desabilitado com a mensagem
+  “Envie sua seleção para liberar o pagamento das extras”.
+- O carrinho deixou de ser derivado de `fotos`: `GaleriaClientePage` guarda `CarrinhoItemResponse[]`
+  e `CartSummaryPanel` renderiza os itens reais do servidor. Isso evita botão desabilitado quando a
+  foto saiu da lista pública (oculta/PAGA) e permite remover o item.
+- `carrinhoCount` é derivado de `carrinhoItens.length`; após cada mutação o frontend recarrega o
+  carrinho para reconciliar com a sessão assinada.
+- O checkout é somente PIX no `CheckoutDialog`: PIX default, cálculo com loading/erro, botão
+  desabilitado sem chave PIX, comprovante e PIX no “Minhas compras”.
+- Após `enviarSelecao` com extras, o checkout PIX abre automaticamente; o carrinho não é limpo antes
+  do pagamento.
+- `MinhasComprasSection` recebe `refreshKey` e busca a compra recém-criada.
+- CRM: `useGaleriaWorkspace` marca como `EXTRA` também as fotos com `compraExtraId`/`PAGA` fora da
+  seleção; a aba Seleção mostra selo “Pago/Aguardando pagamento/A pagar” nas extras.
+- `ExtrasCompraPendentesSection` não duplica extras da seleção ativa (backend filtra
+  `emSelecaoEdicao = false`).
+
+## 12. Leads de pacotes
+
+- `CheckoutPage` virou captação de lead: dados do cliente, entrega, forma de pagamento de interesse,
+  extras (passo 1) e observação; envia `POST /ecommerce/leads` e não simula pagamento.
+- `AdminLeadsPage` (`/admin/leads`) lista leads, filtra por status, atualiza o status e oferece
+  contato por WhatsApp. Rota/menu para ADMIN/FOTOGRAFO/AGENDADOR.

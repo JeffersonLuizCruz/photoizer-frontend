@@ -301,7 +301,13 @@ export function GaleriaVisaoGeral({
         <ResumoCard
           titulo="Extras"
           valor={counts.extras}
-          detalhe={counts.valorExtras > 0 ? formatBRL(counts.valorExtras) : 'Nenhum extra selecionado'}
+          detalhe={counts.valorExtrasPagos > 0
+            ? `${counts.extrasPagos} pago(s) · ${formatBRL(counts.valorExtrasPagos)}`
+            : counts.extrasPagos > 0
+              ? `${counts.extrasPagos} pago(s)`
+              : counts.valorExtras > 0
+                ? `${formatBRL(counts.valorExtras)} selecionados`
+                : 'Nenhum extra selecionado'}
           destaque={counts.extras > 0}
         />
       </section>

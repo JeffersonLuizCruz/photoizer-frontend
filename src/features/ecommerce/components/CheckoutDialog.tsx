@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
-import { Loader2, Copy, Check, Banknote, Send, CreditCard, Upload, X, QrCode, RefreshCw, ExternalLink } from 'lucide-react'
+import { Loader2, Copy, Check, Send, Upload, X, QrCode, RefreshCw, ExternalLink } from 'lucide-react'
 import { toast } from 'sonner'
 import type { CalculoCarrinhoResponse, CompraExtraResponse, MetodoPagamento, ConfiguracaoPagamentoResponse } from '../types/ecommerce.types'
 import { ecommerceService } from '../services/ecommerce.service'
@@ -32,6 +32,8 @@ export function CheckoutDialog({
   const [pagamentoCarregado, setPagamentoCarregado] = useState(false)
   const [successMessage, setSuccessMessage] = useState<string | null>(null)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
+  const [isCalculando, setIsCalculando] = useState(false)
+  const [erroCalculo, setErroCalculo] = useState<string | null>(null)
   const [dragOver, setDragOver] = useState(false)
   const inputFileRef = useRef<HTMLInputElement>(null)
 
@@ -39,14 +41,18 @@ export function CheckoutDialog({
     if (!open || !token) return
     setCompra(null)
     setComprovante(null)
-    setPaymentMode(null)
+    setPaymentMode('PIX')
     setSuccessMessage(null)
     setErrorMessage(null)
+    setCalculo(null)
+    setErroCalculo(null)
+    setIsCalculando(true)
     setPagamento(null)
     setPagamentoCarregado(false)
     ecommerceService.calcular(token)
       .then(setCalculo)
-      .catch(() => toast.error('Erro ao calcular carrinho'))
+      .catch(() => setErroCalculo('Não foi possível calcular o carrinho. Tente novamente.'))
+      .finally(() => setIsCalculando(false))
     ecommerceService.obterPagamento()
       .then(setPagamento)
       .catch(() => {})
@@ -82,7 +88,22 @@ export function CheckoutDialog({
   }
 
   const handleConfirmar = async () => {
-    if (!paymentMode || !calculo) return
+    if (!paymentMode) {
+      setErrorMessage('Escolha a forma de pagamento.')
+      return
+    }
+    if (!calculo) {
+      setErrorMessage(erroCalculo ?? 'Aguarde o cálculo do carrinho e tente novamente.')
+      return
+    }
+    if (calculo.quantidade === 0) {
+      setErrorMessage('Seu carrinho está vazio. Adicione as fotos extras novamente.')
+      return
+    }
+    if (pixIndisponivel) {
+      setErrorMessage('O estúdio ainda não configurou a chave PIX. Fale com o estúdio.')
+      return
+    }
     setIsProcessing(true)
     setErrorMessage(null)
     try {
@@ -179,97 +200,62 @@ export function CheckoutDialog({
           </div>
         )}
 
-        {/* Payment method selection (before checkout) */}
+        {/* Pagamento via PIX */}
         {!compra && !successMessage && (
           <div className="space-y-3">
-            <h3 className="text-xs font-medium text-gallery-accent">COMO DESEJA PAGAR?</h3>
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-              <button
-                onClick={() => !pixIndisponivel && setPaymentMode('PIX')}
-                role="radio"
-                aria-checked={paymentMode === 'PIX'}
-                aria-disabled={pixIndisponivel}
-                className={cn(
-                  'flex flex-col items-center gap-2 rounded-2xl border-2 p-4 text-center transition-all',
-                  paymentMode === 'PIX'
-                    ? 'border-gallery-accent bg-gallery-bg shadow-sm'
-                    : 'border-gallery-line hover:border-gallery-line hover:bg-gallery-bg',
-                  pixIndisponivel && 'cursor-not-allowed opacity-50 hover:border-gallery-line hover:bg-transparent',
-                )}>
-                <div className={cn(
-                  'flex h-10 w-10 items-center justify-center rounded-full transition-colors',
-                  paymentMode === 'PIX' ? 'bg-gradient-to-br from-gallery-accent to-gallery-accent text-white' : 'bg-gallery-bg text-gallery-accent',
-                )}>
-                  <QrCode className="h-5 w-5" />
-                </div>
-                <span className="text-sm font-semibold text-gallery-ink">PIX</span>
-                <span className="text-[11px] leading-relaxed text-gallery-muted">
-                  {pixIndisponivel
-                    ? 'PIX ainda não configurado pelo estúdio.'
-                    : 'Pague via PIX e envie o comprovante. O estúdio libera após confirmar.'}
-                </span>
-              </button>
-              <button
-                onClick={() => setPaymentMode('CARTAO')}
-                role="radio"
-                aria-checked={paymentMode === 'CARTAO'}
-                className={cn(
-                  'flex flex-col items-center gap-2 rounded-2xl border-2 p-4 text-center transition-all',
-                  paymentMode === 'CARTAO'
-                    ? 'border-gallery-accent bg-gallery-bg shadow-sm'
-                    : 'border-gallery-line hover:border-gallery-line hover:bg-gallery-bg',
-                )}>
-                <div className={cn(
-                  'flex h-10 w-10 items-center justify-center rounded-full transition-colors',
-                  paymentMode === 'CARTAO' ? 'bg-gradient-to-br from-gallery-accent to-gallery-accent text-white' : 'bg-gallery-bg text-gallery-accent',
-                )}>
-                  <CreditCard className="h-5 w-5" />
-                </div>
-                <span className="text-sm font-semibold text-gallery-ink">Cartão</span>
-                <span className="text-[11px] leading-relaxed text-gallery-muted">
-                  O estúdio envia um link de pagamento após criar a compra.
-                </span>
-              </button>
-              <button
-                onClick={() => setPaymentMode('TRANSFERENCIA')}
-                role="radio"
-                aria-checked={paymentMode === 'TRANSFERENCIA'}
-                className={cn(
-                  'flex flex-col items-center gap-2 rounded-2xl border-2 p-4 text-center transition-all',
-                  paymentMode === 'TRANSFERENCIA'
-                    ? 'border-gallery-accent bg-gallery-bg shadow-sm'
-                    : 'border-gallery-line hover:border-gallery-line hover:bg-gallery-bg',
-                )}>
-                <div className={cn(
-                  'flex h-10 w-10 items-center justify-center rounded-full transition-colors',
-                  paymentMode === 'TRANSFERENCIA' ? 'bg-gradient-to-br from-gallery-accent to-gallery-accent text-white' : 'bg-gallery-bg text-gallery-accent',
-                )}>
-                  <Banknote className="h-5 w-5" />
-                </div>
-                <span className="text-sm font-semibold text-gallery-ink">Transferência</span>
-                <span className="text-[11px] leading-relaxed text-gallery-muted">
-                  Transfira e envie o comprovante. O estúdio libera após confirmar.
-                </span>
-              </button>
+            <h3 className="text-xs font-medium text-gallery-accent">PAGAMENTO VIA PIX</h3>
+
+            {isCalculando && (
+              <div className="flex items-center justify-center gap-2 rounded-2xl border border-gallery-line bg-gallery-bg p-4 text-sm text-gallery-muted">
+                <Loader2 className="h-4 w-4 animate-spin" />
+                Calculando o valor das extras...
+              </div>
+            )}
+
+            {erroCalculo && (
+              <div className="rounded-2xl border border-gallery-line bg-gallery-bg p-3 text-xs text-gallery-accent">
+                {erroCalculo}
+              </div>
+            )}
+
+            {calculo && calculo.quantidade === 0 && (
+              <div className="rounded-2xl border border-gallery-line bg-gallery-bg p-3 text-xs text-gallery-accent">
+                Seu carrinho está vazio. Volte à galeria e adicione as fotos extras novamente.
+              </div>
+            )}
+
+            <div className={cn(
+              'flex flex-col items-center gap-2 rounded-2xl border-2 p-4 text-center',
+              paymentMode === 'PIX' ? 'border-gallery-accent bg-gallery-bg shadow-sm' : 'border-gallery-line',
+              (pixIndisponivel || !!erroCalculo) && 'opacity-70',
+            )}>
+              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gallery-bg text-gallery-accent">
+                <QrCode className="h-5 w-5" />
+              </div>
+              <span className="text-sm font-semibold text-gallery-ink">PIX</span>
+              <span className="text-[11px] leading-relaxed text-gallery-muted">
+                {pixIndisponivel
+                  ? 'PIX ainda não configurado pelo estúdio. Fale com o estúdio antes de pagar.'
+                  : 'Pague via PIX e envie o comprovante. O estúdio aprova e libera as fotos.'}
+              </span>
             </div>
 
-            {/* Confirmation button */}
-            {paymentMode && (
-              <button onClick={handleConfirmar} disabled={isProcessing}
-                className={cn(
-                  'flex w-full items-center justify-center gap-2 rounded-2xl px-4 py-3 text-sm font-semibold transition-all active:scale-[0.98]',
-                  isProcessing ? 'cursor-not-allowed bg-gallery-line text-gallery-muted' : GALLERY_CTA,
-                )}>
-                {isProcessing ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <CreditCard className="h-4 w-4" />
-                )}
-                {isProcessing
-                  ? 'Processando...'
-                  : `Finalizar${calculo ? ` (R$ ${calculo.total.toFixed(2)})` : ''}`}
-              </button>
-            )}
+            <button
+              onClick={handleConfirmar}
+              disabled={isProcessing || isCalculando || !calculo || calculo.quantidade === 0 || !pagamentoCarregado || pixIndisponivel}
+              className={cn(
+                'flex w-full items-center justify-center gap-2 rounded-2xl px-4 py-3 text-sm font-semibold transition-all active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50',
+                GALLERY_CTA,
+              )}>
+              {isProcessing ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <QrCode className="h-4 w-4" />
+              )}
+              {isProcessing
+                ? 'Gerando cobrança PIX...'
+                : `Finalizar via PIX${calculo ? ` (R$ ${calculo.total.toFixed(2)})` : ''}`}
+            </button>
 
             {errorMessage && (
               <div className="rounded-2xl border border-gallery-line bg-gallery-bg p-3 text-xs text-gallery-accent">

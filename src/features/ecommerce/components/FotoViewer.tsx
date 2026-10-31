@@ -86,7 +86,8 @@ export function FotoViewer({
   const isInCart = carrinhoIds.has(foto.id)
   const isFavorito = favoritoIds.has(foto.id)
   const isLoading = cartLoadingIds.has(foto.id)
-  const pendente = !!foto.compraExtraId && foto.status !== 'PAGA'
+  const jaComprada = foto.status === 'PAGA'
+  const pendente = !!foto.compraExtraId && !jaComprada
   const packageFull = selectedCount >= pacoteLimit
   const valor = valoresExtras[foto.id] ?? valorUnitario
   const fotoSeraEditada = modoGaleria === 'COM_EDICAO'
@@ -564,7 +565,20 @@ export function FotoViewer({
             </button>
           </div>
 
-          {pendente ? (
+          {jaComprada ? (
+            podeBaixar && (modoGaleria !== 'COM_EDICAO' || foto.versaoAtual === 'EDITADA') ? (
+              <a href={ecommerceService.downloadUrl(token, foto.id)}
+                className="flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl bg-gallery-ink px-5 py-3 text-sm font-medium text-gallery-bg shadow-md shadow-gallery-ink/20 transition-opacity hover:opacity-90 active:scale-[0.99]">
+                <Check className="h-4 w-4" />
+                Baixar foto adquirida
+              </a>
+            ) : (
+              <span className="flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl bg-gallery-line px-5 py-3 text-sm font-medium text-gallery-ink shadow-md">
+                <Clock className="h-4 w-4" />
+                Adquirida · aguardando edição
+              </span>
+            )
+          ) : pendente ? (
             <button disabled
               className="flex min-h-12 w-full cursor-default items-center justify-center gap-2 rounded-2xl bg-gallery-line px-5 py-3 text-sm font-medium text-gallery-ink shadow-md">
               <Clock className="h-4 w-4" />

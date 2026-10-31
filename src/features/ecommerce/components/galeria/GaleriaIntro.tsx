@@ -54,12 +54,12 @@ function conteudo(modo: ModoGaleria, fase: FaseGaleria, pacoteLimit: number, req
     case 'SELECAO_ENVIADA':
       return {
         titulo: 'Seleção recebida',
-        descricao: 'Recebemos suas escolhas. Você ainda pode marcar fotos extras: elas serão editadas junto com o pacote.',
+        descricao: 'Recebemos suas escolhas. Você pode pagar as fotos extras via PIX agora; elas serão editadas junto com o pacote.',
       }
     case 'EM_EDICAO':
       return {
         titulo: 'Suas fotos estão sendo preparadas',
-        descricao: 'Estamos editando suas favoritas com todo o cuidado. Você ainda pode escolher extras; eles entram na mesma edição.',
+        descricao: 'Estamos editando suas favoritas com todo o cuidado. Você ainda pode escolher extras e pagar via PIX; eles entram na mesma edição.',
       }
     case 'COMERCIALIZACAO':
       return {

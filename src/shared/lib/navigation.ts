@@ -15,6 +15,7 @@ import {
   ReceiptText,
   Settings,
   ShoppingCart,
+  UserPlus,
   Wallet,
 } from 'lucide-react'
 import { ROUTES } from '@/shared/constants'
@@ -63,6 +64,7 @@ const navEntries: NavEntry[] = [
   { to: ROUTES.DASHBOARD, label: 'Dashboard', icon: LayoutDashboard, end: true },
   { to: ROUTES.AGENDA, label: 'Agenda', icon: Calendar },
   { to: ROUTES.PACOTES, label: 'Pacotes', icon: Package },
+  { to: ROUTES.LEADS, label: 'Leads', icon: UserPlus, roles: ['ADMIN', 'FOTOGRAFO', 'AGENDADOR'] },
   { to: ROUTES.GALERIAS, label: 'Galerias', icon: Images },
   // Seleções e Analytics seguem acessíveis por URL direta, mas foram
   // removidos do menu visual (decisão de produto).
@@ -84,6 +86,7 @@ const allowedRoutesByPapel: Record<string, Set<string>> = {
   AGENDADOR: new Set([
     ROUTES.AGENDA,
     ROUTES.PACOTES,
+    ROUTES.LEADS,
     ROUTES.PROPOSTAS,
   ]),
 }

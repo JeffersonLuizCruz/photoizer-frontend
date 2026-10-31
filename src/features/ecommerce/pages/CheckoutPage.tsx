@@ -1,39 +1,35 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { Camera, ChevronRight, Download, CreditCard, Check, Loader2, ShoppingBag, ArrowLeft, User, Mail, Phone, Lock, Waves } from 'lucide-react'
+import { Camera, ChevronRight, Download, Check, Loader2, ShoppingBag, ArrowLeft, User, Mail, Phone, Waves, CreditCard } from 'lucide-react'
 import { toast } from 'sonner'
 import { ecommerceService } from '../services/ecommerce.service'
-import { useCustomerAuth } from '@/features/auth/customer'
-import { apiClient } from '@/shared/api'
 import { BeachBackdrop } from '@/shared/components/beach/BeachBackdrop'
 import { BEACH_CARD, BEACH_CTA } from '@/shared/components/beach/beach'
 import { cn } from '@/shared/lib/cn'
 import type { PacoteResponse } from '@/features/pacotes/types/pacotes.types'
-import type { OpcaoEntrega } from '../types/ecommerce.types'
+import type { LeadPacoteRequest, OpcaoEntrega } from '../types/ecommerce.types'
 
 function formatCurrency(value: number): string {
   return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value)
 }
 
-// RF010: fluxo de checkout em etapas
+// RF010: fluxo de solicitação em etapas. O envio é um lead comercial, não um
+// pagamento: o estúdio entra em contato para fechar o pacote.
 const STEPS = ['Revisão', 'Dados', 'Entrega', 'Pagamento', 'Confirmação']
 
 export function CheckoutPage() {
   const { pacoteId } = useParams<{ pacoteId: string }>()
   const navigate = useNavigate()
-  const { user, login } = useCustomerAuth()
   const [step, setStep] = useState(0)
   const [pacote, setPacote] = useState<PacoteResponse | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [isSubmitting, setIsSubmitting] = useState(false)
 
-  // Dados do cliente (RF010 etapa 2)
-  const [nome, setNome] = useState(user?.nome ?? '')
-  const [email, setEmail] = useState(user?.email ?? '')
-  const [telefone, setTelefone] = useState(user?.telefone ?? '')
-  const [senha, setSenha] = useState('')
+  const [nome, setNome] = useState('')
+  const [email, setEmail] = useState('')
+  const [telefone, setTelefone] = useState('')
+  const [observacao, setObservacao] = useState('')
 
-  // Opções de entrega (RF011)
   const [opcaoEntrega, setOpcaoEntrega] = useState<OpcaoEntrega>('DIGITAL')
   const entregaPrecos: Record<OpcaoEntrega, number> = { DIGITAL: 0, FISICA: 29.90, AMBAS: 49.90 }
   const entregaPrazos: Record<OpcaoEntrega, string> = {
@@ -42,15 +38,12 @@ export function CheckoutPage() {
     AMBAS: 'Download imediato + mídia em 7-10 dias',
   }
 
-  // Pagamento (RF012)
-  const [formaPagamento, setFormaPagamento] = useState('PIX')
-
-  // Upsell de fotos extras (FA003)
+  const [formaPagamento, setFormaPagamento] = useState<LeadPacoteRequest['formaPagamento']>('PIX')
   const [quantidadeExtras, setQuantidadeExtras] = useState(0)
   const precoFotoExtra = (pacote?.precoFotoExtra ?? 0) > 0 ? (pacote?.precoFotoExtra ?? 0) : 15
   const valorExtras = precoFotoExtra * quantidadeExtras
   const taxaEntrega = entregaPrecos[opcaoEntrega]
-  const total = Math.max(0, (pacote?.valorBase ?? 0) + valorExtras + taxaEntrega)
+  const estimativa = Math.max(0, (pacote?.valorBase ?? 0) + valorExtras + taxaEntrega)
 
   useEffect(() => {
     if (!pacoteId) return
@@ -60,52 +53,35 @@ export function CheckoutPage() {
       .finally(() => setIsLoading(false))
   }, [pacoteId])
 
-  // Etapa Dados: identifica ou registra o cliente
-  const handleConfirmarDados = async () => {
-    if (user) {
-      setStep(2)
+  const handleConfirmarDados = () => {
+    if (!nome.trim() || !telefone.trim()) {
+      toast.error('Informe seu nome e telefone para o estúdio entrar em contato.')
       return
     }
-    if (!nome.trim() || !email.trim() || !telefone.trim() || senha.length < 6) {
-      toast.error('Preencha todos os campos. A senha deve ter no mínimo 6 caracteres.')
+    if (email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
+      toast.error('Informe um e-mail válido.')
       return
     }
-    setIsSubmitting(true)
-    try {
-      // Tenta login primeiro; se falhar, registra
-      let auth
-      try {
-        const { data } = await apiClient.post('/auth/cliente/login', { email, senha })
-        auth = data
-      } catch {
-        const { data } = await apiClient.post('/auth/cliente/registro', { nome, email, telefone, senha })
-        auth = data
-      }
-      login({ id: auth.id, nome: auth.nome, email: auth.email, telefone: auth.telefone, isLoggedIn: true })
-      toast.success(`Bem-vindo, ${auth.nome}!`)
-      setStep(2)
-    } catch (err: any) {
-      toast.error(err?.response?.data?.message || 'Erro ao identificar cliente')
-    } finally {
-      setIsSubmitting(false)
-    }
+    setStep(2)
   }
 
   const handleFinalizar = async () => {
     if (!pacote) return
-    const clienteId = user?.id
-    if (!clienteId) {
-      toast.error('Identifique-se antes de finalizar')
-      setStep(1)
-      return
-    }
     setIsSubmitting(true)
     try {
-      await new Promise(resolve => setTimeout(resolve, 500))
-      toast.success('Solicitação registrada com sucesso!')
+      await ecommerceService.criarLead({
+        pacoteId: pacote.id,
+        nome: nome.trim(),
+        email: email.trim() || undefined,
+        telefone: telefone.trim(),
+        opcaoEntrega,
+        formaPagamento,
+        quantidadeExtras,
+        observacao: observacao.trim() || undefined,
+      })
       setStep(4)
     } catch (err: any) {
-      toast.error(err?.response?.data?.message || 'Erro ao processar solicitação')
+      toast.error(err?.response?.data?.message || 'Não foi possível enviar sua solicitação')
     } finally {
       setIsSubmitting(false)
     }
@@ -149,12 +125,11 @@ export function CheckoutPage() {
           </button>
           <span className="flex items-center gap-2 text-sm font-semibold text-cyan-950">
             <Waves className="h-4 w-4 text-cyan-500" />
-            Finalizar Pedido
+            Solicitar Pacote
           </span>
         </div>
       </header>
 
-      {/* Progresso das etapas */}
       <div className="mx-auto max-w-3xl px-4 pb-4 pt-6">
         <div className="flex items-center gap-1">
           {STEPS.map((s, i) => (
@@ -177,7 +152,6 @@ export function CheckoutPage() {
       </div>
 
       <div className="mx-auto max-w-3xl px-4 pb-12">
-        {/* Etapa 0: Revisão */}
         {step === 0 && (
           <div className="space-y-4">
             <div className={cn('p-5', BEACH_CARD)}>
@@ -196,11 +170,10 @@ export function CheckoutPage() {
               </div>
             </div>
 
-            {/* FA003: Upsell de fotos extras */}
             {pacote.precoFotoExtra != null && (
               <div className={cn('space-y-3 p-5', BEACH_CARD)}>
                 <div className="flex items-center justify-between">
-                  <h2 className="font-display text-base font-semibold text-cyan-950">Adicionar Fotos Extras</h2>
+                  <h2 className="font-display text-base font-semibold text-cyan-950">Fotos Extras (interesse)</h2>
                   {quantidadeExtras > 0 && (
                     <button onClick={() => setQuantidadeExtras(0)}
                       className="text-xs text-slate-500 transition-colors hover:text-cyan-700">
@@ -209,17 +182,17 @@ export function CheckoutPage() {
                   )}
                 </div>
                 <p className="text-xs text-slate-500">
-                  {formatCurrency(precoFotoExtra)} por foto extra
+                  {formatCurrency(precoFotoExtra)} por foto extra. O estúdio confirmará a quantidade depois.
                 </p>
                 <div className="flex items-center gap-3">
                   <div className="flex items-center overflow-hidden rounded-xl border border-cyan-100 bg-white">
-                    <button onClick={() => setQuantidadeExtras(Math.max(0, quantidadeExtras - 5))}
+                    <button onClick={() => setQuantidadeExtras(Math.max(0, quantidadeExtras - 1))}
                       disabled={quantidadeExtras === 0}
                       className="flex h-9 w-9 items-center justify-center text-sm font-medium text-cyan-700 transition-colors hover:bg-cyan-50 disabled:opacity-30">
                       –
                     </button>
-                    <span className="w-16 text-center text-sm font-medium tabular-nums text-slate-800">{quantidadeExtras}</span>
-                    <button onClick={() => setQuantidadeExtras(quantidadeExtras + 5)}
+                    <span className="w-12 text-center text-sm font-medium tabular-nums text-slate-800">{quantidadeExtras}</span>
+                    <button onClick={() => setQuantidadeExtras(quantidadeExtras + 1)}
                       className="flex h-9 w-9 items-center justify-center text-sm font-medium text-cyan-700 transition-colors hover:bg-cyan-50">
                       +
                     </button>
@@ -234,7 +207,7 @@ export function CheckoutPage() {
             )}
 
             <div className={cn('space-y-2 p-5', BEACH_CARD)}>
-              <h2 className="mb-1 font-display text-base font-semibold text-cyan-950">Resumo</h2>
+              <h2 className="mb-1 font-display text-base font-semibold text-cyan-950">Estimativa</h2>
               <div className="flex justify-between text-sm">
                 <span className="text-slate-500">Pacote ({pacote.nome})</span>
                 <span className="text-slate-800">{formatCurrency(pacote.valorBase)}</span>
@@ -250,9 +223,13 @@ export function CheckoutPage() {
                 <span className="text-slate-800">{taxaEntrega === 0 ? 'Grátis' : formatCurrency(taxaEntrega)}</span>
               </div>
               <div className="flex justify-between border-t border-cyan-100 pt-2 text-sm font-semibold text-cyan-950">
-                <span>Total</span>
-                <span>{formatCurrency(total)}</span>
+                <span>Total estimado</span>
+                <span>{formatCurrency(estimativa)}</span>
               </div>
+              <p className="text-[10px] leading-relaxed text-slate-400">
+                A solicitação não cobra nada agora. O estúdio entrará em contato para confirmar
+                disponibilidade, valores e pagamento.
+              </p>
             </div>
 
             <button onClick={() => setStep(1)}
@@ -262,57 +239,41 @@ export function CheckoutPage() {
           </div>
         )}
 
-        {/* Etapa 1: Dados do cliente */}
         {step === 1 && (
           <div className="space-y-4">
             <h2 className="font-display text-base font-semibold text-cyan-950">Seus Dados</h2>
-
-            {user ? (
-              <div className={cn('space-y-2 p-5', BEACH_CARD)}>
-                <div className="flex items-center gap-2 text-sm">
-                  <User className="h-4 w-4 text-cyan-500" /><span className="font-medium text-slate-800">{user.nome}</span>
-                </div>
-                <div className="flex items-center gap-2 text-sm text-slate-500">
-                  <Mail className="h-4 w-4 text-cyan-400" /><span>{user.email}</span>
-                </div>
-                <div className="flex items-center gap-2 text-sm text-slate-500">
-                  <Phone className="h-4 w-4 text-cyan-400" /><span>{user.telefone}</span>
-                </div>
+            <div className={cn('space-y-3 p-5', BEACH_CARD)}>
+              <p className="text-xs text-slate-500">
+                Precisamos do seu nome, telefone e (opcionalmente) e-mail para o estúdio entrar em contato.
+              </p>
+              <div className="relative">
+                <User className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-cyan-400" />
+                <input value={nome} onChange={(e) => setNome(e.target.value)} placeholder="Nome completo"
+                  className="w-full rounded-xl border border-cyan-100 bg-white py-2.5 pl-9 pr-4 text-sm outline-none focus:ring-2 focus:ring-cyan-200" />
               </div>
-            ) : (
-              <div className={cn('space-y-3 p-5', BEACH_CARD)}>
-                <p className="text-xs text-slate-500">Identifique-se para continuar. Se já tem conta, informe email e senha.</p>
-                <div className="relative">
-                  <User className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-cyan-400" />
-                  <input value={nome} onChange={(e) => setNome(e.target.value)} placeholder="Nome completo"
-                    className="w-full rounded-xl border border-cyan-100 bg-white py-2.5 pl-9 pr-4 text-sm outline-none focus:ring-2 focus:ring-cyan-200" />
-                </div>
-                <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-cyan-400" />
-                  <input type="email" inputMode="email" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="seu@email.com"
-                    className="w-full rounded-xl border border-cyan-100 bg-white py-2.5 pl-9 pr-4 text-sm outline-none focus:ring-2 focus:ring-cyan-200" />
-                </div>
-                <div className="relative">
-                  <Phone className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-cyan-400" />
-                  <input type="tel" inputMode="tel" autoComplete="tel" value={telefone} onChange={(e) => setTelefone(e.target.value)} placeholder="(11) 99999-8888"
-                    className="w-full rounded-xl border border-cyan-100 bg-white py-2.5 pl-9 pr-4 text-sm outline-none focus:ring-2 focus:ring-cyan-200" />
-                </div>
-                <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-cyan-400" />
-                  <input type="password" value={senha} onChange={(e) => setSenha(e.target.value)} placeholder="Senha (mín. 6 caracteres)"
-                    className="w-full rounded-xl border border-cyan-100 bg-white py-2.5 pl-9 pr-4 text-sm outline-none focus:ring-2 focus:ring-cyan-200" />
-                </div>
+              <div className="relative">
+                <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-cyan-400" />
+                <input type="email" inputMode="email" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="seu@email.com (opcional)"
+                  className="w-full rounded-xl border border-cyan-100 bg-white py-2.5 pl-9 pr-4 text-sm outline-none focus:ring-2 focus:ring-cyan-200" />
               </div>
-            )}
+              <div className="relative">
+                <Phone className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-cyan-400" />
+                <input type="tel" inputMode="tel" autoComplete="tel" value={telefone} onChange={(e) => setTelefone(e.target.value)} placeholder="(11) 99999-8888"
+                  className="w-full rounded-xl border border-cyan-100 bg-white py-2.5 pl-9 pr-4 text-sm outline-none focus:ring-2 focus:ring-cyan-200" />
+              </div>
+              <textarea value={observacao} onChange={(e) => setObservacao(e.target.value)} rows={3}
+                maxLength={2000}
+                placeholder="Alguma preferência ou observação? (opcional)"
+                className="w-full resize-none rounded-xl border border-cyan-100 bg-white p-3 text-sm outline-none focus:ring-2 focus:ring-cyan-200" />
+            </div>
 
-            <button onClick={handleConfirmarDados} disabled={isSubmitting}
-              className={cn('flex w-full items-center justify-center gap-1 rounded-2xl py-3 text-sm font-semibold disabled:opacity-50', BEACH_CTA)}>
-              {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <>Continuar <ChevronRight className="h-4 w-4" /></>}
+            <button onClick={handleConfirmarDados}
+              className={cn('flex w-full items-center justify-center gap-1 rounded-2xl py-3 text-sm font-semibold', BEACH_CTA)}>
+              Continuar <ChevronRight className="h-4 w-4" />
             </button>
           </div>
         )}
 
-        {/* Etapa 2: Entrega */}
         {step === 2 && (
           <div className="space-y-4">
             <h2 className="font-display text-base font-semibold text-cyan-950">Opção de Entrega</h2>
@@ -360,15 +321,13 @@ export function CheckoutPage() {
           </div>
         )}
 
-        {/* Etapa 3: Pagamento */}
         {step === 3 && (
           <div className="space-y-4">
-            <h2 className="font-display text-base font-semibold text-cyan-950">Pagamento</h2>
-
+            <h2 className="font-display text-base font-semibold text-cyan-950">Pagamento de Interesse</h2>
             <div className={cn('space-y-2 p-4', BEACH_CARD)}>
               <p className="text-xs font-medium uppercase tracking-wide text-slate-400">Forma de pagamento</p>
               <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-                {['PIX', 'CARTAO_CREDITO', 'TRANSFERENCIA', 'PAYPAL'].map((metodo) => (
+                {(['PIX', 'CARTAO_CREDITO', 'TRANSFERENCIA', 'PAYPAL'] as const).map((metodo) => (
                   <button key={metodo} onClick={() => setFormaPagamento(metodo)}
                     className={cn(
                       'rounded-xl border px-3 py-3 text-center text-xs font-medium transition-colors',
@@ -384,28 +343,32 @@ export function CheckoutPage() {
 
             <div className={cn('space-y-1.5 p-4', BEACH_CARD)}>
               <div className="flex justify-between text-sm">
-                <span className="text-slate-500">Subtotal</span>
-                <span className="text-slate-800">{formatCurrency(total)}</span>
+                <span className="text-slate-500">Total estimado</span>
+                <span className="text-slate-800">{formatCurrency(estimativa)}</span>
               </div>
+              <p className="text-[10px] leading-relaxed text-slate-400">
+                Nenhum valor será cobrado nesta etapa. A confirmação e o pagamento são combinados
+                diretamente com o estúdio.
+              </p>
             </div>
 
-            <button onClick={handleFinalizar} disabled={isSubmitting}
+            <button onClick={() => void handleFinalizar()} disabled={isSubmitting}
               className={cn('flex w-full items-center justify-center gap-2 rounded-2xl py-3 text-sm font-semibold disabled:opacity-50', BEACH_CTA)}>
               {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <CreditCard className="h-4 w-4" />}
-              {isSubmitting ? 'Processando...' : `Pagar ${formatCurrency(total)}`}
+              {isSubmitting ? 'Enviando...' : 'Enviar solicitação'}
             </button>
           </div>
         )}
 
-        {/* Etapa 4: Confirmação */}
         {step === 4 && (
           <div className="py-12 text-center">
             <div className="mb-4 inline-flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-cyan-400 to-teal-400 shadow-lg shadow-cyan-200">
               <Check className="h-8 w-8 text-white" />
             </div>
-            <h1 className="mb-2 font-display text-2xl font-bold text-cyan-950">Solicitação Recebida!</h1>
+            <h1 className="mb-2 font-display text-2xl font-bold text-cyan-950">Solicitação enviada!</h1>
             <p className="mx-auto mb-6 max-w-sm text-sm text-slate-600">
-              Sua solicitação foi registrada com sucesso. Entraremos em contato em breve.
+              Recebemos seu interesse no pacote <strong>{pacote.nome}</strong>. O estúdio entrará em
+              contato pelo telefone informado para confirmar os detalhes.
             </p>
             <div className={cn('mx-auto mb-6 max-w-xs p-4', BEACH_CARD)}>
               <div className="mb-1 flex justify-between text-sm">
@@ -413,12 +376,12 @@ export function CheckoutPage() {
                 <span className="font-medium text-slate-800">{pacote.nome}</span>
               </div>
               <div className="mb-1 flex justify-between text-sm">
-                <span className="text-slate-500">Total</span>
-                <span className="font-semibold text-cyan-900">{formatCurrency(total)}</span>
+                <span className="text-slate-500">Fotos extras</span>
+                <span className="font-medium text-slate-800">{quantidadeExtras}</span>
               </div>
               <div className="flex justify-between text-sm">
-                <span className="text-slate-500">Pagamento</span>
-                <span className="font-medium text-slate-800">{formaPagamento}</span>
+                <span className="text-slate-500">Total estimado</span>
+                <span className="font-semibold text-cyan-900">{formatCurrency(estimativa)}</span>
               </div>
             </div>
             <div className="flex justify-center gap-3">

@@ -1,6 +1,6 @@
 import { apiClient, downloadProtected } from '@/shared/api'
 import { env } from '@/shared/config/env'
-import type { FotoEnsaio, CompraExtraResponse, AdminEcommerceResumoResponse, CarrinhoResponse, CalculoCarrinhoResponse, MetodoPagamento, AdminCompraDetalheResponse, AdminComprasRelatorioResponse, CompraExtraPendenteEdicaoResponse, Avaliacao, Sessao, EcommerceAnalyticsResponse, DashboardEcommerceResponse, DashboardEcommerceMensalResponse, FotoComentario, ComentariosPorFotoResponse, ConfiguracaoPagamentoResponse, SelecaoEnsaioResponse, SelecaoPendenteResponse, GaleriaEnsaioResponse, ModoGaleria, QualidadePreview, AplicarQualidadePreviewResponse, FaseGaleria, EtapaGaleria, GaleriaPipelineItem, GaleriaPipelineResumo, GaleriaStatusResponse, GaleriaPerformance } from '../types/ecommerce.types'
+import type { FotoEnsaio, CompraExtraResponse, AdminEcommerceResumoResponse, CarrinhoResponse, CalculoCarrinhoResponse, MetodoPagamento, AdminCompraDetalheResponse, AdminComprasRelatorioResponse, CompraExtraPendenteEdicaoResponse, Avaliacao, Sessao, EcommerceAnalyticsResponse, DashboardEcommerceResponse, DashboardEcommerceMensalResponse, FotoComentario, ComentariosPorFotoResponse, ConfiguracaoPagamentoResponse, SelecaoEnsaioResponse, SelecaoPendenteResponse, GaleriaEnsaioResponse, ModoGaleria, QualidadePreview, AplicarQualidadePreviewResponse, FaseGaleria, EtapaGaleria, GaleriaPipelineItem, GaleriaPipelineResumo, GaleriaStatusResponse, GaleriaPerformance, LeadPacoteRequest, LeadPacotePublicoResponse, LeadPacoteResponse, StatusLead } from '../types/ecommerce.types'
 import type { PacoteResponse } from '@/features/pacotes/types/pacotes.types'
 import type { AgendamentoCliente } from '@/features/auth/customer/types'
 import type { PaginatedResponse } from '@/shared/types'
@@ -22,6 +22,7 @@ export interface GaleriaResponse {
   requerEdicao: boolean
   podeSelecionar: boolean
   podeComprar: boolean
+  podePagarExtras: boolean
   podeBaixar: boolean
   selecaoAtual: SelecaoEnsaioResponse | null
   selecaoReaberta: boolean
@@ -184,10 +185,12 @@ export const ecommerceService = {
   },
 
   checkout: async (token: string, metodoPagamento?: MetodoPagamento): Promise<CompraExtraResponse> => {
+    // Não recria a sessão aqui: uma sessão nova nasce com carrinho vazio e o
+    // cliente veria "Carrinho vazio" sem entender que perdeu as extras.
     return comSessao((sessionId) =>
       apiClient.post<CompraExtraResponse>(`/ecommerce/galeria/${token}/checkout`,
         metodoPagamento ? { metodoPagamento } : null,
-        { headers: { 'X-Session-Id': sessionId } }).then(({ data }) => data))
+        { headers: { 'X-Session-Id': sessionId } }).then(({ data }) => data), false)
   },
 
   listarCompras: async (token: string): Promise<CompraExtraResponse[]> => {
@@ -524,6 +527,33 @@ export const ecommerceService = {
 
   listarAgendamentosCliente: async (): Promise<AgendamentoCliente[]> => {
     const { data } = await apiClient.get<AgendamentoCliente[]>('/auth/cliente/agendamentos')
+    return data
+  },
+
+  // Leads do checkout público de pacotes (sem cobrança)
+  criarLead: async (payload: LeadPacoteRequest): Promise<LeadPacotePublicoResponse> => {
+    const { data } = await apiClient.post<LeadPacotePublicoResponse>('/ecommerce/leads', payload)
+    return data
+  },
+
+  adminListarLeads: async (params?: {
+    status?: StatusLead
+    page?: number
+    perPage?: number
+  }): Promise<PaginatedResponse<LeadPacoteResponse>> => {
+    const { data } = await apiClient.get<PaginatedResponse<LeadPacoteResponse>>(
+      '/admin/leads', { params })
+    return data
+  },
+
+  adminContarLeadsNovos: async (): Promise<number> => {
+    const { data } = await apiClient.get<number>('/admin/leads/novos')
+    return data
+  },
+
+  adminAtualizarLeadStatus: async (id: string, status: StatusLead): Promise<LeadPacoteResponse> => {
+    const { data } = await apiClient.patch<LeadPacoteResponse>(
+      `/admin/leads/${id}/status`, { status })
     return data
   },
 

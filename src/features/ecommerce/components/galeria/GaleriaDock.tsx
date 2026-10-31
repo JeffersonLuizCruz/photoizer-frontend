@@ -131,10 +131,17 @@ export function GaleriaDock({
           )}
 
           {(emEdicao || emAprovacao) && carrinhoCount > 0 && (
-            <button onClick={onOpenCart} className={cn(secundario, 'hidden sm:flex')}>
-              <ShoppingBag className="h-3.5 w-3.5" />
-              Carrinho ({carrinhoCount}) · {formatBRL(totalExtras)}
-            </button>
+            <>
+              <button onClick={onOpenCart} className={cn(secundario, 'hidden sm:flex')}>
+                <ShoppingBag className="h-3.5 w-3.5" />
+                Carrinho ({carrinhoCount}) · {formatBRL(totalExtras)}
+              </button>
+              {podeComprar && (
+                <button onClick={onCheckout} className={cn(primario, 'flex-1 sm:flex-none')}>
+                  Finalizar · {formatBRL(totalExtras)}
+                </button>
+              )}
+            </>
           )}
 
           {emComercializacao && carrinhoCount > 0 && podeComprar && (

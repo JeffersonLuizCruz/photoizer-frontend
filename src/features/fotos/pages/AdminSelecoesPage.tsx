@@ -893,7 +893,22 @@ function ItemSelecaoCard({
           {item.nomeArquivo || 'Sem nome'}
         </p>
         {item.tipo === 'EXTRA' && (
-          <p className="text-xs font-semibold text-orange-700">{formatBRL(item.valorUnitario ?? 0)}</p>
+          <div className="flex flex-wrap items-center gap-2">
+            <p className="text-xs font-semibold text-orange-700">{formatBRL(item.valorUnitario ?? 0)}</p>
+            <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${
+              foto?.status === 'PAGA'
+                ? 'bg-emerald-100 text-emerald-700'
+                : foto?.compraExtraId
+                  ? 'bg-amber-100 text-amber-700'
+                  : 'bg-slate-100 text-slate-600'
+            }`}>
+              {foto?.status === 'PAGA'
+                ? 'Pago'
+                : foto?.compraExtraId
+                  ? 'Aguardando pagamento'
+                  : 'A pagar'}
+            </span>
+          </div>
         )}
         {item.editada && item.editadaEm && (
           <p className="text-[10px] text-emerald-700">

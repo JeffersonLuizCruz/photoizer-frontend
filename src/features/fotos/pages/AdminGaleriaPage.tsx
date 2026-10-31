@@ -87,7 +87,12 @@ function tipoSelecaoDaFoto(
   foto: FotoEnsaio,
   mapa?: Map<string, TipoSelecaoFoto>,
 ): TipoSelecaoFoto | null {
-  return mapa?.get(foto.id) ?? (foto.selecionadaPacote ? 'PACOTE' : null)
+  return mapa?.get(foto.id)
+    ?? (foto.selecionadaPacote
+      ? 'PACOTE'
+      : foto.compraExtraId != null || foto.status === 'PAGA'
+        ? 'EXTRA'
+        : null)
 }
 
 function AcaoFotoSheet({

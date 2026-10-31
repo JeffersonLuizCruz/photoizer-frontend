@@ -62,9 +62,13 @@ export function FavoritosPanel({
               {favoritas.map((foto) => {
                 const isSelected = selectedIds.has(foto.id)
                 const isInCart = carrinhoIds.has(foto.id)
+                const jaComprada = foto.status === 'PAGA'
+                const pendente = !!foto.compraExtraId && !jaComprada
 
                 let action: { label: string; onClick: () => void; className: string } | null = null
-                if (isSelected) {
+                if (jaComprada || pendente) {
+                  action = null
+                } else if (isSelected) {
                   action = podeSelecionar ? {
                     label: 'Remover do pacote',
                     onClick: () => onToggleSelect(foto.id),
@@ -106,9 +110,12 @@ export function FavoritosPanel({
                           {foto.titulo || (foto.numeroGaleria != null ? numeroGaleriaLabel(foto.numeroGaleria) : 'Foto')}
                         </p>
                         <p className="text-[11px] text-gallery-muted">
-                          {isSelected ? 'No pacote' : isInCart
-                            ? (extrasEmSelecao ? 'Extra na seleção' : 'No carrinho')
-                            : formatBRL(valorFoto(foto.id))}
+                          {jaComprada
+                            ? 'Adquirida'
+                            : pendente ? 'Aguardando confirmação'
+                              : isSelected ? 'No pacote' : isInCart
+                              ? (extrasEmSelecao ? 'Extra na seleção' : 'No carrinho')
+                              : formatBRL(valorFoto(foto.id))}
                         </p>
                       </div>
                       <button
@@ -135,9 +142,12 @@ export function FavoritosPanel({
                       </button>
                     ) : (
                       <p className="mt-2 rounded-lg bg-gallery-bg py-2 text-center text-xs font-medium text-gallery-muted">
-                        {isSelected ? 'No pacote' : isInCart
-                          ? (extrasEmSelecao ? 'Extra na seleção' : 'No carrinho')
-                          : 'Aguardando edição'}
+                        {jaComprada
+                          ? 'Adquirida'
+                          : pendente ? 'Aguardando confirmação'
+                            : isSelected ? 'No pacote' : isInCart
+                              ? (extrasEmSelecao ? 'Extra na seleção' : 'No carrinho')
+                              : 'Aguardando edição'}
                       </p>
                     )}
                   </li>

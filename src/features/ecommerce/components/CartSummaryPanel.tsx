@@ -1,6 +1,6 @@
 import { X, Trash2, ShoppingCart } from 'lucide-react'
 import { Sheet, SheetContent, SheetTitle } from '@/shared/components/ui/sheet'
-import type { FotoEnsaio } from '../types/ecommerce.types'
+import type { CarrinhoItemResponse, FotoEnsaio } from '../types/ecommerce.types'
 import { numeroGaleriaLabel, rotuloFoto } from '@/shared/lib/foto'
 
 interface CartSummaryPanelProps {
@@ -8,13 +8,15 @@ interface CartSummaryPanelProps {
   onClose: () => void
   fotos: FotoEnsaio[]
   selectedIds: Set<string>
-  carrinhoIds: Set<string>
+  /** Itens reais do servidor; não derivar da lista pública da galeria. */
+  carrinhoItens: CarrinhoItemResponse[]
   pacoteLimit: number
   valorUnitario: number
   valoresExtras: Record<string, number>
   extrasEmSelecao: boolean
   podeComprar: boolean
   podeEditarCarrinho: boolean
+  mensagemPagamento?: string
   onRemoveFromCart: (fotoId: string) => void
   onCheckout: () => void
 }
@@ -23,14 +25,16 @@ const formatBRL = (value: number) =>
   value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
 
 export function CartSummaryPanel({
-  open, onClose, fotos, selectedIds, carrinhoIds,
+  open, onClose, fotos, selectedIds, carrinhoItens,
   pacoteLimit, valorUnitario, valoresExtras, extrasEmSelecao,
-  podeComprar, podeEditarCarrinho, onRemoveFromCart, onCheckout,
+  podeComprar, podeEditarCarrinho, mensagemPagamento, onRemoveFromCart, onCheckout,
 }: CartSummaryPanelProps) {
   const pacoteFotos = fotos.filter((f) => selectedIds.has(f.id))
-  const cartFotos = fotos.filter((f) => carrinhoIds.has(f.id))
-  const valorFoto = (fotoId: string) => valoresExtras[fotoId] ?? valorUnitario
-  const subtotalExtras = cartFotos.reduce((total, foto) => total + valorFoto(foto.id), 0)
+  const cartFotos = carrinhoItens.map((item) => item.foto)
+  const valoresCarrinho = new Map(carrinhoItens.map((item) => [item.foto.id, item.valorUnitario]))
+  const valorFoto = (fotoId: string) =>
+    valoresCarrinho.get(fotoId) ?? valoresExtras[fotoId] ?? valorUnitario
+  const subtotalExtras = carrinhoItens.reduce((total, item) => total + item.subtotal, 0)
 
   return (
     <Sheet open={open} onOpenChange={(o) => { if (!o) onClose() }}>
@@ -84,7 +88,7 @@ export function CartSummaryPanel({
             <h3 className="text-xs font-semibold mb-2">
               {extrasEmSelecao ? 'Extras da seleção' : 'Fotos Extras'} ({cartFotos.length})
             </h3>
-            {cartFotos.length === 0 ? (
+            {carrinhoItens.length === 0 ? (
               <p className="text-xs text-muted-foreground">
                 {extrasEmSelecao
                   ? 'Nenhuma foto extra marcada para edição.'
@@ -148,14 +152,15 @@ export function CartSummaryPanel({
         <div className="shrink-0 border-t border-gallery-line p-4 pb-[calc(1rem+env(safe-area-inset-bottom))]">
           {!podeComprar && (
             <p className="mb-2 text-center text-[11px] font-medium text-gallery-accent">
-              {extrasEmSelecao
-                ? 'Estes extras serão editados junto com o pacote. A compra é liberada após a publicação da edição.'
-                : 'A compra será liberada após a publicação da edição.'}
+              {mensagemPagamento
+                ?? (extrasEmSelecao
+                  ? 'Estes extras serão editados junto com o pacote. O pagamento é liberado após o envio da seleção.'
+                  : 'O pagamento das extras não está disponível agora.')}
             </p>
           )}
           <button
             onClick={onCheckout}
-            disabled={cartFotos.length === 0 || !podeComprar}
+            disabled={carrinhoItens.length === 0 || !podeComprar}
             className="w-full rounded-full border-0 bg-gallery-ink py-2.5 text-sm font-semibold text-gallery-bg shadow-lg transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50">
             Finalizar Compra ({formatBRL(subtotalExtras)})
           </button>

@@ -333,10 +333,12 @@ export interface GaleriaWorkspaceCounts {
   pendentesPublicacao: number
   pacote: number
   extras: number
+  extrasPagos: number
   aguardandoEdicao: number
   comprasPendentes: number
   selecoesPendentes: number
   valorExtras: number
+  valorExtrasPagos: number
 }
 
 export interface GaleriaWorkspace {
@@ -382,7 +384,27 @@ export function useGaleriaWorkspace(
   const tipoPorFoto = new Map<string, 'PACOTE' | 'EXTRA'>(
     itens.map((item) => [item.fotoId, item.tipo]),
   )
+  // Extras compradas fora da seleção (pós-publicação) também são "extras":
+  // sem isso a aba Fotos as mostrava como "Sem seleção".
+  fotos.forEach((foto) => {
+    if (foto.selecionadaPacote) {
+      tipoPorFoto.set(foto.id, 'PACOTE')
+    } else if (!tipoPorFoto.has(foto.id)
+      && (foto.compraExtraId != null || foto.status === 'PAGA')) {
+      tipoPorFoto.set(foto.id, 'EXTRA')
+    }
+  })
   const extrasItens = itens.filter((item) => item.tipo === 'EXTRA')
+  const extrasPorId = new Set<string>(extrasItens.map((item) => item.fotoId))
+  fotos.forEach((foto) => {
+    if (!foto.selecionadaPacote
+      && (foto.compraExtraId != null || foto.status === 'PAGA')) {
+      extrasPorId.add(foto.id)
+    }
+  })
+  const extrasPagos = fotos.filter(
+    (foto) => !foto.selecionadaPacote && foto.status === 'PAGA',
+  ).length
 
   const counts: GaleriaWorkspaceCounts = {
     total: fotos.length,
@@ -391,7 +413,8 @@ export function useGaleriaWorkspace(
     // publicação; só as inéditas ficam pendentes.
     pendentesPublicacao: fotos.filter((foto) => foto.status === 'INEDITA').length,
     pacote: selecaoAtual?.quantidadePacote ?? fotos.filter((foto) => foto.selecionadaPacote).length,
-    extras: selecaoAtual?.quantidadeExtras ?? extrasItens.length,
+    extras: extrasPorId.size,
+    extrasPagos,
     aguardandoEdicao: galeriaQuery.data?.requerEdicao
       ? itens.filter((item) => !item.editada).length
       : 0,
@@ -405,6 +428,7 @@ export function useGaleriaWorkspace(
       (selecao) => selecao.status === 'ENVIADA' || selecao.status === 'EM_EDICAO' || selecao.status === 'CONCLUIDA',
     ).length,
     valorExtras: extrasItens.reduce((total, item) => total + (item.valorUnitario ?? 0), 0),
+    valorExtrasPagos: resumo?.valorTotalExtras ?? 0,
   }
 
   const refetch = async () => {

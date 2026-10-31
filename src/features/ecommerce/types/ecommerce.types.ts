@@ -297,6 +297,42 @@ export interface CompraExtraPendenteEdicaoResponse {
   fotos: FotoEnsaio[]
 }
 
+export type StatusLead = 'NOVO' | 'CONTATADO' | 'CONVERTIDO' | 'DESCARTADO'
+
+export interface LeadPacoteRequest {
+  pacoteId: string
+  nome: string
+  email?: string
+  telefone: string
+  opcaoEntrega: 'DIGITAL' | 'FISICA' | 'AMBAS'
+  formaPagamento: 'PIX' | 'CARTAO_CREDITO' | 'TRANSFERENCIA' | 'PAYPAL'
+  quantidadeExtras: number
+  observacao?: string
+}
+
+export interface LeadPacotePublicoResponse {
+  id: string
+  status: string
+}
+
+export interface LeadPacoteResponse {
+  id: string
+  pacoteId: string
+  pacoteNome: string
+  valorBase: number | null
+  precoFotoExtra: number | null
+  nome: string
+  email: string | null
+  telefone: string
+  opcaoEntrega: string
+  formaPagamento: string
+  quantidadeExtras: number
+  observacao: string | null
+  status: StatusLead
+  createdAt: string
+  updatedAt: string
+}
+
 export interface AdminComprasRelatorioResponse {
   totalCompras: number
   aguardandoComprovante: number

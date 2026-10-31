@@ -3,7 +3,7 @@ import { useParams } from 'react-router-dom'
 import { Columns2, Search, ShieldAlert, X } from 'lucide-react'
 import { toast } from 'sonner'
 import { ecommerceService } from '../services/ecommerce.service'
-import type { FotoEnsaio, CompraExtraResponse, MetodoPagamento, GaleriaStatusResponse } from '../types/ecommerce.types'
+import type { FotoEnsaio, CompraExtraResponse, MetodoPagamento, GaleriaStatusResponse, CarrinhoItemResponse } from '../types/ecommerce.types'
 import type { GaleriaResponse } from '../services/ecommerce.service'
 import { FotoViewer } from '../components/FotoViewer'
 import { CheckoutDialog } from '../components/CheckoutDialog'
@@ -53,13 +53,13 @@ export function GaleriaClientePage() {
   const [error, setError] = useState<string | null>(null)
   const [arquivada, setArquivada] = useState(false)
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
-  const [carrinhoIds, setCarrinhoIds] = useState<Set<string>>(new Set())
-  const [carrinhoCount, setCarrinhoCount] = useState(0)
+  const [carrinhoItens, setCarrinhoItens] = useState<CarrinhoItemResponse[]>([])
   const [cartLoadingIds, setCartLoadingIds] = useState<Set<string>>(new Set())
   const [viewerIndex, setViewerIndex] = useState<number | null>(null)
   const [commentsOpen, setCommentsOpen] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
   const [showCheckout, setShowCheckout] = useState(false)
+  const [comprasRefreshKey, setComprasRefreshKey] = useState(0)
 
   // Wishlist, comparação e carrinho lateral
   const [favoritoIds, setFavoritoIds] = useState<Set<string>>(new Set())
@@ -89,7 +89,17 @@ export function GaleriaClientePage() {
   const requerEdicao = galeria?.requerEdicao ?? (modoGaleria === 'COM_EDICAO')
   const podeSelecionar = galeria?.podeSelecionar ?? true
   const podeComprar = galeria?.podeComprar ?? true
+  const podePagarExtras = galeria?.podePagarExtras ?? false
   const podeBaixar = galeria?.podeBaixar ?? true
+  const carrinhoIds = useMemo(
+    () => new Set(carrinhoItens.map((item) => item.foto.id)),
+    [carrinhoItens],
+  )
+  const carrinhoCount = carrinhoItens.length
+  const carrinhoFotos = useMemo(
+    () => carrinhoItens.map((item) => item.foto),
+    [carrinhoItens],
+  )
   // Durante a edição o cliente ainda pode marcar extras: eles entram na
   // seleção ativa para serem editados junto com o pacote. No fluxo sem edição
   // o cliente também pode anexar extras enquanto aguarda a aprovação.
@@ -130,10 +140,7 @@ export function GaleriaClientePage() {
     () => fotos.filter((f) => selectedIds.has(f.id)),
     [fotos, selectedIds],
   )
-  const extrasFotos = useMemo(
-    () => fotos.filter((f) => carrinhoIds.has(f.id)),
-    [fotos, carrinhoIds],
-  )
+  const extrasFotos = carrinhoFotos
 
   // Categorias disponíveis para filtro
   const categorias = useMemo(() => {
@@ -257,18 +264,27 @@ export function GaleriaClientePage() {
     }
   }, [fotos.length, viewerIndex])
 
+  const recarregarCarrinho = useCallback(async (avisarErro = false) => {
+    if (!token) return null
+    try {
+      const response = await ecommerceService.listarCarrinho(token)
+      setCarrinhoItens(response.itens)
+      return response
+    } catch (err: unknown) {
+      if (avisarErro) {
+        toast.error(extractErrorMessage(err, 'Não foi possível carregar seu carrinho'))
+      }
+      return null
+    }
+  }, [token])
+
   useEffect(() => {
     if (!token || isLoading || error) return
-    ecommerceService.listarCarrinho(token)
-      .then((response) => {
-        setCarrinhoIds(new Set(response.itens.map((item) => item.foto.id)))
-        setCarrinhoCount(response.quantidade)
-      })
-      .catch(() => {})
+    void recarregarCarrinho(true)
     ecommerceService.listarFavoritos(token)
       .then((ids) => setFavoritoIds(new Set(ids)))
       .catch(() => {})
-  }, [token, isLoading, error])
+  }, [token, isLoading, error, recarregarCarrinho])
 
   useEffect(() => {
     if (!galeria) return
@@ -352,23 +368,26 @@ export function GaleriaClientePage() {
       toast.error('As fotos estão em edição. Aguarde a publicação para alterar o carrinho.')
       return
     }
+    const adicionando = !carrinhoIds.has(fotoId)
+    const quantidadeAnterior = carrinhoItens.length
     setCartLoadingIds((prev) => new Set(prev).add(fotoId))
     try {
-      if (carrinhoIds.has(fotoId)) {
-        await ecommerceService.removerDoCarrinho(token, fotoId)
-        setCarrinhoIds((prev) => {
-          const next = new Set(prev)
-          next.delete(fotoId)
-          return next
-        })
-        setCarrinhoCount((prev) => Math.max(0, prev - 1))
-      } else {
+      if (adicionando) {
         await ecommerceService.adicionarAoCarrinhoFoto(token, fotoId)
-        setCarrinhoIds((prev) => new Set(prev).add(fotoId))
-        setCarrinhoCount((prev) => prev + 1)
+      } else {
+        await ecommerceService.removerDoCarrinho(token, fotoId)
+      }
+      const atualizado = await recarregarCarrinho()
+      // Se a sessão foi recriada no servidor, o carrinho pode voltar menor do
+      // que o esperado. Avisa em vez de manter itens fantasmas na tela.
+      if (adicionando && atualizado && atualizado.itens.length <= quantidadeAnterior) {
+        toast.warning(
+          'Seu carrinho foi sincronizado com o servidor. Confira as fotos extras antes de pagar.',
+        )
       }
     } catch (err: any) {
       toast.error(err?.response?.data?.message || 'Erro ao atualizar carrinho')
+      void recarregarCarrinho()
     } finally {
       setCartLoadingIds((prev) => {
         const next = new Set(prev)
@@ -376,7 +395,7 @@ export function GaleriaClientePage() {
         return next
       })
     }
-  }, [token, carrinhoIds, podeAdicionarExtras])
+  }, [token, carrinhoIds, carrinhoItens.length, podeAdicionarExtras, recarregarCarrinho])
 
   const toggleSelect = useCallback(async (fotoId: string) => {
     if (!podeSelecionar) {
@@ -514,6 +533,14 @@ export function GaleriaClientePage() {
           : 'Seleção enviada! O estúdio vai revisar e liberar suas fotos.')
       }
       await carregarGaleria(false)
+      // O backend remove do carrinho as fotos que entraram no pacote; recarrega
+      // para o checkout refletir exatamente o que será cobrado.
+      const carrinhoAtualizado = await recarregarCarrinho()
+      // Com extras no carrinho, o pagamento via PIX já fica disponível nesta
+      // fase. Abre o checkout para o cliente concluir sem precisar procurar.
+      if (selecao.quantidadeExtras > 0 && (carrinhoAtualizado?.itens.length ?? 0) > 0) {
+        setShowCheckout(true)
+      }
     } catch (err: unknown) {
       toast.error(extractErrorMessage(err, 'Erro ao enviar a seleção. Recarregue a galeria e tente novamente.'))
     } finally {
@@ -522,19 +549,20 @@ export function GaleriaClientePage() {
   }
 
   const handleCheckout = async (metodoPagamento: MetodoPagamento): Promise<CompraExtraResponse> => {
-    if (!token || carrinhoCount === 0) throw new Error('Carrinho vazio')
-    if (!podeComprar) {
-      throw new Error(requerEdicao
-        ? 'A compra será liberada após a publicação da edição'
-        : 'A compra será liberada após a aprovação da seleção')
+    if (!token || carrinhoItens.length === 0) throw new Error('Carrinho vazio')
+    if (!podePagarExtras) {
+      throw new Error(faseGaleria === 'SELECAO'
+        ? 'Envie sua seleção para liberar o pagamento das extras.'
+        : 'O pagamento das extras não está disponível agora.')
     }
+    const idsComprados = new Set(carrinhoItens.map((item) => item.foto.id))
     const compra = await ecommerceService.checkout(token, metodoPagamento)
     setGaleria((prev) => prev ? {
       ...prev,
-      fotos: prev.fotos.map((f) => carrinhoIds.has(f.id) ? { ...f, compraExtraId: compra.id, status: 'AGUARDANDO_COMPROVANTE' as const } : f)
+      fotos: prev.fotos.map((f) => idsComprados.has(f.id) ? { ...f, compraExtraId: compra.id, status: 'AGUARDANDO_COMPROVANTE' as const } : f)
     } : prev)
-    setCarrinhoIds(new Set())
-    setCarrinhoCount(0)
+    setCarrinhoItens([])
+    setComprasRefreshKey((valor) => valor + 1)
     return compra
   }
 
@@ -549,8 +577,8 @@ export function GaleriaClientePage() {
   }
 
   const hasSelectionChanges = fotos.some((f) => f.selecionadaPacote !== selectedIds.has(f.id))
-  const totalExtras = Array.from(carrinhoIds)
-    .reduce((total, fotoId) => total + valorUnitarioFoto(fotoId), 0)
+  const totalExtras = carrinhoItens
+    .reduce((total, item) => total + item.valorUnitario, 0)
   const modalAberto = viewerIndex !== null
     || showComparador
     || showCart
@@ -564,8 +592,8 @@ export function GaleriaClientePage() {
     selecionando
     || (emEdicaoGaleria && carrinhoCount > 0)
     || (emAprovacaoGaleria && carrinhoCount > 0)
-    || (emComercializacao && (downloadableFotos.length > 0 || (podeComprar && carrinhoCount > 0)))
-    || (modoGaleria === 'DIRETO' && (hasSelectionChanges || downloadableFotos.length > 0 || (podeComprar && carrinhoCount > 0)))
+    || (emComercializacao && (downloadableFotos.length > 0 || (podePagarExtras && carrinhoCount > 0)))
+    || (modoGaleria === 'DIRETO' && (hasSelectionChanges || downloadableFotos.length > 0 || (podePagarExtras && carrinhoCount > 0)))
   )
   const mostrarTimeline = modoGaleria !== 'DIRETO' && faseGaleria !== 'SELECAO'
   const mostrarZonaEspera = modoGaleria !== 'DIRETO'
@@ -862,7 +890,7 @@ export function GaleriaClientePage() {
           selectedFotos={selectedFotos}
           downloadableCount={downloadableFotos.length}
           hasSelectionChanges={hasSelectionChanges}
-          podeComprar={podeComprar}
+          podeComprar={podePagarExtras}
           isSaving={isSaving}
           isSending={isEnviandoSelecao}
           onSave={handleSaveSelection}
@@ -921,14 +949,21 @@ export function GaleriaClientePage() {
         onClose={() => setShowCart(false)}
         fotos={fotos}
         selectedIds={selectedIds}
-        carrinhoIds={carrinhoIds}
+        carrinhoItens={carrinhoItens}
         pacoteLimit={pacoteLimit}
         valorUnitario={valorUnitario}
         valoresExtras={valoresExtras}
         extrasEmSelecao={extrasEmSelecao}
         onRemoveFromCart={toggleCarrinho}
-        podeComprar={podeComprar}
+        podeComprar={podePagarExtras}
         podeEditarCarrinho={podeAdicionarExtras}
+        mensagemPagamento={
+          !podePagarExtras && faseGaleria === 'SELECAO'
+            ? 'Envie sua seleção para liberar o pagamento das extras.'
+            : !podePagarExtras
+              ? 'O pagamento das extras não está disponível agora.'
+              : undefined
+        }
         onCheckout={() => { setShowCart(false); setShowCheckout(true) }}
       />
 
@@ -997,7 +1032,11 @@ export function GaleriaClientePage() {
 
       {token && (
         <div className="mx-auto w-full max-w-[1500px] px-3 pb-16 sm:px-6">
-          <MinhasComprasSection token={token} modoGaleria={modoGaleria} />
+          <MinhasComprasSection
+            token={token}
+            modoGaleria={modoGaleria}
+            refreshKey={comprasRefreshKey}
+          />
         </div>
       )}
     </div>

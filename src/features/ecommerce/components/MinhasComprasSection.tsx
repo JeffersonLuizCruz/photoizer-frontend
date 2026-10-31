@@ -13,9 +13,11 @@ function formatCurrency(value: number): string {
 interface MinhasComprasSectionProps {
   token: string
   modoGaleria: ModoGaleria
+  /** Incrementado após um checkout para a seção buscar a compra nova. */
+  refreshKey?: number
 }
 
-export function MinhasComprasSection({ token, modoGaleria }: MinhasComprasSectionProps) {
+export function MinhasComprasSection({ token, modoGaleria, refreshKey = 0 }: MinhasComprasSectionProps) {
   const [compras, setCompras] = useState<CompraExtraResponse[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [expandedId, setExpandedId] = useState<string | null>(null)
@@ -48,7 +50,7 @@ export function MinhasComprasSection({ token, modoGaleria }: MinhasComprasSectio
 
   useEffect(() => {
     void carregarCompras()
-  }, [carregarCompras])
+  }, [carregarCompras, refreshKey])
 
   // Enquanto houver compra paga, verifica periodicamente se a edição sob
   // demanda foi liberada (o download passa a aparecer sem recarregar a página).

@@ -10,12 +10,14 @@ import { LoginPage, ProtectedRoute } from '@/features/auth'
 const ROLES_SEM_AGENDADOR: Papel[] = ['ADMIN', 'FOTOGRAFO', 'EDITOR']
 const ROLES_ADMIN: Papel[] = ['ADMIN']
 const ROLES_AVULSO: Papel[] = ['ADMIN', 'AGENDADOR']
+const ROLES_LEADS: Papel[] = ['ADMIN', 'FOTOGRAFO', 'AGENDADOR']
 // Alteração/remoção de proposta exige os mesmos papéis que decidem a proposta.
 const ROLES_DECISAO_PROPOSTA: Papel[] = ['ADMIN', 'FOTOGRAFO']
 
 // RNF001: code splitting por rota — cada página é carregada sob demanda
 const GaleriaClientePage = lazy(() => import('@/features/ecommerce/pages/GaleriaClientePage').then(m => ({ default: m.GaleriaClientePage })))
 const AdminGaleriasPage = lazy(() => import('@/features/ecommerce/pages/AdminGaleriasPage').then(m => ({ default: m.AdminGaleriasPage })))
+const AdminLeadsPage = lazy(() => import('@/features/ecommerce/pages/AdminLeadsPage').then(m => ({ default: m.AdminLeadsPage })))
 const ArmazenamentoPage = lazy(() => import('@/features/armazenamento').then(m => ({ default: m.ArmazenamentoPage })))
 const PackageCatalogPage = lazy(() => import('@/features/ecommerce/pages/PackageCatalogPage').then(m => ({ default: m.PackageCatalogPage })))
 const CheckoutPage = lazy(() => import('@/features/ecommerce/pages/CheckoutPage').then(m => ({ default: m.CheckoutPage })))
@@ -130,6 +132,7 @@ export function AppRoutes() {
             <Route path={ROUTES.AGENDA_GALERIA} element={<ProtectedRoute allowedRoles={ROLES_SEM_AGENDADOR}><AdminGaleriaWorkspacePage /></ProtectedRoute>} />
             <Route path={ROUTES.AGENDA_SELECAO} element={<ProtectedRoute allowedRoles={ROLES_SEM_AGENDADOR}><SelecaoRedirect /></ProtectedRoute>} />
             <Route path={ROUTES.ADMIN_SELECOES} element={<ProtectedRoute allowedRoles={ROLES_SEM_AGENDADOR}><AdminSelecoesPage /></ProtectedRoute>} />
+            <Route path={ROUTES.LEADS} element={<ProtectedRoute allowedRoles={ROLES_LEADS}><AdminLeadsPage /></ProtectedRoute>} />
             <Route path={ROUTES.GALERIAS} element={<ProtectedRoute allowedRoles={ROLES_SEM_AGENDADOR}><AdminGaleriasPage /></ProtectedRoute>} />
             <Route path={ROUTES.ADMIN_ECOMMERCE} element={<ProtectedRoute allowedRoles={ROLES_SEM_AGENDADOR}><EcommerceRedirect /></ProtectedRoute>} />
             <Route path={ROUTES.ADMIN_ANALYTICS} element={<ProtectedRoute allowedRoles={ROLES_SEM_AGENDADOR}><AnalyticsRedirect /></ProtectedRoute>} />
