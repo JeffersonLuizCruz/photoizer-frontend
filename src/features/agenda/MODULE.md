@@ -33,7 +33,7 @@ features/agenda/
 │   ├── AgendamentoTimeline.tsx       # Linha do tempo com eventos + tarefas
 │   ├── AgendamentoFinanceiro.tsx     # Tabela financeira + diálogos de pagamento/extras
 │   ├── AgendamentoTarefas.tsx        # Lista de tarefas com edição/exclusão
-│   ├── AgendamentoContrato.tsx       # Visualização do contrato
+│   ├── AgendamentoContrato.tsx       # Contrato: resumo WhatsApp, link da proposta, termo (enviar/copiar/baixar)
 │   ├── EditarAgendamentoForm.tsx     # Formulário de edição inline
 │   ├── EditarClienteDialog.tsx       # Diálogo para editar dados do cliente no agendamento
 │   ├── ReagendarDialog.tsx           # Diálogo de reagendamento

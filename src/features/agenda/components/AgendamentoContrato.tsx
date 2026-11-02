@@ -1,14 +1,26 @@
 import { useState } from 'react'
-import { Copy, Check, FileText, ExternalLink, FileDown, Link2, CheckCircle2 } from 'lucide-react'
+import {
+  Copy,
+  Check,
+  FileText,
+  ExternalLink,
+  FileDown,
+  Link2,
+  CheckCircle2,
+  MessageCircle,
+  Download,
+} from 'lucide-react'
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import { toast } from 'sonner'
-import { Button } from '@/shared/components/ui/button'
+import { Button, buttonVariants } from '@/shared/components/ui/button'
 import { Input } from '@/shared/components/ui/input'
 import { Badge } from '@/shared/components/ui/badge'
-import { openProtected } from '@/shared/api/protectedResource'
+import { downloadProtected, openProtected } from '@/shared/api/protectedResource'
 import { ROUTES } from '@/shared/constants'
 import { copyToClipboard } from '@/shared/lib/clipboard'
+import { whatsappUrl } from '@/shared/lib/contact'
+import { linkLocal, termoPublicoUrl } from '@/shared/lib/publicLinks'
 import type { Agendamento } from '../types'
 
 interface AgendamentoContratoProps {
@@ -61,12 +73,51 @@ function montarResumoWhatsApp(agendamento: Agendamento): string {
     .join('\n')
 }
 
+/**
+ * Mensagem curta de encaminhamento do termo assinado. O WhatsApp não anexa
+ * arquivos por link, então enviamos a URL pública do PDF (o cliente abre/baixa
+ * direto no celular) e o staff também pode anexar o arquivo baixado.
+ */
+function montarMensagemTermo(agendamento: Agendamento, link: string): string {
+  const data = agendamento.dataHoraEnsaio
+    ? format(new Date(agendamento.dataHoraEnsaio), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })
+    : null
+
+  return [
+    `Olá, ${agendamento.clienteNome ?? 'tudo bem'}!`,
+    '',
+    '📄 Segue o termo de aceite assinado' +
+      (agendamento.pacoteNome ? ` referente ao ensaio ${agendamento.pacoteNome}` : '') +
+      (data ? `, previsto para ${data}` : '') +
+      ':',
+    link,
+    '',
+    'Qualquer dúvida, é só chamar!',
+  ].join('\n')
+}
+
+function nomeArquivoTermo(agendamento: Agendamento): string {
+  const nome = (agendamento.clienteNome ?? '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-zA-Z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .toLowerCase()
+  return `termo-${nome || 'proposta'}.pdf`
+}
+
 export function AgendamentoContrato({ agendamento, onUpdateClausulas }: AgendamentoContratoProps) {
   const [copied, setCopied] = useState(false)
+  const [linkCopiado, setLinkCopiado] = useState(false)
   const [clausulas, setClausulas] = useState(agendamento.clausulasPersonalizadas ?? '')
 
   const linkProposta = agendamento.tokenProposta
     ? `${window.location.origin}${ROUTES.PROPOSTA_PUBLICA.replace(':token', agendamento.tokenProposta)}`
+    : null
+
+  const linkTermo = agendamento.tokenProposta ? termoPublicoUrl(agendamento.tokenProposta) : null
+  const linkWhatsAppTermo = linkTermo
+    ? whatsappUrl(agendamento.clienteTelefone, montarMensagemTermo(agendamento, linkTermo))
     : null
 
   const handleCopy = async () => {
@@ -100,6 +151,25 @@ export function AgendamentoContrato({ agendamento, onUpdateClausulas }: Agendame
       await openProtected(`/agendamentos/${agendamento.id}/termo`)
     } catch {
       toast.error('Erro ao abrir o termo assinado')
+    }
+  }
+
+  const handleBaixarTermo = async () => {
+    try {
+      await downloadProtected(`/agendamentos/${agendamento.id}/termo`, nomeArquivoTermo(agendamento))
+    } catch {
+      toast.error('Erro ao baixar o termo assinado')
+    }
+  }
+
+  const handleCopiarLinkTermo = async () => {
+    if (!linkTermo) return
+    try {
+      await copyToClipboard(linkTermo)
+      setLinkCopiado(true)
+      setTimeout(() => setLinkCopiado(false), 2000)
+    } catch {
+      toast.error('Não foi possível copiar o link do termo')
     }
   }
 
@@ -164,11 +234,46 @@ export function AgendamentoContrato({ agendamento, onUpdateClausulas }: Agendame
               <strong>{format(new Date(agendamento.dataAssinatura), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}</strong>.
             </p>
             <div className="flex flex-wrap gap-2">
+              {linkWhatsAppTermo && (
+                <a
+                  href={linkWhatsAppTermo}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={buttonVariants({ size: 'sm' })}
+                >
+                  <MessageCircle className="mr-1 h-4 w-4" />
+                  Enviar no WhatsApp
+                </a>
+              )}
+              <Button variant="outline" size="sm" onClick={handleCopiarLinkTermo} disabled={!linkTermo}>
+                {linkCopiado ? (
+                  <><Check className="mr-1 h-4 w-4 text-emerald-500" />Link copiado</>
+                ) : (
+                  <><Copy className="mr-1 h-4 w-4" />Copiar link</>
+                )}
+              </Button>
               <Button variant="outline" size="sm" onClick={handleAbrirTermo}>
                 <FileDown className="mr-1 h-4 w-4" />
                 Abrir PDF do termo
               </Button>
+              <Button variant="outline" size="sm" onClick={handleBaixarTermo}>
+                <Download className="mr-1 h-4 w-4" />
+                Baixar PDF
+              </Button>
             </div>
+            {!linkWhatsAppTermo && (
+              <p className="text-xs text-muted-foreground">
+                {!linkTermo
+                  ? 'Esta proposta não possui token público; compartilhe o PDF baixando o arquivo.'
+                  : 'Cadastre o telefone do cliente para enviar o termo pelo WhatsApp.'}
+              </p>
+            )}
+            {linkWhatsAppTermo && linkLocal() && (
+              <p className="text-xs text-amber-600 dark:text-amber-500">
+                Este link aponta para <strong>localhost</strong> e não abrirá no celular do cliente. Use um ambiente
+                publicado para testar o envio.
+              </p>
+            )}
           </div>
         ) : (
           <p className="flex items-center gap-2 text-sm text-muted-foreground">
