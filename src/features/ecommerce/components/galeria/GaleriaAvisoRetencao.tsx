@@ -73,6 +73,9 @@ export function GaleriaAvisoRetencao({
           <p className="text-xs font-medium text-gallery-ink">
             Com muito carinho,
           </p>
+          <p className="font-display text-sm font-semibold tracking-wide text-gallery-accent">
+            Ranny Amaral
+          </p>
         </div>
       </div>
     </div>
