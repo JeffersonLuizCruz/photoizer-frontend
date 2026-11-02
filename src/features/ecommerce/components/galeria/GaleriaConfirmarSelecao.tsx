@@ -2,6 +2,7 @@ import { Check, Loader2, X } from 'lucide-react'
 import { Sheet, SheetContent, SheetTitle } from '@/shared/components/ui/sheet'
 import type { FotoEnsaio } from '../../types/ecommerce.types'
 import { numeroGaleriaLabel } from '@/shared/lib/foto'
+import { GaleriaAvisoRetencao } from './GaleriaAvisoRetencao'
 
 interface GaleriaConfirmarSelecaoProps {
   open: boolean
@@ -116,6 +117,7 @@ export function GaleriaConfirmarSelecao({
         </div>
 
         <div className="shrink-0 border-t border-gallery-line p-4 pb-[calc(1rem+env(safe-area-inset-bottom))]">
+          <GaleriaAvisoRetencao variante="inline" className="mb-3 justify-center text-center" />
           <button
             onClick={onConfirm}
             disabled={isLoading || pacoteFotos.length === 0}

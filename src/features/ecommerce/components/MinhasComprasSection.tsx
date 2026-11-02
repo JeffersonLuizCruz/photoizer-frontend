@@ -5,6 +5,7 @@ import { ecommerceService } from '../services/ecommerce.service'
 import type { CompraExtraResponse, AdminCompraDetalheResponse, ConfiguracaoPagamentoResponse, ModoGaleria } from '../types/ecommerce.types'
 import { extractErrorMessage } from '@/shared/api'
 import { fotoThumbUrl, numeroGaleriaLabel, rotuloFoto } from '@/shared/lib/foto'
+import { GaleriaAvisoRetencao } from './galeria/GaleriaAvisoRetencao'
 
 function formatCurrency(value: number): string {
   return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value)
@@ -153,6 +154,7 @@ export function MinhasComprasSection({ token, modoGaleria, refreshKey = 0 }: Min
           Atualizar
         </button>
       </div>
+      <GaleriaAvisoRetencao variante="compact" className="mb-3" />
       <div className="space-y-2">
         {compras.map((compra) => {
           const isExpanded = expandedId === compra.id

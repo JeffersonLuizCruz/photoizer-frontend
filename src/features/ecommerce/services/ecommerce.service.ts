@@ -1,6 +1,6 @@
 import { apiClient, downloadProtected } from '@/shared/api'
 import { env } from '@/shared/config/env'
-import type { FotoEnsaio, CompraExtraResponse, AdminEcommerceResumoResponse, CarrinhoResponse, CalculoCarrinhoResponse, MetodoPagamento, AdminCompraDetalheResponse, AdminComprasRelatorioResponse, CompraExtraPendenteEdicaoResponse, Avaliacao, Sessao, EcommerceAnalyticsResponse, DashboardEcommerceResponse, DashboardEcommerceMensalResponse, FotoComentario, ComentariosPorFotoResponse, ConfiguracaoPagamentoResponse, SelecaoEnsaioResponse, SelecaoPendenteResponse, GaleriaEnsaioResponse, ModoGaleria, QualidadePreview, AplicarQualidadePreviewResponse, FaseGaleria, EtapaGaleria, GaleriaPipelineItem, GaleriaPipelineResumo, GaleriaStatusResponse, GaleriaPerformance, LeadPacoteRequest, LeadPacotePublicoResponse, LeadPacoteResponse, StatusLead } from '../types/ecommerce.types'
+import type { FotoEnsaio, CompraExtraResponse, AdminEcommerceResumoResponse, CarrinhoResponse, CalculoCarrinhoResponse, AdminCompraDetalheResponse, AdminComprasRelatorioResponse, CompraExtraPendenteEdicaoResponse, Avaliacao, Sessao, EcommerceAnalyticsResponse, DashboardEcommerceResponse, DashboardEcommerceMensalResponse, FotoComentario, ComentariosPorFotoResponse, ConfiguracaoPagamentoResponse, SelecaoEnsaioResponse, SelecaoPendenteResponse, GaleriaEnsaioResponse, ModoGaleria, QualidadePreview, AplicarQualidadePreviewResponse, FaseGaleria, EtapaGaleria, GaleriaPipelineItem, GaleriaPipelineResumo, GaleriaStatusResponse, GaleriaPerformance, LeadPacoteRequest, LeadPacotePublicoResponse, LeadPacoteResponse, StatusLead } from '../types/ecommerce.types'
 import type { PacoteResponse } from '@/features/pacotes/types/pacotes.types'
 import type { AgendamentoCliente } from '@/features/auth/customer/types'
 import type { PaginatedResponse } from '@/shared/types'
@@ -184,12 +184,17 @@ export const ecommerceService = {
       apiClient.get<CalculoCarrinhoResponse>(`/ecommerce/galeria/${token}/calcular`, { headers: { 'X-Session-Id': sessionId } }).then(({ data }) => data))
   },
 
-  checkout: async (token: string, metodoPagamento?: MetodoPagamento): Promise<CompraExtraResponse> => {
-    // Não recria a sessão aqui: uma sessão nova nasce com carrinho vazio e o
-    // cliente veria "Carrinho vazio" sem entender que perdeu as extras.
+  /**
+   * Cria a compra e envia o comprovante PIX na mesma transação. Se o cliente
+   * fechar a página antes, nenhuma compra é criada e o carrinho continua.
+   */
+  checkoutPix: async (token: string, comprovante: File): Promise<CompraExtraResponse> => {
+    const formData = new FormData()
+    formData.append('comprovante', comprovante)
+    // Não recria a sessão aqui: uma sessão nova nasce com carrinho vazio.
     return comSessao((sessionId) =>
-      apiClient.post<CompraExtraResponse>(`/ecommerce/galeria/${token}/checkout`,
-        metodoPagamento ? { metodoPagamento } : null,
+      apiClient.post<CompraExtraResponse>(`/ecommerce/galeria/${token}/checkout-pix`,
+        formData,
         { headers: { 'X-Session-Id': sessionId } }).then(({ data }) => data), false)
   },
 
@@ -209,22 +214,6 @@ export const ecommerceService = {
     formData.append('comprovante', comprovante)
     const { data } = await apiClient.post<CompraExtraResponse>(`/ecommerce/galeria/${token}/comprovante`, formData)
     return data
-  },
-
-  // Favoritos / Wishlist
-  adicionarFavorito: async (token: string, fotoId: string): Promise<void> => {
-    await comSessao((sessionId) =>
-      apiClient.post(`/ecommerce/galeria/${token}/favoritos/${fotoId}`, null, { headers: { 'X-Session-Id': sessionId } }))
-  },
-
-  removerFavorito: async (token: string, fotoId: string): Promise<void> => {
-    await comSessao((sessionId) =>
-      apiClient.delete(`/ecommerce/galeria/${token}/favoritos/${fotoId}`, { headers: { 'X-Session-Id': sessionId } }))
-  },
-
-  listarFavoritos: async (token: string): Promise<string[]> => {
-    return comSessao((sessionId) =>
-      apiClient.get<string[]>(`/ecommerce/galeria/${token}/favoritos`, { headers: { 'X-Session-Id': sessionId } }).then(({ data }) => data))
   },
 
   // Comentários por foto

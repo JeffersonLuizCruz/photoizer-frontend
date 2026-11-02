@@ -162,7 +162,7 @@ export function CartSummaryPanel({
             onClick={onCheckout}
             disabled={carrinhoItens.length === 0 || !podeComprar}
             className="w-full rounded-full border-0 bg-gallery-ink py-2.5 text-sm font-semibold text-gallery-bg shadow-lg transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50">
-            Finalizar Compra ({formatBRL(subtotalExtras)})
+            Pagar extras com PIX ({formatBRL(subtotalExtras)})
           </button>
         </div>
       </SheetContent>

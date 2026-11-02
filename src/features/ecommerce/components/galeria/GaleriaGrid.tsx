@@ -1,4 +1,4 @@
-import { Check, Download, Heart, ShoppingBag } from 'lucide-react'
+import { Check, Download, ShoppingBag } from 'lucide-react'
 import type { FaseGaleria, FotoEnsaio, ModoGaleria } from '../../types/ecommerce.types'
 import { ecommerceService } from '../../services/ecommerce.service'
 import { cn } from '@/shared/lib/cn'
@@ -11,9 +11,6 @@ interface GaleriaGridProps {
   carrinhoIds: Set<string>
   pacoteLimit: number
   cartLoadingIds: Set<string>
-  favoritoIds: Set<string>
-  compareIds: Set<string>
-  compareMode: boolean
   modoGaleria: ModoGaleria
   faseGaleria: FaseGaleria
   podeSelecionar: boolean
@@ -22,8 +19,6 @@ interface GaleriaGridProps {
   extrasEmSelecao: boolean
   onSelect: (fotoId: string) => void
   onToggleCarrinho: (fotoId: string) => void
-  onToggleFavorito: (fotoId: string) => void
-  onToggleCompare: (fotoId: string) => void
   onView: (index: number) => void
 }
 
@@ -34,9 +29,6 @@ export function GaleriaGrid({
   carrinhoIds,
   pacoteLimit,
   cartLoadingIds,
-  favoritoIds,
-  compareIds,
-  compareMode,
   modoGaleria,
   faseGaleria,
   podeSelecionar,
@@ -45,8 +37,6 @@ export function GaleriaGrid({
   extrasEmSelecao,
   onSelect,
   onToggleCarrinho,
-  onToggleFavorito,
-  onToggleCompare,
   onView,
 }: GaleriaGridProps) {
   const packageFull = selectedIds.size >= pacoteLimit
@@ -56,8 +46,6 @@ export function GaleriaGrid({
       {fotos.map((foto, index) => {
         const isSelected = selectedIds.has(foto.id)
         const isInCart = carrinhoIds.has(foto.id)
-        const isFavorito = favoritoIds.has(foto.id)
-        const isComparing = compareIds.has(foto.id)
         const isCartLoading = cartLoadingIds.has(foto.id)
         const pendente = !!foto.compraExtraId && foto.status !== 'PAGA'
         const jaComprada = foto.status === 'PAGA'
@@ -80,10 +68,7 @@ export function GaleriaGrid({
           && !jaComprada && !pendente && !foto.compraExtraId
           && (isInCart || packageFull || !podeSelecionar)
 
-        const abrirFoto = () => {
-          if (compareMode) onToggleCompare(foto.id)
-          else onView(index)
-        }
+        const abrirFoto = () => onView(index)
 
         return (
           <figure
@@ -101,11 +86,10 @@ export function GaleriaGrid({
                   abrirFoto()
                 }
               }}
-              aria-label={compareMode ? `Comparar ${foto.fileName}` : `Ver ${foto.fileName}`}
+              aria-label={`Ver ${foto.fileName}`}
               className={cn(
                 'relative block aspect-[3/2] w-full cursor-pointer overflow-hidden rounded-[2px] bg-gallery-line/40 outline-none transition-shadow focus-visible:ring-2 focus-visible:ring-gallery-accent',
                 isSelected && 'ring-2 ring-gallery-accent ring-offset-2 ring-offset-gallery-bg',
-                compareMode && isComparing && 'ring-2 ring-gallery-ink ring-offset-2 ring-offset-gallery-bg',
               )}
             >
               <img
@@ -123,20 +107,6 @@ export function GaleriaGrid({
                   {numero}
                 </span>
               )}
-
-              <button
-                onClick={(e) => { e.stopPropagation(); onToggleFavorito(foto.id) }}
-                className={cn(
-                  'absolute right-1.5 top-1.5 flex h-11 w-11 items-center justify-center rounded-full shadow-sm ring-1 backdrop-blur transition-all sm:h-10 sm:w-10',
-                  isFavorito
-                    ? 'bg-gallery-accent text-white ring-gallery-accent/40'
-                    : 'bg-gallery-surface/85 text-gallery-ink ring-gallery-line hover:bg-gallery-surface',
-                )}
-                aria-label={isFavorito ? `Remover ${foto.fileName} do Gostei` : `Marcar ${foto.fileName} como Gostei`}
-                aria-pressed={isFavorito}
-              >
-                <Heart className="h-4 w-4" fill={isFavorito ? 'currentColor' : 'none'} />
-              </button>
 
               <div className="pointer-events-none absolute inset-x-0 bottom-0 flex items-end justify-between gap-2 bg-gradient-to-t from-gallery-ink/55 via-gallery-ink/10 to-transparent p-1.5 pt-8">
                 {(jaComprada || pendente || isInCart || isSelected || fotoSeraEditada) && (

@@ -1,19 +1,19 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import { useParams } from 'react-router-dom'
-import { Columns2, Search, ShieldAlert, X } from 'lucide-react'
+import { Search, ShieldAlert, X } from 'lucide-react'
 import { toast } from 'sonner'
 import { ecommerceService } from '../services/ecommerce.service'
-import type { FotoEnsaio, CompraExtraResponse, MetodoPagamento, GaleriaStatusResponse, CarrinhoItemResponse } from '../types/ecommerce.types'
+import type { FotoEnsaio, GaleriaStatusResponse, CarrinhoItemResponse } from '../types/ecommerce.types'
 import type { GaleriaResponse } from '../services/ecommerce.service'
 import { FotoViewer } from '../components/FotoViewer'
 import { CheckoutDialog } from '../components/CheckoutDialog'
 import { MinhasComprasSection } from '../components/MinhasComprasSection'
-import { ComparadorFotos } from '../components/ComparadorFotos'
 import { CartSummaryPanel } from '../components/CartSummaryPanel'
-import { FavoritosPanel } from '../components/FavoritosPanel'
 import { GaleriaHero } from '../components/galeria/GaleriaHero'
 import { GaleriaNav } from '../components/galeria/GaleriaNav'
 import { GaleriaIntro } from '../components/galeria/GaleriaIntro'
+import { GaleriaAvisoRetencao } from '../components/galeria/GaleriaAvisoRetencao'
+import { GaleriaPacoteCompletoAviso } from '../components/galeria/GaleriaPacoteCompletoAviso'
 import { GaleriaRascunhoBanner } from '../components/galeria/GaleriaRascunhoBanner'
 import { GaleriaGrid } from '../components/galeria/GaleriaGrid'
 import { GaleriaDock } from '../components/galeria/GaleriaDock'
@@ -25,9 +25,10 @@ import { GaleriaEmPreparacao } from '../components/galeria/GaleriaEmPreparacao'
 import { extractErrorMessage } from '@/shared/api'
 import { ConfirmDialog } from '@/shared/components/layout/ConfirmDialog'
 import { cn } from '@/shared/lib/cn'
+import { dispararConfete } from '@/shared/lib/confetti'
 import { humanizarNome } from '@/shared/lib/foto'
 
-type FiltroGaleria = 'todas' | 'favoritas' | 'selecionadas' | 'extras'
+type FiltroGaleria = 'todas' | 'extras' | 'selecionadas'
 
 function scrollSuavePara(id: string) {
   const elemento = document.getElementById(id)
@@ -61,13 +62,8 @@ export function GaleriaClientePage() {
   const [showCheckout, setShowCheckout] = useState(false)
   const [comprasRefreshKey, setComprasRefreshKey] = useState(0)
 
-  // Wishlist, comparação e carrinho lateral
-  const [favoritoIds, setFavoritoIds] = useState<Set<string>>(new Set())
-  const [compareMode, setCompareMode] = useState(false)
-  const [compareIds, setCompareIds] = useState<Set<string>>(new Set())
+  // Carrinho lateral
   const [showCart, setShowCart] = useState(false)
-  const [showComparador, setShowComparador] = useState(false)
-  const [showFavoritos, setShowFavoritos] = useState(false)
   const [showConfirmarSelecao, setShowConfirmarSelecao] = useState(false)
   const [isEnviandoSelecao, setIsEnviandoSelecao] = useState(false)
   const [showLimparRascunho, setShowLimparRascunho] = useState(false)
@@ -141,6 +137,19 @@ export function GaleriaClientePage() {
     [fotos, selectedIds],
   )
   const extrasFotos = carrinhoFotos
+  // "Extras" reúne tudo que é extra para o cliente: o que está no carrinho, o
+  // que já foi comprado (aguardando confirmação ou pago) e o que está no
+  // snapshot da seleção ativa. Depois do checkout o carrinho é limpo, então
+  // filtrar apenas por `carrinhoIds` escondia as extras compradas.
+  const fotosExtras = useMemo(
+    () => fotos.filter((f) => !f.selecionadaPacote && (
+      carrinhoIds.has(f.id)
+      || Boolean(f.compraExtraId)
+      || f.status === 'PAGA'
+      || f.emSelecaoEdicao
+    )),
+    [fotos, carrinhoIds],
+  )
 
   // Categorias disponíveis para filtro
   const categorias = useMemo(() => {
@@ -152,12 +161,10 @@ export function GaleriaClientePage() {
   // Fotos filtradas
   const filteredFotos = useMemo(() => {
     let result = fotos
-    if (filtro === 'favoritas') {
-      result = result.filter((f) => favoritoIds.has(f.id))
-    } else if (filtro === 'selecionadas') {
+    if (filtro === 'selecionadas') {
       result = result.filter((f) => selectedIds.has(f.id))
     } else if (filtro === 'extras') {
-      result = result.filter((f) => carrinhoIds.has(f.id))
+      result = fotosExtras
     }
     if (categoriaFilter) {
       result = result.filter((f) => f.categoria === categoriaFilter)
@@ -171,10 +178,11 @@ export function GaleriaClientePage() {
       )
     }
     return result
-  }, [fotos, filtro, favoritoIds, selectedIds, carrinhoIds, categoriaFilter, searchTerm])
+  }, [fotos, filtro, selectedIds, fotosExtras, categoriaFilter, searchTerm])
 
   const carregandoRef = useRef(false)
   const reabertaAnteriorRef = useRef(false)
+  const confeteDisparadoRef = useRef(false)
   const carregarGaleria = useCallback(async (mostrarLoading = true, sincronizarSelecao = true) => {
     if (!token) return
     if (carregandoRef.current) return
@@ -231,6 +239,12 @@ export function GaleriaClientePage() {
     void carregarGaleria()
   }, [carregarGaleria])
 
+  // "Uma vez por carregamento da galeria": se o token mudar sem remontar o
+  // componente, a nova galeria pode celebrar novamente ao completar o pacote.
+  useEffect(() => {
+    confeteDisparadoRef.current = false
+  }, [token])
+
   // Revalida ao voltar para a aba (inclusive bfcache) e a cada minuto. Isso
   // mantém capa, fase e seleção em dia sem exigir recarregar a página e sem
   // apagar uma seleção local em andamento.
@@ -281,9 +295,6 @@ export function GaleriaClientePage() {
   useEffect(() => {
     if (!token || isLoading || error) return
     void recarregarCarrinho(true)
-    ecommerceService.listarFavoritos(token)
-      .then((ids) => setFavoritoIds(new Set(ids)))
-      .catch(() => {})
   }, [token, isLoading, error, recarregarCarrinho])
 
   useEffect(() => {
@@ -307,10 +318,6 @@ export function GaleriaClientePage() {
   }, [galeria])
 
   useEffect(() => {
-    if (filtro === 'extras' && carrinhoCount === 0) setFiltro('todas')
-  }, [filtro, carrinhoCount])
-
-  useEffect(() => {
     const url = capaUrl
     if (!url) return
     const link = document.createElement('link')
@@ -320,47 +327,6 @@ export function GaleriaClientePage() {
     document.head.appendChild(link)
     return () => { link.remove() }
   }, [capaUrl])
-
-  const toggleFavorito = useCallback(async (fotoId: string) => {
-    if (!token) return
-    const isFavorito = favoritoIds.has(fotoId)
-    // Otimista
-    setFavoritoIds((prev) => {
-      const next = new Set(prev)
-      if (isFavorito) next.delete(fotoId)
-      else next.add(fotoId)
-      return next
-    })
-    try {
-      if (isFavorito) await ecommerceService.removerFavorito(token, fotoId)
-      else await ecommerceService.adicionarFavorito(token, fotoId)
-    } catch (err: any) {
-      // Reverte
-      setFavoritoIds((prev) => {
-        const next = new Set(prev)
-        if (isFavorito) next.add(fotoId)
-        else next.delete(fotoId)
-        return next
-      })
-      toast.error(err?.response?.data?.message || 'Erro ao atualizar favoritos')
-    }
-  }, [token, favoritoIds])
-
-  const toggleCompare = useCallback((fotoId: string) => {
-    setCompareIds((prev) => {
-      const next = new Set(prev)
-      if (next.has(fotoId)) {
-        next.delete(fotoId)
-      } else {
-        if (next.size >= 4) {
-          toast.error('Máximo de 4 fotos para comparação')
-          return prev
-        }
-        next.add(fotoId)
-      }
-      return next
-    })
-  }, [])
 
   const toggleCarrinho = useCallback(async (fotoId: string) => {
     if (!token) return
@@ -419,11 +385,18 @@ export function GaleriaClientePage() {
     }
 
     if (selectedIds.size < pacoteLimit) {
+      const completaPacote = pacoteLimit > 0 && selectedIds.size + 1 === pacoteLimit
       setSelectedIds((prev) => {
         const next = new Set(prev)
         next.add(fotoId)
         return next
       })
+      // Celebra apenas a primeira vez que o pacote fica completo neste
+      // carregamento da galeria (não repete ao trocar a última foto).
+      if (completaPacote && !confeteDisparadoRef.current) {
+        confeteDisparadoRef.current = true
+        dispararConfete()
+      }
       // Uma foto no pacote não pode continuar no carrinho: ela seria cobrada
       // novamente e o checkout recusaria a compra inteira.
       if (carrinhoIds.has(fotoId)) {
@@ -548,7 +521,7 @@ export function GaleriaClientePage() {
     }
   }
 
-  const handleCheckout = async (metodoPagamento: MetodoPagamento): Promise<CompraExtraResponse> => {
+  const handleCheckoutPix = async (comprovante: File): Promise<void> => {
     if (!token || carrinhoItens.length === 0) throw new Error('Carrinho vazio')
     if (!podePagarExtras) {
       throw new Error(faseGaleria === 'SELECAO'
@@ -556,33 +529,22 @@ export function GaleriaClientePage() {
         : 'O pagamento das extras não está disponível agora.')
     }
     const idsComprados = new Set(carrinhoItens.map((item) => item.foto.id))
-    const compra = await ecommerceService.checkout(token, metodoPagamento)
+    const compra = await ecommerceService.checkoutPix(token, comprovante)
     setGaleria((prev) => prev ? {
       ...prev,
-      fotos: prev.fotos.map((f) => idsComprados.has(f.id) ? { ...f, compraExtraId: compra.id, status: 'AGUARDANDO_COMPROVANTE' as const } : f)
+      fotos: prev.fotos.map((f) => idsComprados.has(f.id)
+        ? { ...f, compraExtraId: compra.id, status: 'AGUARDANDO_CONFIRMACAO' as const }
+        : f)
     } : prev)
     setCarrinhoItens([])
     setComprasRefreshKey((valor) => valor + 1)
-    return compra
-  }
-
-  const handleEnviarComprovante = async (compra: CompraExtraResponse, file: File) => {
-    if (!token) return
-    await ecommerceService.uploadComprovante(token, compra.id, file)
-    setGaleria((prev) => prev ? {
-      ...prev,
-      fotos: prev.fotos.map((f) => f.compraExtraId === compra.id ? { ...f, status: 'AGUARDANDO_CONFIRMACAO' as const } : f)
-    } : prev)
-    toast.success('Comprovante enviado!')
   }
 
   const hasSelectionChanges = fotos.some((f) => f.selecionadaPacote !== selectedIds.has(f.id))
   const totalExtras = carrinhoItens
     .reduce((total, item) => total + item.valorUnitario, 0)
   const modalAberto = viewerIndex !== null
-    || showComparador
     || showCart
-    || showFavoritos
     || showCheckout
     || showConfirmarSelecao
     || fotoExtraPendente !== null
@@ -665,9 +627,7 @@ export function GaleriaClientePage() {
       mostrarDock && 'pb-[calc(6rem+env(safe-area-inset-bottom))]',
     )}>
       <GaleriaNav
-        favoritos={favoritoIds.size}
         carrinho={carrinhoCount}
-        onFavoritos={() => setShowFavoritos(true)}
         onCarrinho={() => setShowCart(true)}
       />
 
@@ -688,10 +648,19 @@ export function GaleriaClientePage() {
           pacoteNome={galeria?.pacoteNome ?? ''}
           pacoteLimit={pacoteLimit}
           selectedCount={selectedIds.size}
-          favoritosCount={favoritoIds.size}
           carrinhoCount={carrinhoCount}
           previsaoEntrega={previsaoEntrega}
         />
+
+        <div className="mx-auto mt-7 w-full max-w-2xl px-4">
+          <GaleriaAvisoRetencao />
+        </div>
+
+        {selecionando && pacoteLimit > 0 && selectedIds.size === pacoteLimit && (
+          <div className="mx-auto mt-6 w-full max-w-2xl px-4">
+            <GaleriaPacoteCompletoAviso onEnviar={() => setShowConfirmarSelecao(true)} />
+          </div>
+        )}
 
         {galeria?.selecaoReaberta && faseGaleria === 'SELECAO' && (
           <GaleriaRascunhoBanner
@@ -720,6 +689,9 @@ export function GaleriaClientePage() {
                   ? 'Você pode continuar olhando a galeria e marcar fotos extras: elas entram na mesma edição e ficam disponíveis para compra após a publicação.'
                   : 'O estúdio vai revisar e liberar as fotos do seu pacote em instantes. Você ainda pode marcar extras; eles são liberados após a confirmação do pagamento.'}
               </p>
+              <div className="mt-3 border-t border-gallery-line pt-3">
+                <GaleriaAvisoRetencao variante="inline" className="justify-center text-center" />
+              </div>
             </div>
           </div>
         )}
@@ -730,11 +702,8 @@ export function GaleriaClientePage() {
           <div className="flex min-w-0 flex-1 items-center gap-2 overflow-x-auto">
             {([
               { id: 'todas' as const, label: 'Todas', count: fotos.length },
-              { id: 'favoritas' as const, label: 'Favoritas', count: favoritoIds.size },
+              { id: 'extras' as const, label: 'Extras', count: fotosExtras.length },
               { id: 'selecionadas' as const, label: 'Pacote', count: selectedIds.size },
-              ...(carrinhoCount > 0
-                ? [{ id: 'extras' as const, label: 'Extras', count: carrinhoCount }]
-                : []),
             ]).map((item) => (
               <button
                 key={item.id}
@@ -754,21 +723,7 @@ export function GaleriaClientePage() {
             ))}
           </div>
 
-          <div className="flex shrink-0 items-center gap-1.5">
-            <button
-              onClick={() => setCompareMode((prev) => !prev)}
-              className={cn(
-                'flex h-9 w-9 items-center justify-center rounded-full border transition-colors',
-                compareMode
-                  ? 'border-gallery-ink bg-gallery-ink text-gallery-bg'
-                  : 'border-gallery-line text-gallery-muted hover:text-gallery-ink',
-              )}
-              aria-pressed={compareMode}
-              aria-label={compareMode ? 'Desativar comparação' : 'Ativar comparação'}
-              title="Comparar fotos"
-            >
-              <Columns2 className="h-4 w-4" />
-            </button>
+          <div className="flex shrink-0 items-center">
             <button
               onClick={() => setSearchAberto((prev) => !prev)}
               className={cn(
@@ -853,9 +808,6 @@ export function GaleriaClientePage() {
               carrinhoIds={carrinhoIds}
               pacoteLimit={pacoteLimit}
               cartLoadingIds={cartLoadingIds}
-              favoritoIds={favoritoIds}
-              compareIds={compareIds}
-              compareMode={compareMode}
               modoGaleria={modoGaleria}
               faseGaleria={faseGaleria}
               podeSelecionar={podeSelecionar}
@@ -864,8 +816,6 @@ export function GaleriaClientePage() {
               extrasEmSelecao={extrasEmSelecao}
               onSelect={toggleSelect}
               onToggleCarrinho={toggleExtra}
-              onToggleFavorito={toggleFavorito}
-              onToggleCompare={toggleCompare}
               onView={(index) => {
                 const originalIndex = fotos.findIndex((f) => f.id === filteredFotos[index]?.id)
                 if (originalIndex >= 0) {
@@ -884,7 +834,6 @@ export function GaleriaClientePage() {
           fase={faseGaleria}
           selectedCount={selectedIds.size}
           pacoteLimit={pacoteLimit}
-          favoritosCount={favoritoIds.size}
           carrinhoCount={carrinhoCount}
           totalExtras={totalExtras}
           selectedFotos={selectedFotos}
@@ -920,8 +869,6 @@ export function GaleriaClientePage() {
           token={token ?? ''}
           commentsOpen={commentsOpen}
           onCommentsOpenChange={setCommentsOpen}
-          favoritoIds={favoritoIds}
-          onToggleFavorito={toggleFavorito}
           podeSelecionar={podeSelecionar}
           podeComprar={podeAdicionarExtras}
           podeBaixar={podeBaixar}
@@ -930,17 +877,11 @@ export function GaleriaClientePage() {
           modoGaleria={modoGaleria}
           faseGaleria={faseGaleria}
           requerEdicao={requerEdicao}
-        />
-      )}
-
-      {showComparador && (
-        <ComparadorFotos
-          fotos={fotos.filter((f) => compareIds.has(f.id))}
-          onClose={() => setShowComparador(false)}
-          selectedIds={selectedIds}
-          pacoteLimit={pacoteLimit}
-          podeSelecionar={podeSelecionar}
-          onToggleSelect={toggleSelect}
+          onEnviarSelecao={() => {
+            setCommentsOpen(false)
+            setViewerIndex(null)
+            setShowConfirmarSelecao(true)
+          }}
         />
       )}
 
@@ -967,30 +908,11 @@ export function GaleriaClientePage() {
         onCheckout={() => { setShowCart(false); setShowCheckout(true) }}
       />
 
-      <FavoritosPanel
-        open={showFavoritos}
-        onClose={() => setShowFavoritos(false)}
-        fotos={fotos}
-        favoritoIds={favoritoIds}
-        selectedIds={selectedIds}
-        carrinhoIds={carrinhoIds}
-        pacoteLimit={pacoteLimit}
-        valorUnitario={valorUnitario}
-        valoresExtras={valoresExtras}
-        extrasEmSelecao={extrasEmSelecao}
-        podeSelecionar={podeSelecionar}
-        podeComprar={podeAdicionarExtras}
-        onToggleSelect={toggleSelect}
-        onToggleCarrinho={toggleCarrinho}
-        onToggleFavorito={toggleFavorito}
-      />
-
       <CheckoutDialog
         token={token ?? ''}
         open={showCheckout}
         onClose={() => setShowCheckout(false)}
-        onCheckout={handleCheckout}
-        onEnviarComprovante={handleEnviarComprovante}
+        onConfirmar={handleCheckoutPix}
       />
 
       <ConfirmDialog

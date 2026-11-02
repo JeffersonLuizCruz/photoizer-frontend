@@ -1,13 +1,13 @@
-import { Check, Download, Heart, ShoppingBag } from 'lucide-react'
+import { Check, Download, ShoppingBag } from 'lucide-react'
 import type { FaseGaleria, FotoEnsaio, ModoGaleria } from '../../types/ecommerce.types'
 import { cn } from '@/shared/lib/cn'
+import { DIAS_RETENCAO_FOTOS } from '../../lib/retencao'
 
 interface GaleriaDockProps {
   modo: ModoGaleria
   fase: FaseGaleria
   selectedCount: number
   pacoteLimit: number
-  favoritosCount: number
   carrinhoCount: number
   totalExtras: number
   selectedFotos: FotoEnsaio[]
@@ -31,7 +31,6 @@ export function GaleriaDock({
   fase,
   selectedCount,
   pacoteLimit,
-  favoritosCount,
   carrinhoCount,
   totalExtras,
   selectedFotos,
@@ -60,13 +59,6 @@ export function GaleriaDock({
     <div className="fixed inset-x-0 bottom-0 z-40 border-t border-gallery-line bg-gallery-bg/95 backdrop-blur">
       <div className="mx-auto flex w-full max-w-5xl flex-col gap-2 px-3 pb-[calc(0.625rem+env(safe-area-inset-bottom))] pt-2.5 sm:flex-row sm:items-center sm:justify-between sm:gap-4 sm:px-6">
         <div className="flex min-w-0 items-center gap-3">
-          <div className="flex shrink-0 items-center gap-1.5 text-xs text-gallery-muted">
-            <Heart className="h-3.5 w-3.5 text-gallery-accent" fill={favoritosCount > 0 ? 'currentColor' : 'none'} />
-            <span className="tabular-nums">{favoritosCount}</span>
-          </div>
-
-          <div className="hidden h-7 w-px bg-gallery-line sm:block" />
-
           <div className="min-w-0">
             <div className="flex items-center gap-2 text-[11px] font-medium text-gallery-ink">
               <Check className="h-3.5 w-3.5 text-gallery-accent" />
@@ -77,6 +69,12 @@ export function GaleriaDock({
             <div className="mt-1 h-1 w-full max-w-[120px] overflow-hidden rounded-full bg-gallery-line">
               <div className="h-full rounded-full bg-gallery-accent transition-all duration-500" style={{ width: `${percentual}%` }} />
             </div>
+            {emSelecao && pacoteLimit > 0 && selectedCount === pacoteLimit && (
+              <p className="mt-1 flex items-center gap-1 text-[10px] font-semibold text-gallery-accent">
+                <Check className="h-3 w-3" />
+                Pacote completo
+              </p>
+            )}
           </div>
 
           {thumbs.length > 0 && (
@@ -124,7 +122,11 @@ export function GaleriaDock({
           )}
 
           {downloadableCount > 0 && (
-            <button onClick={onDownloadZip} className={cn(secundario, 'flex-1 sm:flex-none')}>
+            <button
+              onClick={onDownloadZip}
+              title={`Fotos disponíveis para download durante ${DIAS_RETENCAO_FOTOS} dias`}
+              className={cn(secundario, 'flex-1 sm:flex-none')}
+            >
               <Download className="h-3.5 w-3.5" />
               Baixar pacote ({downloadableCount})
             </button>
@@ -138,7 +140,7 @@ export function GaleriaDock({
               </button>
               {podeComprar && (
                 <button onClick={onCheckout} className={cn(primario, 'flex-1 sm:flex-none')}>
-                  Finalizar · {formatBRL(totalExtras)}
+                  Pagar com PIX · {formatBRL(totalExtras)}
                 </button>
               )}
             </>
@@ -151,7 +153,7 @@ export function GaleriaDock({
                 Carrinho ({carrinhoCount})
               </button>
               <button onClick={onCheckout} className={cn(primario, 'flex-1 sm:flex-none')}>
-                Finalizar · {formatBRL(totalExtras)}
+                Pagar com PIX · {formatBRL(totalExtras)}
               </button>
             </>
           )}
@@ -164,7 +166,7 @@ export function GaleriaDock({
 
           {modo === 'DIRETO' && podeComprar && carrinhoCount > 0 && (
             <button onClick={onCheckout} className={cn(primario, 'flex-1 sm:flex-none')}>
-              Finalizar ({carrinhoCount}) · {formatBRL(totalExtras)}
+              Pagar com PIX ({carrinhoCount}) · {formatBRL(totalExtras)}
             </button>
           )}
         </div>

@@ -1,11 +1,9 @@
 import { useEffect, useState } from 'react'
-import { Heart, ShoppingBag } from 'lucide-react'
+import { ShoppingBag } from 'lucide-react'
 import { cn } from '@/shared/lib/cn'
 
 interface GaleriaNavProps {
-  favoritos: number
   carrinho: number
-  onFavoritos: () => void
   onCarrinho: () => void
 }
 
@@ -14,7 +12,7 @@ function scrollParaTopo() {
   window.scrollTo({ top: 0, behavior: suave ? 'smooth' : 'auto' })
 }
 
-export function GaleriaNav({ favoritos, carrinho, onFavoritos, onCarrinho }: GaleriaNavProps) {
+export function GaleriaNav({ carrinho, onCarrinho }: GaleriaNavProps) {
   const [scrolled, setScrolled] = useState(false)
 
   useEffect(() => {
@@ -50,19 +48,6 @@ export function GaleriaNav({ favoritos, carrinho, onFavoritos, onCarrinho }: Gal
         </button>
 
         <div className="flex shrink-0 items-center gap-1.5">
-          <button
-            onClick={onFavoritos}
-            className={acao}
-            aria-label={`Abrir Gostei${favoritos > 0 ? ` (${favoritos})` : ''}`}
-            title="Gostei"
-          >
-            <Heart className="h-4 w-4" fill={favoritos > 0 ? 'currentColor' : 'none'} />
-            {favoritos > 0 && (
-              <span className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-gallery-accent px-0.5 text-[10px] font-semibold text-white">
-                {favoritos}
-              </span>
-            )}
-          </button>
           <button
             onClick={onCarrinho}
             className={acao}

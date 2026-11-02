@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from 'react'
 import { format } from 'date-fns'
-import { ChevronLeft, ChevronRight, X, Check, Clock, ShoppingCart, Loader2, MessageCircle, Send, User, Heart, ZoomIn, ZoomOut } from 'lucide-react'
+import { ChevronLeft, ChevronRight, X, Check, Clock, ShoppingCart, Loader2, MessageCircle, Send, User, ZoomIn, ZoomOut } from 'lucide-react'
 import { toast } from 'sonner'
 import type { FaseGaleria, FotoEnsaio, FotoComentario, ModoGaleria } from '../types/ecommerce.types'
 import { ecommerceService } from '../services/ecommerce.service'
@@ -8,6 +8,7 @@ import { cn } from '@/shared/lib/cn'
 import { numeroGaleriaLabel } from '@/shared/lib/foto'
 import { Sheet, SheetContent, SheetTitle } from '@/shared/components/ui/sheet'
 import { extractErrorMessage } from '@/shared/api'
+import { GaleriaPacoteCompletoAviso } from './galeria/GaleriaPacoteCompletoAviso'
 
 interface FotoViewerProps {
   fotos: FotoEnsaio[]
@@ -25,8 +26,6 @@ interface FotoViewerProps {
   token: string
   commentsOpen: boolean
   onCommentsOpenChange: (open: boolean) => void
-  favoritoIds: Set<string>
-  onToggleFavorito: (fotoId: string) => void
   podeSelecionar: boolean
   podeComprar: boolean
   podeBaixar: boolean
@@ -35,6 +34,7 @@ interface FotoViewerProps {
   modoGaleria: ModoGaleria
   faseGaleria: FaseGaleria
   requerEdicao: boolean
+  onEnviarSelecao: () => void
 }
 
 function formatComentarioData(iso: string): string {
@@ -77,14 +77,13 @@ function ComentarioBubble({ comentario }: { comentario: FotoComentario }) {
 export function FotoViewer({
   fotos, currentIndex, onClose, onToggleSelect, onNavigate,
   selectedIds, carrinhoIds, pacoteLimit, selectedCount, onToggleCarrinho, valorUnitario, cartLoadingIds,
-  token, commentsOpen, onCommentsOpenChange, favoritoIds, onToggleFavorito,
+  token, commentsOpen, onCommentsOpenChange,
   podeSelecionar, podeComprar, podeBaixar, extrasEmSelecao, valoresExtras,
-  modoGaleria, faseGaleria, requerEdicao,
+  modoGaleria, faseGaleria, requerEdicao, onEnviarSelecao,
 }: FotoViewerProps) {
   const foto = fotos[currentIndex]
   const isSelected = selectedIds.has(foto.id)
   const isInCart = carrinhoIds.has(foto.id)
-  const isFavorito = favoritoIds.has(foto.id)
   const isLoading = cartLoadingIds.has(foto.id)
   const jaComprada = foto.status === 'PAGA'
   const pendente = !!foto.compraExtraId && !jaComprada
@@ -540,6 +539,14 @@ export function FotoViewer({
       {/* Ações fixas no rodapé */}
       <div className="shrink-0 border-t border-gallery-line bg-gallery-surface/95 px-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] pt-2.5 backdrop-blur sm:px-6">
         <div className="mx-auto flex w-full max-w-3xl flex-col gap-2">
+          {modoGaleria !== 'DIRETO'
+            && faseGaleria === 'SELECAO'
+            && podeSelecionar
+            && pacoteLimit > 0
+            && packageFull && (
+              <GaleriaPacoteCompletoAviso variante="compact" onEnviar={onEnviarSelecao} />
+            )}
+
           <div className="flex items-center gap-2">
             <button onClick={() => onCommentsOpenChange(!commentsOpen)}
               aria-pressed={commentsOpen}
@@ -551,17 +558,6 @@ export function FotoViewer({
               )}>
               <MessageCircle className="h-4 w-4 shrink-0" />
               <span className="truncate">{comentarios.length > 0 ? `Comentários (${comentarios.length})` : 'Comentar'}</span>
-            </button>
-            <button onClick={() => onToggleFavorito(foto.id)}
-              aria-pressed={isFavorito}
-              className={cn(
-                'flex h-11 w-11 shrink-0 items-center justify-center gap-2 rounded-full px-0 text-sm font-medium shadow-md transition-all active:scale-95 sm:w-auto sm:px-4',
-                isFavorito
-                  ? 'bg-gallery-accent text-white shadow-gallery-accent/30'
-                  : 'bg-gallery-surface text-gallery-accent ring-1 ring-gallery-line hover:bg-gallery-bg',
-              )}>
-              <Heart className="h-4 w-4 shrink-0" fill={isFavorito ? 'currentColor' : 'none'} />
-              <span className="hidden sm:inline">Gostei</span>
             </button>
           </div>
 

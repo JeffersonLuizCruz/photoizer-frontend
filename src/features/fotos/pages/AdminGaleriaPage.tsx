@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useMemo } from 'react'
 import { Link, useParams } from 'react-router-dom'
-import { Upload, Trash2, Send, ImagePlus, Image as ImageIcon, ImageOff, X, Loader2, Star, Pencil, Eye, EyeOff, RefreshCw, MessageCircle, Check, Lock, Search, MoreVertical, Package, Heart, AlertTriangle, type LucideIcon } from 'lucide-react'
+import { Upload, Trash2, Send, ImagePlus, Image as ImageIcon, ImageOff, X, Loader2, Star, Pencil, Eye, EyeOff, RefreshCw, MessageCircle, Check, Lock, Search, MoreVertical, Package, AlertTriangle, type LucideIcon } from 'lucide-react'
 import { toast } from 'sonner'
 import { extractErrorMessage } from '@/shared/api'
 import { Button } from '@/shared/components/ui/button'
@@ -236,11 +236,9 @@ function FotoMetadataDialog({ agendamentoId, foto, open, onOpenChange }: {
 
 export function AdminGaleriaPage({
   tipoPorFoto,
-  favoritosPorFoto,
   pacoteLimite = 0,
 }: {
   tipoPorFoto?: Map<string, TipoSelecaoFoto>
-  favoritosPorFoto?: Record<string, number>
   pacoteLimite?: number
 }) {
   const { id } = useParams<{ id: string }>()
@@ -874,7 +872,6 @@ export function AdminGaleriaPage({
             {fotosFiltradas.map((foto) => {
               const tipo = tipoSelecaoDaFoto(foto, tipoPorFoto)
               const naoLidas = comentariosPorFoto.get(foto.id)?.naoLidas ?? 0
-              const favoritos = favoritosPorFoto?.[foto.id] ?? 0
               return (
               <div key={foto.id} className={`group relative rounded-lg border bg-card overflow-hidden ${!foto.visivel ? 'opacity-50' : ''} ${modoSelecao && selecionadas.has(foto.id) ? 'ring-2 ring-primary ring-offset-2 ring-offset-background' : ''} ${modoSelecao && fotoProtegida(foto) ? 'opacity-60' : ''} ${galeriaEnsaio?.capaFotoId === foto.id ? 'ring-2 ring-amber-400 ring-offset-2 ring-offset-background' : ''}`}>
                 <div className="aspect-[3/2] relative">
@@ -1021,15 +1018,6 @@ export function AdminGaleriaPage({
                     {foto.arquivosRemovidos && (
                       <span className="text-[10px] text-muted-foreground bg-muted px-1.5 py-0.5 rounded-sm flex items-center gap-0.5">
                         <ImageOff className="h-3 w-3" /> Arquivada
-                      </span>
-                    )}
-                    {favoritos > 0 && (
-                      <span
-                        role="img"
-                        aria-label={`${favoritos} curtida(s)`}
-                        className="inline-flex items-center gap-0.5 rounded-sm bg-rose-50 px-1.5 py-0.5 text-[10px] font-medium text-rose-600"
-                      >
-                        <Heart className="h-3 w-3" fill="currentColor" /> {favoritos}
                       </span>
                     )}
                     {foto.categoria && (

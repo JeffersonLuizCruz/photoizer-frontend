@@ -191,7 +191,6 @@ export function AdminGaleriaWorkspacePage() {
           {activeTab === 'fotos' && (
             <AdminGaleriaPage
               tipoPorFoto={workspace.tipoPorFoto}
-              favoritosPorFoto={workspace.resumo?.favoritosPorFoto}
               pacoteLimite={workspace.resumo?.pacoteQuantidadeFotos ?? 0}
             />
           )}

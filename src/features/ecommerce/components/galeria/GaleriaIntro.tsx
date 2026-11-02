@@ -1,4 +1,4 @@
-import { Heart, Check, ShoppingBag } from 'lucide-react'
+import { Check, ShoppingBag } from 'lucide-react'
 import type { FaseGaleria, ModoGaleria } from '../../types/ecommerce.types'
 import { humanizarNome } from '@/shared/lib/foto'
 
@@ -9,7 +9,6 @@ interface GaleriaIntroProps {
   pacoteNome: string
   pacoteLimit: number
   selectedCount: number
-  favoritosCount: number
   carrinhoCount: number
   previsaoEntrega?: string | null
 }
@@ -18,14 +17,14 @@ function conteudo(modo: ModoGaleria, fase: FaseGaleria, pacoteLimit: number, req
   if (modo === 'DIRETO') {
     return {
       titulo: 'Sua galeria está pronta',
-      descricao: 'Escolha suas fotos favoritas para o pacote ou adquira extras para levar ainda mais lembranças.',
+      descricao: 'Escolha suas fotos para o pacote ou adquira extras para levar ainda mais lembranças.',
     }
   }
   if (!requerEdicao) {
     switch (fase) {
       case 'SELECAO':
         return {
-          titulo: 'Escolha suas favoritas',
+          titulo: 'Escolha suas fotos',
           descricao: `Selecione ${pacoteLimit || 'suas'} fotos para o seu pacote. Elas serão entregues em versão original, em alta resolução.`,
         }
       case 'SELECAO_ENVIADA':
@@ -41,15 +40,15 @@ function conteudo(modo: ModoGaleria, fase: FaseGaleria, pacoteLimit: number, req
       default:
         return {
           titulo: 'Sua galeria está pronta',
-          descricao: 'Escolha suas fotos favoritas para o pacote ou adquira extras.',
+          descricao: 'Escolha suas fotos para o pacote ou adquira extras.',
         }
     }
   }
   switch (fase) {
     case 'SELECAO':
       return {
-        titulo: 'Escolha suas favoritas',
-        descricao: `Selecione ${pacoteLimit || 'suas'} fotos para o seu pacote. Use o coração para guardar as que ama e o check para escolher.`,
+        titulo: 'Escolha suas fotos',
+        descricao: `Selecione ${pacoteLimit || 'suas'} fotos para o seu pacote. Use o check para escolher as que vão entrar no pacote.`,
       }
     case 'SELECAO_ENVIADA':
       return {
@@ -59,7 +58,7 @@ function conteudo(modo: ModoGaleria, fase: FaseGaleria, pacoteLimit: number, req
     case 'EM_EDICAO':
       return {
         titulo: 'Suas fotos estão sendo preparadas',
-        descricao: 'Estamos editando suas favoritas com todo o cuidado. Você ainda pode escolher extras e pagar via PIX; eles entram na mesma edição.',
+        descricao: 'Estamos editando suas fotos com todo o cuidado. Você ainda pode escolher extras e pagar via PIX; eles entram na mesma edição.',
       }
     case 'COMERCIALIZACAO':
       return {
@@ -69,7 +68,7 @@ function conteudo(modo: ModoGaleria, fase: FaseGaleria, pacoteLimit: number, req
     default:
       return {
         titulo: 'Sua galeria está pronta',
-        descricao: 'Escolha suas fotos favoritas para o pacote ou adquira extras.',
+        descricao: 'Escolha suas fotos para o pacote ou adquira extras.',
       }
   }
 }
@@ -81,7 +80,6 @@ export function GaleriaIntro({
   pacoteNome,
   pacoteLimit,
   selectedCount,
-  favoritosCount,
   carrinhoCount,
   previsaoEntrega,
 }: GaleriaIntroProps) {
@@ -124,19 +122,13 @@ export function GaleriaIntro({
 
       <div className="mt-6 flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-[11px] text-gallery-muted">
         <span className="inline-flex items-center gap-1.5">
-          <Heart className="h-3.5 w-3.5 text-gallery-accent" fill={favoritosCount > 0 ? 'currentColor' : 'none'} />
-          {favoritosCount} favorita(s)
+          <ShoppingBag className="h-3.5 w-3.5 text-gallery-accent" />
+          {carrinhoCount} extra(s)
         </span>
         <span className="inline-flex items-center gap-1.5">
           <Check className="h-3.5 w-3.5 text-gallery-accent" />
           {selectedCount} no pacote
         </span>
-        {carrinhoCount > 0 && (
-          <span className="inline-flex items-center gap-1.5">
-            <ShoppingBag className="h-3.5 w-3.5 text-gallery-accent" />
-            {carrinhoCount} extra(s)
-          </span>
-        )}
       </div>
 
       <p className="mx-auto mt-4 max-w-md text-[10px] leading-relaxed text-gallery-muted/80">

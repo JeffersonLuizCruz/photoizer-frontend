@@ -1,7 +1,7 @@
-import { useState, useEffect, useRef } from 'react'
-import { Loader2, Copy, Check, Send, Upload, X, QrCode, RefreshCw, ExternalLink } from 'lucide-react'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { Check, Copy, Loader2, QrCode, Send, Upload, X } from 'lucide-react'
 import { toast } from 'sonner'
-import type { CalculoCarrinhoResponse, CompraExtraResponse, MetodoPagamento, ConfiguracaoPagamentoResponse } from '../types/ecommerce.types'
+import type { CalculoCarrinhoResponse, ConfiguracaoPagamentoResponse } from '../types/ecommerce.types'
 import { ecommerceService } from '../services/ecommerce.service'
 import { cn } from '@/shared/lib/cn'
 import { Sheet, SheetContent, SheetTitle } from '@/shared/components/ui/sheet'
@@ -13,71 +13,60 @@ interface CheckoutDialogProps {
   token: string
   open: boolean
   onClose: () => void
-  onCheckout: (metodoPagamento: MetodoPagamento) => Promise<CompraExtraResponse>
-  onEnviarComprovante: (compra: CompraExtraResponse, file: File) => Promise<void>
+  /** Cria a compra e envia o comprovante na mesma requisição. */
+  onConfirmar: (comprovante: File) => Promise<void>
 }
 
+const formatBRL = (value: number) =>
+  value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
 
-export function CheckoutDialog({
-  token, open, onClose, onCheckout, onEnviarComprovante,
-}: CheckoutDialogProps) {
+export function CheckoutDialog({ token, open, onClose, onConfirmar }: CheckoutDialogProps) {
   const [calculo, setCalculo] = useState<CalculoCarrinhoResponse | null>(null)
-  const [paymentMode, setPaymentMode] = useState<MetodoPagamento | null>(null)
-  const [compra, setCompra] = useState<CompraExtraResponse | null>(null)
+  const [pagamento, setPagamento] = useState<ConfiguracaoPagamentoResponse | null>(null)
   const [comprovante, setComprovante] = useState<File | null>(null)
   const [isProcessing, setIsProcessing] = useState(false)
-  const [isEnviando, setIsEnviando] = useState(false)
   const [pixCopiado, setPixCopiado] = useState(false)
-  const [pagamento, setPagamento] = useState<ConfiguracaoPagamentoResponse | null>(null)
   const [pagamentoCarregado, setPagamentoCarregado] = useState(false)
-  const [successMessage, setSuccessMessage] = useState<string | null>(null)
-  const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const [isCalculando, setIsCalculando] = useState(false)
   const [erroCalculo, setErroCalculo] = useState<string | null>(null)
+  const [errorMessage, setErrorMessage] = useState<string | null>(null)
+  const [successMessage, setSuccessMessage] = useState<string | null>(null)
   const [dragOver, setDragOver] = useState(false)
   const inputFileRef = useRef<HTMLInputElement>(null)
 
-  useEffect(() => {
-    if (!open || !token) return
-    setCompra(null)
-    setComprovante(null)
-    setPaymentMode('PIX')
-    setSuccessMessage(null)
-    setErrorMessage(null)
-    setCalculo(null)
-    setErroCalculo(null)
+  const carregarDados = useCallback(async () => {
+    if (!token) return
     setIsCalculando(true)
-    setPagamento(null)
-    setPagamentoCarregado(false)
-    ecommerceService.calcular(token)
-      .then(setCalculo)
-      .catch(() => setErroCalculo('Não foi possível calcular o carrinho. Tente novamente.'))
-      .finally(() => setIsCalculando(false))
-    ecommerceService.obterPagamento()
-      .then(setPagamento)
-      .catch(() => {})
-      .finally(() => setPagamentoCarregado(true))
-  }, [open, token])
+    setErroCalculo(null)
+    try {
+      setCalculo(await ecommerceService.calcular(token))
+    } catch {
+      setErroCalculo('Não foi possível calcular o carrinho. Tente novamente.')
+    } finally {
+      setIsCalculando(false)
+    }
+    try {
+      setPagamento(await ecommerceService.obterPagamento())
+    } catch {
+      setPagamento(null)
+    } finally {
+      setPagamentoCarregado(true)
+    }
+  }, [token])
 
   useEffect(() => {
-    if (!open || !compra || paymentMode !== 'CARTAO' || compra.linkPagamentoCartao) return
-    let cancelado = false
-    const buscarLink = () => {
-      ecommerceService.detalheCompra(token, compra.id)
-        .then((detalhe) => {
-          if (!cancelado && detalhe.linkPagamentoCartao) {
-            setCompra((prev) => prev ? { ...prev, linkPagamentoCartao: detalhe.linkPagamentoCartao } : prev)
-          }
-        })
-        .catch(() => {})
-    }
-    buscarLink()
-    const interval = setInterval(buscarLink, 15000)
-    return () => {
-      cancelado = true
-      clearInterval(interval)
-    }
-  }, [open, token, compra?.id, compra?.linkPagamentoCartao, paymentMode])
+    if (!open) return
+    setCalculo(null)
+    setPagamento(null)
+    setComprovante(null)
+    setPixCopiado(false)
+    setPagamentoCarregado(false)
+    setErroCalculo(null)
+    setErrorMessage(null)
+    setSuccessMessage(null)
+    setDragOver(false)
+    void carregarDados()
+  }, [open, carregarDados])
 
   const copiarChavePix = () => {
     if (!pagamento?.pixChave) return
@@ -87,73 +76,9 @@ export function CheckoutDialog({
     toast.success('Chave PIX copiada!')
   }
 
-  const handleConfirmar = async () => {
-    if (!paymentMode) {
-      setErrorMessage('Escolha a forma de pagamento.')
-      return
-    }
-    if (!calculo) {
-      setErrorMessage(erroCalculo ?? 'Aguarde o cálculo do carrinho e tente novamente.')
-      return
-    }
-    if (calculo.quantidade === 0) {
-      setErrorMessage('Seu carrinho está vazio. Adicione as fotos extras novamente.')
-      return
-    }
-    if (pixIndisponivel) {
-      setErrorMessage('O estúdio ainda não configurou a chave PIX. Fale com o estúdio.')
-      return
-    }
-    setIsProcessing(true)
-    setErrorMessage(null)
-    try {
-      const compraCriada = await onCheckout(paymentMode)
-      setCompra(compraCriada)
-      if (paymentMode !== 'CARTAO') {
-        // O staff pode ajustar a chave PIX enquanto a compra é criada.
-        void ecommerceService.obterPagamento().then(setPagamento).catch(() => {})
-      }
-      setSuccessMessage(paymentMode === 'CARTAO'
-        ? 'Compra criada! Aguarde o link de pagamento do estúdio.'
-        : 'Compra criada! Envie o comprovante para liberar as fotos.')
-    } catch (err: unknown) {
-      const msg = extractErrorMessage(err, 'Erro ao processar pagamento')
-      setErrorMessage(msg)
-      toast.error(msg)
-    } finally {
-      setIsProcessing(false)
-    }
-  }
-
-  const enviarComprovante = async () => {
-    if (!compra || !comprovante) return
-    setIsEnviando(true)
-    try {
-      await onEnviarComprovante(compra, comprovante)
-      toast.success('Comprovante enviado! O estúdio irá liberar as fotos em breve.')
-      onClose()
-    } catch (err: unknown) {
-      toast.error(extractErrorMessage(err, 'Erro ao enviar comprovante'))
-    } finally {
-      setIsEnviando(false)
-    }
-  }
-
   const selecionarArquivo = (file: File | null) => {
     setComprovante(file)
-  }
-
-  const atualizarLinkCartao = async () => {
-    if (!compra) return
-    try {
-      const detalhe = await ecommerceService.detalheCompra(token, compra.id)
-      setCompra((prev) => prev ? { ...prev, linkPagamentoCartao: detalhe.linkPagamentoCartao } : prev)
-      if (!detalhe.linkPagamentoCartao) {
-        toast.info('O estúdio ainda não gerou o link de pagamento.')
-      }
-    } catch {
-      toast.error('Erro ao atualizar o link de pagamento')
-    }
+    setErrorMessage(null)
   }
 
   const handleDrop = (e: React.DragEvent) => {
@@ -168,42 +93,105 @@ export function CheckoutDialog({
   }
 
   const pixIndisponivel = pagamentoCarregado && !pagamento?.pixChave?.trim()
+  const carrinhoVazio = calculo != null && calculo.quantidade === 0
+  const podeEnviar = !!comprovante
+    && !!calculo
+    && calculo.quantidade > 0
+    && pagamentoCarregado
+    && !pixIndisponivel
+    && !isProcessing
+    && !successMessage
+
+  const handleSubmit = async () => {
+    if (!comprovante) {
+      setErrorMessage('Anexe o comprovante do PIX para finalizar a compra.')
+      return
+    }
+    if (!calculo) {
+      setErrorMessage(erroCalculo ?? 'Aguarde o cálculo do carrinho e tente novamente.')
+      return
+    }
+    if (calculo.quantidade === 0) {
+      setErrorMessage('Seu carrinho está vazio. Adicione as fotos extras novamente.')
+      return
+    }
+    if (!pagamentoCarregado) {
+      setErrorMessage('Aguarde o carregamento da chave PIX.')
+      return
+    }
+    if (pixIndisponivel) {
+      setErrorMessage('O estúdio ainda não configurou a chave PIX. Fale com o estúdio.')
+      return
+    }
+
+    setIsProcessing(true)
+    setErrorMessage(null)
+    try {
+      await onConfirmar(comprovante)
+      setComprovante(null)
+      setSuccessMessage('Comprovante enviado! O estúdio vai confirmar o pagamento.')
+    } catch (err: unknown) {
+      const msg = extractErrorMessage(err, 'Erro ao enviar o comprovante')
+      setErrorMessage(msg)
+      toast.error(msg)
+    } finally {
+      setIsProcessing(false)
+    }
+  }
 
   return (
     <Sheet
       open={open}
       onOpenChange={(o) => {
-        if (!o && !isProcessing && !isEnviando) onClose()
+        if (!o && !isProcessing) onClose()
       }}
     >
       <SheetContent className="h-dvh max-h-none w-full max-w-lg gap-5 overflow-y-auto rounded-none bg-gallery-surface p-4 pb-[calc(1rem+env(safe-area-inset-bottom))] sm:h-full sm:p-6">
         <SheetTitle className="font-display text-lg font-semibold text-gallery-ink">
-          {successMessage && compra?.status === 'PAGA' ? 'Pagamento Confirmado' : 'Finalizar Compra'}
+          {successMessage ? 'Comprovante enviado' : 'Pagar extras via PIX'}
         </SheetTitle>
 
-        {/* Cart summary (before success) */}
-        {!successMessage && calculo && (
-          <div className="space-y-2">
-            <h3 className="text-xs font-medium text-gallery-accent">ITENS NO CARRINHO ({calculo.quantidade})</h3>
-            <div className="max-h-32 space-y-1.5 overflow-y-auto">
-              {calculo.itens.map((item) => (
-                <div key={item.fotoId} className="flex items-center justify-between text-sm">
-                  <span className="flex-1 truncate text-gallery-muted">{item.fileName}</span>
-                  <span className="ml-2 font-medium text-gallery-ink">R$ {item.valorUnitario.toFixed(2)}</span>
-                </div>
-              ))}
+        {successMessage ? (
+          <div className="space-y-4">
+            <div className="flex flex-col items-center gap-3 rounded-2xl border border-emerald-200 bg-emerald-50 p-5 text-center">
+              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-emerald-500 text-white">
+                <Check className="h-6 w-6" />
+              </div>
+              <p className="text-sm font-semibold text-emerald-900">{successMessage}</p>
+              <p className="text-xs leading-relaxed text-emerald-800">
+                A compra já aparece em “Minhas compras” com o status “Aguardando confirmação”.
+              </p>
             </div>
-            <div className="flex justify-between border-t border-gallery-line pt-2 text-sm font-medium text-gallery-ink">
-              <span>Total</span>
-              <span>R$ {calculo.total.toFixed(2)}</span>
-            </div>
+            <button
+              onClick={onClose}
+              className={cn('flex w-full items-center justify-center rounded-2xl px-4 py-3 text-sm font-semibold', GALLERY_CTA)}
+            >
+              Fechar
+            </button>
           </div>
-        )}
-
-        {/* Pagamento via PIX */}
-        {!compra && !successMessage && (
-          <div className="space-y-3">
-            <h3 className="text-xs font-medium text-gallery-accent">PAGAMENTO VIA PIX</h3>
+        ) : (
+          <>
+            {calculo && (
+              <div className="space-y-2">
+                <h3 className="text-xs font-medium text-gallery-accent">
+                  ITENS NO CARRINHO ({calculo.quantidade})
+                </h3>
+                <div className="max-h-32 space-y-1.5 overflow-y-auto">
+                  {calculo.itens.map((item) => (
+                    <div key={item.fotoId} className="flex items-center justify-between text-sm">
+                      <span className="flex-1 truncate text-gallery-muted">{item.fileName}</span>
+                      <span className="ml-2 font-medium text-gallery-ink">
+                        {formatBRL(item.valorUnitario)}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+                <div className="flex justify-between border-t border-gallery-line pt-2 text-sm font-medium text-gallery-ink">
+                  <span>Total</span>
+                  <span>{formatBRL(calculo.total)}</span>
+                </div>
+              </div>
+            )}
 
             {isCalculando && (
               <div className="flex items-center justify-center gap-2 rounded-2xl border border-gallery-line bg-gallery-bg p-4 text-sm text-gallery-muted">
@@ -213,191 +201,142 @@ export function CheckoutDialog({
             )}
 
             {erroCalculo && (
-              <div className="rounded-2xl border border-gallery-line bg-gallery-bg p-3 text-xs text-gallery-accent">
-                {erroCalculo}
+              <div className="space-y-2 rounded-2xl border border-gallery-line bg-gallery-bg p-3 text-xs text-gallery-accent">
+                <p>{erroCalculo}</p>
+                <button
+                  onClick={() => void carregarDados()}
+                  className="font-semibold underline underline-offset-2"
+                >
+                  Tentar novamente
+                </button>
               </div>
             )}
 
-            {calculo && calculo.quantidade === 0 && (
+            {carrinhoVazio && (
               <div className="rounded-2xl border border-gallery-line bg-gallery-bg p-3 text-xs text-gallery-accent">
                 Seu carrinho está vazio. Volte à galeria e adicione as fotos extras novamente.
               </div>
             )}
 
-            <div className={cn(
-              'flex flex-col items-center gap-2 rounded-2xl border-2 p-4 text-center',
-              paymentMode === 'PIX' ? 'border-gallery-accent bg-gallery-bg shadow-sm' : 'border-gallery-line',
-              (pixIndisponivel || !!erroCalculo) && 'opacity-70',
-            )}>
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gallery-bg text-gallery-accent">
-                <QrCode className="h-5 w-5" />
+            <div className="space-y-2 rounded-2xl border border-gallery-line bg-gallery-bg p-4">
+              <div className="flex items-center gap-1.5 text-xs font-semibold text-gallery-ink">
+                <QrCode className="h-4 w-4 text-gallery-accent" />
+                Pague via PIX
               </div>
-              <span className="text-sm font-semibold text-gallery-ink">PIX</span>
-              <span className="text-[11px] leading-relaxed text-gallery-muted">
-                {pixIndisponivel
-                  ? 'PIX ainda não configurado pelo estúdio. Fale com o estúdio antes de pagar.'
-                  : 'Pague via PIX e envie o comprovante. O estúdio aprova e libera as fotos.'}
-              </span>
+              {pagamento?.pixChave ? (
+                <>
+                  <p className="break-all text-[11px] text-gallery-muted">
+                    {pagamento.pixTipoChave ? `${pagamento.pixTipoChave}: ` : ''}
+                    <span className="font-mono text-gallery-ink">{pagamento.pixChave}</span>
+                  </p>
+                  <button
+                    onClick={copiarChavePix}
+                    className="flex items-center gap-1 text-xs font-medium text-gallery-accent hover:opacity-80"
+                  >
+                    {pixCopiado ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
+                    {pixCopiado ? 'Copiado' : 'Copiar chave'}
+                  </button>
+                </>
+              ) : (
+                <p className="text-[11px] text-gallery-accent">
+                  {pagamentoCarregado
+                    ? 'PIX ainda não configurado pelo estúdio. Fale com o estúdio antes de pagar.'
+                    : 'Carregando chave PIX...'}
+                </p>
+              )}
             </div>
 
-            <button
-              onClick={handleConfirmar}
-              disabled={isProcessing || isCalculando || !calculo || calculo.quantidade === 0 || !pagamentoCarregado || pixIndisponivel}
-              className={cn(
-                'flex w-full items-center justify-center gap-2 rounded-2xl px-4 py-3 text-sm font-semibold transition-all active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50',
-                GALLERY_CTA,
-              )}>
-              {isProcessing ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
+            <div className="rounded-2xl border border-amber-200 bg-amber-50 p-3 text-[11px] leading-relaxed text-amber-900">
+              Pague o valor acima e anexe o comprovante. A compra só é registrada depois que você
+              clicar em <strong>Enviar comprovante e finalizar</strong>. Se fechar esta janela antes,
+              seu carrinho continuará salvo.
+            </div>
+
+            <div className="space-y-2">
+              <p className="text-xs font-medium text-gallery-accent">ANEXAR COMPROVANTE</p>
+
+              <input
+                ref={inputFileRef}
+                type="file"
+                accept="image/*,.pdf"
+                capture="environment"
+                className="hidden"
+                onChange={(e) => selecionarArquivo(e.target.files?.[0] ?? null)}
+              />
+
+              {!comprovante ? (
+                <div
+                  onClick={() => inputFileRef.current?.click()}
+                  onDragOver={(e) => { e.preventDefault(); setDragOver(true) }}
+                  onDragLeave={() => setDragOver(false)}
+                  onDrop={handleDrop}
+                  className={cn(
+                    'flex cursor-pointer flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed p-6 text-center transition-all',
+                    dragOver
+                      ? 'border-gallery-accent bg-gallery-bg'
+                      : 'border-gallery-line hover:border-gallery-accent hover:bg-gallery-bg',
+                  )}
+                >
+                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gallery-line text-gallery-accent">
+                    <Upload className="h-5 w-5" />
+                  </div>
+                  <p className="text-sm font-medium text-gallery-ink">Clique para selecionar o comprovante</p>
+                  <p className="text-xs text-gallery-muted">ou arraste o arquivo até aqui</p>
+                  <p className="mt-1 text-[10px] text-gallery-muted">JPEG, PNG ou PDF</p>
+                </div>
               ) : (
-                <QrCode className="h-4 w-4" />
+                <div className="flex items-center justify-between rounded-2xl border border-gallery-line bg-gallery-bg px-4 py-3">
+                  <div className="flex min-w-0 items-center gap-3">
+                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-gallery-line">
+                      <Upload className="h-4 w-4 text-gallery-accent" />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-medium text-gallery-ink">{comprovante.name}</p>
+                      <p className="text-[11px] text-gallery-muted">
+                        {(comprovante.size / 1024 / 1024).toFixed(2)} MB
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => inputFileRef.current?.click()}
+                    className="mr-2 shrink-0 text-xs font-medium text-gallery-accent hover:opacity-80"
+                  >
+                    Trocar
+                  </button>
+                  <button
+                    onClick={() => selecionarArquivo(null)}
+                    aria-label="Remover comprovante"
+                    className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full hover:bg-destructive/10 hover:text-destructive"
+                  >
+                    <X className="h-3.5 w-3.5" />
+                  </button>
+                </div>
               )}
-              {isProcessing
-                ? 'Gerando cobrança PIX...'
-                : `Finalizar via PIX${calculo ? ` (R$ ${calculo.total.toFixed(2)})` : ''}`}
-            </button>
+            </div>
 
             {errorMessage && (
               <div className="rounded-2xl border border-gallery-line bg-gallery-bg p-3 text-xs text-gallery-accent">
                 {errorMessage}
               </div>
             )}
-          </div>
-        )}
 
-        {/* Post-checkout: instruções de pagamento */}
-        {compra && paymentMode && !successMessage?.includes('já estão disponíveis') && (
-          <>
-            {paymentMode === 'CARTAO' ? (
-              <div className="space-y-3 rounded-2xl bg-gallery-bg p-4 text-sm ring-1 ring-gallery-line">
-                <p className="font-semibold text-gallery-ink">Pagamento com cartão de crédito</p>
-                {compra.linkPagamentoCartao ? (
-                  <>
-                    <p className="text-xs text-gallery-muted">
-                      Link de pagamento disponível. Após pagar, o estúdio confirmará e liberará as fotos.
-                    </p>
-                    <a href={compra.linkPagamentoCartao} target="_blank" rel="noopener noreferrer"
-                      className={cn('flex w-full items-center justify-center gap-1.5 rounded-2xl px-4 py-2.5 text-sm font-semibold', GALLERY_CTA)}>
-                      <ExternalLink className="h-4 w-4" />
-                      Pagar com cartão de crédito
-                    </a>
-                  </>
-                ) : (
-                  <>
-                    <p className="text-xs text-gallery-muted">
-                      Aguardando o estúdio gerar o link de pagamento. O link aparece aqui automaticamente quando estiver pronto.
-                    </p>
-                    <div className="flex items-center gap-2 text-xs text-gallery-accent">
-                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                      Atualizando automaticamente...
-                    </div>
-                    <button onClick={atualizarLinkCartao}
-                      className="flex w-full items-center justify-center gap-1.5 rounded-2xl border border-gallery-line px-4 py-2.5 text-sm font-medium text-gallery-accent transition-colors hover:bg-gallery-bg">
-                      <RefreshCw className="h-4 w-4" />
-                      Verificar agora
-                    </button>
-                  </>
-                )}
-                <p className="text-xs text-gallery-muted">
-                  Valor: <span className="font-medium text-gallery-ink">R$ {compra.valorTotal.toFixed(2)}</span>
-                </p>
-              </div>
-            ) : (
-              <>
-                <div className="space-y-3 rounded-2xl bg-gallery-bg p-4 text-sm ring-1 ring-gallery-line">
-                  <p className="font-semibold text-gallery-ink">Instruções de pagamento</p>
-
-                  <div className="space-y-2">
-                    <p className="text-xs font-medium text-gallery-muted">
-                      PIX{pagamento?.pixTipoChave ? ` (${pagamento.pixTipoChave})` : ''}
-                    </p>
-                    {pagamento?.pixChave ? (
-                      <div className="flex min-w-0 items-center justify-between gap-2 rounded-xl border border-gallery-line bg-gallery-surface px-3 py-2">
-                        <code className="truncate text-xs font-mono text-gallery-ink">{pagamento.pixChave}</code>
-                        <button onClick={copiarChavePix}
-                          className="flex items-center gap-1 whitespace-nowrap text-xs font-medium text-gallery-accent hover:opacity-80">
-                          {pixCopiado ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
-                          {pixCopiado ? 'Copiado' : 'Copiar'}
-                        </button>
-                      </div>
-                    ) : (
-                      <div className="rounded-xl border border-gallery-line bg-gallery-bg px-3 py-2 text-xs text-gallery-accent">
-                        PIX ainda não configurado pelo estúdio.
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="space-y-1 text-xs text-gallery-muted">
-                    <p><span className="font-medium text-gallery-ink">Transferência Bancária:</span></p>
-                    <p>Banco: Photoizer Bank (237)</p>
-                    <p>Agência: 0001 | Conta: 12345-6</p>
-                    <p className="font-medium text-gallery-ink">Valor: R$ {compra.valorTotal.toFixed(2)}</p>
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <p className="text-xs font-medium text-gallery-accent">ANEXAR COMPROVANTE</p>
-
-                  <input ref={inputFileRef} type="file" accept="image/*,.pdf" capture="environment" className="hidden"
-                    onChange={(e) => selecionarArquivo(e.target.files?.[0] ?? null)} />
-
-                  {!comprovante ? (
-                    <div
-                      onClick={() => inputFileRef.current?.click()}
-                      onDragOver={(e) => { e.preventDefault(); setDragOver(true) }}
-                      onDragLeave={() => setDragOver(false)}
-                      onDrop={handleDrop}
-                      className={cn(
-                        'flex cursor-pointer flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed p-6 transition-all',
-                        dragOver ? 'border-gallery-accent bg-gallery-bg' : 'border-gallery-line hover:border-gallery-accent hover:bg-gallery-bg',
-                      )}>
-                      <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gallery-line text-gallery-accent">
-                        <Upload className="h-5 w-5" />
-                      </div>
-                      <p className="text-sm font-medium text-gallery-ink">Clique para selecionar o comprovante</p>
-                      <p className="text-xs text-gallery-muted">ou arraste o arquivo até aqui</p>
-                      <p className="mt-1 text-[10px] text-gallery-muted">JPEG, PNG ou PDF</p>
-                    </div>
-                  ) : (
-                    <div className="flex items-center justify-between rounded-2xl border border-gallery-line bg-gallery-bg px-4 py-3">
-                      <div className="flex min-w-0 items-center gap-3">
-                        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-gallery-line">
-                          <Upload className="h-4 w-4 text-gallery-accent" />
-                        </div>
-                        <div className="min-w-0">
-                          <p className="truncate text-sm font-medium text-gallery-ink">{comprovante.name}</p>
-                          <p className="text-[11px] text-gallery-muted">
-                            {(comprovante.size / 1024 / 1024).toFixed(2)} MB
-                          </p>
-                        </div>
-                      </div>
-                      <button onClick={() => inputFileRef.current?.click()}
-                        className="mr-2 shrink-0 text-xs font-medium text-gallery-accent hover:opacity-80">
-                        Trocar
-                      </button>
-                      <button onClick={() => selecionarArquivo(null)}
-                        className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full hover:bg-destructive/10 hover:text-destructive">
-                        <X className="h-3.5 w-3.5" />
-                      </button>
-                    </div>
-                  )}
-
-                  <button onClick={enviarComprovante} disabled={isEnviando || !comprovante}
-                    className={cn('flex w-full items-center justify-center gap-1.5 rounded-2xl px-4 py-2.5 text-sm font-semibold disabled:opacity-50', GALLERY_CTA)}>
-                    {isEnviando ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
-                    {isEnviando ? 'Enviando...' : 'Enviar comprovante e finalizar'}
-                  </button>
-                </div>
-              </>
-            )}
-
-            <button onClick={onClose} disabled={isEnviando}
-              className="w-full py-1 text-center text-xs text-gallery-muted transition-colors hover:text-gallery-ink disabled:opacity-50">
-              Pagar depois
+            <button
+              onClick={() => void handleSubmit()}
+              disabled={!podeEnviar}
+              className={cn(
+                'flex w-full items-center justify-center gap-2 rounded-2xl px-4 py-3 text-sm font-semibold transition-all active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50',
+                GALLERY_CTA,
+              )}
+            >
+              {isProcessing ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Send className="h-4 w-4" />
+              )}
+              {isProcessing ? 'Enviando...' : 'Enviar comprovante e finalizar'}
             </button>
           </>
         )}
-
       </SheetContent>
     </Sheet>
   )

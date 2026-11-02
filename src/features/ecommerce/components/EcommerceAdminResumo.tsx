@@ -105,7 +105,6 @@ export function EcommerceAdminResumo({ agendamentoId }: { agendamentoId: string 
     (compra) => compra.status === 'AGUARDANDO_COMPROVANTE' || compra.status === 'AGUARDANDO_CONFIRMACAO',
   )
   const pagas = compras.filter((compra) => compra.status === 'PAGA')
-  const totalCurtidas = Object.values(data.favoritosPorFoto ?? {}).reduce((acc, n) => acc + n, 0)
 
   const copiarLink = async () => {
     if (!linkGaleria) {
@@ -171,9 +170,8 @@ export function EcommerceAdminResumo({ agendamentoId }: { agendamentoId: string 
         </div>
       )}
 
-      <div className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7">
+      <div className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6">
         <ResumoCard titulo="Total" valor={data.totalFotos} />
-        <ResumoCard titulo="Curtidas" valor={totalCurtidas} />
         <ResumoCard titulo="Publicadas" valor={data.fotosPublicadas} />
         <ResumoCard titulo="No pacote" valor={data.fotosSelecionadasPacote} />
         <ResumoCard titulo="Pagas" valor={data.fotosPagas} />

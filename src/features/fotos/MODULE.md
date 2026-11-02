@@ -95,7 +95,6 @@ Não existes testes para este módulo.
 - A aba **Seleção** renderiza `AdminSelecoesPage` diretamente: mostra pacote e extras com o selo `Extra`, permite baixar originais, enviar editadas, reabrir e publicar em `COM_EDICAO`; em `ENTREGA_DIRETA` permite reabrir e **aprovar** a seleção (sem upload de editadas).
 - A aba **Compras** (`GaleriaComprasPanel`) lista compras de extras, permite confirmar/recusar pagamento e definir link de cartão. Visível para `ADMIN` e `FOTOGRAFO`. É o único lugar de gestão de compras; a aba Ecommerce do agendamento virou resumo com CTAs.
 - O menu de ações da foto (aba Fotos) tem **Incluir/Remover do pacote** para `ADMIN`/`FOTOGRAFO` quando a seleção está editável (`DIRETO` ou fase `SELECAO`), preservando o override que existia na grade antiga do Ecommerce.
-- A contagem de **favoritos por foto** (que aparecia na grade antiga do Ecommerce) agora é exibida na faixa de informações do card na aba Fotos, usando `favoritosPorFoto` do resumo.
 - `useGaleriaWorkspace` agrega fotos, configuração da galeria, seleções e resumo do e-commerce com os mesmos query keys dos hooks existentes, evitando chamadas duplicadas.
 - O botão **Atualizar** no workspace refaz as queries; a aba Seleção tem atualização própria e invalida `fotos`, `selecoes-ensaio`, `galeria-ensaio` e `admin-ecommerce` após upload/publicação/reabertura.
 - As queries administrativas fazem polling de 60s (quando a aba está ativa) para refletir envio de seleção/compras feitas pelo cliente.

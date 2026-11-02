@@ -13,21 +13,19 @@ features/ecommerce/
 │   ├── AdminLinkPagamentoDialog.tsx  # Insere/remove link de cartão por compra
 │   ├── AdminPagamentoConfigDialog.tsx # Configura o PIX global do e-commerce
 │   ├── CartSummaryPanel.tsx          # Painel lateral do carrinho
-│   ├── CheckoutDialog.tsx            # Checkout multi-step (método pagamento, comprovante)
-│   ├── ComparadorFotos.tsx           # Comparação lado a lado de fotos
+│   ├── CheckoutDialog.tsx            # PIX: total, chave, comprovante e envio único
 │   ├── DepoimentosSection.tsx        # Seção de depoimentos + formulário
 │   ├── EcommerceAdminResumo.tsx      # Resumo e-commerce por agendamento (admin)
 │   ├── FotoViewer.tsx                # Visualizador fullscreen de fotos
 │   ├── GaleriaPerformancePanel.tsx   # SLA, funil, extras e série mensal
 │   ├── GaleriaPipelinePanel.tsx      # Fila operacional da Central de Galerias
 │   ├── MinhasComprasSection.tsx      # Histórico de compras do cliente
-│   ├── PhotoGrid.tsx                 # Grid responsivo de fotos (legado)
 │   ├── galeria/                      # Experiência editorial da galeria pública
 │   │   ├── GaleriaHero.tsx           # Capa, título (customizado ou nome), data e local
 │   │   ├── GaleriaRascunhoBanner.tsx # Aviso de seleção reaberta e limpeza do pacote
-│   │   ├── GaleriaNav.tsx            # Navegação mínima com favoritos/carrinho
+│   │   ├── GaleriaNav.tsx            # Navegação mínima com carrinho
 │   │   ├── GaleriaIntro.tsx          # Copy por fase e progresso do pacote
-│   │   ├── GaleriaGrid.tsx           # Grid alinhado (linha a linha) com favoritos/seleção
+│   │   ├── GaleriaGrid.tsx           # Grid alinhado (linha a linha) com seleção/extras
 │   │   ├── GaleriaDock.tsx           # Barra fixa de ações
 │   │   ├── GaleriaTimeline.tsx       # Linha do tempo da seleção/edição
 │   │   ├── GaleriaExtraDialog.tsx    # Confirmação ao exceder o pacote
@@ -52,6 +50,7 @@ features/ecommerce/
 - `sonner` — toasts
 - `recharts` — gráficos (AdminAnalyticsPage)
 - `axios` (via `@/shared/api`) — requisições HTTP
+- `canvas-confetti` — explosão de confete ao completar o pacote
 
 ### Módulos internos (shared)
 - `@/shared/api` — `apiClient`
@@ -69,16 +68,17 @@ features/ecommerce/
 
 ### Fluxo 1: Galeria do Cliente
 1. Cliente acessa `/g/:token` → `GaleriaClientePage`.
-2. Carrega fotos, carrinho, favoritos via service (sem React Query — `useState`/`useEffect`).
-3. Cliente pode: selecionar fotos do pacote, adicionar ao carrinho, favoritar, comparar (até 4).
+2. Carrega fotos e carrinho via service (sem React Query — `useState`/`useEffect`).
+3. Cliente pode: selecionar fotos do pacote e adicionar extras ao carrinho.
 4. Carrinho lateral (`CartSummaryPanel`) com resumo e botão de checkout.
 
 ### Fluxo 2: Checkout
-1. `CheckoutDialog` (galeria) ou `CheckoutPage` (pacote): 4-5 steps.
-2. Calcula valores via `ecommerceService.calcular()`.
-3. Seleciona método de pagamento (PIX/TRANSFERENCIA/CARTAO).
-4. PIX/transferência: anexa comprovante. Cartão: o staff insere um link por compra e o cliente paga pelo link.
-5. Confirma → `ecommerceService.checkout()`.
+1. `CartSummaryPanel` mostra o carrinho e o botão **“Pagar extras com PIX”**.
+2. `CheckoutDialog` mostra o total (`ecommerceService.calcular()`), a chave PIX e o campo de comprovante.
+3. O cliente paga e anexa o comprovante; o botão único **“Enviar comprovante e finalizar”** chama
+   `ecommerceService.checkoutPix()`, que cria a compra e anexa o comprovante na mesma transação.
+4. Se o cliente fechar/atualizar antes de enviar o comprovante, nenhuma compra é criada e o carrinho
+   permanece. O `CheckoutPage` de pacote virou captação de lead (sem pagamento).
 
 ### Fluxo 3: Admin — Gerenciamento de Compras
 1. `AdminEcommercePage` lista compras com filtro de status.
@@ -108,17 +108,17 @@ Não existem testes para este módulo.
 - `GaleriaClientePage` passou a respeitar `modoGaleria`, `faseGaleria`, `requerEdicao`, `podeSelecionar`, `podeComprar` e `podeBaixar`.
 - No modo `COM_EDICAO`, o cliente seleciona fotos do pacote (e extras no carrinho), envia a seleção e fica em modo leitura até a publicação da edição.
 - No modo `ENTREGA_DIRETA`, o cliente seleciona, o staff aprova e o pacote é liberado com o arquivo já publicado na galeria (que pode ter sido editado antes do upload); extras só são liberados após a confirmação do pagamento.
-- `PhotoGrid`, `FotoViewer`, `CartSummaryPanel` e `FavoritosPanel` recebem os flags de fase.
+- `FotoViewer`, `CartSummaryPanel` e `GaleriaGrid` recebem os flags de fase.
 - Cada foto exibe `#número` e o nome do arquivo; a busca aceita ambos.
 - `ecommerce.service.ts` expõe `enviarSelecao`, `selecaoAtiva`, `adminAlterarModoGaleria` e os endpoints administrativos de seleção/galeria.
 - Em `SELECAO` (ambos os modos), extras são marcados com "Incluir extra" e o painel vira "Extras da seleção"; a compra só aparece em `COMERCIALIZACAO`.
 - A seleção pode ser salva como rascunho antes do envio; após o envio, fica bloqueada.
 - O envio da seleção **não recria** a sessão do carrinho quando o servidor a considera inválida: isso perderia os extras silenciosamente. O erro é mostrado e o cliente precisa recarregar/refazer o carrinho. Se a resposta vier com `quantidadeExtras` diferente do carrinho local, a UI avisa o cliente.
-- `valoresExtras` (preço congelado por foto) é usado no grid, viewer, favoritos e resumo do carrinho.
+- `valoresExtras` (preço congelado por foto) é usado no grid, viewer e resumo do carrinho.
 - O botão “Baixar pacote” do `GaleriaDock` aparece sempre que `downloadableFotos.length > 0`, inclusive nos fluxos `ENTREGA_DIRETA` e `DIRETO`.
-- Favoritos e comparador respeitam `podeSelecionar`/`podeComprar`; não oferecem ações em fases bloqueadas.
+- Favoritos e comparação foram removidos da galeria. O filtro **Extras** substitui o antigo filtro Favoritas e lista o que é extra para o cliente: fotos no carrinho, extras compradas/pendentes (`compraExtraId`/`PAGA`) e extras anexadas à seleção ativa (`emSelecaoEdicao`). O carrinho continua sendo a fonte do checkout; o filtro não some depois que o pagamento esvazia o carrinho.
 - A galeria pública é mobile-first: header compacto com ícones, filtros fora do sticky, barra de ações fixa com safe-area no rodapé, grid de 2 colunas e rodapé fixo no visualizador.
-- O `FotoViewer` suporta swipe horizontal (além de setas e teclado) e bloqueia o scroll do fundo enquanto está aberto; o comparador também bloqueia o scroll.
+- O `FotoViewer` suporta swipe horizontal (além de setas e teclado) e bloqueia o scroll do fundo enquanto está aberto.
 - A experiência editorial usa `GaleriaHero` (capa + título + data + local), `GaleriaGrid` (grid alinhado, sem nome de arquivo/preço por foto), `GaleriaDock` e `GaleriaIntro` com copy por modo/fase.
 - O endpoint público expõe `clienteNome`, `tituloHero`, `dataHoraEnsaio` e `requerEdicao` para personalizar o hero e o texto; `tituloHero` nulo/vazio faz o hero exibir o nome do cliente. A capa é manual (definida pelo staff) com fallback para `destaque` ou primeira foto.
 - O texto do hero é editado por galeria na aba **Visão geral** do workspace administrativo (`GaleriaHeroTituloCard`) e salvo em `PUT /admin/agendamentos/{id}/galeria/titulo`.
@@ -128,8 +128,11 @@ Não existem testes para este módulo.
 - O hero usa `capaUrl` (capa manual ou fallback) e faz preload com prioridade alta. A capa é escolhida em `AdminGaleriaPage` no modo “Escolher capa”; o backend congela a versão (`capaVersao`) e devolve a URL já versionada (`?v={fotoId}-{versao}`).
 - A galeria pública revalida ao voltar para a aba (`visibilitychange`/`pageshow`) e a cada 60s, sem recarregar a página e sem apagar a seleção local em andamento.
 - Quando o staff reabre uma seleção, o backend mantém `selecionadaPacote`: as fotos anteriores voltam como **rascunho** e o cliente vê o `GaleriaRascunhoBanner`. O progresso mostra “Rascunho · X de Y escolhidas” e o dock exibe “Salvar rascunho”/“Rascunho salvo”.
+- Ao marcar a **última foto do pacote**, `GaleriaClientePage` dispara uma explosão de confete (`@/shared/lib/confetti`) **uma vez por carregamento da galeria**. O gatilho fica no evento de seleção (não em `useEffect`), então abrir uma galeria já completa não dispara. O efeito usa `canvas-confetti`, as cores do tema e respeita `prefers-reduced-motion`; o canvas não bloqueia cliques.
+- Quando o pacote fica completo em `SELECAO`, `GaleriaPacoteCompletoAviso` conduz o cliente ao envio: banner na página, CTA compacto no `FotoViewer` (fecha o visualizador e abre `GaleriaConfirmarSelecao`) e badge “Pacote completo” no `GaleriaDock`. O CTA aparece sempre que a seleção está cheia, inclusive ao voltar para a galeria; não substitui o botão de remover do pacote.
+- **Aviso de retenção**: `GaleriaAvisoRetencao` usa `DIAS_RETENCAO_FOTOS = 15` e aparece como card na galeria (após o intro), no card de espera pós-envio, no rodapé de `GaleriaConfirmarSelecao` e de forma compacta em “Minhas compras”. O texto informa que as fotos ficam disponíveis para download por 15 dias e que a galeria será encerrada depois. É uma comunicação da política do estúdio; o expurgo dos arquivos continua manual no painel de armazenamento (não existe job automático de 15 dias).
 - O banner permite **“Limpar fotos do pacote”** com confirmação. A ação chama `DELETE /ecommerce/galeria/{token}/rascunho` e desmarca somente o pacote; os extras do carrinho permanecem.
-- **Extras durante a seleção/edição**: em `SELECAO_ENVIADA`/`EM_EDICAO` (`COM_EDICAO`) e em `SELECAO_ENVIADA` (`ENTREGA_DIRETA`) a sacola continua disponível. O extra entra no snapshot da seleção ativa (backend) e o total é calculado no carrinho; o checkout permanece bloqueado até `COMERCIALIZACAO`.
+- **Extras durante a seleção/edição**: em `SELECAO_ENVIADA`/`EM_EDICAO` (`COM_EDICAO`) e em `SELECAO_ENVIADA` (`ENTREGA_DIRETA`) a sacola continua disponível. O extra entra no snapshot da seleção ativa (backend), o total é calculado no carrinho e o pagamento PIX pode ser feito nessa fase.
 - **Extras após a publicação (COM_EDICAO)**: fotos restantes aparecem com o selo **“A editar”** e podem ser compradas. Após o pagamento, `MinhasComprasSection` mostra **“Aguardando edição”** até o estúdio liberar a versão editada; o download só aparece com `versaoAtual = EDITADA`.
 - **Extras após a aprovação (ENTREGA_DIRETA)**: o extra é baixado com o arquivo já publicado assim que o pagamento é confirmado, sem passar pela fila de edição.
 - `isDownloadable`/`podeBaixarEsta` exigem `versaoAtual = EDITADA` apenas no modo `COM_EDICAO`, evitando liberar download de extra ainda não editado; em `ENTREGA_DIRETA` o arquivo publicado é o entregável.
@@ -188,10 +191,13 @@ Não existem testes para este módulo.
   foto saiu da lista pública (oculta/PAGA) e permite remover o item.
 - `carrinhoCount` é derivado de `carrinhoItens.length`; após cada mutação o frontend recarrega o
   carrinho para reconciliar com a sessão assinada.
-- O checkout é somente PIX no `CheckoutDialog`: PIX default, cálculo com loading/erro, botão
-  desabilitado sem chave PIX, comprovante e PIX no “Minhas compras”.
-- Após `enviarSelecao` com extras, o checkout PIX abre automaticamente; o carrinho não é limpo antes
-  do pagamento.
+- O checkout é somente PIX e tem **uma única finalização**: o `CheckoutDialog` mostra total + chave
+  PIX + comprovante e o botão “Enviar comprovante e finalizar”. Não existe mais “Finalizar via PIX”
+  antes do comprovante.
+- `ecommerceService.checkoutPix()` envia `multipart/form-data` para `/checkout-pix`; a compra só é
+  criada (e o carrinho limpo) junto com o comprovante. Fechar/atualizar antes disso mantém o carrinho.
+- Após `enviarSelecao` com extras, o diálogo PIX abre automaticamente; fechar sem enviar o
+  comprovante não cria compra.
 - `MinhasComprasSection` recebe `refreshKey` e busca a compra recém-criada.
 - CRM: `useGaleriaWorkspace` marca como `EXTRA` também as fotos com `compraExtraId`/`PAGA` fora da
   seleção; a aba Seleção mostra selo “Pago/Aguardando pagamento/A pagar” nas extras.
