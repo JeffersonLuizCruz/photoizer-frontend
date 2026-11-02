@@ -8,6 +8,7 @@ import { Button } from '@/shared/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/shared/components/ui/tabs'
 import { ROUTES } from '@/shared/constants'
 import { copyToClipboard } from '@/shared/lib/clipboard'
+import { obterMensagemLinkGaleria } from '@/shared/api'
 import { useAuth } from '@/features/auth/AuthProvider'
 import { useAgendamento, useGaleriaWorkspace } from '../api/queries'
 import { AdminGaleriaPage } from './AdminGaleriaPage'
@@ -49,7 +50,8 @@ export function AdminGaleriaWorkspacePage() {
   const copiarLink = async () => {
     if (!linkGaleria) return
     try {
-      await copyToClipboard(linkGaleria)
+      const mensagem = await obterMensagemLinkGaleria(linkGaleria)
+      await copyToClipboard(mensagem)
       toast.success('Link da galeria copiado!')
     } catch {
       toast.error('Não foi possível copiar o link')

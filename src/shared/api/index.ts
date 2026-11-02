@@ -1,4 +1,5 @@
 export { apiClient } from './client'
 export { downloadProtected, openProtected } from './protectedResource'
 export { extractErrorMessage } from './errors'
+export { obterMensagemLinkGaleria } from './mensagemGaleria'
 import './interceptors'

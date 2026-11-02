@@ -57,7 +57,7 @@ features/fotos/
 
 ## 5. Regras Específicas
 1. **Upload condicional por status**: A área de upload só aparece se o agendamento estiver em um conjunto específico de status (edição/seleção/entrega/finalizado).
-2. **Link de galeria pública**: Gera URL `${window.location.origin}/g/${tokenGaleria}` e copia para clipboard.
+2. **Link de galeria pública**: Gera URL `${window.location.origin}/g/${tokenGaleria}` e copia a mensagem pronta de envio (link + redes sociais) para o clipboard.
 3. **Re-export de tipo**: `foto.types.ts` apenas re-exporta `FotoEnsaio` de `@/features/ecommerce` — não define tipos próprios.
 
 ## 6. Testes

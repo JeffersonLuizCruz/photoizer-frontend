@@ -10,7 +10,7 @@ interface GaleriaAvisoRetencaoProps {
 }
 
 /**
- * Lembrete carinhoso de que as fotos ficam guardadas por 15 dias após o
+ * Lembrete carinhoso de que as fotos ficam guardadas por 7 dias após o
  * download. É comunicação da política do estúdio: o expurgo continua manual.
  */
 export function GaleriaAvisoRetencao({

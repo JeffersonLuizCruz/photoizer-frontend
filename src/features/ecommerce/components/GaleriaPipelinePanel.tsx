@@ -25,7 +25,7 @@ import { useAuth } from '@/features/auth/AuthProvider'
 import { useDebounce } from '@/shared/hooks/useDebounce'
 import { copyToClipboard } from '@/shared/lib/clipboard'
 import { cn } from '@/shared/lib/cn'
-import { extractErrorMessage } from '@/shared/api'
+import { extractErrorMessage, obterMensagemLinkGaleria } from '@/shared/api'
 import { ecommerceService } from '../services/ecommerce.service'
 import { useGaleriaPipeline, useGaleriaPipelineResumo } from '../api/queries'
 import type { EtapaGaleria, GaleriaPipelineItem, GaleriaPipelineResumo } from '../types/ecommerce.types'
@@ -119,7 +119,9 @@ function PipelineItemCard({
   const copiarLink = async () => {
     if (!item.linkGaleria) return
     try {
-      await copyToClipboard(`${window.location.origin}${item.linkGaleria}`)
+      const link = `${window.location.origin}${item.linkGaleria}`
+      const mensagem = await obterMensagemLinkGaleria(link)
+      await copyToClipboard(mensagem)
       setCopiado(true)
       toast.success('Link da galeria copiado')
       window.setTimeout(() => setCopiado(false), 2000)

@@ -19,7 +19,7 @@ import { Button } from '@/shared/components/ui/button'
 import { Input } from '@/shared/components/ui/input'
 import { StatusBadge } from '@/shared/components/layout/StatusBadge'
 import { ConfirmDialog } from '@/shared/components/layout/ConfirmDialog'
-import { extractErrorMessage } from '@/shared/api'
+import { extractErrorMessage, obterMensagemLinkGaleria } from '@/shared/api'
 import { copyToClipboard } from '@/shared/lib/clipboard'
 
 function formatCurrency(value: number): string {
@@ -112,7 +112,8 @@ export function EcommerceAdminResumo({ agendamentoId }: { agendamentoId: string 
       return
     }
     try {
-      await copyToClipboard(linkGaleria)
+      const mensagem = await obterMensagemLinkGaleria(linkGaleria)
+      await copyToClipboard(mensagem)
       toast.success('Link da galeria copiado!')
     } catch {
       toast.error('Não foi possível copiar o link. Copie manualmente o endereço exibido.')
