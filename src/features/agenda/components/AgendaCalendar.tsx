@@ -48,12 +48,23 @@ interface AgendaCalendarProps {
 
 export { type CalendarView }
 
+function compararPorHorario(a: Agendamento, b: Agendamento): number {
+  const diff = new Date(a.dataHoraEnsaio).getTime() - new Date(b.dataHoraEnsaio).getTime()
+  if (diff !== 0) return diff
+  // Desempate determinístico para horários idênticos.
+  return (a.clienteNome ?? '').localeCompare(b.clienteNome ?? '', 'pt-BR') || a.id.localeCompare(b.id)
+}
+
 function groupByDate(agendamentos: Agendamento[]): Record<string, Agendamento[]> {
   const groups: Record<string, Agendamento[]> = {}
   for (const a of agendamentos) {
     const key = format(new Date(a.dataHoraEnsaio), 'yyyy-MM-dd')
     if (!groups[key]) groups[key] = []
     groups[key].push(a)
+  }
+  // Dentro de cada dia os clientes aparecem em ordem crescente de horário.
+  for (const key of Object.keys(groups)) {
+    groups[key].sort(compararPorHorario)
   }
   return groups
 }
